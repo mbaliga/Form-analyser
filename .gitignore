@@ -1,0 +1,24 @@
+# Gradle / Kotlin
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# Android
+*.apk
+*.aab
+*.keystore
+*.jks
+.cxx/
+captures/
+
+# Secrets — BLE keys, signing config, API tokens
+.env
+*.env
+secrets.properties
+
+# IDE / OS junk
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
