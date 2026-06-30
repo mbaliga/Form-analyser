@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import xyz.mdhv.baseline.engine.model.FeatureVector
 import xyz.mdhv.baseline.engine.sport.FeatureScoreRelation
 import xyz.mdhv.baseline.engine.fatigue.FatigueTrajectory
-import xyz.mdhv.formanalyser.app.capture.ImuRecorder
+import xyz.mdhv.formanalyser.app.capture.PoseRecorder
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.data.ShotEntity
@@ -39,9 +39,10 @@ data class BaselineInfo(val ready: Boolean, val repCount: Long) {
  */
 class SessionViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = Repository(app)
-    val recorder = ImuRecorder(app)
+    val recorder = PoseRecorder(app)
 
-    val liveAngularSpeed: StateFlow<Double> get() = recorder.liveAngularSpeed
+    val liveTracking: StateFlow<Boolean> get() = recorder.liveTracking
+    val liveBowArmAngle: StateFlow<Double?> get() = recorder.liveBowArmAngle
 
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording
@@ -189,6 +190,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         if (_isRecording.value) recorder.stop()
+        recorder.close()
         super.onCleared()
     }
 }

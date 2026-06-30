@@ -1,82 +1,78 @@
 # app-android — the capture instrument
 
-The Android app that turns the phone into the measurement instrument (handoff §5: "Phone =
-the instrument"). It captures sensor data, runs the archery module + engine **on-device**, and
-shows live + post-session feedback in the Hyle design language.
+The Android app that turns the phone into a **vision** instrument (handoff §5: "Phone = the
+instrument"). The phone sits on a tripod, lateral/sagittal to the archer, and the camera +
+on-device pose estimation analyse **form and the shot sequence**. It runs the archery module +
+engine on-device and shows live + post-session feedback in the Hyle design language.
 
-> **Status: IMU-first MVP implemented; not wired into the default Gradle build.** The module
-> exists (`build.gradle.kts` + sources below), but the root `settings.gradle.kts` deliberately
-> omits it so the headless engine/archery CI stays green without an Android SDK. To build it:
->
-> 1. add `include(":app-android")` to the root `settings.gradle.kts`
-> 2. provide an Android SDK via a `local.properties` (`sdk.dir=/path/to/Android/sdk`) or `ANDROID_HOME`
-> 3. `./gradlew :app-android:assembleDebug`
->
-> This code was written without an on-device compile, so expect a few small build fixes on first
-> run. The hardware-independent logic it sits on (`:engine`, `:archery-module`) is unit-tested.
+> This is the **free** app and is camera-based — there is no bow-mounted hardware. The
+> sensor-based shot-to-shot signals (drift / release / cant from a bow IMU like the Steady Aim
+> A1 Pro) are the **paid** Baseline add-on, parked in the `baseline` repo.
+
+> **Not wired into the default Gradle build by default.** The root `settings.gradle.kts` gates
+> this module behind `-PwithAndroid` so the SDK-free engine/archery build runs anywhere. CI's
+> `android` workflow builds it with `./gradlew :app-android:assembleDebug -PwithAndroid` on a
+> runner that ships the Android SDK. To build locally, add an Android SDK (`local.properties`
+> `sdk.dir=…` or `ANDROID_HOME`) and run the same command.
+
+> **Required model asset (not in git):** place the BlazePose model at
+> `app-android/src/main/assets/pose_landmarker_lite.task` (download from MediaPipe's model
+> page). It's a binary loaded at runtime; the app compiles without it but won't track pose
+> until it's present.
 
 ## What's implemented (MVP, handoff §11)
 
-The full IMU-first loop, end to end:
-- `capture/ImuRecorder` — `SensorManager` gyro+accel → fused `TimeSeries` (deg/s, g) + a live steadiness readout.
+The full vision loop, end to end:
+- `capture/PoseRecorder` — CameraX frames → MediaPipe Pose (BlazePose) → a `PoseSequence`, plus a live form readout (bow-arm angle, tracking state).
 - `data/` — Room persistence (athlete / session / shots-as-features + score + baseline flag).
-- `domain/ArcheryAnalyzer` + `SessionViewModel` — segment → extract → build baseline → score deviation → fatigue → signal↔score correlation.
-- `ui/` — Hyle-themed Compose: Home (session setup) · Capture (live steadiness gauge w/ radium-green provenance glow) · Review (per-shot cards, manual score entry, baseline toggles, steadiness-trend + pin-drift-vs-score charts, fatigue + correlation summaries).
+- `domain/ArcheryAnalyzer` + `SessionViewModel` — segment → extract form features → build baseline → score deviation → fatigue → signal↔score correlation.
+- `ui/` — Hyle-themed Compose: Home (session setup) · Capture (CameraX preview + live form readout, radium-green provenance glow) · Review (per-shot cards, manual score entry, baseline toggles, bow-arm trend + form-vs-score charts, fatigue + correlation summaries).
 
-Still to come (later layers): real-time per-shot detection during capture, CameraX/BlazePose form, A1 Pro BLE, target-face CV scoring, raw-window file storage.
+Still to come (later layers): real-time per-shot detection during capture, pose-overlay rendering, flexibility/ROM tests, target-face CV scoring, the web review companion. Sensor signals come via the paid add-on.
 
 ## Dependencies (pin at build time, handoff §6)
 
 | Concern | Library |
 |---|---|
 | UI | Jetpack Compose (native Kotlin), Hyle design tokens |
-| Camera/pose | CameraX + MediaPipe Pose / BlazePose (GHUM) |
-| Phone IMU | `SensorManager` (`TYPE_GYROSCOPE`, `TYPE_ACCELEROMETER`, `TYPE_ROTATION_VECTOR`), `SENSOR_DELAY_FASTEST` |
-| BLE (A1 Pro / external IMU) | Nordic Android-BLE-Library; nRF Connect for discovery |
-| Storage | Room/SQLite (raw windows + reps + sessions) |
+| Camera | CameraX (core/camera2/lifecycle/view) |
+| Pose | MediaPipe Tasks Vision — Pose Landmarker (BlazePose GHUM) |
+| Storage | Room/SQLite (sessions / shots-as-features) |
 | Engine | this repo's `:engine` + `:archery-module` modules (no external dependency) |
 
-## MVP screen flow (handoff §11 first build target)
+## MVP screen flow
 
-1. **Session setup** — pick athlete, enter bow/draw-weight (the known load for inverse statics).
-2. **Live capture** — bow-mounted phone IMU streams; live steadiness + cant readout during the
-   hold; provenance-glow = radium-green (on-device inference).
-3. **Per-shot card** — after the release spike, show segmented phases + the shot's features and
-   per-shot deviation vs baseline; prompt for **manual arrow score**.
-4. **Baseline build** — mark good shots; the engine's `BaselineBuilder` firms up "your good"
-   (shows N/8 until ready).
-5. **Session review** — stability trend across shots, **fatigue** (steadiness decay), and a
-   first **signal-vs-score scatter** from `SignalScoreCorrelation`.
+1. **Session setup** — athlete, draw weight (kept for future inverse-statics calibration), distance.
+2. **Live capture** — CameraX preview, side-on; live "tracking ✓ / bow-arm angle" readout; provenance-glow = radium-green (on-device inference). Record an end.
+3. **Analyse** — on stop, the pose sequence is segmented into shots (draw → anchor → release) and form features are extracted and persisted.
+4. **Baseline build** — mark good shots; the engine's `BaselineBuilder` firms up "your good" (shows N/8 until ready).
+5. **Session review** — per-shot form + deviation, bow-arm **trend** (fatigue = downward slope), **form-vs-score** scatter, and `SignalScoreCorrelation` summaries.
 
 ## Capture → module → engine wiring (illustrative)
 
-The hardware-touching code is thin; everything below the `TimeSeries` boundary is already
-implemented and tested in `:archery-module` and `baseline-engine`.
+The camera-touching code is thin; everything below the `PoseSequence` boundary is implemented
+and unit-tested in `:archery-module` and `:engine`.
 
 ```kotlin
-// 1. Collect a bow-IMU window from SensorManager into the engine's TimeSeries.
-//    channels MUST be ArcheryChannels.{GYRO_*, ACC_*}; gyro in deg/s, accel in g.
-val window: TimeSeries = imuRecorder.toTimeSeries()   // app-owned (SensorManager)
+// 1. CameraX ImageAnalysis frames -> PoseRecorder (MediaPipe) -> a PoseSequence while recording.
+poseRecorder.process(imageProxy)              // per frame; app-owned (CameraX)
+val sequence: PoseSequence = poseRecorder.stop()!!
 
-// 2. Segment + extract — pure module code, no Android types.
-val shots = ArcheryModule.segmenter.segment(window)
+// 2. Segment + extract form features — pure module code, no Android types.
+val shots = ArcheryModule.segmenter.segment(sequence)
 val features = shots.map { ArcheryModule.extractor.extract(it) }
 
-// 3. (optional) add strength features from a sagittal pose frame at full draw.
-val moments = InverseStatics.analyze(pose, drawForceN, stringDir, athleteBodyMassKg)
-val shotFeatures = features.last() + moments.asFeatures()
-
-// 4. Score against the athlete's baseline (engine).
-val deviation = DeviationScorer(baseline, ArcheryModule.deviationWeights).score(shotFeatures)
+// 3. Score against the athlete's baseline (engine).
+val deviation = DeviationScorer(baseline, ArcheryModule.deviationWeights).score(features.last())
 //    deviation.stability -> the 0..100 the archer watches; deviation.topDeviation -> the diagnosis
 
-// 5. After logging arrow scores, surface the differentiator.
-val relations = SignalScoreCorrelation.correlate(session.reps)  // "this drift costs you ~X points"
+// 4. After logging arrow scores, surface the differentiator.
+val relations = SignalScoreCorrelation.correlate(session.reps)  // "this form drift costs you ~X points"
 ```
 
-## On-device validation plan (handoff §4b)
+## Validation plan
 
-Run the Steady Aim A1 Pro's own app side-by-side and compare our `steadiness` / `pinDriftDeg` /
-phase segmentation against its USA-Archery-grade numbers. Tune `SegmenterConfig` and
-`STEADINESS_SCALE_DEG_PER_S` until they track. Only then pursue reverse-engineering the A1 Pro
-GATT profile to fold it in as a first-class sensor (§4a).
+Record an archer side-on and confirm the pose-based phase segmentation (draw / anchor / release)
+and the form features (bow-arm angle, draw-elbow, spine lean, shoulder tilt) match coach
+judgement; tune `PoseSegmenterConfig` and the feature definitions against real footage. The axis
+conventions and "good" ranges are first-pass and need that validation before they're trusted.

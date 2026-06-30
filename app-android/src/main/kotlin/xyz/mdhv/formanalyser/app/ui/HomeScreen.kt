@@ -64,8 +64,8 @@ fun HomeScreen(vm: SessionViewModel, onSessionStarted: () -> Unit) {
         }
 
         Text(
-            "Mount the phone to the bow's stabilizer, then shoot your end. " +
-                "Each shot is segmented into set-up / hold / release automatically.",
+            "Set the phone on a tripod, side-on (sagittal) to the archer, framing the whole body. " +
+                "Each shot's draw → anchor → release is segmented from your pose automatically.",
             color = Hyle.OnSurfaceDim,
         )
     }

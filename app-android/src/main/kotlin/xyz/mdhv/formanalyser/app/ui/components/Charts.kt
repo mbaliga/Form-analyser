@@ -50,19 +50,19 @@ fun SteadinessGauge(value: Double, modifier: Modifier = Modifier) {
 
 /** Steadiness-across-shots line (the session trend; fatigue is its downward slope). */
 @Composable
-fun TrendLine(values: List<Double>, modifier: Modifier = Modifier) {
+fun TrendLine(values: List<Double>, modifier: Modifier = Modifier, minV: Double = 0.0, maxV: Double = 100.0) {
     if (values.isEmpty()) {
         Text("No shots yet.", color = Hyle.OnSurfaceDim)
         return
     }
     Canvas(modifier = modifier.fillMaxWidth().height(140.dp)) {
-        val maxV = 100.0
-        val minV = 0.0
+        val span = if (maxV - minV < 1e-9) 1.0 else maxV - minV
         val n = values.size
         fun x(i: Int) = if (n == 1) size.width / 2 else size.width * i / (n - 1)
-        fun y(v: Double) = (size.height * (1 - (v - minV) / (maxV - minV))).toFloat()
-        // baseline grid line at 50
-        drawLine(Hyle.SurfaceVariant, Offset(0f, y(50.0)), Offset(size.width, y(50.0)), 1.5f)
+        fun y(v: Double) = (size.height * (1 - (v - minV) / span)).toFloat()
+        // midpoint grid line
+        val mid = (minV + maxV) / 2
+        drawLine(Hyle.SurfaceVariant, Offset(0f, y(mid)), Offset(size.width, y(mid)), 1.5f)
         for (i in 0 until n - 1) {
             drawLine(
                 color = Hyle.Accent,

@@ -9,22 +9,22 @@ import xyz.mdhv.baseline.engine.fatigue.FatigueTracker
 import xyz.mdhv.baseline.engine.fatigue.FatigueTrajectory
 import xyz.mdhv.baseline.engine.model.FeatureVector
 import xyz.mdhv.baseline.engine.model.Rep
-import xyz.mdhv.baseline.engine.model.TimeSeries
 import xyz.mdhv.baseline.engine.sport.FeatureScoreRelation
 import xyz.mdhv.baseline.engine.sport.SignalScoreCorrelation
-import xyz.mdhv.formanalyser.archery.ArcheryFeatureExtractor
 import xyz.mdhv.formanalyser.archery.ArcheryModule
+import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
+import xyz.mdhv.formanalyser.archery.pose.PoseSequence
 
 /**
- * Bridges the app to the (free) engine + archery module: segment/extract a captured window,
- * build & score against a baseline, and surface fatigue + signal->score correlation. All the
- * actual math lives in the modules; this is glue + JSON (de)serialisation for storage.
+ * Bridges the app to the (free, vision) engine + archery module: segment/extract a captured
+ * pose sequence into per-shot form features, build & score against a baseline, and surface
+ * fatigue + signal->score correlation. The math lives in the modules; this is glue + JSON.
  */
 object ArcheryAnalyzer {
 
-    /** Segment a captured IMU window into shots and extract each shot's feature vector. */
-    fun analyze(window: TimeSeries): List<FeatureVector> =
-        ArcheryModule.segmenter.segment(window).map { ArcheryModule.extractor.extract(it) }
+    /** Segment a pose capture into shots and extract each shot's form feature vector. */
+    fun analyze(sequence: PoseSequence): List<FeatureVector> =
+        ArcheryModule.segmenter.segment(sequence).map { ArcheryModule.extractor.extract(it) }
 
     fun buildBaseline(goodShots: List<FeatureVector>): BaselineModel {
         val builder = BaselineBuilder()
@@ -35,10 +35,10 @@ object ArcheryAnalyzer {
     fun score(baseline: BaselineModel, features: FeatureVector): DeviationResult =
         DeviationScorer(baseline, ArcheryModule.deviationWeights).score(features)
 
-    /** Steadiness decay across the session — the fatigue story (handoff §3.3). */
+    /** Form degradation across the session — fatigue via bow-arm-angle decay (handoff §3.3). */
     fun fatigue(shotsInOrder: List<FeatureVector>): FatigueTrajectory? {
-        val steadiness = shotsInOrder.map { it[ArcheryFeatureExtractor.STEADINESS] ?: Double.NaN }
-        return FatigueTracker.analyze(steadiness, higherIsBetter = true)
+        val series = shotsInOrder.map { it[FormFeatureExtractor.BOW_ARM_ANGLE] ?: Double.NaN }
+        return FatigueTracker.analyze(series, higherIsBetter = true)
     }
 
     fun correlations(reps: List<Rep>): List<FeatureScoreRelation> =

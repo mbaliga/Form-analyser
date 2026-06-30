@@ -68,5 +68,15 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
+    // CameraX — capture frames for pose estimation.
+    val camerax = "1.4.1"
+    implementation("androidx.camera:camera-core:$camerax")
+    implementation("androidx.camera:camera-camera2:$camerax")
+    implementation("androidx.camera:camera-lifecycle:$camerax")
+    implementation("androidx.camera:camera-view:$camerax")
+
+    // MediaPipe Pose (BlazePose) — on-device pose landmarks.
+    implementation("com.google.mediapipe:tasks-vision:0.10.20")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

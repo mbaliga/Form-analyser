@@ -2,6 +2,8 @@ package xyz.mdhv.formanalyser.archery
 
 import xyz.mdhv.baseline.engine.sport.ScoringRubric
 import xyz.mdhv.baseline.engine.sport.SportModule
+import xyz.mdhv.formanalyser.archery.pose.PoseSequence
+import xyz.mdhv.formanalyser.archery.pose.PoseShot
 
 /**
  * Standard target-archery 10-ring scoring. A miss is 0; X (inner 10) is scored as 10 for
@@ -13,34 +15,36 @@ object ArcheryScoringRubric : ScoringRubric {
 }
 
 /**
- * The archery plug-in for the Baseline engine. This is the single object the engine talks to;
- * everything archery-specific is reachable from here, and nothing here leaks into the engine.
- *
- * The deviation weights encode the governing principle (handoff §3.3): the sensor-owned,
- * shot-to-shot signals (release, drift, cant) decide *this* arrow and are weighted above the
- * slower postural/contextual features.
+ * The (free, vision-based) archery plug-in for the Baseline engine. Input is a pose capture
+ * (`PoseSequence`); the module segments shots and extracts postural form + sequence-timing
+ * features. The shot-to-shot sensor signals (drift / release / cant) are the paid Baseline
+ * add-on's job, not here.
  */
-object ArcheryModule : SportModule<ArcheryShot> {
+object ArcheryModule : SportModule<PoseSequence, PoseShot> {
     override val sportId: String = "archery"
 
-    override val segmenter = ArcheryShotSegmenter()
-    override val extractor = ArcheryFeatureExtractor()
+    override val segmenter = PoseShotSegmenter()
+    override val extractor = FormFeatureExtractor()
     override val scoring = ArcheryScoringRubric
 
+    // Alignment features that most define form are weighted above the looser ones. These are
+    // first-pass weights to tune with the coach once there's real footage + scores.
     override val deviationWeights: Map<String, Double> = mapOf(
-        ArcheryFeatureExtractor.RELEASE_PEAK to 2.0,
-        ArcheryFeatureExtractor.PIN_DRIFT_DEG to 2.0,
-        ArcheryFeatureExtractor.CANT_DEG to 1.5,
-        ArcheryFeatureExtractor.STEADINESS to 1.5,
-        // hold duration & tremor frequency are weaker per-shot predictors.
-        ArcheryFeatureExtractor.HOLD_DURATION_S to 0.5,
-        ArcheryFeatureExtractor.TREMOR_HZ to 0.5,
+        FormFeatureExtractor.BOW_ARM_ANGLE to 2.0,
+        FormFeatureExtractor.DRAW_ELBOW_ANGLE to 1.5,
+        FormFeatureExtractor.DRAW_ARM_TILT to 1.5,
+        FormFeatureExtractor.SPINE_LEAN to 1.5,
+        FormFeatureExtractor.SHOULDER_TILT to 1.0,
+        FormFeatureExtractor.HEAD_LEAN to 1.0,
+        FormFeatureExtractor.STANCE_WIDTH to 0.5,
+        FormFeatureExtractor.HOLD_DURATION_S to 0.5,
+        FormFeatureExtractor.DRAW_DURATION_S to 0.5,
     )
 
+    // Fatigue (form degradation across a session): the bow arm tends to drop and posture to
+    // lean as the archer tires. Polarity/choice to validate with logged sessions.
     override val fatigueMetrics: Map<String, Boolean> = mapOf(
-        // higher steadiness = fresher; steadiness decay across the session = fatigue.
-        ArcheryFeatureExtractor.STEADINESS to true,
-        // drift and tremor grow with fatigue.
-        ArcheryFeatureExtractor.PIN_DRIFT_DEG to false,
+        FormFeatureExtractor.BOW_ARM_ANGLE to true,  // straighter (higher) = fresher
+        FormFeatureExtractor.SPINE_LEAN to false,    // more lean = more fatigued
     )
 }

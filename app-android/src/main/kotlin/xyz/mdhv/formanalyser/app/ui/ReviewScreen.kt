@@ -32,7 +32,7 @@ import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.ui.components.Scatter
 import xyz.mdhv.formanalyser.app.ui.components.TrendLine
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
-import xyz.mdhv.formanalyser.archery.ArcheryFeatureExtractor
+import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
 
 @Composable
 fun ReviewScreen(vm: SessionViewModel) {
@@ -55,8 +55,12 @@ fun ReviewScreen(vm: SessionViewModel) {
         }
 
         item {
-            SectionCard("Steadiness trend (fatigue = downward slope)") {
-                TrendLine(values = shots.sortedBy { it.index }.map { it.features[ArcheryFeatureExtractor.STEADINESS] ?: 0.0 })
+            SectionCard("Bow-arm trend (fatigue = downward slope)") {
+                TrendLine(
+                    values = shots.sortedBy { it.index }.map { it.features[FormFeatureExtractor.BOW_ARM_ANGLE] ?: 0.0 },
+                    minV = 90.0,
+                    maxV = 180.0,
+                )
                 fatigue?.let {
                     Text(
                         "Decay ${fmtPct(it.decayFraction)} across ${it.repCount} shots " +
@@ -68,11 +72,11 @@ fun ReviewScreen(vm: SessionViewModel) {
         }
 
         item {
-            SectionCard("Pin-drift vs arrow score") {
+            SectionCard("Bow-arm angle vs arrow score") {
                 val pts = shots.mapNotNull { s ->
-                    val drift = s.features[ArcheryFeatureExtractor.PIN_DRIFT_DEG]
+                    val angle = s.features[FormFeatureExtractor.BOW_ARM_ANGLE]
                     val score = s.score
-                    if (drift != null && score != null) drift to score else null
+                    if (angle != null && score != null) angle to score else null
                 }
                 Scatter(points = pts)
             }
@@ -135,10 +139,10 @@ private fun ShotCard(shot: ShotView, onScore: (Double?) -> Unit, onBaseline: (Bo
                 }
             }
             Text(
-                "steadiness ${fmt(shot.features[ArcheryFeatureExtractor.STEADINESS], 0)} · " +
-                    "drift ${fmt(shot.features[ArcheryFeatureExtractor.PIN_DRIFT_DEG], 2)}° · " +
-                    "cant ${fmt(shot.features[ArcheryFeatureExtractor.CANT_DEG], 1)}° · " +
-                    "release ${fmt(shot.features[ArcheryFeatureExtractor.RELEASE_PEAK], 0)}°/s",
+                "bow arm ${fmt(shot.features[FormFeatureExtractor.BOW_ARM_ANGLE], 0)}° · " +
+                    "draw elbow ${fmt(shot.features[FormFeatureExtractor.DRAW_ELBOW_ANGLE], 0)}° · " +
+                    "spine ${fmt(shot.features[FormFeatureExtractor.SPINE_LEAN], 1)}° · " +
+                    "shoulders ${fmt(shot.features[FormFeatureExtractor.SHOULDER_TILT], 1)}°",
                 color = Hyle.OnSurfaceDim,
             )
             shot.topDeviationFeature?.let { Text("biggest deviation: $it", color = Hyle.OnSurfaceDim) }
