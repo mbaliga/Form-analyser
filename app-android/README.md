@@ -4,12 +4,26 @@ The Android app that turns the phone into the measurement instrument (handoff §
 the instrument"). It captures sensor data, runs the archery module + engine **on-device**, and
 shows live + post-session feedback in the Hyle design language.
 
-> **Not yet in the Gradle build.** This module needs the Android Gradle Plugin + Android SDK,
-> which aren't available in the headless CI used for `archery-module`. Add
-> `include(":app-android")` to the root `settings.gradle.kts` and create `app-android/build.gradle.kts`
-> with the AGP once you're building on a machine with the Android SDK. The headless,
-> hardware-independent logic already lives — and is tested — in `archery-module`; this module is
-> the thin capture/UI shell on top of it.
+> **Status: IMU-first MVP implemented; not wired into the default Gradle build.** The module
+> exists (`build.gradle.kts` + sources below), but the root `settings.gradle.kts` deliberately
+> omits it so the headless engine/archery CI stays green without an Android SDK. To build it:
+>
+> 1. add `include(":app-android")` to the root `settings.gradle.kts`
+> 2. provide an Android SDK via a `local.properties` (`sdk.dir=/path/to/Android/sdk`) or `ANDROID_HOME`
+> 3. `./gradlew :app-android:assembleDebug`
+>
+> This code was written without an on-device compile, so expect a few small build fixes on first
+> run. The hardware-independent logic it sits on (`:engine`, `:archery-module`) is unit-tested.
+
+## What's implemented (MVP, handoff §11)
+
+The full IMU-first loop, end to end:
+- `capture/ImuRecorder` — `SensorManager` gyro+accel → fused `TimeSeries` (deg/s, g) + a live steadiness readout.
+- `data/` — Room persistence (athlete / session / shots-as-features + score + baseline flag).
+- `domain/ArcheryAnalyzer` + `SessionViewModel` — segment → extract → build baseline → score deviation → fatigue → signal↔score correlation.
+- `ui/` — Hyle-themed Compose: Home (session setup) · Capture (live steadiness gauge w/ radium-green provenance glow) · Review (per-shot cards, manual score entry, baseline toggles, steadiness-trend + pin-drift-vs-score charts, fatigue + correlation summaries).
+
+Still to come (later layers): real-time per-shot detection during capture, CameraX/BlazePose form, A1 Pro BLE, target-face CV scoring, raw-window file storage.
 
 ## Dependencies (pin at build time, handoff §6)
 

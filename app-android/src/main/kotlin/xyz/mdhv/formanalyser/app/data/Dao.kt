@@ -1,0 +1,55 @@
+package xyz.mdhv.formanalyser.app.data
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface AthleteDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(athlete: AthleteEntity)
+
+    @Query("SELECT * FROM athletes LIMIT 1")
+    suspend fun firstOrNull(): AthleteEntity?
+}
+
+@Dao
+interface SessionDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(session: SessionEntity)
+
+    @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC")
+    fun forAthlete(athleteId: String): Flow<List<SessionEntity>>
+}
+
+@Dao
+interface ShotDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(shots: List<ShotEntity>)
+
+    @Upsert
+    suspend fun upsert(shot: ShotEntity)
+
+    @Query("SELECT * FROM shots WHERE sessionId = :sessionId ORDER BY indexInSession ASC")
+    fun forSession(sessionId: String): Flow<List<ShotEntity>>
+
+    @Query("SELECT * FROM shots WHERE sessionId = :sessionId ORDER BY indexInSession ASC")
+    suspend fun forSessionOnce(sessionId: String): List<ShotEntity>
+
+    /** The athlete's "good" shots — the material a baseline is built from. */
+    @Query("SELECT * FROM shots WHERE athleteId = :athleteId AND isBaseline = 1")
+    suspend fun baselineShots(athleteId: String): List<ShotEntity>
+
+    /** All scored shots for the athlete — the basis for signal->score correlation. */
+    @Query("SELECT * FROM shots WHERE athleteId = :athleteId AND score IS NOT NULL")
+    suspend fun scoredShots(athleteId: String): List<ShotEntity>
+
+    @Query("UPDATE shots SET score = :score WHERE id = :shotId")
+    suspend fun setScore(shotId: String, score: Double?)
+
+    @Query("UPDATE shots SET isBaseline = :isBaseline WHERE id = :shotId")
+    suspend fun setBaseline(shotId: String, isBaseline: Boolean)
+}
