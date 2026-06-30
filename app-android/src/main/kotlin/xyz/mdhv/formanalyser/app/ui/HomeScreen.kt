@@ -31,8 +31,8 @@ fun HomeScreen(vm: SessionViewModel, onSessionStarted: () -> Unit) {
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Form Analyser", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
-        Text("Archery · shot-stability tracker", color = Hyle.OnSurfaceDim)
+        Text("Crocodyl", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+        Text("Archery · form & shot-sequence analysis", color = Hyle.OnSurfaceDim)
         Text("Athlete: $athlete", color = Hyle.OnBackground)
 
         OutlinedTextField(

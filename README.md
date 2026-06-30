@@ -1,5 +1,9 @@
 # Form Analyser (codename) — Archery
 
+> **Product name: Crocodyl.** `form-analyser` is the repo/codename; the app ships as
+> **Crocodyl**. A full repo/package rebrand is deferred until just before the Play listing —
+> see [`docs/naming.md`](docs/naming.md).
+
 A **standalone, free** Android-first instrument that measures an archer's **form, stability,
 and strength (as load/fatigue)**, establishes a **personal baseline**, scores **per-shot
 deviation**, tracks **fatigue across a session**, and — the differentiator — **correlates those
