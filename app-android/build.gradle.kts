@@ -10,6 +10,11 @@ plugins {
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
 }
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 android {
     namespace = "xyz.mdhv.formanalyser.app"
     compileSdk = 35
