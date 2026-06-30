@@ -20,7 +20,7 @@ shows live + post-session feedback in the Hyle design language.
 | Phone IMU | `SensorManager` (`TYPE_GYROSCOPE`, `TYPE_ACCELEROMETER`, `TYPE_ROTATION_VECTOR`), `SENSOR_DELAY_FASTEST` |
 | BLE (A1 Pro / external IMU) | Nordic Android-BLE-Library; nRF Connect for discovery |
 | Storage | Room/SQLite (raw windows + reps + sessions) |
-| Engine | `xyz.mdhv.baseline:baseline-engine` + this repo's `:archery-module` |
+| Engine | this repo's `:engine` + `:archery-module` modules (no external dependency) |
 
 ## MVP screen flow (handoff §11 first build target)
 

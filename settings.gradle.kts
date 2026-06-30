@@ -1,6 +1,8 @@
 rootProject.name = "form-analyser"
 
-// The archery sport-module: pure-Kotlin/JVM, headless-testable.
+// The sport-agnostic Baseline engine, shipped inside the free app.
+include(":engine")
+// The archery sport-module: implements the engine's SportModule seam.
 include(":archery-module")
 
 // NOTE: the Android capture app (:app-android) is intentionally NOT wired into this build

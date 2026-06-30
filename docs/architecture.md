@@ -28,10 +28,14 @@ posture; `ArcheryModule.fatigueMetrics` marks steadiness (higher = fresher) and 
             │ InverseStatics → holding-moment features (when pose available)                │
             └───────────────┬──────────────────────────────────────────────────────────────┘
                             │ FeatureVector + score
-            ┌───────────────▼──────────── baseline-engine (separate repo) ─────────────────┐
+            ┌───────────────▼──────────── engine module (in this repo) ────────────────────┐
             │ BaselineBuilder/Model · DeviationScorer · FatigueTracker · SignalScore…       │
             └───────────────────────────────────────────────────────────────────────────────┘
 ```
+
+The engine ships **inside the free app** (the `:engine` module). The separate `baseline` repo
+is the paid add-on (EEG mental-state channel + advanced analytics) that consumes the engine —
+the free app never depends on it.
 
 ## Per-shot feature set (what the extractor produces)
 

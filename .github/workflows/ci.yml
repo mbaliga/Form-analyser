@@ -3,38 +3,26 @@ name: ci
 on:
   push:
     paths:
+      - "engine/**"
       - "archery-module/**"
+      - "*.gradle.kts"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
+      - "engine/**"
       - "archery-module/**"
+      - "*.gradle.kts"
       - ".github/workflows/ci.yml"
 
 jobs:
-  archery-module:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Form Analyser
-        uses: actions/checkout@v4
-
-      # The archery module depends on the Baseline engine, which lives in a separate repo.
-      # We check it out and publish it to this runner's mavenLocal before testing.
-      # Requires a repo/PAT secret named ENGINE_REPO_TOKEN with read access to mbaliga/baseline
-      # (the default GITHUB_TOKEN is scoped to this repo only and cannot read a private sibling).
-      - name: Checkout Baseline engine
-        uses: actions/checkout@v4
-        with:
-          repository: mbaliga/baseline
-          token: ${{ secrets.ENGINE_REPO_TOKEN }}
-          path: baseline
-
+      - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
-
-      - name: Publish engine to mavenLocal
-        run: cd baseline/engine && ./gradlew publishToMavenLocal --no-daemon
-
-      - name: Test archery module
-        run: ./gradlew :archery-module:test --no-daemon
+      # Self-contained: builds the engine module and the archery module together.
+      - name: Test
+        run: ./gradlew test --no-daemon

@@ -1,20 +1,31 @@
 # Form Analyser (codename) — Archery
 
-The first sport built on the [Baseline engine](https://github.com/mbaliga/baseline). An
-Android-first instrument that measures an archer's **form, stability, and strength (as
-load/fatigue)**, establishes a **personal baseline**, scores **per-shot deviation**, tracks
-**fatigue across a session**, and — the differentiator — **correlates those signals with the
-actual arrow score**.
+A **standalone, free** Android-first instrument that measures an archer's **form, stability,
+and strength (as load/fatigue)**, establishes a **personal baseline**, scores **per-shot
+deviation**, tracks **fatigue across a session**, and — the differentiator — **correlates those
+signals with the actual arrow score**.
 
 > Archery is the well-posed first case (handoff §1): discrete repeatable shots, a known
 > external load (draw weight), a quasi-static hold, the draw arm in the camera's good
 > (sagittal) plane, and a real arrow to validate against.
 
+This repo is self-contained: the free app ships with its own copy of the sport-agnostic
+**Baseline engine**. The separate [`baseline`](https://github.com/mbaliga/baseline) repo is the
+**paid add-on** (the MW75 EEG mental-state channel + advanced analytics) that layers on top —
+Form Analyser does not depend on it.
+
 ## Repo layout
 
 ```
 form-analyser/
-├── archery-module/      # the archery SportModule (pure Kotlin/JVM, headless-testable)  ← built & tested here
+├── engine/              # the sport-agnostic Baseline engine (pure Kotlin/JVM)  ← shipped in the free app
+│   └── src/main/kotlin/xyz/mdhv/baseline/engine/
+│       ├── baseline/    # BaselineBuilder/Model — per-athlete "your good"
+│       ├── deviation/   # DeviationScorer — signed z + 0–100 stability
+│       ├── fatigue/     # FatigueTracker — session decay trajectory
+│       ├── sport/       # SportModule seam + SignalScoreCorrelation
+│       ├── model/ stats/
+├── archery-module/      # the archery SportModule (pure Kotlin/JVM, depends on :engine)
 │   └── src/main/kotlin/xyz/mdhv/formanalyser/archery/
 │       ├── ArcheryShotSegmenter.kt   # set-up / hold / release from bow-IMU motion
 │       ├── ArcheryFeatureExtractor.kt# steadiness, pin-drift, cant, release signature
@@ -25,29 +36,24 @@ form-analyser/
 └── docs/architecture.md # how this maps to the build handoff
 ```
 
-## How it relates to Baseline
+## Architecture in one line
 
-`archery-module` implements the engine's `SportModule` seam — it supplies the
-rep-segmenter, feature extractor, and scoring rubric; the engine owns the baseline,
-deviation, fatigue, and signal→score correlation. The dependency is one-way: this repo
-depends on `xyz.mdhv.baseline:baseline-engine`, never the reverse.
+`archery-module` implements the engine's `SportModule` seam (rep-segmenter, feature extractor,
+scoring rubric); `:engine` owns the baseline, deviation, fatigue, and signal→score correlation.
+The engine is a clean, sport-neutral module so a second sport (fencing / pistol / hangboard) can
+reuse it later — extracted to its own package at that point if desired.
 
 ## Build & test
 
-The archery module depends on the Baseline engine, resolved from `mavenLocal()`. Publish the
-engine first:
+Self-contained — no external repo or artifact needed:
 
 ```bash
-# in the baseline repo
-cd engine && ./gradlew publishToMavenLocal
-
-# here
-./gradlew :archery-module:test
+./gradlew test     # builds :engine + :archery-module and runs all unit tests
 ```
 
-Requires JDK 21. The Android app (`app-android/`) is **not** part of this Gradle build yet —
-it needs the Android SDK and is built on a dev machine / in CI with the Android toolchain.
-See [`app-android/README.md`](app-android/README.md).
+Requires JDK 21. The Android app (`app-android/`) is **not** part of this Gradle build yet — it
+needs the Android SDK and is built on a dev machine / in CI with the Android toolchain. See
+[`app-android/README.md`](app-android/README.md).
 
 ## First build target (handoff §11)
 
@@ -58,5 +64,5 @@ See [`app-android/README.md`](app-android/README.md).
 > signal-vs-score scatter. Validate the IMU derivations side-by-side against the Steady Aim A1
 > Pro.
 
-The **scoring math for all of this already exists and is tested** in `archery-module`. What
-remains for the MVP is the capture/UI layer in `app-android` (sensors, screens, persistence).
+The **scoring math for all of this already exists and is tested** in `engine` + `archery-module`.
+What remains for the MVP is the capture/UI layer in `app-android` (sensors, screens, persistence).
