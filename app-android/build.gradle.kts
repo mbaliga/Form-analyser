@@ -80,3 +80,26 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
+
+// Fetch the BlazePose model at build time and bundle it into assets, so the installed APK works
+// with zero setup (no manual file drop, no first-run download). Kept out of git; downloaded once
+// and cached by the up-to-date check.
+val poseModelUrl =
+    "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
+
+val downloadPoseModel by tasks.registering {
+    description = "Download the BlazePose model into src/main/assets"
+    val out = layout.projectDirectory.file("src/main/assets/pose_landmarker_lite.task")
+    outputs.file(out)
+    doLast {
+        val file = out.asFile
+        if (file.exists() && file.length() > 0) return@doLast
+        file.parentFile.mkdirs()
+        java.net.URI(poseModelUrl).toURL().openStream().use { input ->
+            file.outputStream().use { input.copyTo(it) }
+        }
+        logger.lifecycle("Downloaded pose model (${file.length()} bytes)")
+    }
+}
+
+tasks.named("preBuild") { dependsOn(downloadPoseModel) }
