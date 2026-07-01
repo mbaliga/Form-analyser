@@ -3,6 +3,8 @@
 //   1. add `include(":app-android")` to ../settings.gradle.kts
 //   2. ensure a local.properties with sdk.dir, or ANDROID_HOME, points at an Android SDK
 //   3. ./gradlew :app-android:assembleDebug
+import java.net.URI
+
 plugins {
     id("com.android.application") version "8.7.3"
     kotlin("android") version "2.1.0"
@@ -95,8 +97,8 @@ val downloadPoseModel by tasks.registering {
         val file = out.asFile
         if (file.exists() && file.length() > 0) return@doLast
         file.parentFile.mkdirs()
-        java.net.URI(poseModelUrl).toURL().openStream().use { input ->
-            file.outputStream().use { input.copyTo(it) }
+        URI(poseModelUrl).toURL().openStream().use { input ->
+            file.outputStream().use { output -> input.copyTo(output) }
         }
         logger.lifecycle("Downloaded pose model (${file.length()} bytes)")
     }
