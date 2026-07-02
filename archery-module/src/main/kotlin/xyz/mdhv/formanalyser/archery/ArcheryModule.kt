@@ -1,7 +1,7 @@
 package xyz.mdhv.formanalyser.archery
 
-import xyz.mdhv.baseline.engine.sport.ScoringRubric
-import xyz.mdhv.baseline.engine.sport.SportModule
+import xyz.mdhv.crocodyl.engine.sport.ScoringRubric
+import xyz.mdhv.crocodyl.engine.sport.SportModule
 import xyz.mdhv.formanalyser.archery.pose.PoseSequence
 import xyz.mdhv.formanalyser.archery.pose.PoseShot
 
@@ -15,7 +15,7 @@ object ArcheryScoringRubric : ScoringRubric {
 }
 
 /**
- * The (free, vision-based) archery plug-in for the Baseline engine. Input is a pose capture
+ * The (free, vision-based) archery plug-in for the Crocodyl engine. Input is a pose capture
  * (`PoseSequence`); the module segments shots and extracts postural form + sequence-timing
  * features. The shot-to-shot sensor signals (drift / release / cant) are the paid Baseline
  * add-on's job, not here.

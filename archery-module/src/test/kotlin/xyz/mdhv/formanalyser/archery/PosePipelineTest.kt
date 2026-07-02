@@ -1,7 +1,7 @@
 package xyz.mdhv.formanalyser.archery
 
-import xyz.mdhv.baseline.engine.baseline.BaselineBuilder
-import xyz.mdhv.baseline.engine.deviation.DeviationScorer
+import xyz.mdhv.crocodyl.engine.baseline.BaselineBuilder
+import xyz.mdhv.crocodyl.engine.deviation.DeviationScorer
 import xyz.mdhv.formanalyser.archery.pose.Handedness
 import xyz.mdhv.formanalyser.archery.pose.Landmark
 import xyz.mdhv.formanalyser.archery.pose.PoseFrame

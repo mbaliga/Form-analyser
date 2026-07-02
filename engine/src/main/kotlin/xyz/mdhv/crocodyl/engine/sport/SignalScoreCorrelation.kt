@@ -1,7 +1,7 @@
-package xyz.mdhv.baseline.engine.sport
+package xyz.mdhv.crocodyl.engine.sport
 
-import xyz.mdhv.baseline.engine.model.Rep
-import xyz.mdhv.baseline.engine.stats.linearFit
+import xyz.mdhv.crocodyl.engine.model.Rep
+import xyz.mdhv.crocodyl.engine.stats.linearFit
 
 /**
  * THE DIFFERENTIATOR (handoff §1.2, §3.5): tie each signal to actual on-target score.

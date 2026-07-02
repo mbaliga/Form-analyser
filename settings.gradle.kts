@@ -8,7 +8,7 @@ pluginManagement {
 
 rootProject.name = "form-analyser"
 
-// The sport-agnostic Baseline engine, shipped inside the free app.
+// The sport-agnostic Crocodyl engine, shipped inside the free app.
 include(":engine")
 // The archery sport-module: implements the engine's SportModule seam.
 include(":archery-module")

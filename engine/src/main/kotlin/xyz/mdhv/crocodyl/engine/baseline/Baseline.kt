@@ -1,8 +1,8 @@
-package xyz.mdhv.baseline.engine.baseline
+package xyz.mdhv.crocodyl.engine.baseline
 
-import xyz.mdhv.baseline.engine.model.FeatureVector
-import xyz.mdhv.baseline.engine.stats.MetricStats
-import xyz.mdhv.baseline.engine.stats.Welford
+import xyz.mdhv.crocodyl.engine.model.FeatureVector
+import xyz.mdhv.crocodyl.engine.stats.MetricStats
+import xyz.mdhv.crocodyl.engine.stats.Welford
 
 /**
  * A per-athlete baseline: the distribution of each feature over the athlete's "good" reps.

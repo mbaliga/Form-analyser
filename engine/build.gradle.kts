@@ -3,9 +3,9 @@ plugins {
     `maven-publish`
 }
 
-// The sport-agnostic Baseline engine: the personal-baseline -> deviation -> fatigue ->
+// The sport-agnostic Crocodyl engine: the personal-baseline -> deviation -> fatigue ->
 // signal-score loop. It ships *inside* the free Form Analyser app. `maven-publish` is kept
-// so the (paid) Baseline add-on repo can later consume it as a versioned artifact.
+// so the (paid) **Baseline EEG add-on** (the EEG Baseline product, `baseline` repo) can later consume it as a versioned artifact.
 group = "xyz.mdhv.formanalyser"
 version = "0.1.0"
 
@@ -28,7 +28,7 @@ tasks.test {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            artifactId = "baseline-engine"
+            artifactId = "crocodyl-engine"
             from(components["java"])
         }
     }

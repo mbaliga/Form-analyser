@@ -7,7 +7,11 @@ engine on-device and shows live + post-session feedback in the Hyle design langu
 
 > This is the **free** app and is camera-based — there is no bow-mounted hardware. The
 > sensor-based shot-to-shot signals (drift / release / cant from a bow IMU like the Steady Aim
-> A1 Pro) are the **paid** Baseline add-on, parked in the `baseline` repo.
+> A1 Pro) are the **paid Baseline add-on** — the integration of the EEG **Baseline** product
+> (the [`baseline`](https://github.com/mbaliga/baseline) repo, which owns the name "Baseline"):
+> the add-on layers Baseline's biosignal channel onto this app's Crocodyl engine. The
+> sport-form engine itself is `xyz.mdhv.crocodyl.engine` (renamed from `baseline.engine` to
+> free the name for the EEG product).
 
 > **Not wired into the default Gradle build by default.** The root `settings.gradle.kts` gates
 > this module behind `-PwithAndroid` so the SDK-free engine/archery build runs anywhere. CI's

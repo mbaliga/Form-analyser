@@ -1,6 +1,6 @@
 package xyz.mdhv.formanalyser.archery
 
-import xyz.mdhv.baseline.engine.sport.RepSegmenter
+import xyz.mdhv.crocodyl.engine.sport.RepSegmenter
 import xyz.mdhv.formanalyser.archery.pose.ArmLandmarks
 import xyz.mdhv.formanalyser.archery.pose.Geometry
 import xyz.mdhv.formanalyser.archery.pose.Handedness

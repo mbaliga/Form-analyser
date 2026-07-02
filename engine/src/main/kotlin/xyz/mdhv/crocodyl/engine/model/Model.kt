@@ -1,7 +1,7 @@
-package xyz.mdhv.baseline.engine.model
+package xyz.mdhv.crocodyl.engine.model
 
 /**
- * Core, sport-agnostic data model for the Baseline engine.
+ * Core, sport-agnostic data model for the Crocodyl engine.
  *
  * The engine knows nothing about archery (or fencing, or hangboarding). It knows about
  * athletes, sessions, and "reps" — the smallest scored unit of a sport (a shot, a touch,

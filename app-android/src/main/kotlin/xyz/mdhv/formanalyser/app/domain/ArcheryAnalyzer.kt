@@ -1,16 +1,16 @@
 package xyz.mdhv.formanalyser.app.domain
 
 import org.json.JSONObject
-import xyz.mdhv.baseline.engine.baseline.BaselineBuilder
-import xyz.mdhv.baseline.engine.baseline.BaselineModel
-import xyz.mdhv.baseline.engine.deviation.DeviationResult
-import xyz.mdhv.baseline.engine.deviation.DeviationScorer
-import xyz.mdhv.baseline.engine.fatigue.FatigueTracker
-import xyz.mdhv.baseline.engine.fatigue.FatigueTrajectory
-import xyz.mdhv.baseline.engine.model.FeatureVector
-import xyz.mdhv.baseline.engine.model.Rep
-import xyz.mdhv.baseline.engine.sport.FeatureScoreRelation
-import xyz.mdhv.baseline.engine.sport.SignalScoreCorrelation
+import xyz.mdhv.crocodyl.engine.baseline.BaselineBuilder
+import xyz.mdhv.crocodyl.engine.baseline.BaselineModel
+import xyz.mdhv.crocodyl.engine.deviation.DeviationResult
+import xyz.mdhv.crocodyl.engine.deviation.DeviationScorer
+import xyz.mdhv.crocodyl.engine.fatigue.FatigueTracker
+import xyz.mdhv.crocodyl.engine.fatigue.FatigueTrajectory
+import xyz.mdhv.crocodyl.engine.model.FeatureVector
+import xyz.mdhv.crocodyl.engine.model.Rep
+import xyz.mdhv.crocodyl.engine.sport.FeatureScoreRelation
+import xyz.mdhv.crocodyl.engine.sport.SignalScoreCorrelation
 import xyz.mdhv.formanalyser.archery.ArcheryModule
 import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
 import xyz.mdhv.formanalyser.archery.pose.PoseSequence

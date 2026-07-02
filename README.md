@@ -14,7 +14,7 @@ signals with the actual arrow score**.
 > (sagittal) plane, and a real arrow to validate against.
 
 This repo is self-contained: the free app ships with its own copy of the sport-agnostic
-**Baseline engine**. The separate [`baseline`](https://github.com/mbaliga/baseline) repo is the
+**Crocodyl engine**. The separate [`baseline`](https://github.com/mbaliga/baseline) repo is the
 **paid add-on** (the MW75 EEG mental-state channel + advanced analytics) that layers on top —
 Form Analyser does not depend on it.
 
@@ -22,7 +22,7 @@ Form Analyser does not depend on it.
 
 ```
 form-analyser/
-├── engine/              # the sport-agnostic Baseline engine (pure Kotlin/JVM)  ← shipped in the free app
+├── engine/              # the sport-agnostic Crocodyl engine (pure Kotlin/JVM)  ← shipped in the free app
 │   └── src/main/kotlin/xyz/mdhv/baseline/engine/
 │       ├── baseline/    # BaselineBuilder/Model — per-athlete "your good"
 │       ├── deviation/   # DeviationScorer — signed z + 0–100 stability

@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import xyz.mdhv.baseline.engine.model.FeatureVector
-import xyz.mdhv.baseline.engine.sport.FeatureScoreRelation
-import xyz.mdhv.baseline.engine.fatigue.FatigueTrajectory
+import xyz.mdhv.crocodyl.engine.model.FeatureVector
+import xyz.mdhv.crocodyl.engine.sport.FeatureScoreRelation
+import xyz.mdhv.crocodyl.engine.fatigue.FatigueTrajectory
 import xyz.mdhv.formanalyser.app.capture.PoseRecorder
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.app.data.SessionEntity
