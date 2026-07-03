@@ -127,7 +127,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         currentSessionId = sessionId
         currentHandednessOverride = null
         _sessionActive.value = true
-        refresh()
+        viewModelScope.launch { refresh() }
     }
 
     fun startRecording() {

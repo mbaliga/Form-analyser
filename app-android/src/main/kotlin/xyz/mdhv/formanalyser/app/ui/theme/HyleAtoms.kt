@@ -30,8 +30,8 @@ fun <T> HyleSegmented(
     options: List<T>,
     selected: T,
     label: (T) -> String,
-    onSelect: (T) -> Unit,
     modifier: Modifier = Modifier,
+    onSelect: (T) -> Unit,
 ) {
     Row(
         modifier = modifier
