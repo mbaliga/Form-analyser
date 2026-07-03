@@ -23,6 +23,9 @@ interface SessionDao {
 
     @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC")
     fun forAthlete(athleteId: String): Flow<List<SessionEntity>>
+
+    @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC LIMIT :limit")
+    suspend fun recent(athleteId: String, limit: Int): List<SessionEntity>
 }
 
 @Dao

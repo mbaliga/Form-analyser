@@ -45,6 +45,8 @@ class Repository(context: Context) {
 
     fun sessionsFor(athleteId: String): Flow<List<SessionEntity>> = sessions.forAthlete(athleteId)
 
+    suspend fun recentSessions(athleteId: String, limit: Int): List<SessionEntity> = sessions.recent(athleteId, limit)
+
     suspend fun saveShots(shots: List<ShotEntity>) = this.shots.insertAll(shots)
 
     fun shotsFor(sessionId: String): Flow<List<ShotEntity>> = shots.forSession(sessionId)

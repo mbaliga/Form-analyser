@@ -73,10 +73,23 @@ Deviations logged: **Hilt deferred** (kept manual DI — a blind Hilt refactor i
 local SDK; will adopt in a verified pass); **exportSchema stays false** for now (enable with the ksp
 schema dir when verifiable); Robolectric migration/VM tests deferred to the same verified pass.
 
-## Remaining Phase 1 app — increment 2 (UI)
+## Phase 1 app — increment 2 (UI, CI-verified)
 
-Onboarding flow, nav restructure into feature packages, Home v1 cards, Settings skeleton, rig v0 UI,
-Hyle atoms + `HyleAvatar`, contextual camera permission. Then Phases 2–3 app layers below.
+Landed: Hyle atoms (`HyleSegmented`/`HyleStepper`/`HyleListRow`/`HyleSectionHeader`/`HyleEmptyState`)
++ deterministic `HyleAvatar`; **onboarding** flow (role → name/avatar → handedness → draw length →
+rig v0 with live OTF estimate → permissions primer → commit); **nav restructure** (onboarding gate
+via DataStore, bottom-bar shell Home/Train/Progress/Body/Calendar with ComingSoon stubs, settings
+graph); **Home v1** (header/avatar, active-rig row, Start, recent sessions → reopen review);
+**TrainSetup** (rig chip replaces the draw-weight field + per-session handedness override);
+**Settings** (profile, rigs list + RigEdit, capture, appearance, data-wipe, about). Session start now
+resolves poundage from the active rig; handedness override flows into normalization.
+
+Deviations (logged): flat `ui` package kept (no feature-package split — less blind-move risk); no
+Hilt (manual DI); Home **StabilitySpark** card omitted for now (needs per-session baseline compute);
+settings sub-screens use system back (no custom back affordance yet); Robolectric onboarding/VM tests
+deferred to a verified pass.
+
+## Then: Phases 2–3 app layers
 
 ## Pending — the later Android app layers (CI-verified, next tranche)
 

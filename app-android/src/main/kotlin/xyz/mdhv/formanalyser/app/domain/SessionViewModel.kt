@@ -16,6 +16,7 @@ import xyz.mdhv.formanalyser.archery.HandednessNormalizer
 import xyz.mdhv.formanalyser.app.capture.PoseRecorder
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.model.Handedness
+import xyz.mdhv.formanalyser.app.data.RigEntity
 import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.data.ShotEntity
 import java.util.UUID
@@ -68,7 +69,11 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
     private val _athleteName = MutableStateFlow("Athlete")
     val athleteName: StateFlow<String> = _athleteName
 
+    private val _activeRig = MutableStateFlow<RigEntity?>(null)
+    val activeRig: StateFlow<RigEntity?> = _activeRig
+
     private var currentSessionId: String? = null
+    private var currentHandednessOverride: Handedness? = null
 
     init {
         viewModelScope.launch {
@@ -76,12 +81,26 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                 repo.ensureAthlete(UUID.randomUUID().toString(), "Athlete", bodyMassKg = 70.0)
             }
             _athleteName.value = athlete.displayName
+            _activeRig.value = withContext(Dispatchers.IO) { repo.activeRig(athlete.id) }
         }
     }
 
-    fun startSession(drawWeightLbs: Double, distanceMeters: Int) {
+    fun refreshActiveRig() {
         viewModelScope.launch {
             val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
+            _activeRig.value = withContext(Dispatchers.IO) { repo.activeRig(athlete.id) }
+        }
+    }
+
+    /** Start a session from the athlete's active rig; legacy draw-weight is written from its
+     *  effective poundage (measured>estimated>marked) for compatibility. */
+    fun startSession(distanceMeters: Int, handednessOverride: Handedness? = null) {
+        viewModelScope.launch {
+            val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
+            val rig = withContext(Dispatchers.IO) { repo.activeRig(athlete.id) }
+            _activeRig.value = rig
+            val poundage = rig?.let { Tuning.effectivePoundage(it, athlete.drawLengthMm)?.lbs } ?: 0.0
+            currentHandednessOverride = handednessOverride
             val sid = UUID.randomUUID().toString()
             withContext(Dispatchers.IO) {
                 repo.createSession(
@@ -89,8 +108,10 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                         id = sid,
                         athleteId = athlete.id,
                         startedAtEpochMs = System.currentTimeMillis(),
-                        drawWeightLbs = drawWeightLbs,
+                        drawWeightLbs = poundage,
                         distanceMeters = distanceMeters,
+                        rigId = rig?.id,
+                        handednessOverride = handednessOverride?.name,
                     )
                 )
             }
@@ -99,6 +120,14 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
             _shots.value = emptyList()
             refresh()
         }
+    }
+
+    /** Reopen an existing session (e.g. from Home's recent list) into Review. */
+    fun openSession(sessionId: String) {
+        currentSessionId = sessionId
+        currentHandednessOverride = null
+        _sessionActive.value = true
+        refresh()
     }
 
     fun startRecording() {
@@ -121,7 +150,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                 // frame before the segmenter/extractor touch them (Phase 1 §B).
                 val handedness = EffectiveHandedness.resolve(
                     Handedness.fromStorage(athlete.handedness),
-                    sessionOverride = null,
+                    sessionOverride = currentHandednessOverride,
                 )
                 val normalized = HandednessNormalizer.normalize(window, handedness)
                 val featuresList = ArcheryAnalyzer.analyze(normalized)
