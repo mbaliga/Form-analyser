@@ -26,6 +26,40 @@ interface SessionDao {
 }
 
 @Dao
+interface RigDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(rig: RigEntity)
+
+    @Query("SELECT * FROM rig WHERE athleteId = :athleteId ORDER BY createdAt ASC")
+    fun observeForAthlete(athleteId: String): Flow<List<RigEntity>>
+
+    @Query("SELECT * FROM rig WHERE athleteId = :athleteId ORDER BY createdAt ASC")
+    suspend fun forAthleteOnce(athleteId: String): List<RigEntity>
+
+    @Query("SELECT * FROM rig WHERE athleteId = :athleteId AND active = 1 LIMIT 1")
+    suspend fun activeForAthlete(athleteId: String): RigEntity?
+
+    @Query("SELECT COUNT(*) FROM rig WHERE athleteId = :athleteId")
+    suspend fun countForAthlete(athleteId: String): Int
+
+    @Query("UPDATE rig SET active = 0 WHERE athleteId = :athleteId")
+    suspend fun clearActive(athleteId: String)
+
+    @Query("UPDATE rig SET active = 1 WHERE id = :rigId")
+    suspend fun markActive(rigId: String)
+
+    @androidx.room.Transaction
+    suspend fun setActive(athleteId: String, rigId: String) {
+        // Primary single-active guarantee (transactional): clear siblings, set the target.
+        clearActive(athleteId)
+        markActive(rigId)
+    }
+
+    @Query("DELETE FROM rig WHERE id = :rigId")
+    suspend fun delete(rigId: String)
+}
+
+@Dao
 interface ShotDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(shots: List<ShotEntity>)

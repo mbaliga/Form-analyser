@@ -57,7 +57,28 @@ These are the headless, correctness-critical foundations of Phases 1–3.
    String UUID PKs. The Android migration (pending) will adapt (nearest-faithful) — rig/session FKs
    become String to match.
 
-## Pending — the Android app layers (CI-verified, next tranche)
+## Phase 1 app — increment 1 (data foundation, CI-verified)
+
+Landed (additive, incumbent manual-DI kept to de-risk blind compilation):
+- Room **V1→V2 migration**: rig table + athlete columns (handedness, drawLengthMm, avatarSeed, club,
+  pubkey) + session columns (rigId, handednessOverride), with a per-athlete default-rig backfill
+  (tuning seeded from the latest session's draw weight) and sessions repointed. `RigEntity` + `RigDao`
+  (transactional single-active) + repository rig methods.
+- `TuningV0` (kotlinx.serialization) + `Tuning.effectivePoundage()` bridging to `core-equipment`.
+- `AppPrefs` (DataStore) for the Appendix-A keys.
+- **Handedness normalization wired** into the analysis path (`SessionViewModel` normalizes the captured
+  pose by the athlete's handedness before segment/extract).
+
+Deviations logged: **Hilt deferred** (kept manual DI — a blind Hilt refactor is high-risk without a
+local SDK; will adopt in a verified pass); **exportSchema stays false** for now (enable with the ksp
+schema dir when verifiable); Robolectric migration/VM tests deferred to the same verified pass.
+
+## Remaining Phase 1 app — increment 2 (UI)
+
+Onboarding flow, nav restructure into feature packages, Home v1 cards, Settings skeleton, rig v0 UI,
+Hyle atoms + `HyleAvatar`, contextual camera permission. Then Phases 2–3 app layers below.
+
+## Pending — the later Android app layers (CI-verified, next tranche)
 
 Not yet built (require the Android SDK / only compile in CI):
 - **Phase 1 app:** Hilt DI, Room migration (rig table + athlete columns + backfill), onboarding flow,

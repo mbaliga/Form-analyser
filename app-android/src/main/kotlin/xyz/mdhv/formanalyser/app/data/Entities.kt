@@ -5,10 +5,8 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
- * Local-first persistence model. The engine works on extracted feature vectors, so a shot is
- * stored as its features (JSON) + outcome score + a baseline flag. Raw IMU windows are large;
- * persisting them as files is a later concern (handoff §5: Room/SQLite on device) and tracked
- * as a TODO in the capture flow.
+ * Local-first persistence model. Column names are camelCase (incumbent Room convention). All
+ * Phase-1 additions are additive with defaults — existing construction sites keep compiling.
  */
 
 @Entity(tableName = "athletes")
@@ -16,15 +14,37 @@ data class AthleteEntity(
     @PrimaryKey val id: String,
     val displayName: String,
     val bodyMassKg: Double,
+    // --- Phase 1 additions ---
+    val handedness: String = "RH",       // "RH" | "LH"
+    val drawLengthMm: Int? = null,       // body measurement referenced by every rig
+    val avatarSeed: Long = 0L,
+    val club: String? = null,
+    val pubkey: String? = null,          // Phase 5 fills
 )
 
-@Entity(tableName = "sessions", indices = [Index("athleteId")])
+@Entity(tableName = "sessions", indices = [Index("athleteId"), Index("rigId")])
 data class SessionEntity(
     @PrimaryKey val id: String,
     val athleteId: String,
     val startedAtEpochMs: Long,
+    /** @Deprecated legacy: kept + written from the rig's effective poundage for compatibility. */
     val drawWeightLbs: Double,
     val distanceMeters: Int,
+    // --- Phase 1 additions ---
+    val rigId: String? = null,
+    val handednessOverride: String? = null,   // "RH" | "LH" | null
+)
+
+/** A shootable configuration; sessions reference one. Tuning is versioned JSON (TuningV0). */
+@Entity(tableName = "rig", indices = [Index("athleteId")])
+data class RigEntity(
+    @PrimaryKey val id: String,
+    val athleteId: String,
+    val name: String,
+    val bowType: String,           // RECURVE | COMPOUND | BAREBOW
+    val tuningJson: String?,       // TuningV0 JSON
+    val active: Boolean,
+    val createdAt: Long,
 )
 
 @Entity(tableName = "shots", indices = [Index("sessionId"), Index("athleteId")])

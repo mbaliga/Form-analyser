@@ -10,7 +10,26 @@ class Repository(context: Context) {
     private val db = AppDatabase.get(context)
     private val athletes = db.athleteDao()
     private val sessions = db.sessionDao()
+    private val rigs = db.rigDao()
     private val shots = db.shotDao()
+
+    // --- Athlete profile ---
+    suspend fun updateAthlete(athlete: AthleteEntity) = athletes.upsert(athlete)
+
+    // --- Rigs (Phase 1) ---
+    fun rigsFor(athleteId: String): Flow<List<RigEntity>> = rigs.observeForAthlete(athleteId)
+    suspend fun rigsOnce(athleteId: String): List<RigEntity> = rigs.forAthleteOnce(athleteId)
+    suspend fun activeRig(athleteId: String): RigEntity? = rigs.activeForAthlete(athleteId)
+    suspend fun rigCount(athleteId: String): Int = rigs.countForAthlete(athleteId)
+    suspend fun upsertRig(rig: RigEntity) = rigs.upsert(rig)
+    suspend fun setActiveRig(athleteId: String, rigId: String) = rigs.setActive(athleteId, rigId)
+    /** Refuses to delete the active rig or the last remaining rig — caller activates another first. */
+    suspend fun deleteRig(rig: RigEntity): Boolean {
+        if (rig.active) return false
+        if (rigs.countForAthlete(rig.athleteId) <= 1) return false
+        rigs.delete(rig.id)
+        return true
+    }
 
     suspend fun ensureAthlete(id: String, name: String, bodyMassKg: Double): AthleteEntity {
         val existing = athletes.firstOrNull()

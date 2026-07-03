@@ -9,6 +9,7 @@ plugins {
     id("com.android.application") version "8.7.3"
     kotlin("android") version "2.1.0"
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
     id("com.google.devtools.ksp") version "2.1.0-1.0.29"
 }
 
@@ -51,6 +52,12 @@ dependencies {
     // The free engine + archery module — local project dependencies, no external repo.
     implementation(project(":engine"))
     implementation(project(":archery-module"))
+    // Pure-JVM cores (Phase 1+): shared model + equipment/poundage math.
+    implementation(project(":core-model"))
+    implementation(project(":core-equipment"))
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.9.3")

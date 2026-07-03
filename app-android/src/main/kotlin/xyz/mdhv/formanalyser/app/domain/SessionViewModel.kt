@@ -11,8 +11,11 @@ import kotlinx.coroutines.withContext
 import xyz.mdhv.baseline.engine.model.FeatureVector
 import xyz.mdhv.baseline.engine.sport.FeatureScoreRelation
 import xyz.mdhv.baseline.engine.fatigue.FatigueTrajectory
+import xyz.mdhv.formanalyser.archery.EffectiveHandedness
+import xyz.mdhv.formanalyser.archery.HandednessNormalizer
 import xyz.mdhv.formanalyser.app.capture.PoseRecorder
 import xyz.mdhv.formanalyser.app.data.Repository
+import xyz.mdhv.formanalyser.model.Handedness
 import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.data.ShotEntity
 import java.util.UUID
@@ -114,7 +117,14 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val athlete = repo.currentAthlete() ?: return@withContext
-                val featuresList = ArcheryAnalyzer.analyze(window)
+                // Single handedness normalization point: mirror LH captures into the canonical RH
+                // frame before the segmenter/extractor touch them (Phase 1 §B).
+                val handedness = EffectiveHandedness.resolve(
+                    Handedness.fromStorage(athlete.handedness),
+                    sessionOverride = null,
+                )
+                val normalized = HandednessNormalizer.normalize(window, handedness)
+                val featuresList = ArcheryAnalyzer.analyze(normalized)
                 val offset = repo.shotsOnce(sid).size
                 val entities = featuresList.mapIndexed { i, f ->
                     ShotEntity(
