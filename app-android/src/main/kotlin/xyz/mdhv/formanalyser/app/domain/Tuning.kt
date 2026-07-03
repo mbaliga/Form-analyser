@@ -21,9 +21,9 @@ object Tuning {
 
     fun parse(tuningJson: String?): TuningV0 =
         if (tuningJson.isNullOrBlank()) TuningV0()
-        else runCatching { json.decodeFromString<TuningV0>(tuningJson) }.getOrElse { TuningV0() }
+        else runCatching { json.decodeFromString(TuningV0.serializer(), tuningJson) }.getOrElse { TuningV0() }
 
-    fun encode(tuning: TuningV0): String = json.encodeToString(tuning)
+    fun encode(tuning: TuningV0): String = json.encodeToString(TuningV0.serializer(), tuning)
 
     /** Effective poundage for a rig, precedence measured>estimated>marked (core-equipment). */
     fun effectivePoundage(rig: RigEntity, drawLengthMm: Int?): EffectivePoundage? {
