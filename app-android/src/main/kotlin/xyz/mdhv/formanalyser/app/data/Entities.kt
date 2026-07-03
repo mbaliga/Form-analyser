@@ -33,6 +33,12 @@ data class SessionEntity(
     // --- Phase 1 additions ---
     val rigId: String? = null,
     val handednessOverride: String? = null,   // "RH" | "LH" | null
+    // --- Phase 2 additions ---
+    val preCheckinId: String? = null,
+    val postCheckinId: String? = null,
+    val durationAutoS: Int? = null,           // idle-trimmed auto duration
+    val durationS: Int? = null,               // effective = override ?? auto
+    val arrowsActual: Int? = null,            // reconciled arrow count
 )
 
 /** A shootable configuration; sessions reference one. Tuning is versioned JSON (TuningV0). */

@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import xyz.mdhv.formanalyser.app.domain.RigsViewModel
 import xyz.mdhv.formanalyser.app.domain.SettingsViewModel
 import xyz.mdhv.formanalyser.app.domain.Tuning
@@ -47,18 +48,47 @@ fun SettingsRootScreen(
     onProfile: () -> Unit,
     onRigs: () -> Unit,
     onCapture: () -> Unit,
+    onWellness: () -> Unit,
+    onStreak: () -> Unit,
+    onCycle: () -> Unit,
+    onMedication: () -> Unit,
     onAppearance: () -> Unit,
     onData: () -> Unit,
     onAbout: () -> Unit,
 ) {
-    Column(col(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(col().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Settings", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         HyleListRow("Profile & identity", onClick = onProfile)
         HyleListRow("Equipment (rigs)", onClick = onRigs)
         HyleListRow("Capture", onClick = onCapture)
+        HyleListRow("Wellness & check-ins", onClick = onWellness)
+        HyleListRow("Streak & rest", onClick = onStreak)
+        HyleListRow("Cycle tracking", onClick = onCycle)
+        HyleListRow("Medication", onClick = onMedication)
         HyleListRow("Appearance", onClick = onAppearance)
         HyleListRow("Data", onClick = onData)
         HyleListRow("About", onClick = onAbout)
+    }
+}
+
+/** Settings → Wellness & check-ins (Phase 3 adds the chips-vs-atlas soreness toggle). */
+@Composable
+fun SettingsWellnessScreen(prefsOwner: SettingsViewModel) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { xyz.mdhv.formanalyser.app.data.AppPrefs(context) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val chips by prefs.sorenessChips.collectAsState(initial = false)
+    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Wellness & check-ins", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("Use chips for soreness", color = Hyle.OnBackground)
+            Switch(checked = chips, onCheckedChange = { v -> scope.launch { prefs.setSorenessChips(v) } })
+        }
+        Text(
+            if (chips) "Soreness is picked from named chips (accessibility fallback)."
+            else "Soreness is tapped on the body map in the pre-session check-in.",
+            color = Hyle.OnSurfaceDim,
+        )
     }
 }
 
@@ -198,8 +228,21 @@ fun SettingsAppearanceScreen(vm: SettingsViewModel) {
 fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit) {
     var arming by remember { mutableStateOf(false) }
     var confirm by remember { mutableStateOf("") }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val vaultInfo by androidx.compose.runtime.produceState<String?>(initialValue = null) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching {
+                val repo = xyz.mdhv.formanalyser.app.data.Repository(context)
+                val a = repo.currentAthlete() ?: return@runCatching null
+                val n = repo.body.documentCount(a.id)
+                val kb = repo.body.documentBytes(a.id) / 1024
+                "Document vault: $n file(s) · $kb KB (encrypted)"
+            }.getOrNull()
+        }
+    }
     Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Data", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+        vaultInfo?.let { Text(it, color = Hyle.OnSurfaceDim) }
         Text(
             "Everything runs on this device — nothing is stored anywhere else, so a wipe has no undo.",
             color = Hyle.OnSurfaceDim,

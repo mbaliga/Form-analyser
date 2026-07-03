@@ -13,6 +13,15 @@ class Repository(context: Context) {
     private val rigs = db.rigDao()
     private val shots = db.shotDao()
 
+    /** Direct DAO access for the wellness (Phase 2) and body (Phase 3) layers — thin by design. */
+    val wellness: WellnessDao = db.wellnessDao()
+    val body: BodyDao = db.bodyDao()
+
+    suspend fun allSessions(athleteId: String): List<SessionEntity> = sessions.allForAthlete(athleteId)
+    suspend fun shotCount(sessionId: String): Int = shots.countForSession(sessionId)
+    suspend fun finishSession(sessionId: String, postCheckinId: String?, durationAutoS: Int?, durationS: Int?, arrowsActual: Int?) =
+        sessions.finishSession(sessionId, postCheckinId, durationAutoS, durationS, arrowsActual)
+
     // --- Athlete profile ---
     suspend fun updateAthlete(athlete: AthleteEntity) = athletes.upsert(athlete)
 

@@ -46,6 +46,23 @@ class ReadinessTest {
     @Test fun hiatusIsQuiet() {
         assertEquals(ReadinessLevel.QUIET, Readiness.assess(ReadinessInput(hiatusActive = true, acwr = 1.9)).level)
     }
+
+    @Test fun injuryClausesV3() {
+        // severity 3 ACTIVE → REST_ADVISED
+        val sev3 = Readiness.assess(ReadinessInput(activeInjuries = listOf(InjurySummary(listOf("rotator_cuff_r"), 3))))
+        assertEquals(ReadinessLevel.REST_ADVISED, sev3.level)
+        assertTrue(sev3.reasons.any { it.contains("rotator_cuff_r") })
+        // severity 2 ACTIVE → CAUTION
+        val sev2 = Readiness.assess(ReadinessInput(activeInjuries = listOf(InjurySummary(listOf("erector_l"), 2))))
+        assertEquals(ReadinessLevel.CAUTION, sev2.level)
+        // severity 1 fires nothing
+        assertEquals(
+            ReadinessLevel.READY,
+            Readiness.assess(ReadinessInput(activeInjuries = listOf(InjurySummary(listOf("hand_l"), 1)))).level,
+        )
+        // additive default keeps old call sites compiling + behaving
+        assertEquals(ReadinessLevel.READY, Readiness.assess(ReadinessInput()).level)
+    }
 }
 
 class CycleEstimatorTest {

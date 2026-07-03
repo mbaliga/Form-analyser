@@ -55,6 +55,21 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
     val tracking by vm.liveTracking.collectAsState()
     val bowAngle by vm.liveBowArmAngle.collectAsState()
     val shots by vm.shots.collectAsState()
+    val postPending by vm.postPending.collectAsState()
+
+    postPending?.let { pending ->
+        PostCheckinSheet(
+            pending = pending,
+            onSave = { rpe, feel, durS, arrows ->
+                vm.savePostCheckin(rpe, feel, durS, arrows)
+                onReview()
+            },
+            onSkip = {
+                vm.skipPostCheckin()
+                onReview()
+            },
+        )
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(20.dp),

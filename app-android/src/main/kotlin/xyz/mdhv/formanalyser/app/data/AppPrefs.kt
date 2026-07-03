@@ -20,6 +20,9 @@ class AppPrefs(private val context: Context) {
         val HAPTIC_STRENGTH = stringPreferencesKey("haptic_strength")
         val GLOW_INTENSITY = intPreferencesKey("glow_intensity")
         val KEEP_RAW_VIDEO = booleanPreferencesKey("keep_raw_video")
+        val PLANNED_REST_DAYS = stringPreferencesKey("planned_rest_days") // CSV: "MO,TH"
+        val CYCLE_ENABLED = booleanPreferencesKey("cycle_enabled")
+        val SORENESS_CHIPS = booleanPreferencesKey("soreness_chips")      // true = chips fallback, false = mini-atlas
     }
 
     val role: Flow<String> = context.dataStore.data.map { it[Keys.ROLE] ?: "ARCHER" }
@@ -35,4 +38,12 @@ class AppPrefs(private val context: Context) {
     suspend fun setHapticStrength(v: String) = context.dataStore.edit { it[Keys.HAPTIC_STRENGTH] = v }
     suspend fun setGlowIntensity(v: Int) = context.dataStore.edit { it[Keys.GLOW_INTENSITY] = v }
     suspend fun setKeepRawVideo(v: Boolean) = context.dataStore.edit { it[Keys.KEEP_RAW_VIDEO] = v }
+
+    val plannedRestDays: Flow<String> = context.dataStore.data.map { it[Keys.PLANNED_REST_DAYS] ?: "" }
+    val cycleEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.CYCLE_ENABLED] ?: false }
+    val sorenessChips: Flow<Boolean> = context.dataStore.data.map { it[Keys.SORENESS_CHIPS] ?: false }
+
+    suspend fun setPlannedRestDays(v: String) = context.dataStore.edit { it[Keys.PLANNED_REST_DAYS] = v }
+    suspend fun setCycleEnabled(v: Boolean) = context.dataStore.edit { it[Keys.CYCLE_ENABLED] = v }
+    suspend fun setSorenessChips(v: Boolean) = context.dataStore.edit { it[Keys.SORENESS_CHIPS] = v }
 }

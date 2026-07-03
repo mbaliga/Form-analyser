@@ -8,15 +8,26 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [AthleteEntity::class, SessionEntity::class, RigEntity::class, ShotEntity::class],
-    version = 2,
-    exportSchema = false, // TODO(phase-1 verified pass): enable + commit schemas/ with ksp room.schemaLocation
+    entities = [
+        AthleteEntity::class, SessionEntity::class, RigEntity::class, ShotEntity::class,
+        // Phase 2 — wellness + life layer
+        CheckinEntity::class, SorenessEntity::class, RestDayEntity::class, HiatusEntity::class,
+        MoodEntity::class, LifeEventEntity::class, CycleEntity::class, MedicationEntity::class,
+        EventEntity::class,
+        // Phase 3 — body layer
+        PainLogEntity::class, InjuryEntity::class, PhysioPlanEntity::class,
+        PhysioExerciseEntity::class, PhysioSessionEntity::class, DocumentEntity::class,
+    ],
+    version = 4,
+    exportSchema = false, // TODO(verified pass): enable + commit schemas/ with ksp room.schemaLocation
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun athleteDao(): AthleteDao
     abstract fun sessionDao(): SessionDao
     abstract fun rigDao(): RigDao
     abstract fun shotDao(): ShotDao
+    abstract fun wellnessDao(): WellnessDao
+    abstract fun bodyDao(): BodyDao
 
     companion object {
         @Volatile private var instance: AppDatabase? = null
@@ -27,7 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "form-analyser.db",
-                ).addMigrations(MIGRATION_1_2).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build().also { instance = it }
             }
 
         /**
@@ -80,6 +91,109 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                     db.execSQL("UPDATE sessions SET rigId = ? WHERE athleteId = ?", arrayOf<Any?>(rigId, aid))
                 }
+            }
+        }
+
+        /** V2 → V3 (Phase 2): wellness + life-layer tables and session check-in/duration columns. */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `checkin` (`id` TEXT NOT NULL, `athleteId` TEXT NOT NULL, " +
+                        "`ts` INTEGER NOT NULL, `kind` TEXT NOT NULL, `skipped` INTEGER NOT NULL, " +
+                        "`energy` INTEGER, `sleep` INTEGER, `motivation` INTEGER, `rpe` REAL, `feel` INTEGER, " +
+                        "`note` TEXT, PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_checkin_athleteId` ON `checkin` (`athleteId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_checkin_ts` ON `checkin` (`ts`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `soreness` (`checkinId` TEXT NOT NULL, `regionId` TEXT NOT NULL, " +
+                        "PRIMARY KEY(`checkinId`, `regionId`))",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `rest_day` (`date` TEXT NOT NULL, `planned` INTEGER NOT NULL, " +
+                        "`note` TEXT, PRIMARY KEY(`date`))",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `hiatus` (`id` TEXT NOT NULL, `startDate` TEXT NOT NULL, " +
+                        "`endDate` TEXT, `lifeEventId` TEXT, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `mood_entry` (`id` TEXT NOT NULL, `ts` INTEGER NOT NULL, " +
+                        "`mood` INTEGER NOT NULL, `tagsJson` TEXT NOT NULL, `note` TEXT, PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_mood_entry_ts` ON `mood_entry` (`ts`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `life_event` (`id` TEXT NOT NULL, `startDate` TEXT NOT NULL, " +
+                        "`endDate` TEXT, `category` TEXT NOT NULL, `impact` INTEGER NOT NULL, `title` TEXT NOT NULL, " +
+                        "PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `cycle_entry` (`id` TEXT NOT NULL, `startDate` TEXT NOT NULL, " +
+                        "`endDate` TEXT, `flow` INTEGER, `symptomsJson` TEXT NOT NULL, PRIMARY KEY(`id`))",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `medication_entry` (`id` TEXT NOT NULL, `ts` INTEGER NOT NULL, " +
+                        "`name` TEXT NOT NULL, `dose` TEXT, `schedule` TEXT, `taken` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_entry_ts` ON `medication_entry` (`ts`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `event` (`id` TEXT NOT NULL, `ts` INTEGER NOT NULL, " +
+                        "`title` TEXT NOT NULL, `icon` TEXT, `tagsJson` TEXT NOT NULL, PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_event_ts` ON `event` (`ts`)")
+
+                db.execSQL("ALTER TABLE sessions ADD COLUMN preCheckinId TEXT")
+                db.execSQL("ALTER TABLE sessions ADD COLUMN postCheckinId TEXT")
+                db.execSQL("ALTER TABLE sessions ADD COLUMN durationAutoS INTEGER")
+                db.execSQL("ALTER TABLE sessions ADD COLUMN durationS INTEGER")
+                db.execSQL("ALTER TABLE sessions ADD COLUMN arrowsActual INTEGER")
+            }
+        }
+
+        /** V3 → V4 (Phase 3): body layer — pain, injuries, physio, encrypted documents. */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `pain_log` (`id` TEXT NOT NULL, `athleteId` TEXT NOT NULL, " +
+                        "`ts` INTEGER NOT NULL, `regionId` TEXT NOT NULL, `intensity` INTEGER NOT NULL, " +
+                        "`tagsJson` TEXT NOT NULL, `injuryId` TEXT, PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_pain_log_athleteId` ON `pain_log` (`athleteId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_pain_log_regionId` ON `pain_log` (`regionId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_pain_log_ts` ON `pain_log` (`ts`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `injury` (`id` TEXT NOT NULL, `athleteId` TEXT NOT NULL, " +
+                        "`onset` TEXT NOT NULL, `regionsJson` TEXT NOT NULL, `severity` INTEGER NOT NULL, " +
+                        "`mechanism` TEXT NOT NULL, `status` TEXT NOT NULL, `resolvedDate` TEXT, `notes` TEXT, " +
+                        "PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_injury_athleteId` ON `injury` (`athleteId`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `physio_plan` (`id` TEXT NOT NULL, `athleteId` TEXT NOT NULL, " +
+                        "`title` TEXT NOT NULL, `targetRegionsJson` TEXT NOT NULL, `scheduleJson` TEXT NOT NULL, " +
+                        "`startDate` TEXT NOT NULL, `endDate` TEXT, `source` TEXT NOT NULL, `notes` TEXT, " +
+                        "PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_physio_plan_athleteId` ON `physio_plan` (`athleteId`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `physio_exercise` (`id` TEXT NOT NULL, `planId` TEXT NOT NULL, " +
+                        "`name` TEXT NOT NULL, `sets` INTEGER NOT NULL, `reps` INTEGER, `holdS` INTEGER, " +
+                        "PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_physio_exercise_planId` ON `physio_exercise` (`planId`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `physio_session` (`id` TEXT NOT NULL, `planId` TEXT NOT NULL, " +
+                        "`ts` INTEGER NOT NULL, `completedJson` TEXT NOT NULL, `note` TEXT, PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_physio_session_planId` ON `physio_session` (`planId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_physio_session_ts` ON `physio_session` (`ts`)")
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `document` (`id` TEXT NOT NULL, `athleteId` TEXT NOT NULL, " +
+                        "`ts` INTEGER NOT NULL, `title` TEXT NOT NULL, `mime` TEXT NOT NULL, `encPath` TEXT NOT NULL, " +
+                        "`sha256` TEXT NOT NULL, `sizeBytes` INTEGER NOT NULL, `injuryId` TEXT, PRIMARY KEY(`id`))",
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_document_athleteId` ON `document` (`athleteId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_document_injuryId` ON `document` (`injuryId`)")
             }
         }
     }

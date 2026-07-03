@@ -26,6 +26,25 @@ object ArcheryAnalyzer {
     fun analyze(sequence: PoseSequence): List<FeatureVector> =
         ArcheryModule.segmenter.segment(sequence).map { ArcheryModule.extractor.extract(it) }
 
+    /** Features plus per-shot timing spans (for the idle-trimmed session duration, Phase 2 §A4). */
+    data class ShotAnalysis(
+        val features: List<FeatureVector>,
+        val spans: List<xyz.mdhv.formanalyser.wellness.ShotSpan>,
+        val recordingSeconds: Double,
+    )
+
+    fun analyzeWithSpans(sequence: PoseSequence): ShotAnalysis {
+        val shots = ArcheryModule.segmenter.segment(sequence)
+        val features = shots.map { ArcheryModule.extractor.extract(it) }
+        val spans = shots.map {
+            xyz.mdhv.formanalyser.wellness.ShotSpan(
+                drawStartS = it.drawStart / it.fps,
+                releaseS = it.releaseStart / it.fps,
+            )
+        }
+        return ShotAnalysis(features, spans, sequence.durationSeconds)
+    }
+
     fun buildBaseline(goodShots: List<FeatureVector>): BaselineModel {
         val builder = BaselineBuilder()
         goodShots.forEach { builder.add(it) }

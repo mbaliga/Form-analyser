@@ -52,12 +52,17 @@ dependencies {
     // The free engine + archery module — local project dependencies, no external repo.
     implementation(project(":engine"))
     implementation(project(":archery-module"))
-    // Pure-JVM cores (Phase 1+): shared model + equipment/poundage math.
+    // Pure-JVM cores (Phase 1+): shared model + equipment/poundage/wellness/body math.
     implementation(project(":core-model"))
     implementation(project(":core-equipment"))
+    implementation(project(":core-wellness"))
+    implementation(project(":core-body"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Document vault — Tink streaming AEAD (androidx.security-crypto is deprecated; not used).
+    implementation("com.google.crypto.tink:tink-android:1.15.0")
 
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.9.3")

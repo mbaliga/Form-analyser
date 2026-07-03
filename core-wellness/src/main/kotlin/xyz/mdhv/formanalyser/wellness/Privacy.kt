@@ -30,6 +30,14 @@ object PrivacyRegistry {
         put("life_event", PrivacyClass.PRIVATE)
         put("cycle_entry", PrivacyClass.PRIVATE)
         put("medication_entry", PrivacyClass.MEDICAL)
+
+        // Phase 3 — body layer
+        put("pain_log", PrivacyClass.SHAREABLE)      // Full tier (spec §4.3)
+        put("injury", PrivacyClass.SHAREABLE)        // Full tier
+        put("physio_plan", PrivacyClass.SHAREABLE)
+        put("physio_exercise", PrivacyClass.SHAREABLE)
+        put("physio_session", PrivacyClass.SHAREABLE)
+        put("document", PrivacyClass.MEDICAL)        // per-file explicit ceremony only
     }
 
     fun classOf(table: String): PrivacyClass? = byTable[table]

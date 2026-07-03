@@ -89,7 +89,46 @@ Hilt (manual DI); Home **StabilitySpark** card omitted for now (needs per-sessio
 settings sub-screens use system back (no custom back affordance yet); Robolectric onboarding/VM tests
 deferred to a verified pass.
 
-## Then: Phases 2–3 app layers
+## Phases 2–3 app layers (one tranche, CI-verified)
+
+**Cores (locally green):** Readiness **v3** (additive `activeInjuries` param + severity clauses + tests);
+`PrivacyRegistry` gains the Phase 3 tables (`document = MEDICAL`); **BodyAtlas** — the 52-region
+geometry as rounded-rect regions in the 1000×2000 viewport, author-left/mirror-right, with the full
+integrity suite (52 exactly once, exact mirrors, ≥60×60, exact pairwise no-overlap — stronger than
+the brief's grid sample, centroid hit-tests). Hand-drawn SVG paths can replace rects later via the
+override seam without touching IDs/consumers.
+
+**Phase 2 app:** Room V2→V3 (checkin/soreness/rest_day/hiatus/mood_entry/life_event/cycle_entry/
+medication_entry/event + session check-in/duration/arrows columns — table names match the
+PrivacyRegistry contract); `WellnessDao`; `WellnessAssembler` (DB → load/ACWR/streak/readiness);
+pre-check-in gate in TrainSetup (dials + soreness via chips **or mini-atlas**, skip recorded);
+post-check-in sheet on capture stop (RPE CR10, feel, idle-trimmed auto duration + override, arrow
+reconciliation); "+ Log" surface (check-in, rest, mood, life event → impact-3 hiatus offer, cycle
+(gated), medication, event); **Calendar tab** (month grid + day marks + hiatus band + streak strip +
+Load view with weekly bars/ACWR/warm-up state); Home readiness card (shape+luminance ●◐○, quiet
+state) + streak line + "+ Log"; Settings: Wellness (chips toggle), Streak & Rest (planned-rest
+pattern + hiatus), Cycle (enable + estimate + history), Medication (list).
+
+**Phase 3 app:** Room V3→V4 (pain_log/injury/physio_plan/physio_exercise/physio_session/document);
+`BodyAtlasCanvas` (one renderer: violet luminance ramp with exact anchor stops + numeral badges,
+cyan 45° cross-hatch for physio, dashed outlines for injuries, selection, tap/long-press
+hit-testing); **Body tab** (Today/History-8-weeks/Injuries/Physio views, pain dial 0–10 + quality
+tags, region history, physio session ticking); injury CRUD (atlas multi-select, RESOLVED stamps
+resolved date, pain auto-links to covering active injury); physio plan editor (targets, days,
+exercise rows); **Tink streaming-AEAD vault** (AES256_GCM_HKDF_4KB, Keystore-wrapped, AD = row id,
+25 MB guard, view-cache wiped on close/clear) + SAF import + image/PDF viewer; readiness v3 wired;
+Body-tab injury badge; vault meter in Settings → Data.
+
+**Deviations (R1/R2, logged):**
+- Atlas geometry is schematic rounded-rects (v0), not hand-drawn SVG paths — integrity suite is the
+  contract; override seam kept for hand-drawn art later.
+- Streak week-strip is a text summary line, not 7 glyph dots (visual polish deferred).
+- srpe lane is computed but the Load view shows shot-load bars only (secondary lane deferred).
+- Physio session logging lives on the Body tab (plan row → Log), not in "+ Log" (fewer nav seams).
+- Document import is SAF-only for now (no in-app camera capture — TakePicture/FileProvider plumbing
+  deferred); mime from ContentResolver.
+- Robolectric tests (migrations, registry reflection, VM suites) still deferred to a verified pass —
+  no local Android SDK; pure-JVM suites cover the math.
 
 ## Pending — the later Android app layers (CI-verified, next tranche)
 

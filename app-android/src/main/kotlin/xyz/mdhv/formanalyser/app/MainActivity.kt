@@ -15,6 +15,8 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,23 +42,36 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import xyz.mdhv.formanalyser.app.data.AppPrefs
+import xyz.mdhv.formanalyser.app.domain.BodyViewModel
+import xyz.mdhv.formanalyser.app.domain.CalendarViewModel
 import xyz.mdhv.formanalyser.app.domain.HomeViewModel
 import xyz.mdhv.formanalyser.app.domain.OnboardingViewModel
 import xyz.mdhv.formanalyser.app.domain.RigsViewModel
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.domain.SettingsViewModel
+import xyz.mdhv.formanalyser.app.domain.WellnessViewModel
+import xyz.mdhv.formanalyser.app.ui.BodyScreen
+import xyz.mdhv.formanalyser.app.ui.CalendarScreen
 import xyz.mdhv.formanalyser.app.ui.CaptureScreen
 import xyz.mdhv.formanalyser.app.ui.ComingSoonScreen
+import xyz.mdhv.formanalyser.app.ui.DocumentViewerScreen
 import xyz.mdhv.formanalyser.app.ui.HomeScreen
+import xyz.mdhv.formanalyser.app.ui.InjuryEditScreen
+import xyz.mdhv.formanalyser.app.ui.LogScreen
 import xyz.mdhv.formanalyser.app.ui.OnboardingScreen
+import xyz.mdhv.formanalyser.app.ui.PhysioPlanEditScreen
 import xyz.mdhv.formanalyser.app.ui.ReviewScreen
 import xyz.mdhv.formanalyser.app.ui.SettingsAboutScreen
 import xyz.mdhv.formanalyser.app.ui.SettingsAppearanceScreen
 import xyz.mdhv.formanalyser.app.ui.SettingsCaptureScreen
+import xyz.mdhv.formanalyser.app.ui.SettingsCycleScreen
 import xyz.mdhv.formanalyser.app.ui.SettingsDataScreen
+import xyz.mdhv.formanalyser.app.ui.SettingsMedicationScreen
 import xyz.mdhv.formanalyser.app.ui.SettingsProfileScreen
 import xyz.mdhv.formanalyser.app.ui.SettingsRigsScreen
 import xyz.mdhv.formanalyser.app.ui.SettingsRootScreen
+import xyz.mdhv.formanalyser.app.ui.SettingsStreakScreen
+import xyz.mdhv.formanalyser.app.ui.SettingsWellnessScreen
 import xyz.mdhv.formanalyser.app.ui.RigEditScreen
 import xyz.mdhv.formanalyser.app.ui.TrainSetupScreen
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
@@ -65,9 +80,11 @@ import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 private object R {
     const val HOME = "home"; const val TRAIN = "train"; const val CAPTURE = "capture"; const val REVIEW = "review"
     const val PROGRESS = "progress"; const val BODY = "body"; const val CALENDAR = "calendar"
+    const val LOG = "log"
     const val SETTINGS = "settings"; const val S_PROFILE = "s_profile"; const val S_RIGS = "s_rigs"
     const val S_CAPTURE = "s_capture"; const val S_APPEARANCE = "s_appearance"; const val S_DATA = "s_data"; const val S_ABOUT = "s_about"
-    const val RIG_EDIT = "rig_edit"
+    const val S_WELLNESS = "s_wellness"; const val S_STREAK = "s_streak"; const val S_CYCLE = "s_cycle"; const val S_MEDICATION = "s_medication"
+    const val RIG_EDIT = "rig_edit"; const val INJURY_EDIT = "injury_edit"; const val PLAN_EDIT = "plan_edit"; const val DOC_VIEW = "doc_view"
     val TABS = setOf(HOME, TRAIN, PROGRESS, BODY, CALENDAR)
 }
 
@@ -103,10 +120,17 @@ private fun AppRoot() {
 @Composable
 private fun MainShell() {
     val nav = rememberNavController()
+    val context = LocalContext.current
+    val prefs = remember { AppPrefs(context) }
     val sessionVm: SessionViewModel = viewModel()
     val homeVm: HomeViewModel = viewModel()
     val rigsVm: RigsViewModel = viewModel()
     val settingsVm: SettingsViewModel = viewModel()
+    val wellnessVm: WellnessViewModel = viewModel()
+    val calendarVm: CalendarViewModel = viewModel()
+    val bodyVm: BodyViewModel = viewModel()
+    val cycleEnabled by prefs.cycleEnabled.collectAsState(initial = false)
+    val activeInjuries by homeVm.activeInjuryCount.collectAsState()
 
     val backStack by nav.currentBackStackEntryAsState()
     val route = backStack?.destination?.route
@@ -114,7 +138,7 @@ private fun MainShell() {
 
     Scaffold(
         topBar = { if (onTab) TopRow(title = tabTitle(route), onSettings = { nav.navigate(R.SETTINGS) }) },
-        bottomBar = { if (onTab) BottomBar(currentRoute = route, onSelect = { navigateTab(nav, it) }) },
+        bottomBar = { if (onTab) BottomBar(currentRoute = route, injuryBadge = activeInjuries > 0, onSelect = { navigateTab(nav, it) }) },
     ) { padding ->
         NavHost(navController = nav, startDestination = R.HOME, modifier = Modifier.padding(padding)) {
             composable(R.HOME) {
@@ -123,6 +147,7 @@ private fun MainShell() {
                     onStartSession = { nav.navigate(R.TRAIN) },
                     onOpenReview = { id -> sessionVm.openSession(id); nav.navigate(R.REVIEW) },
                     onManageRigs = { nav.navigate(R.S_RIGS) },
+                    onLog = { nav.navigate(R.LOG) },
                 )
             }
             composable(R.TRAIN) {
@@ -131,10 +156,35 @@ private fun MainShell() {
             composable(R.CAPTURE) { CaptureScreen(sessionVm, onReview = { nav.navigate(R.REVIEW) }) }
             composable(R.REVIEW) { ReviewScreen(sessionVm) }
             composable(R.PROGRESS) { ComingSoonScreen("📈", listOf("Your baseline lives here soon —", "stability trends, projections, and what your form is telling you.")) }
-            composable(R.BODY) { ComingSoonScreen("🫀", listOf("A map of how your body's doing —", "pain, injuries, physio — arrives in an upcoming build.")) }
-            composable(R.CALENDAR) { ComingSoonScreen("🗓️", listOf("Sessions, rest days, and your streak", "will live here.")) }
+            composable(R.BODY) {
+                BodyScreen(
+                    vm = bodyVm,
+                    onEditInjury = { id -> nav.navigate("${R.INJURY_EDIT}/${id ?: "new"}") },
+                    onEditPlan = { id -> nav.navigate("${R.PLAN_EDIT}/${id ?: "new"}") },
+                )
+            }
+            composable(R.CALENDAR) { CalendarScreen(calendarVm, onLog = { nav.navigate(R.LOG) }) }
+            composable(R.LOG) { LogScreen(wellnessVm, cycleEnabled = cycleEnabled, onDone = { nav.popBackStack() }) }
 
-            settingsGraph(nav, rigsVm, settingsVm)
+            composable("${R.INJURY_EDIT}/{injuryId}") { entry ->
+                val iid = entry.arguments?.getString("injuryId")
+                InjuryEditScreen(
+                    bodyVm,
+                    injuryId = if (iid == "new") null else iid,
+                    onDone = { nav.popBackStack() },
+                    onOpenDocument = { docId -> nav.navigate("${R.DOC_VIEW}/$docId") },
+                )
+            }
+            composable("${R.PLAN_EDIT}/{planId}") { entry ->
+                val pid = entry.arguments?.getString("planId")
+                PhysioPlanEditScreen(bodyVm, planId = if (pid == "new") null else pid, onDone = { nav.popBackStack() })
+            }
+            composable("${R.DOC_VIEW}/{docId}") { entry ->
+                val did = entry.arguments?.getString("docId") ?: return@composable
+                DocumentViewerScreen(bodyVm, documentId = did, onClose = { nav.popBackStack() })
+            }
+
+            settingsGraph(nav, rigsVm, settingsVm, wellnessVm)
         }
     }
 }
@@ -143,12 +193,17 @@ private fun NavGraphBuilder.settingsGraph(
     nav: androidx.navigation.NavHostController,
     rigsVm: RigsViewModel,
     settingsVm: SettingsViewModel,
+    wellnessVm: WellnessViewModel,
 ) {
     composable(R.SETTINGS) {
         SettingsRootScreen(
             onProfile = { nav.navigate(R.S_PROFILE) },
             onRigs = { nav.navigate(R.S_RIGS) },
             onCapture = { nav.navigate(R.S_CAPTURE) },
+            onWellness = { nav.navigate(R.S_WELLNESS) },
+            onStreak = { nav.navigate(R.S_STREAK) },
+            onCycle = { nav.navigate(R.S_CYCLE) },
+            onMedication = { nav.navigate(R.S_MEDICATION) },
             onAppearance = { nav.navigate(R.S_APPEARANCE) },
             onData = { nav.navigate(R.S_DATA) },
             onAbout = { nav.navigate(R.S_ABOUT) },
@@ -161,6 +216,10 @@ private fun NavGraphBuilder.settingsGraph(
         RigEditScreen(rigsVm, rigId = if (rid == "new") null else rid, onDone = { nav.popBackStack() })
     }
     composable(R.S_CAPTURE) { SettingsCaptureScreen(settingsVm) }
+    composable(R.S_WELLNESS) { SettingsWellnessScreen(settingsVm) }
+    composable(R.S_STREAK) { SettingsStreakScreen(wellnessVm) }
+    composable(R.S_CYCLE) { SettingsCycleScreen(wellnessVm) }
+    composable(R.S_MEDICATION) { SettingsMedicationScreen(wellnessVm) }
     composable(R.S_APPEARANCE) { SettingsAppearanceScreen(settingsVm) }
     composable(R.S_DATA) { SettingsDataScreen(settingsVm, onWiped = { /* onboarded flips → AppRoot recomposes */ }) }
     composable(R.S_ABOUT) { SettingsAboutScreen() }
@@ -178,7 +237,7 @@ private fun TopRow(title: String, onSettings: () -> Unit) {
 }
 
 @Composable
-private fun BottomBar(currentRoute: String?, onSelect: (String) -> Unit) {
+private fun BottomBar(currentRoute: String?, injuryBadge: Boolean, onSelect: (String) -> Unit) {
     val items = listOf(
         R.HOME to (Icons.Filled.Home to "Home"),
         R.TRAIN to (Icons.Filled.CameraAlt to "Train"),
@@ -192,7 +251,13 @@ private fun BottomBar(currentRoute: String?, onSelect: (String) -> Unit) {
             NavigationBarItem(
                 selected = currentRoute == dest,
                 onClick = { onSelect(dest) },
-                icon = { Icon(icon, contentDescription = label) },
+                icon = {
+                    if (dest == R.BODY && injuryBadge) {
+                        BadgedBox(badge = { Badge { Text("!") } }) { Icon(icon, contentDescription = label) }
+                    } else {
+                        Icon(icon, contentDescription = label)
+                    }
+                },
                 label = { Text(label) },
             )
         }

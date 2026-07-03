@@ -30,10 +30,28 @@ import xyz.mdhv.formanalyser.model.Handedness
 @Composable
 fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: () -> Unit) {
     LaunchedEffect(Unit) { vm.refreshActiveRig() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { xyz.mdhv.formanalyser.app.data.AppPrefs(context) }
+    val useChips by prefs.sorenessChips.collectAsState(initial = false)
+    val handedness by vm.athleteHandedness.collectAsState()
     val activeRig by vm.activeRig.collectAsState()
     var distance by remember { mutableStateOf("18") }
     var advanced by remember { mutableStateOf(false) }
     var override by remember { mutableStateOf<Handedness?>(null) }
+    var preGate by remember { mutableStateOf(false) }
+
+    if (preGate) {
+        PreCheckinSheet(
+            handedness = override ?: handedness,
+            useChips = useChips,
+            onStart = { pre ->
+                preGate = false
+                vm.startSession(distanceMeters = distance.toIntOrNull() ?: 0, handednessOverride = override, pre = pre)
+                onStarted()
+            },
+            onDismiss = { preGate = false },
+        )
+    }
 
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text("New session", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
@@ -64,10 +82,7 @@ fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: 
         }
 
         Button(
-            onClick = {
-                vm.startSession(distanceMeters = distance.toIntOrNull() ?: 0, handednessOverride = override)
-                onStarted()
-            },
+            onClick = { preGate = true },
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Start recording") }
 

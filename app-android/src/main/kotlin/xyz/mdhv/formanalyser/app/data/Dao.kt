@@ -26,6 +26,15 @@ interface SessionDao {
 
     @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC LIMIT :limit")
     suspend fun recent(athleteId: String, limit: Int): List<SessionEntity>
+
+    @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs ASC")
+    suspend fun allForAthlete(athleteId: String): List<SessionEntity>
+
+    @Query(
+        "UPDATE sessions SET postCheckinId = :postCheckinId, durationAutoS = :durationAutoS, " +
+            "durationS = :durationS, arrowsActual = :arrowsActual WHERE id = :sessionId",
+    )
+    suspend fun finishSession(sessionId: String, postCheckinId: String?, durationAutoS: Int?, durationS: Int?, arrowsActual: Int?)
 }
 
 @Dao
@@ -89,4 +98,7 @@ interface ShotDao {
 
     @Query("UPDATE shots SET isBaseline = :isBaseline WHERE id = :shotId")
     suspend fun setBaseline(shotId: String, isBaseline: Boolean)
+
+    @Query("SELECT COUNT(*) FROM shots WHERE sessionId = :sessionId")
+    suspend fun countForSession(sessionId: String): Int
 }

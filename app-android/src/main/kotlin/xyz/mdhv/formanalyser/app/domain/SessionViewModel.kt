@@ -14,12 +14,28 @@ import xyz.mdhv.baseline.engine.fatigue.FatigueTrajectory
 import xyz.mdhv.formanalyser.archery.EffectiveHandedness
 import xyz.mdhv.formanalyser.archery.HandednessNormalizer
 import xyz.mdhv.formanalyser.app.capture.PoseRecorder
+import xyz.mdhv.formanalyser.app.data.CheckinEntity
 import xyz.mdhv.formanalyser.app.data.Repository
-import xyz.mdhv.formanalyser.model.Handedness
 import xyz.mdhv.formanalyser.app.data.RigEntity
 import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.data.ShotEntity
+import xyz.mdhv.formanalyser.app.data.SorenessEntity
+import xyz.mdhv.formanalyser.model.Handedness
+import xyz.mdhv.formanalyser.wellness.DurationModel
 import java.util.UUID
+
+/** Pre-check-in data from the gate sheet (≤15 s by construction). Skips are recorded. */
+data class PreCheckinData(
+    val skipped: Boolean,
+    val energy: Int? = null,
+    val sleep: Int? = null,
+    val motivation: Int? = null,
+    val sorenessRegionIds: List<String> = emptyList(),
+    val note: String? = null,
+)
+
+/** Pending post-check-in state after a capture stops (drives the post sheet). */
+data class PostPending(val durationAutoS: Int, val detectedArrows: Int)
 
 /** A captured shot as the UI sees it: features + outcome + how far it deviates from baseline. */
 data class ShotView(
@@ -72,6 +88,12 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
     private val _activeRig = MutableStateFlow<RigEntity?>(null)
     val activeRig: StateFlow<RigEntity?> = _activeRig
 
+    private val _athleteHandedness = MutableStateFlow(Handedness.RH)
+    val athleteHandedness: StateFlow<Handedness> = _athleteHandedness
+
+    private val _postPending = MutableStateFlow<PostPending?>(null)
+    val postPending: StateFlow<PostPending?> = _postPending
+
     private var currentSessionId: String? = null
     private var currentHandednessOverride: Handedness? = null
 
@@ -81,6 +103,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                 repo.ensureAthlete(UUID.randomUUID().toString(), "Athlete", bodyMassKg = 70.0)
             }
             _athleteName.value = athlete.displayName
+            _athleteHandedness.value = Handedness.fromStorage(athlete.handedness)
             _activeRig.value = withContext(Dispatchers.IO) { repo.activeRig(athlete.id) }
         }
     }
@@ -93,8 +116,9 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Start a session from the athlete's active rig; legacy draw-weight is written from its
-     *  effective poundage (measured>estimated>marked) for compatibility. */
-    fun startSession(distanceMeters: Int, handednessOverride: Handedness? = null) {
+     *  effective poundage (measured>estimated>marked) for compatibility. The pre-check-in (or its
+     *  recorded skip) is written first and linked (Phase 2 §D). */
+    fun startSession(distanceMeters: Int, handednessOverride: Handedness? = null, pre: PreCheckinData? = null) {
         viewModelScope.launch {
             val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
             val rig = withContext(Dispatchers.IO) { repo.activeRig(athlete.id) }
@@ -103,6 +127,20 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
             currentHandednessOverride = handednessOverride
             val sid = UUID.randomUUID().toString()
             withContext(Dispatchers.IO) {
+                val preId = pre?.let { p ->
+                    val cid = UUID.randomUUID().toString()
+                    repo.wellness.insertCheckin(
+                        CheckinEntity(
+                            id = cid, athleteId = athlete.id, ts = System.currentTimeMillis(),
+                            kind = "PRE", skipped = p.skipped,
+                            energy = p.energy, sleep = p.sleep, motivation = p.motivation, note = p.note,
+                        ),
+                    )
+                    if (p.sorenessRegionIds.isNotEmpty()) {
+                        repo.wellness.insertSoreness(p.sorenessRegionIds.distinct().map { SorenessEntity(cid, it) })
+                    }
+                    cid
+                }
                 repo.createSession(
                     SessionEntity(
                         id = sid,
@@ -112,12 +150,14 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                         distanceMeters = distanceMeters,
                         rigId = rig?.id,
                         handednessOverride = handednessOverride?.name,
+                        preCheckinId = preId,
                     )
                 )
             }
             currentSessionId = sid
             _sessionActive.value = true
             _shots.value = emptyList()
+            _postPending.value = null
             refresh()
         }
     }
@@ -153,9 +193,9 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                     sessionOverride = currentHandednessOverride,
                 )
                 val normalized = HandednessNormalizer.normalize(window, handedness)
-                val featuresList = ArcheryAnalyzer.analyze(normalized)
+                val analysis = ArcheryAnalyzer.analyzeWithSpans(normalized)
                 val offset = repo.shotsOnce(sid).size
-                val entities = featuresList.mapIndexed { i, f ->
+                val entities = analysis.features.mapIndexed { i, f ->
                     ShotEntity(
                         id = UUID.randomUUID().toString(),
                         sessionId = sid,
@@ -167,8 +207,54 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
                 repo.saveShots(entities)
+                // Idle-trimmed auto duration (Phase 2 §A4) → drives the post-check-in sheet.
+                val duration = DurationModel.auto(analysis.spans, analysis.recordingSeconds)
+                val detected = repo.shotsOnce(sid).size
+                _postPending.value = PostPending(
+                    durationAutoS = duration.seconds.toInt(),
+                    detectedArrows = detected,
+                )
             }
             refresh()
+        }
+    }
+
+    /** Save the post-check-in and close out the session row (duration + arrow reconciliation). */
+    fun savePostCheckin(rpe: Double?, feel: Int?, durationOverrideS: Int?, arrowsActual: Int?) {
+        val sid = currentSessionId ?: return
+        val pending = _postPending.value
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val athlete = repo.currentAthlete() ?: return@withContext
+                val cid = UUID.randomUUID().toString()
+                repo.wellness.insertCheckin(
+                    CheckinEntity(
+                        id = cid, athleteId = athlete.id, ts = System.currentTimeMillis(),
+                        kind = "POST", skipped = false, rpe = rpe, feel = feel,
+                    ),
+                )
+                val auto = pending?.durationAutoS
+                repo.finishSession(
+                    sessionId = sid,
+                    postCheckinId = cid,
+                    durationAutoS = auto,
+                    durationS = durationOverrideS ?: auto,
+                    arrowsActual = arrowsActual ?: pending?.detectedArrows,
+                )
+            }
+            _postPending.value = null
+        }
+    }
+
+    /** Skip the post sheet: still persist auto duration + detected arrows, no checkin row. */
+    fun skipPostCheckin() {
+        val sid = currentSessionId ?: return
+        val pending = _postPending.value ?: run { _postPending.value = null; return }
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repo.finishSession(sid, null, pending.durationAutoS, pending.durationAutoS, pending.detectedArrows)
+            }
+            _postPending.value = null
         }
     }
 
