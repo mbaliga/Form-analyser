@@ -4,8 +4,11 @@ on:
   push:
     tags:
       - "v*"
-  # The session's git proxy can't push tags, so releases are also dispatchable: the workflow
-  # creates the tag + Release itself (softprops does both when given a tag_name).
+    # The session's git proxy can't push tags and the integration can't dispatch workflows,
+    # so a `release/<version>` branch (creatable via the API) is the trigger of record: the
+    # workflow derives the version from the branch name and softprops creates tag + Release.
+    branches:
+      - "release/**"
   workflow_dispatch:
     inputs:
       version:
@@ -29,7 +32,9 @@ jobs:
         run: ./gradlew :app-android:assembleDebug -PwithAndroid --no-daemon
       - name: Resolve version name
         id: ver
-        run: echo "version=${{ github.event.inputs.version || github.ref_name }}" >> "$GITHUB_OUTPUT"
+        run: |
+          RAW="${{ github.event.inputs.version || github.ref_name }}"
+          echo "version=${RAW#release/}" >> "$GITHUB_OUTPUT"
       - name: Rename APK to version
         run: cp app-android/build/outputs/apk/debug/app-debug.apk "crocodyl-${{ steps.ver.outputs.version }}.apk"
       # Public no-login download link on the Release page (spec §9 distribution path).
