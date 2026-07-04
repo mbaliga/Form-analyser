@@ -4,6 +4,9 @@
 !gradle/wrapper/gradle-wrapper.jar
 local.properties
 
+# Downloaded ML models (fetched into assets at build time, not committed)
+**/assets/*.task
+
 # Android
 *.apk
 *.aab

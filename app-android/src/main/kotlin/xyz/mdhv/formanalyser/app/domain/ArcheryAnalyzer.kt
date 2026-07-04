@@ -1,0 +1,65 @@
+package xyz.mdhv.formanalyser.app.domain
+
+import org.json.JSONObject
+import xyz.mdhv.crocodyl.engine.baseline.BaselineBuilder
+import xyz.mdhv.crocodyl.engine.baseline.BaselineModel
+import xyz.mdhv.crocodyl.engine.deviation.DeviationResult
+import xyz.mdhv.crocodyl.engine.deviation.DeviationScorer
+import xyz.mdhv.crocodyl.engine.fatigue.FatigueTracker
+import xyz.mdhv.crocodyl.engine.fatigue.FatigueTrajectory
+import xyz.mdhv.crocodyl.engine.model.FeatureVector
+import xyz.mdhv.crocodyl.engine.model.Rep
+import xyz.mdhv.crocodyl.engine.sport.FeatureScoreRelation
+import xyz.mdhv.crocodyl.engine.sport.SignalScoreCorrelation
+import xyz.mdhv.formanalyser.archery.ArcheryModule
+import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
+import xyz.mdhv.formanalyser.archery.pose.PoseSequence
+
+/**
+ * Bridges the app to the (free, vision) engine + archery module: segment/extract a captured
+ * pose sequence into per-shot form features, build & score against a baseline, and surface
+ * fatigue + signal->score correlation. The math lives in the modules; this is glue + JSON.
+ */
+object ArcheryAnalyzer {
+
+    /** Segment a pose capture into shots and extract each shot's form feature vector. */
+    fun analyze(sequence: PoseSequence): List<FeatureVector> =
+        ArcheryModule.segmenter.segment(sequence).map { ArcheryModule.extractor.extract(it) }
+
+    fun buildBaseline(goodShots: List<FeatureVector>): BaselineModel {
+        val builder = BaselineBuilder()
+        goodShots.forEach { builder.add(it) }
+        return builder.build()
+    }
+
+    fun score(baseline: BaselineModel, features: FeatureVector): DeviationResult =
+        DeviationScorer(baseline, ArcheryModule.deviationWeights).score(features)
+
+    /** Form degradation across the session — fatigue via bow-arm-angle decay (handoff §3.3). */
+    fun fatigue(shotsInOrder: List<FeatureVector>): FatigueTrajectory? {
+        val series = shotsInOrder.map { it[FormFeatureExtractor.BOW_ARM_ANGLE] ?: Double.NaN }
+        return FatigueTracker.analyze(series, higherIsBetter = true)
+    }
+
+    fun correlations(reps: List<Rep>): List<FeatureScoreRelation> =
+        SignalScoreCorrelation.correlate(reps)
+
+    // ---- feature <-> JSON for storage -------------------------------------------------
+
+    fun featuresToJson(features: FeatureVector): String {
+        val obj = JSONObject()
+        for ((k, v) in features) obj.put(k, v)
+        return obj.toString()
+    }
+
+    fun featuresFromJson(json: String): FeatureVector {
+        val obj = JSONObject(json)
+        val out = LinkedHashMap<String, Double>()
+        val keys = obj.keys()
+        while (keys.hasNext()) {
+            val k = keys.next()
+            out[k] = obj.getDouble(k)
+        }
+        return out
+    }
+}
