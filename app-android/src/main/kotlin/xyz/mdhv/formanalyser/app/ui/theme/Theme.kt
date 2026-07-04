@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.sp
 
 /**
  * Hyle design tokens — REAL system values, ported verbatim from the Hyle Design System repo
- * (`dev.aarso.hyle.tokens.HyleTokens`, generated from `tokens/*.json`, the cross-platform
+ * (`dev.aarso.hyle.tokens.HyleTokens`, generated from the tokens JSON, the cross-platform
  * source of truth). Governing law there: "state is SHOWN by material behavior, never SAID by
  * language"; UI surfaces sit at #121212-class, never pure black (halation rule); ink is warm
  * off-white at opacity tiers; light is scarce — spend it on the single violet accent.
