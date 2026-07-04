@@ -30,16 +30,44 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun bodyDao(): BodyDao
 
     companion object {
+        private const val DB_NAME = "form-analyser.db"
+
         @Volatile private var instance: AppDatabase? = null
 
         fun get(context: Context): AppDatabase =
             instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "form-analyser.db",
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build().also { instance = it }
+                instance ?: openResilient(context.applicationContext).also { instance = it }
             }
+
+        private fun build(app: Context): AppDatabase =
+            Room.databaseBuilder(app, AppDatabase::class.java, DB_NAME)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                // Belt-and-suspenders for pre-release: if the on-disk schema has no clean
+                // migration path to the current version, recreate it rather than refuse to open.
+                .fallbackToDestructiveMigration()
+                .build()
+
+        /**
+         * Open the database, forcing the (potentially migrating) SQLite open to happen *here* under
+         * a guard instead of deep inside a coroutine where it would take the whole app down. The app
+         * has been installed over itself across many incrementally-schema'd builds, and
+         * `fallbackToDestructiveMigration` only covers a *missing* migration path — a migration that
+         * runs but throws, or leaves the schema failing Room's post-migration validation, still
+         * escapes it. With no real users yet, the safe resolution for an unreconcilable legacy DB is
+         * to rebuild it from scratch (exactly the "clear the app data" the crash dialog asked for,
+         * but automatic and silent). Real users on a correct migration chain never hit this branch.
+         */
+        private fun openResilient(app: Context): AppDatabase {
+            val db = build(app)
+            return try {
+                db.openHelper.writableDatabase // triggers open + migrations now
+                db
+            } catch (t: Throwable) {
+                runCatching { db.close() }
+                app.deleteDatabase(DB_NAME)
+                build(app).also { it.openHelper.writableDatabase }
+            }
+        }
 
         /**
          * V1 → V2 (Phase 1): athlete profile columns, the rig table, session rig/handedness columns,
