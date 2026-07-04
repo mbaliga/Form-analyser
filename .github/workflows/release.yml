@@ -36,7 +36,8 @@ jobs:
           RAW="${{ github.event.inputs.version || github.ref_name }}"
           echo "version=${RAW#release/}" >> "$GITHUB_OUTPUT"
       - name: Rename APK to version
-        run: cp app-android/build/outputs/apk/debug/app-debug.apk "crocodyl-${{ steps.ver.outputs.version }}.apk"
+        # module is :app-android, so AGP emits app-android-debug.apk — glob, don't guess
+        run: cp app-android/build/outputs/apk/debug/*.apk "crocodyl-${{ steps.ver.outputs.version }}.apk"
       # Public no-login download link on the Release page (spec §9 distribution path).
       - name: Attach to GitHub Release
         uses: softprops/action-gh-release@v2
