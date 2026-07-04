@@ -12,33 +12,59 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
- * Hyle design tokens (handoff §6): violet accent, dark/AMOLED surfaces, upper-left key light,
- * ~280ms cubic-bezier motion, and the provenance-glow convention
- * (radium-green = on-device inference, alien-cyan = cloud).
+ * Hyle design tokens — REAL system values, ported verbatim from the Hyle Design System repo
+ * (`dev.aarso.hyle.tokens.HyleTokens`, generated from `tokens/*.json`, the cross-platform
+ * source of truth). Governing law there: "state is SHOWN by material behavior, never SAID by
+ * language"; UI surfaces sit at #121212-class, never pure black (halation rule); ink is warm
+ * off-white at opacity tiers; light is scarce — spend it on the single violet accent.
+ *
+ * Property names kept from the earlier approximation so every screen compiles unchanged —
+ * the values are now the token contract's.
  */
 object Hyle {
-    val Accent = Color(0xFF8E7BFF)            // violet
-    val AccentDim = Color(0xFF5B4FA8)
-    val Background = Color(0xFF000000)        // AMOLED true black
-    val Surface = Color(0xFF0E0E12)
-    val SurfaceVariant = Color(0xFF17171F)
-    val OnBackground = Color(0xFFEDEDF2)
-    val OnSurfaceDim = Color(0xFF9A9AA8)
-    val Danger = Color(0xFFFF6B6B)
+    // Accent lane (color.palette.accent)
+    val Accent = Color(0xFF8E7BFF)            // violet — the single north-star accent
+    val AccentBright = Color(0xFFA593FF)      // hover/bright
+    val AccentDim = Color(0xFF7867E6)         // deep/active
 
-    /** On-device inference glow. */
-    val RadiumGreen = Color(0xFF66FF99)
-    /** Cloud-sourced glow (reserved for when the web/coach layer lands). */
-    val AlienCyan = Color(0xFF3DE0FF)
+    // Fields & surfaces (color.palette.field / control)
+    val Background = Color(0xFF0A0809)        // field.near — the inky base behind glass
+    val Surface = Color(0xFF121212)           // background.surface — raised, never pure black
+    val SurfaceVariant = Color(0xFF212128)    // control.surface-raised — lifted faces
 
-    /** ~280ms cubic-bezier — the standard Hyle transition. */
-    val Easing = CubicBezierEasing(0.2f, 0.0f, 0.0f, 1.0f)
-    const val MotionMillis = 280
+    // Ink (warm off-white, opacity tiers)
+    val OnBackground = Color(0xEBECE8E4)      // text.primary (ink.full, 92%)
+    val OnSurfaceDim = Color(0x6BECE8E4)      // text.secondary (ink.dim, 42%)
+    val InkFaint = Color(0x2EECE8E4)          // text.faint (18%) — micro-labels
+
+    // Hairlines (color.border)
+    val Hairline = Color(0x14FFFFFF)
+    val HairlineStrong = Color(0x24FFFFFF)
+
+    // Signals (color.feedback) — red/green never semantic for archery data; these are for
+    // destructive actions and system feedback only.
+    val Danger = Color(0xFFE5564B)
+    val Warning = Color(0xFFE0941A)
+    val Success = Color(0xFF5BBF7A)
+
+    /** Provenance: radium yellow-green = on-device/native (RadiantHues.RADIUM). */
+    val RadiumGreen = Color(0xFFC7EF9E)
+
+    /** Provenance: cold clinical cyan = cloud/from-elsewhere (RadiantHues.COLD_CYAN). */
+    val AlienCyan = Color(0xFF35E0FF)
+
+    /** motion: easing.standard — calm weighted ease, no spring. */
+    val Easing = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
+
+    /** motion: duration.calm — "weight not bounce". */
+    const val MotionMillis = 300
+    const val MotionInstantMillis = 120
+    const val MotionPaneMillis = 420
 }
 
 private val HyleColors = darkColorScheme(
     primary = Hyle.Accent,
-    onPrimary = Color(0xFF120F22),
+    onPrimary = Color(0xFF0A0809),            // action.on-primary — ink-on-light
     secondary = Hyle.RadiumGreen,
     background = Hyle.Background,
     onBackground = Hyle.OnBackground,
@@ -46,19 +72,21 @@ private val HyleColors = darkColorScheme(
     onSurface = Hyle.OnBackground,
     surfaceVariant = Hyle.SurfaceVariant,
     onSurfaceVariant = Hyle.OnSurfaceDim,
+    outline = Hyle.Hairline,
     error = Hyle.Danger,
 )
 
+// Type scale from the token contract (font.size.*): 2xl 24 / xl 20 / md 16 / label 11.
 private val HyleType = Typography(
-    headlineMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 26.sp),
+    headlineMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 24.sp),
     titleLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp),
     bodyLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 16.sp),
-    labelMedium = TextStyle(fontWeight = FontWeight.Medium, fontSize = 13.sp),
+    labelMedium = TextStyle(fontWeight = FontWeight.Medium, fontSize = 11.sp),
 )
 
 @Composable
 fun FormAnalyserTheme(content: @Composable () -> Unit) {
-    // Dark-only by design (AMOLED). isSystemInDarkTheme kept for future light variant.
+    // Dark-only by design. isSystemInDarkTheme kept for a future light variant.
     @Suppress("UNUSED_VARIABLE") val dark = isSystemInDarkTheme()
     MaterialTheme(colorScheme = HyleColors, typography = HyleType, content = content)
 }

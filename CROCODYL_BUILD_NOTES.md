@@ -149,3 +149,15 @@ Not yet built (require the Android SDK / only compile in CI):
    PR, or split per-phase once you're merging.
 3. Android app layers will be built + verified via CI iteration (no local SDK); flagging that the pace
    there is CI-round-trip-bound, unlike these locally-verified cores.
+
+## Hyle: approximation → real tokens
+
+The Hyle Design System repo (dev.aarso hyle, `tokens/*.json` → `HyleTokens.kt`) is now the token
+source. `ui/theme/Theme.kt` ports the generated values verbatim (warm ink #ECE8E4 at 92/42/18%
+tiers, #121212-class surfaces per the halation rule, field.near #0A0809 window, radium #C7EF9E /
+cold-cyan #35E0FF provenance, hairlines, calm 300ms cubic-bezier(0.4,0,0.2,1), token type scale).
+Property names unchanged so all screens compile untouched. The body-map encoding hexes (violet
+ramp anchors, #08FED5 physio hatch) stay as spec'd in the Crocodyl briefs — they are the body-map
+law, not general theme tokens. Releases: `v0.4.0-hyle-approx` (before) vs `v0.4.1-hyle-real`
+(after) for side-by-side comparison. Future step: consume `dev.aarso:hyle` as a real dependency
+instead of ported constants (needs artifact publishing wiring).
