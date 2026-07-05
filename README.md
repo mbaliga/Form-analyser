@@ -55,9 +55,16 @@ Self-contained — no external repo or artifact needed:
 ./gradlew test     # builds :engine + :archery-module and runs all unit tests
 ```
 
-Requires JDK 21. The Android app (`app-android/`) is **not** part of this Gradle build yet — it
-needs the Android SDK and is built on a dev machine / in CI with the Android toolchain. See
-[`app-android/README.md`](app-android/README.md).
+Requires JDK 21. The Android app (`app-android/`) needs the Android SDK, so it's **opt-in**: pass
+`-PwithAndroid` (e.g. `./gradlew :app-android:assembleDebug -PwithAndroid`, which CI's `android`
+job runs) — the default `./gradlew test` stays SDK-free. See [`app-android/README.md`](app-android/README.md).
+
+**Crash recovery.** The app installs the shared `dev.aarso:crash-recovery` utility (from the
+`hyle-design-system` submodule via a `-PwithAndroid`-gated `includeBuild` — no `:hyle`
+dependency). A device-only crash is captured and shown on the next launch instead of the app
+silently dying — Crocodyl is the constellation's real-world crasher, so this is where it earns
+its keep. **Preview the recovery screen without a real crash:** on the home screen, long-press
+the "Crocodyl" title (debug builds only) — calls `CrashRecovery.previewIntent(context, "Crocodyl")`.
 
 ## First build target (handoff §11)
 
