@@ -1,5 +1,8 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import android.content.pm.ApplicationInfo
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,22 +19,44 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import dev.aarso.crashrecovery.CrashRecovery
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(vm: SessionViewModel, onSessionStarted: () -> Unit) {
     val athlete by vm.athleteName.collectAsState()
     var drawWeight by remember { mutableStateOf("40") }
     var distance by remember { mutableStateOf("18") }
+    val context = LocalContext.current
+    val isDebuggable = remember { (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0 }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Crocodyl", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+        Text(
+            "Crocodyl",
+            style = androidx.compose.material3.MaterialTheme.typography.headlineMedium,
+            color = Hyle.OnBackground,
+            // Debug-only: long-press the title to preview the crash-recovery screen without
+            // actually crashing (dev.aarso:crash-recovery — see that repo's README). Never
+            // reachable from a release build.
+            modifier = if (isDebuggable) {
+                Modifier.combinedClickable(
+                    onClick = {},
+                    onLongClick = {
+                        context.startActivity(CrashRecovery.previewIntent(context, appLabel = "Crocodyl"))
+                    },
+                )
+            } else {
+                Modifier
+            },
+        )
         Text("Archery · form & shot-sequence analysis", color = Hyle.OnSurfaceDim)
         Text("Athlete: $athlete", color = Hyle.OnBackground)
 

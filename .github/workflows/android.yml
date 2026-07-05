@@ -21,6 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # hyle-design-system submodule — :app-android's crash-recovery dependency resolves
+          # from its includeBuild (settings.gradle.kts, under -PwithAndroid); an empty submodule
+          # dir breaks the build.
+          submodules: recursive
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

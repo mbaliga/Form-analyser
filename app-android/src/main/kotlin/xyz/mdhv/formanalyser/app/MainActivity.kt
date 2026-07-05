@@ -12,6 +12,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.aarso.crashrecovery.CrashRecovery
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.ui.CaptureScreen
 import xyz.mdhv.formanalyser.app.ui.HomeScreen
@@ -21,6 +22,12 @@ import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // If the previous run crashed (Crocodyl's camera / pose / session paths do fail in the
+        // field), show the shared recovery screen instead of relaunching straight back into the
+        // crash. Finishes this Activity, so a device-only crash can't wedge the app.
+        if (CrashRecovery.maybeShowRecovery(this, appLabel = "Crocodyl")) return
+
         setContent {
             FormAnalyserTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
