@@ -55,9 +55,27 @@ Self-contained — no external repo or artifact needed:
 ./gradlew test     # builds :engine + :archery-module and runs all unit tests
 ```
 
-Requires JDK 21. The Android app (`app-android/`) is **not** part of this Gradle build yet — it
-needs the Android SDK and is built on a dev machine / in CI with the Android toolchain. See
-[`app-android/README.md`](app-android/README.md).
+Requires JDK 21. The Android app (`app-android/`) is opt-in: it needs the Android SDK, so it is
+excluded from the default build and included only with `-PwithAndroid` (CI's `android` job and
+any SDK-equipped machine):
+
+```bash
+git submodule update --init --recursive        # brings in hyle-design-system (crash-recovery)
+./gradlew :app-android:assembleDebug -PwithAndroid
+```
+
+See [`app-android/README.md`](app-android/README.md).
+
+### Crash recovery
+
+Crocodyl adopts the shared **`dev.aarso:crash-recovery`** module (from
+[`mbaliga/Hyle-Design-System`](https://github.com/mbaliga/Hyle-Design-System), pulled in as the
+`hyle-design-system` submodule and `includeBuild`'d under `-PwithAndroid`). If a run crashes —
+the camera / pose / session paths do fail in the field — the next launch shows a calm recovery
+screen with a one-tap shareable report instead of relaunching straight back into the crash.
+
+**Preview it without crashing:** on a debug build, **long-press the "Crocodyl" title** on the
+Home top bar to open the recovery screen with a sample report.
 
 ## First build target (handoff §11)
 

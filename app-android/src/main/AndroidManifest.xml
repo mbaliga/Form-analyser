@@ -9,6 +9,7 @@
          onto a fresh install, making Room run a migration it can't reconcile and crash on first
          write. Local-first data is rebuilt on device; nothing here needs cloud backup yet. -->
     <application
+        android:name=".CrocodylApplication"
         android:allowBackup="false"
         android:label="@string/app_name"
         android:supportsRtl="true"

@@ -6,7 +6,13 @@
 import java.net.URI
 
 plugins {
-    id("com.android.application") version "8.7.3"
+    // AGP pinned to match mbaliga/Hyle-Design-System exactly (8.9.1) — Gradle composite builds
+    // (the `includeBuild("hyle-design-system")` in ../settings.gradle.kts that resolves
+    // dev.aarso:crash-recovery) require every participating build to use the SAME AGP version,
+    // or the build fails with "Using multiple versions of the Android Gradle plugin ... is not
+    // allowed" (Personal-Tracker DECISIONS.md D-Q). The root Gradle wrapper is already 8.14.3,
+    // above AGP 8.9.1's minimum.
+    id("com.android.application") version "8.9.1"
     kotlin("android") version "2.1.0"
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.0"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
@@ -57,6 +63,12 @@ dependencies {
     implementation(project(":core-equipment"))
     implementation(project(":core-wellness"))
     implementation(project(":core-body"))
+
+    // Shared crash-recovery utility, resolved from the hyle-design-system includeBuild
+    // (../settings.gradle.kts, gated behind -PwithAndroid) — separate coordinate from :hyle,
+    // no dependency on it. Crocodyl is the app that actually crashes in the field, so this is
+    // the highest-value real-world test of the recovery flow.
+    implementation("dev.aarso:crash-recovery:1.0.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("androidx.datastore:datastore-preferences:1.1.1")

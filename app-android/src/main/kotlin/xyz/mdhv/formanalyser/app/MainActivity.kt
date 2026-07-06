@@ -1,8 +1,11 @@
 package xyz.mdhv.formanalyser.app
 
+import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,6 +44,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dev.aarso.crashrecovery.CrashRecovery
 import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.domain.BodyViewModel
 import xyz.mdhv.formanalyser.app.domain.CalendarViewModel
@@ -91,6 +95,12 @@ private object R {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // If the previous run crashed (Crocodyl's camera / pose / session paths do fail in the
+        // field), show the shared recovery screen instead of relaunching straight back into the
+        // crash. Finishes this Activity, so a device-only crash can't wedge the app.
+        if (CrashRecovery.maybeShowRecovery(this, appLabel = "Crocodyl")) return
+
         setContent {
             FormAnalyserTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -225,13 +235,27 @@ private fun NavGraphBuilder.settingsGraph(
     composable(R.S_ABOUT) { SettingsAboutScreen() }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TopRow(title: String, onSettings: () -> Unit) {
+    val context = LocalContext.current
+    // Debug-only affordance: long-press the "Crocodyl" title to preview the crash-recovery
+    // screen without forcing a real crash. buildConfig isn't enabled here, so gate on the
+    // debuggable flag (release builds get a plain, inert title).
+    val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    val titleModifier = if (debuggable) {
+        Modifier.weight(1f).combinedClickable(
+            onClick = {},
+            onLongClick = { context.startActivity(CrashRecovery.previewIntent(context, appLabel = "Crocodyl")) },
+        )
+    } else {
+        Modifier.weight(1f)
+    }
     Row(
         Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground, modifier = Modifier.weight(1f))
+        Text(title, style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground, modifier = titleModifier)
         IconButton(onClick = onSettings) { Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Hyle.OnSurfaceDim) }
     }
 }
