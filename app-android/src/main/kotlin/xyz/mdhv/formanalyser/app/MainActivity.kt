@@ -241,21 +241,23 @@ private fun TopRow(title: String, onSettings: () -> Unit) {
     val context = LocalContext.current
     // Debug-only affordance: long-press the "Crocodyl" title to preview the crash-recovery
     // screen without forcing a real crash. buildConfig isn't enabled here, so gate on the
-    // debuggable flag (release builds get a plain, inert title).
+    // debuggable flag (release builds get a plain, inert title). combinedClickable is a plain
+    // Modifier extension, but Modifier.weight() is a RowScope extension — so only the clickable
+    // part is precomputed here; .weight(1f) is applied inside the Row's RowScope below.
     val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-    val titleModifier = if (debuggable) {
-        Modifier.weight(1f).combinedClickable(
+    val previewClick = if (debuggable) {
+        Modifier.combinedClickable(
             onClick = {},
             onLongClick = { context.startActivity(CrashRecovery.previewIntent(context, appLabel = "Crocodyl")) },
         )
     } else {
-        Modifier.weight(1f)
+        Modifier
     }
     Row(
         Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground, modifier = titleModifier)
+        Text(title, style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground, modifier = Modifier.weight(1f).then(previewClick))
         IconButton(onClick = onSettings) { Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Hyle.OnSurfaceDim) }
     }
 }
