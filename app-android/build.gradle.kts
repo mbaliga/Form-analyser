@@ -26,8 +26,21 @@ android {
         applicationId = "xyz.mdhv.formanalyser"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.4.4"
+    }
+
+    // A committed debug keystore so every CI build is signed with the SAME key. Without this,
+    // assembleDebug uses the auto-generated ~/.android/debug.keystore, which GitHub Actions
+    // regenerates each run — so each release APK had a different signature and Android refused to
+    // install it over the previous one ("App not installed"). Debug-only key; safe to commit.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
