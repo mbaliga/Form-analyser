@@ -77,7 +77,11 @@ import xyz.mdhv.formanalyser.app.ui.TrainSetupScreen
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 
-private object R {
+// NB: must NOT be named `R` — in package xyz.mdhv.formanalyser.app that collides with AGP's
+// generated resources class xyz.mdhv.formanalyser.app.R at dex time (the resources class wins,
+// so the object's INSTANCE field vanishes and any non-const access — e.g. TABS — throws
+// NoSuchFieldError at runtime).
+private object Routes {
     const val HOME = "home"; const val TRAIN = "train"; const val CAPTURE = "capture"; const val REVIEW = "review"
     const val PROGRESS = "progress"; const val BODY = "body"; const val CALENDAR = "calendar"
     const val LOG = "log"
@@ -134,52 +138,52 @@ private fun MainShell() {
 
     val backStack by nav.currentBackStackEntryAsState()
     val route = backStack?.destination?.route
-    val onTab = route in R.TABS
+    val onTab = route in Routes.TABS
 
     Scaffold(
-        topBar = { if (onTab) TopRow(title = tabTitle(route), onSettings = { nav.navigate(R.SETTINGS) }) },
+        topBar = { if (onTab) TopRow(title = tabTitle(route), onSettings = { nav.navigate(Routes.SETTINGS) }) },
         bottomBar = { if (onTab) BottomBar(currentRoute = route, injuryBadge = activeInjuries > 0, onSelect = { navigateTab(nav, it) }) },
     ) { padding ->
-        NavHost(navController = nav, startDestination = R.HOME, modifier = Modifier.padding(padding)) {
-            composable(R.HOME) {
+        NavHost(navController = nav, startDestination = Routes.HOME, modifier = Modifier.padding(padding)) {
+            composable(Routes.HOME) {
                 HomeScreen(
                     vm = homeVm,
-                    onStartSession = { nav.navigate(R.TRAIN) },
-                    onOpenReview = { id -> sessionVm.openSession(id); nav.navigate(R.REVIEW) },
-                    onManageRigs = { nav.navigate(R.S_RIGS) },
-                    onLog = { nav.navigate(R.LOG) },
+                    onStartSession = { nav.navigate(Routes.TRAIN) },
+                    onOpenReview = { id -> sessionVm.openSession(id); nav.navigate(Routes.REVIEW) },
+                    onManageRigs = { nav.navigate(Routes.S_RIGS) },
+                    onLog = { nav.navigate(Routes.LOG) },
                 )
             }
-            composable(R.TRAIN) {
-                TrainSetupScreen(sessionVm, onStarted = { nav.navigate(R.CAPTURE) }, onManageRigs = { nav.navigate(R.S_RIGS) })
+            composable(Routes.TRAIN) {
+                TrainSetupScreen(sessionVm, onStarted = { nav.navigate(Routes.CAPTURE) }, onManageRigs = { nav.navigate(Routes.S_RIGS) })
             }
-            composable(R.CAPTURE) { CaptureScreen(sessionVm, onReview = { nav.navigate(R.REVIEW) }) }
-            composable(R.REVIEW) { ReviewScreen(sessionVm) }
-            composable(R.PROGRESS) { ComingSoonScreen("📈", listOf("Your baseline lives here soon —", "stability trends, projections, and what your form is telling you.")) }
-            composable(R.BODY) {
+            composable(Routes.CAPTURE) { CaptureScreen(sessionVm, onReview = { nav.navigate(Routes.REVIEW) }) }
+            composable(Routes.REVIEW) { ReviewScreen(sessionVm) }
+            composable(Routes.PROGRESS) { ComingSoonScreen("📈", listOf("Your baseline lives here soon —", "stability trends, projections, and what your form is telling you.")) }
+            composable(Routes.BODY) {
                 BodyScreen(
                     vm = bodyVm,
-                    onEditInjury = { id -> nav.navigate("${R.INJURY_EDIT}/${id ?: "new"}") },
-                    onEditPlan = { id -> nav.navigate("${R.PLAN_EDIT}/${id ?: "new"}") },
+                    onEditInjury = { id -> nav.navigate("${Routes.INJURY_EDIT}/${id ?: "new"}") },
+                    onEditPlan = { id -> nav.navigate("${Routes.PLAN_EDIT}/${id ?: "new"}") },
                 )
             }
-            composable(R.CALENDAR) { CalendarScreen(calendarVm, onLog = { nav.navigate(R.LOG) }) }
-            composable(R.LOG) { LogScreen(wellnessVm, cycleEnabled = cycleEnabled, onDone = { nav.popBackStack() }) }
+            composable(Routes.CALENDAR) { CalendarScreen(calendarVm, onLog = { nav.navigate(Routes.LOG) }) }
+            composable(Routes.LOG) { LogScreen(wellnessVm, cycleEnabled = cycleEnabled, onDone = { nav.popBackStack() }) }
 
-            composable("${R.INJURY_EDIT}/{injuryId}") { entry ->
+            composable("${Routes.INJURY_EDIT}/{injuryId}") { entry ->
                 val iid = entry.arguments?.getString("injuryId")
                 InjuryEditScreen(
                     bodyVm,
                     injuryId = if (iid == "new") null else iid,
                     onDone = { nav.popBackStack() },
-                    onOpenDocument = { docId -> nav.navigate("${R.DOC_VIEW}/$docId") },
+                    onOpenDocument = { docId -> nav.navigate("${Routes.DOC_VIEW}/$docId") },
                 )
             }
-            composable("${R.PLAN_EDIT}/{planId}") { entry ->
+            composable("${Routes.PLAN_EDIT}/{planId}") { entry ->
                 val pid = entry.arguments?.getString("planId")
                 PhysioPlanEditScreen(bodyVm, planId = if (pid == "new") null else pid, onDone = { nav.popBackStack() })
             }
-            composable("${R.DOC_VIEW}/{docId}") { entry ->
+            composable("${Routes.DOC_VIEW}/{docId}") { entry ->
                 val did = entry.arguments?.getString("docId") ?: return@composable
                 DocumentViewerScreen(bodyVm, documentId = did, onClose = { nav.popBackStack() })
             }
@@ -195,34 +199,34 @@ private fun NavGraphBuilder.settingsGraph(
     settingsVm: SettingsViewModel,
     wellnessVm: WellnessViewModel,
 ) {
-    composable(R.SETTINGS) {
+    composable(Routes.SETTINGS) {
         SettingsRootScreen(
-            onProfile = { nav.navigate(R.S_PROFILE) },
-            onRigs = { nav.navigate(R.S_RIGS) },
-            onCapture = { nav.navigate(R.S_CAPTURE) },
-            onWellness = { nav.navigate(R.S_WELLNESS) },
-            onStreak = { nav.navigate(R.S_STREAK) },
-            onCycle = { nav.navigate(R.S_CYCLE) },
-            onMedication = { nav.navigate(R.S_MEDICATION) },
-            onAppearance = { nav.navigate(R.S_APPEARANCE) },
-            onData = { nav.navigate(R.S_DATA) },
-            onAbout = { nav.navigate(R.S_ABOUT) },
+            onProfile = { nav.navigate(Routes.S_PROFILE) },
+            onRigs = { nav.navigate(Routes.S_RIGS) },
+            onCapture = { nav.navigate(Routes.S_CAPTURE) },
+            onWellness = { nav.navigate(Routes.S_WELLNESS) },
+            onStreak = { nav.navigate(Routes.S_STREAK) },
+            onCycle = { nav.navigate(Routes.S_CYCLE) },
+            onMedication = { nav.navigate(Routes.S_MEDICATION) },
+            onAppearance = { nav.navigate(Routes.S_APPEARANCE) },
+            onData = { nav.navigate(Routes.S_DATA) },
+            onAbout = { nav.navigate(Routes.S_ABOUT) },
         )
     }
-    composable(R.S_PROFILE) { SettingsProfileScreen(rigsVm) }
-    composable(R.S_RIGS) { SettingsRigsScreen(rigsVm, onEdit = { id -> nav.navigate("${R.RIG_EDIT}/${id ?: "new"}") }) }
-    composable("${R.RIG_EDIT}/{rigId}") { entry ->
+    composable(Routes.S_PROFILE) { SettingsProfileScreen(rigsVm) }
+    composable(Routes.S_RIGS) { SettingsRigsScreen(rigsVm, onEdit = { id -> nav.navigate("${Routes.RIG_EDIT}/${id ?: "new"}") }) }
+    composable("${Routes.RIG_EDIT}/{rigId}") { entry ->
         val rid = entry.arguments?.getString("rigId")
         RigEditScreen(rigsVm, rigId = if (rid == "new") null else rid, onDone = { nav.popBackStack() })
     }
-    composable(R.S_CAPTURE) { SettingsCaptureScreen(settingsVm) }
-    composable(R.S_WELLNESS) { SettingsWellnessScreen(settingsVm) }
-    composable(R.S_STREAK) { SettingsStreakScreen(wellnessVm) }
-    composable(R.S_CYCLE) { SettingsCycleScreen(wellnessVm) }
-    composable(R.S_MEDICATION) { SettingsMedicationScreen(wellnessVm) }
-    composable(R.S_APPEARANCE) { SettingsAppearanceScreen(settingsVm) }
-    composable(R.S_DATA) { SettingsDataScreen(settingsVm, onWiped = { /* onboarded flips → AppRoot recomposes */ }) }
-    composable(R.S_ABOUT) { SettingsAboutScreen() }
+    composable(Routes.S_CAPTURE) { SettingsCaptureScreen(settingsVm) }
+    composable(Routes.S_WELLNESS) { SettingsWellnessScreen(settingsVm) }
+    composable(Routes.S_STREAK) { SettingsStreakScreen(wellnessVm) }
+    composable(Routes.S_CYCLE) { SettingsCycleScreen(wellnessVm) }
+    composable(Routes.S_MEDICATION) { SettingsMedicationScreen(wellnessVm) }
+    composable(Routes.S_APPEARANCE) { SettingsAppearanceScreen(settingsVm) }
+    composable(Routes.S_DATA) { SettingsDataScreen(settingsVm, onWiped = { /* onboarded flips → AppRoot recomposes */ }) }
+    composable(Routes.S_ABOUT) { SettingsAboutScreen() }
 }
 
 @Composable
@@ -239,11 +243,11 @@ private fun TopRow(title: String, onSettings: () -> Unit) {
 @Composable
 private fun BottomBar(currentRoute: String?, injuryBadge: Boolean, onSelect: (String) -> Unit) {
     val items = listOf(
-        R.HOME to (Icons.Filled.Home to "Home"),
-        R.TRAIN to (Icons.Filled.CameraAlt to "Train"),
-        R.PROGRESS to (Icons.Filled.ShowChart to "Progress"),
-        R.BODY to (Icons.Filled.Accessibility to "Body"),
-        R.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
+        Routes.HOME to (Icons.Filled.Home to "Home"),
+        Routes.TRAIN to (Icons.Filled.CameraAlt to "Train"),
+        Routes.PROGRESS to (Icons.Filled.ShowChart to "Progress"),
+        Routes.BODY to (Icons.Filled.Accessibility to "Body"),
+        Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
     )
     NavigationBar(containerColor = Hyle.Surface) {
         items.forEach { (dest, iconLabel) ->
@@ -252,7 +256,7 @@ private fun BottomBar(currentRoute: String?, injuryBadge: Boolean, onSelect: (St
                 selected = currentRoute == dest,
                 onClick = { onSelect(dest) },
                 icon = {
-                    if (dest == R.BODY && injuryBadge) {
+                    if (dest == Routes.BODY && injuryBadge) {
                         BadgedBox(badge = { Badge { Text("!") } }) { Icon(icon, contentDescription = label) }
                     } else {
                         Icon(icon, contentDescription = label)
@@ -265,12 +269,12 @@ private fun BottomBar(currentRoute: String?, injuryBadge: Boolean, onSelect: (St
 }
 
 private fun tabTitle(route: String?): String = when (route) {
-    R.HOME -> "Crocodyl"; R.TRAIN -> "Train"; R.PROGRESS -> "Progress"; R.BODY -> "Body"; R.CALENDAR -> "Calendar"; else -> "Crocodyl"
+    Routes.HOME -> "Crocodyl"; Routes.TRAIN -> "Train"; Routes.PROGRESS -> "Progress"; Routes.BODY -> "Body"; Routes.CALENDAR -> "Calendar"; else -> "Crocodyl"
 }
 
 private fun navigateTab(nav: androidx.navigation.NavHostController, dest: String) {
     nav.navigate(dest) {
-        popUpTo(R.HOME) { saveState = true }
+        popUpTo(Routes.HOME) { saveState = true }
         launchSingleTop = true
         restoreState = true
     }
