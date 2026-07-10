@@ -223,9 +223,9 @@ class CoachViewModel(
                 override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
                     val keyVault = KeyVault(app)
                     val aiSettings = AiSettings(app)
-                    val onDevice = OnDeviceLlmClient(app) {
+                    val onDevice = OnDeviceLlmClient(app, modelPath = {
                         runBlocking { aiSettings.onDeviceModelPath.first() }
-                    }
+                    })
                     val resolver: (CoachModel) -> LlmClient? = { m ->
                         when (m.kind) {
                             ModelKind.CLOUD -> CloudLlmClients.forModel(m) { p -> keyVault.getKey(p) }
