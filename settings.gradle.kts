@@ -19,6 +19,10 @@ include(":core-model")
 include(":core-equipment")
 include(":core-wellness")
 include(":core-body")
+// AI coach domain (BYOK + on-device grounding/redaction) and Phase 5 export/exchange consent
+// filter — both pure-JVM, headless-testable.
+include(":core-coach")
+include(":core-exchange")
 
 // :app-android needs the Android Gradle Plugin + Android SDK, absent in headless envs.
 // Opt in with `-PwithAndroid` (CI's android job and any SDK-equipped machine); the default
