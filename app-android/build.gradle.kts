@@ -70,6 +70,9 @@ dependencies {
     implementation(project(":core-equipment"))
     implementation(project(":core-wellness"))
     implementation(project(":core-body"))
+    // Phase 3 AI coach (BYOK + on-device grounding/redaction) and Phase 5 export/exchange consent.
+    implementation(project(":core-coach"))
+    implementation(project(":core-exchange"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -104,6 +107,8 @@ dependencies {
 
     // MediaPipe Pose (BlazePose) — on-device pose landmarks.
     implementation("com.google.mediapipe:tasks-vision:0.10.20")
+    // MediaPipe LLM Inference (Gemma 3n) — on-device coach runtime.
+    implementation("com.google.mediapipe:tasks-genai:0.10.24")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }

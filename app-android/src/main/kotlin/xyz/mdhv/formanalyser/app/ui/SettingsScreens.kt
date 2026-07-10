@@ -53,6 +53,7 @@ fun SettingsRootScreen(
     onCycle: () -> Unit,
     onMedication: () -> Unit,
     onAppearance: () -> Unit,
+    onAi: () -> Unit,
     onData: () -> Unit,
     onAbout: () -> Unit,
 ) {
@@ -66,6 +67,7 @@ fun SettingsRootScreen(
         HyleListRow("Cycle tracking", onClick = onCycle)
         HyleListRow("Medication", onClick = onMedication)
         HyleListRow("Appearance", onClick = onAppearance)
+        HyleListRow("AI coach", onClick = onAi)
         HyleListRow("Data", onClick = onData)
         HyleListRow("About", onClick = onAbout)
     }
@@ -159,6 +161,9 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
     var marked by remember(existing?.id) { mutableStateOf(t.markedLbs?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "") }
     var otf by remember(existing?.id) { mutableStateOf(t.otfLbs?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "") }
     var note by remember { mutableStateOf<String?>(null) }
+    // Phase 4: the full tuning spec (advanced fields). Basics stay the source of truth in the fields
+    // above and are re-stamped onto this value at save time; here we only carry the advanced setup.
+    var adv by remember(existing?.id) { mutableStateOf(Tuning.parseFull(existing?.tuningJson)) }
 
     Column(col().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(if (existing == null) "Add rig" else "Edit rig", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
@@ -170,15 +175,28 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
         }
         OutlinedTextField(marked, { marked = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text(if (bow == BowType.COMPOUND) "Peak weight (lbs)" else "Marked poundage (lbs)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
         OutlinedTextField(otf, { otf = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("On-the-fingers (lbs, measured)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+
+        // Phase 4 advanced tuning (collapsible). Live effective poundage (measured OTF, else marked)
+        // and the estimated bow length feed the FOC/GPP readouts and the brace-band warnings.
+        AdvancedTuningSection(
+            initial = adv,
+            drawLengthMm = null,
+            effectiveLbs = otf.toDoubleOrNull() ?: marked.toDoubleOrNull(),
+            bowLengthIn = Tuning.estimatedBowLengthIn(if (bow == BowType.COMPOUND) null else riser.toDouble(), bow),
+            onChange = { adv = it },
+        )
+
         note?.let { Text(it, color = Hyle.Danger) }
         Button(
             onClick = {
-                val tuning = TuningV0(
+                // Re-stamp the live basics onto the advanced spec and persist the full tuning. RigTuning
+                // keeps marked/riser/otf top-level, so the legacy V0 poundage path keeps resolving.
+                val full = adv.copy(
                     markedLbs = marked.toDoubleOrNull(),
                     riserLengthIn = if (bow == BowType.COMPOUND) null else riser.toDouble(),
                     otfLbs = otf.toDoubleOrNull(),
                 )
-                vm.saveRig(existing?.id, name, bow, Tuning.encode(tuning))
+                vm.saveRig(existing?.id, name, bow, Tuning.encodeFull(full))
                 onDone()
             },
             modifier = Modifier.fillMaxWidth(),
@@ -225,7 +243,7 @@ fun SettingsAppearanceScreen(vm: SettingsViewModel) {
 }
 
 @Composable
-fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit) {
+fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () -> Unit) {
     var arming by remember { mutableStateOf(false) }
     var confirm by remember { mutableStateOf("") }
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -243,6 +261,11 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit) {
     Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Data", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         vaultInfo?.let { Text(it, color = Hyle.OnSurfaceDim) }
+        HyleListRow(
+            title = "Export data (.crocbak)",
+            subtitle = "Choose exactly what leaves this device",
+            onClick = onExport,
+        )
         Text(
             "Everything runs on this device — nothing is stored anywhere else, so a wipe has no undo.",
             color = Hyle.OnSurfaceDim,

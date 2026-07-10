@@ -5,6 +5,10 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.any" android:required="true" />
 
+    <!-- BYOK cloud coach calls only. On-device coaching and everything else stay offline; no key,
+         no call. The AI coach is opt-in and every provider is bring-your-own-key. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- allowBackup off (pre-release): auto-backup could restore an old-schema form-analyser.db
          onto a fresh install, making Room run a migration it can't reconcile and crash on first
          write. Local-first data is rebuilt on device; nothing here needs cloud backup yet. -->

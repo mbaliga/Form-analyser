@@ -32,6 +32,7 @@ fun HomeScreen(
     onOpenReview: (String) -> Unit,
     onManageRigs: () -> Unit,
     onLog: () -> Unit,
+    onCoach: () -> Unit,
 ) {
     LaunchedEffect(Unit) { vm.load() }
     val athlete by vm.athlete.collectAsState()
@@ -95,6 +96,13 @@ fun HomeScreen(
         }
         item {
             OutlinedButton(onClick = onLog, modifier = Modifier.fillMaxWidth()) { Text("+ Log — wellness, rest, more") }
+        }
+        item {
+            HyleListRow(
+                title = "Coach",
+                subtitle = "What your data says — and ask a model over it",
+                onClick = onCoach,
+            )
         }
         item { Text("Recent sessions", style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground) }
         if (recent.isEmpty()) {

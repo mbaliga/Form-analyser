@@ -1,5 +1,6 @@
 package xyz.mdhv.formanalyser.app
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -44,16 +45,21 @@ import androidx.navigation.compose.rememberNavController
 import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.domain.BodyViewModel
 import xyz.mdhv.formanalyser.app.domain.CalendarViewModel
+import xyz.mdhv.formanalyser.app.domain.CoachViewModel
+import xyz.mdhv.formanalyser.app.domain.ExportViewModel
 import xyz.mdhv.formanalyser.app.domain.HomeViewModel
 import xyz.mdhv.formanalyser.app.domain.OnboardingViewModel
 import xyz.mdhv.formanalyser.app.domain.RigsViewModel
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.domain.SettingsViewModel
 import xyz.mdhv.formanalyser.app.domain.WellnessViewModel
+import xyz.mdhv.formanalyser.app.ui.AiSettingsScreen
 import xyz.mdhv.formanalyser.app.ui.BodyScreen
 import xyz.mdhv.formanalyser.app.ui.CalendarScreen
 import xyz.mdhv.formanalyser.app.ui.CaptureScreen
+import xyz.mdhv.formanalyser.app.ui.CoachScreen
 import xyz.mdhv.formanalyser.app.ui.ComingSoonScreen
+import xyz.mdhv.formanalyser.app.ui.ExportScreen
 import xyz.mdhv.formanalyser.app.ui.DocumentViewerScreen
 import xyz.mdhv.formanalyser.app.ui.HomeScreen
 import xyz.mdhv.formanalyser.app.ui.InjuryEditScreen
@@ -84,9 +90,10 @@ import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 private object Routes {
     const val HOME = "home"; const val TRAIN = "train"; const val CAPTURE = "capture"; const val REVIEW = "review"
     const val PROGRESS = "progress"; const val BODY = "body"; const val CALENDAR = "calendar"
-    const val LOG = "log"
+    const val LOG = "log"; const val COACH = "coach"
     const val SETTINGS = "settings"; const val S_PROFILE = "s_profile"; const val S_RIGS = "s_rigs"
     const val S_CAPTURE = "s_capture"; const val S_APPEARANCE = "s_appearance"; const val S_DATA = "s_data"; const val S_ABOUT = "s_about"
+    const val S_AI = "s_ai"; const val S_EXPORT = "s_export"
     const val S_WELLNESS = "s_wellness"; const val S_STREAK = "s_streak"; const val S_CYCLE = "s_cycle"; const val S_MEDICATION = "s_medication"
     const val RIG_EDIT = "rig_edit"; const val INJURY_EDIT = "injury_edit"; const val PLAN_EDIT = "plan_edit"; const val DOC_VIEW = "doc_view"
     val TABS = setOf(HOME, TRAIN, PROGRESS, BODY, CALENDAR)
@@ -152,7 +159,13 @@ private fun MainShell() {
                     onOpenReview = { id -> sessionVm.openSession(id); nav.navigate(Routes.REVIEW) },
                     onManageRigs = { nav.navigate(Routes.S_RIGS) },
                     onLog = { nav.navigate(Routes.LOG) },
+                    onCoach = { nav.navigate(Routes.COACH) },
                 )
+            }
+            composable(Routes.COACH) {
+                val app = LocalContext.current.applicationContext as Application
+                val coachVm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
+                CoachScreen(vm = coachVm, onOpenKeySettings = { nav.navigate(Routes.S_AI) })
             }
             composable(Routes.TRAIN) {
                 TrainSetupScreen(sessionVm, onStarted = { nav.navigate(Routes.CAPTURE) }, onManageRigs = { nav.navigate(Routes.S_RIGS) })
@@ -209,9 +222,15 @@ private fun NavGraphBuilder.settingsGraph(
             onCycle = { nav.navigate(Routes.S_CYCLE) },
             onMedication = { nav.navigate(Routes.S_MEDICATION) },
             onAppearance = { nav.navigate(Routes.S_APPEARANCE) },
+            onAi = { nav.navigate(Routes.S_AI) },
             onData = { nav.navigate(Routes.S_DATA) },
             onAbout = { nav.navigate(Routes.S_ABOUT) },
         )
+    }
+    composable(Routes.S_AI) { AiSettingsScreen() }
+    composable(Routes.S_EXPORT) {
+        val exportVm: ExportViewModel = viewModel()
+        ExportScreen(exportVm)
     }
     composable(Routes.S_PROFILE) { SettingsProfileScreen(rigsVm) }
     composable(Routes.S_RIGS) { SettingsRigsScreen(rigsVm, onEdit = { id -> nav.navigate("${Routes.RIG_EDIT}/${id ?: "new"}") }) }
@@ -225,7 +244,13 @@ private fun NavGraphBuilder.settingsGraph(
     composable(Routes.S_CYCLE) { SettingsCycleScreen(wellnessVm) }
     composable(Routes.S_MEDICATION) { SettingsMedicationScreen(wellnessVm) }
     composable(Routes.S_APPEARANCE) { SettingsAppearanceScreen(settingsVm) }
-    composable(Routes.S_DATA) { SettingsDataScreen(settingsVm, onWiped = { /* onboarded flips → AppRoot recomposes */ }) }
+    composable(Routes.S_DATA) {
+        SettingsDataScreen(
+            settingsVm,
+            onWiped = { /* onboarded flips → AppRoot recomposes */ },
+            onExport = { nav.navigate(Routes.S_EXPORT) },
+        )
+    }
     composable(Routes.S_ABOUT) { SettingsAboutScreen() }
 }
 
