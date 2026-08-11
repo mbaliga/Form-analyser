@@ -29,8 +29,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -118,6 +120,8 @@ private fun AppRoot() {
     val prefs = remember { AppPrefs(context) }
     val onboarded by produceState<Boolean?>(initialValue = null, prefs) { prefs.onboarded.collect { value = it } }
 
+    DbRecoveryNotice()
+
     when (onboarded) {
         null -> Box(Modifier.fillMaxSize()) // brief splash while the flag loads
         false -> {
@@ -126,6 +130,40 @@ private fun AppRoot() {
         }
         else -> MainShell()
     }
+}
+
+/**
+ * One-time, honest disclosure for [xyz.mdhv.formanalyser.app.data.DbRecovery]: if
+ * [AppDatabase.get] had to back up and reset the database on this launch, say so — rather than the
+ * silent recovery this replaced. Dismissing clears the flag so it doesn't reappear.
+ */
+@Composable
+private fun DbRecoveryNotice() {
+    val context = LocalContext.current
+    var event by remember { mutableStateOf(xyz.mdhv.formanalyser.app.data.DbRecovery.pendingNotice(context)) }
+    val e = event ?: return
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = {},
+        title = { Text("Your saved data was reset") },
+        text = {
+            Text(
+                if (e.backupPath != null) {
+                    "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
+                        "created. Your previous data was backed up on this device at:\n\n${e.backupPath}"
+                } else {
+                    "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
+                        "created. A backup of the previous data could not be made."
+                },
+            )
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = {
+                xyz.mdhv.formanalyser.app.data.DbRecovery.dismissNotice(context)
+                event = null
+            }) { Text("OK") }
+        },
+    )
 }
 
 @Composable

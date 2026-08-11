@@ -42,20 +42,27 @@ abstract class AppDatabase : RoomDatabase() {
         private fun build(app: Context): AppDatabase =
             Room.databaseBuilder(app, AppDatabase::class.java, DB_NAME)
                 .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
-                // Belt-and-suspenders for pre-release: if the on-disk schema has no clean
-                // migration path to the current version, recreate it rather than refuse to open.
-                .fallbackToDestructiveMigration()
+                // No fallbackToDestructiveMigration: a missing migration path should surface as a
+                // thrown exception into the catch below (and get backed up + recorded), not vanish
+                // into Room's own silent wipe. See openResilient's kdoc for the full rationale.
                 .build()
 
         /**
          * Open the database, forcing the (potentially migrating) SQLite open to happen *here* under
          * a guard instead of deep inside a coroutine where it would take the whole app down. The app
-         * has been installed over itself across many incrementally-schema'd builds, and
-         * `fallbackToDestructiveMigration` only covers a *missing* migration path — a migration that
-         * runs but throws, or leaves the schema failing Room's post-migration validation, still
-         * escapes it. With no real users yet, the safe resolution for an unreconcilable legacy DB is
-         * to rebuild it from scratch (exactly the "clear the app data" the crash dialog asked for,
-         * but automatic and silent). Real users on a correct migration chain never hit this branch.
+         * has been installed over itself across many incrementally-schema'd builds, so a legacy DB
+         * with no clean migration path — or a migration that runs but throws, or fails Room's
+         * post-migration validation — is a real possibility.
+         *
+         * Recovery is deliberately **not silent**: per the Phased Implementation Plan's review
+         * ("a production build must never silently delete athlete history"), a failure here backs up
+         * the raw database file via [DbRecovery.backUpBeforeReset] *before* deleting anything, then
+         * records the event with [DbRecovery.markReset] so the UI can tell the athlete, after the
+         * fact, that a reset happened and where the backup lives. A blocking pre-open confirmation
+         * isn't possible — this runs synchronously before any Activity/Compose context exists — so
+         * "preserve the bytes, then disclose" is the practical version of "never silently delete" at
+         * this point in the app lifecycle. Real users on a correct migration chain never hit this
+         * branch.
          */
         private fun openResilient(app: Context): AppDatabase {
             val db = build(app)
@@ -64,6 +71,8 @@ abstract class AppDatabase : RoomDatabase() {
                 db
             } catch (t: Throwable) {
                 runCatching { db.close() }
+                val backedUpTo = DbRecovery.backUpBeforeReset(app, DB_NAME)
+                DbRecovery.markReset(app, backedUpTo)
                 app.deleteDatabase(DB_NAME)
                 build(app).also { it.openHelper.writableDatabase }
             }
