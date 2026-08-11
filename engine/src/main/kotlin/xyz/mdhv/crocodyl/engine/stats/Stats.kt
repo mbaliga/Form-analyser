@@ -1,4 +1,4 @@
-package xyz.mdhv.baseline.engine.stats
+package xyz.mdhv.crocodyl.engine.stats
 
 import kotlin.math.sqrt
 

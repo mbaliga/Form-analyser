@@ -1,4 +1,4 @@
-package xyz.mdhv.baseline.engine.model
+package xyz.mdhv.crocodyl.engine.model
 
 /**
  * Core, sport-agnostic data model for the Baseline engine.

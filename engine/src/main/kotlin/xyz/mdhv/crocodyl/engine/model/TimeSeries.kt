@@ -1,4 +1,4 @@
-package xyz.mdhv.baseline.engine.model
+package xyz.mdhv.crocodyl.engine.model
 
 /**
  * A generic, multi-channel, uniformly-sampled time-series window — the raw material a

@@ -1,7 +1,7 @@
 package xyz.mdhv.formanalyser.archery
 
-import xyz.mdhv.baseline.engine.sport.ScoringRubric
-import xyz.mdhv.baseline.engine.sport.SportModule
+import xyz.mdhv.crocodyl.engine.sport.ScoringRubric
+import xyz.mdhv.crocodyl.engine.sport.SportModule
 import xyz.mdhv.formanalyser.archery.pose.PoseSequence
 import xyz.mdhv.formanalyser.archery.pose.PoseShot
 

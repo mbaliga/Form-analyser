@@ -1,6 +1,6 @@
-package xyz.mdhv.baseline.engine.fatigue
+package xyz.mdhv.crocodyl.engine.fatigue
 
-import xyz.mdhv.baseline.engine.stats.linearFit
+import xyz.mdhv.crocodyl.engine.stats.linearFit
 
 /**
  * Fatigue is a *trajectory across a session*, not a per-rep property (handoff §3.3:

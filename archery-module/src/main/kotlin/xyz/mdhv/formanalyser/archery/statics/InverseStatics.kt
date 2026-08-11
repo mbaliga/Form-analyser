@@ -43,7 +43,7 @@ data class HoldingMoments(
     val elbow: Double,
     val shoulder: Double,
 ) {
-    /** As engine features, ready to merge into a shot's [xyz.mdhv.baseline.engine.model.FeatureVector]. */
+    /** As engine features, ready to merge into a shot's [xyz.mdhv.crocodyl.engine.model.FeatureVector]. */
     fun asFeatures(): Map<String, Double> = linkedMapOf(
         "momentWristNm" to wrist,
         "momentElbowNm" to elbow,

@@ -1,6 +1,6 @@
-package xyz.mdhv.baseline.engine.sport
+package xyz.mdhv.crocodyl.engine.sport
 
-import xyz.mdhv.baseline.engine.model.FeatureVector
+import xyz.mdhv.crocodyl.engine.model.FeatureVector
 
 /**
  * THE SEAM. Everything sport-specific lives behind this interface so the engine core
@@ -32,7 +32,7 @@ interface SportModule<TInput, TRaw> {
 
     /**
      * Which features the sport believes degrade with fatigue, and their polarity
-     * (true == higher-is-fresher). Drives [xyz.mdhv.baseline.engine.fatigue.FatigueTracker].
+     * (true == higher-is-fresher). Drives [xyz.mdhv.crocodyl.engine.fatigue.FatigueTracker].
      */
     val fatigueMetrics: Map<String, Boolean> get() = emptyMap()
 }

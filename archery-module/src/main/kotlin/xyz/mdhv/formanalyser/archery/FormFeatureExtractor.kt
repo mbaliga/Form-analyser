@@ -1,7 +1,7 @@
 package xyz.mdhv.formanalyser.archery
 
-import xyz.mdhv.baseline.engine.model.FeatureVector
-import xyz.mdhv.baseline.engine.sport.FeatureExtractor
+import xyz.mdhv.crocodyl.engine.model.FeatureVector
+import xyz.mdhv.crocodyl.engine.sport.FeatureExtractor
 import xyz.mdhv.formanalyser.archery.pose.ArmLandmarks
 import xyz.mdhv.formanalyser.archery.pose.Geometry
 import xyz.mdhv.formanalyser.archery.pose.PoseFrame

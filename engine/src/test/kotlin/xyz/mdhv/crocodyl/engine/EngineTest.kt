@@ -1,12 +1,12 @@
-package xyz.mdhv.baseline.engine
+package xyz.mdhv.crocodyl.engine
 
-import xyz.mdhv.baseline.engine.baseline.BaselineBuilder
-import xyz.mdhv.baseline.engine.deviation.DeviationScorer
-import xyz.mdhv.baseline.engine.fatigue.FatigueTracker
-import xyz.mdhv.baseline.engine.model.Rep
-import xyz.mdhv.baseline.engine.sport.SignalScoreCorrelation
-import xyz.mdhv.baseline.engine.stats.Welford
-import xyz.mdhv.baseline.engine.stats.linearFit
+import xyz.mdhv.crocodyl.engine.baseline.BaselineBuilder
+import xyz.mdhv.crocodyl.engine.deviation.DeviationScorer
+import xyz.mdhv.crocodyl.engine.fatigue.FatigueTracker
+import xyz.mdhv.crocodyl.engine.model.Rep
+import xyz.mdhv.crocodyl.engine.sport.SignalScoreCorrelation
+import xyz.mdhv.crocodyl.engine.stats.Welford
+import xyz.mdhv.crocodyl.engine.stats.linearFit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

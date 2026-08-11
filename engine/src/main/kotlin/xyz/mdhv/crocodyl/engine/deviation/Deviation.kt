@@ -1,7 +1,7 @@
-package xyz.mdhv.baseline.engine.deviation
+package xyz.mdhv.crocodyl.engine.deviation
 
-import xyz.mdhv.baseline.engine.baseline.BaselineModel
-import xyz.mdhv.baseline.engine.model.FeatureVector
+import xyz.mdhv.crocodyl.engine.baseline.BaselineModel
+import xyz.mdhv.crocodyl.engine.model.FeatureVector
 import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.sqrt

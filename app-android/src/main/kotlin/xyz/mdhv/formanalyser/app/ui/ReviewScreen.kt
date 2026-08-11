@@ -26,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import xyz.mdhv.baseline.engine.sport.FeatureScoreRelation
+import xyz.mdhv.crocodyl.engine.sport.FeatureScoreRelation
 import xyz.mdhv.formanalyser.app.domain.ShotView
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.ui.components.Scatter
