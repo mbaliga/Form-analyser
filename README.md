@@ -1,72 +1,72 @@
-# Form Analyser (codename) — Archery
+# Crocodyl — Athlete Performance, Starting with Archery
 
-> **Product name: Crocodyl.** `form-analyser` is the repo/codename; the app ships as
-> **Crocodyl**. A full repo/package rebrand is deferred until just before the Play listing —
-> see [`docs/naming.md`](docs/naming.md).
+> **Product name: Crocodyl.** `form-analyser` is the historical repository/codename. The app ships as **Crocodyl**. See [`docs/naming.md`](docs/naming.md).
 
-A **standalone, free** Android-first instrument that measures an archer's **form, stability,
-and strength (as load/fatigue)**, establishes a **personal baseline**, scores **per-shot
-deviation**, tracks **fatigue across a session**, and — the differentiator — **correlates those
-signals with the actual arrow score**.
+Crocodyl is a **local-first athlete performance app**. Its first complete sport/discipline is **Olympic Recurve archery**.
 
-> Archery is the well-posed first case (handoff §1): discrete repeatable shots, a known
-> external load (draw weight), a quasi-static hold, the draw arm in the camera's good
-> (sagittal) plane, and a real arrow to validate against.
+For Recurve, the product direction combines:
 
-This repo is self-contained: the free app ships with its own copy of the sport-agnostic
-**Baseline engine**. The separate [`baseline`](https://github.com/mbaliga/baseline) repo is the
-**paid add-on** (the MW75 EEG mental-state channel + advanced analytics) that layers on top —
-Form Analyser does not depend on it.
+- phone-camera sagittal **form and shot-sequence analysis** using on-device pose estimation;
+- fast manual scoring and target plotting;
+- editable automatic **End Scan** target scoring;
+- **Live Observer** tap/voice scoring while the athlete's phone remains positioned for form capture;
+- rigs, arrows, equipment, tuning, sight marks, wear and equipment history;
+- training plans, goals, body/recovery context and competition history;
+- evidence-grounded local coaching plus optional BYOK/on-device models;
+- portable athlete↔coach exchange without requiring a Crocodyl account or maintained backend.
 
-## Repo layout
+The core product law is simple: **measurements and evidence come before advice**. Core athlete data is stored locally by default and sharing is explicit.
 
-```
+## Current implementation status
+
+The reconciled implementation includes the Android app and pure-JVM/domain modules for the existing Crocodyl work: onboarding, Home/Train flows, camera/pose foundations, body and wellness, equipment/tuning, local/BYOK AI foundations, export/exchange foundations, Hyle UI work, and tests.
+
+The implementation is **not equivalent to the full product blueprint yet**. In particular, production-grade manual round scoring, End Scan, Live Observer, complete `.croc` exchange, the paid multi-athlete Coach workspace, static web viewer, full equipment intelligence and the complete training/recovery system remain phased work.
+
+See [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md) for the implementation snapshot and [`docs/crocodyl/`](docs/crocodyl/) for the current product direction and execution plan.
+
+## Repository layout
+
+```text
 form-analyser/
-├── engine/              # the sport-agnostic Baseline engine (pure Kotlin/JVM)  ← shipped in the free app
-│   └── src/main/kotlin/xyz/mdhv/baseline/engine/
-│       ├── baseline/    # BaselineBuilder/Model — per-athlete "your good"
-│       ├── deviation/   # DeviationScorer — signed z + 0–100 stability
-│       ├── fatigue/     # FatigueTracker — session decay trajectory
-│       ├── sport/       # SportModule seam + SignalScoreCorrelation
-│       ├── model/ stats/
-├── archery-module/      # the archery SportModule (pure Kotlin/JVM, depends on :engine)
-│   └── src/main/kotlin/xyz/mdhv/formanalyser/archery/
-│       ├── ArcheryShotSegmenter.kt   # set-up / hold / release from bow-IMU motion
-│       ├── ArcheryFeatureExtractor.kt# steadiness, pin-drift, cant, release signature
-│       ├── ArcheryModule.kt          # the SportModule the engine talks to
-│       ├── signal/                   # FFT, Butterworth (no external DSP dep)
-│       └── statics/InverseStatics.kt # §3.4 holding-moment / strength via known load
-├── app-android/         # the capture app (CameraX + IMU + BLE + Hyle UI) — see its README
-└── docs/architecture.md # how this maps to the build handoff
+├── engine/              # sport-neutral Crocodyl analysis engine (pure Kotlin/JVM)
+├── archery-module/      # Recurve pose/shot/form implementation over the SportModule seam
+├── core-model/          # shared model types
+├── core-equipment/      # equipment/tuning domain logic
+├── core-wellness/       # wellness/readiness/privacy domain logic
+├── core-body/           # 52-region body contract
+├── core-coach/          # grounded AI/rule-coach domain and privacy redaction
+├── core-exchange/       # consent/export/identity foundations
+├── app-android/         # Android athlete app (Compose + Room + CameraX + MediaPipe)
+└── docs/                # architecture, naming, Crocodyl blueprint and phased plan
 ```
 
-## Architecture in one line
+## Architecture direction
 
-`archery-module` implements the engine's `SportModule` seam (rep-segmenter, feature extractor,
-scoring rubric); `:engine` owns the baseline, deviation, fatigue, and signal→score correlation.
-The engine is a clean, sport-neutral module so a second sport (fencing / pistol / hangboard) can
-reuse it later — extracted to its own package at that point if desired.
+The shared Crocodyl core is intended to remain sport-neutral. Archery supplies discipline-specific capture, scoring, equipment and coaching semantics through explicit contracts. Recurve proves those contracts first; later archery disciplines and then a second sport must not be implemented by leaking Recurve assumptions into the shared core.
 
-## Build & test
+Crocodyl itself does **not** require bow-mounted hardware. The athlete-facing Recurve form path is phone-camera based.
 
-Self-contained — no external repo or artifact needed:
+The separate **Baseline** product/integration is optional and outside the free Crocodyl athlete loop. EEG, bow-mounted IMU channels and cross-app advanced analytics belong to that separate path rather than being prerequisites for Crocodyl.
+
+## Build and test
+
+Pure-JVM modules can be checked with:
 
 ```bash
-./gradlew test     # builds :engine + :archery-module and runs all unit tests
+./gradlew test
 ```
 
-Requires JDK 21. The Android app (`app-android/`) is **not** part of this Gradle build yet — it
-needs the Android SDK and is built on a dev machine / in CI with the Android toolchain. See
-[`app-android/README.md`](app-android/README.md).
+Requires JDK 21. The Android app requires the Android toolchain and is built through the Android workflow / a development machine with the SDK. See [`app-android/README.md`](app-android/README.md).
 
-## First build target (handoff §11)
+## Product documents
 
-> **Archery shot-stability tracker.** Bow-mounted phone IMU → segment each shot into
-> set-up/hold/release → compute steadiness, pin-drift, cant, release signature → log the arrow
-> score per shot (manual) → build a per-athlete baseline from good shots → show per-shot
-> deviation + a stability score, plus a session trend (fatigue = steadiness decay) and a first
-> signal-vs-score scatter. Validate the IMU derivations side-by-side against the Steady Aim A1
-> Pro.
+- [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md) — current implementation/status snapshot.
+- [`CROCODYL_BUILD_NOTES.md`](CROCODYL_BUILD_NOTES.md) — accumulated engineering notes.
+- [`docs/crocodyl/blueprint/01-product-direction.md`](docs/crocodyl/blueprint/01-product-direction.md) — product definition, scope, laws, roles and commercial boundaries.
+- [`docs/crocodyl/blueprint/02-architecture-requirements-roadmap-ux.md`](docs/crocodyl/blueprint/02-architecture-requirements-roadmap-ux.md) — architecture, requirements, parity/release direction and UX architecture.
+- [`docs/crocodyl/CROCODYL_PHASED_IMPLEMENTATION_PLAN.md`](docs/crocodyl/CROCODYL_PHASED_IMPLEMENTATION_PLAN.md) — phased execution plan from current build through Recurve v1 and later sports.
 
-The **scoring math for all of this already exists and is tested** in `engine` + `archery-module`.
-What remains for the MVP is the capture/UI layer in `app-android` (sensors, screens, persistence).
+## Launch focus
+
+The first product to prove is not “generic form analysis.” It is **Crocodyl for Recurve athletes**: a range-usable performance system where scoring, camera-based technique evidence, equipment context, training/recovery context and coach feedback can eventually be understood together without giving up local data ownership.
