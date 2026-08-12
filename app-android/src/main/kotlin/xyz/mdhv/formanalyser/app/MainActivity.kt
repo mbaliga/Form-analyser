@@ -4,35 +4,11 @@ import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Accessibility
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShowChart
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -40,305 +16,36 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import xyz.mdhv.formanalyser.app.data.AppPrefs
-import xyz.mdhv.formanalyser.app.domain.BodyViewModel
-import xyz.mdhv.formanalyser.app.domain.CalendarViewModel
-import xyz.mdhv.formanalyser.app.domain.CoachViewModel
-import xyz.mdhv.formanalyser.app.domain.ExportViewModel
-import xyz.mdhv.formanalyser.app.domain.HomeViewModel
-import xyz.mdhv.formanalyser.app.domain.OnboardingViewModel
-import xyz.mdhv.formanalyser.app.domain.RigsViewModel
-import xyz.mdhv.formanalyser.app.domain.SessionViewModel
-import xyz.mdhv.formanalyser.app.domain.SettingsViewModel
-import xyz.mdhv.formanalyser.app.domain.WellnessViewModel
-import xyz.mdhv.formanalyser.app.ui.AiSettingsScreen
-import xyz.mdhv.formanalyser.app.ui.BodyScreen
-import xyz.mdhv.formanalyser.app.ui.CalendarScreen
-import xyz.mdhv.formanalyser.app.ui.CaptureScreen
-import xyz.mdhv.formanalyser.app.ui.CoachScreen
-import xyz.mdhv.formanalyser.app.ui.ComingSoonScreen
-import xyz.mdhv.formanalyser.app.ui.ExportScreen
-import xyz.mdhv.formanalyser.app.ui.DocumentViewerScreen
-import xyz.mdhv.formanalyser.app.ui.HomeScreen
-import xyz.mdhv.formanalyser.app.ui.InjuryEditScreen
-import xyz.mdhv.formanalyser.app.ui.LogScreen
-import xyz.mdhv.formanalyser.app.ui.OnboardingScreen
-import xyz.mdhv.formanalyser.app.ui.PhysioPlanEditScreen
-import xyz.mdhv.formanalyser.app.ui.ReviewScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsAboutScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsAppearanceScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsCaptureScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsCycleScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsDataScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsMedicationScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsProfileScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsRigsScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsRootScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsStreakScreen
-import xyz.mdhv.formanalyser.app.ui.SettingsWellnessScreen
-import xyz.mdhv.formanalyser.app.ui.RigEditScreen
-import xyz.mdhv.formanalyser.app.ui.TrainSetupScreen
+import xyz.mdhv.formanalyser.app.domain.*
+import xyz.mdhv.formanalyser.app.ui.*
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 
-// NB: must NOT be named `R` — in package xyz.mdhv.formanalyser.app that collides with AGP's
-// generated resources class xyz.mdhv.formanalyser.app.R at dex time (the resources class wins,
-// so the object's INSTANCE field vanishes and any non-const access — e.g. TABS — throws
-// NoSuchFieldError at runtime).
-private object Routes {
-    const val HOME = "home"; const val TRAIN = "train"; const val CAPTURE = "capture"; const val REVIEW = "review"
-    const val PROGRESS = "progress"; const val BODY = "body"; const val CALENDAR = "calendar"
-    const val LOG = "log"; const val COACH = "coach"
-    const val SETTINGS = "settings"; const val S_PROFILE = "s_profile"; const val S_RIGS = "s_rigs"
-    const val S_CAPTURE = "s_capture"; const val S_APPEARANCE = "s_appearance"; const val S_DATA = "s_data"; const val S_ABOUT = "s_about"
-    const val S_AI = "s_ai"; const val S_EXPORT = "s_export"
-    const val S_WELLNESS = "s_wellness"; const val S_STREAK = "s_streak"; const val S_CYCLE = "s_cycle"; const val S_MEDICATION = "s_medication"
-    const val RIG_EDIT = "rig_edit"; const val INJURY_EDIT = "injury_edit"; const val PLAN_EDIT = "plan_edit"; const val DOC_VIEW = "doc_view"
-    val TABS = setOf(HOME, TRAIN, PROGRESS, BODY, CALENDAR)
+private object Routes { const val HOME="home";const val TRAIN="train";const val CAPTURE="capture";const val REVIEW="review";const val SCORE="score";const val PROGRESS="progress";const val BODY="body";const val CALENDAR="calendar";const val LOG="log";const val COACH="coach";const val SETTINGS="settings";const val S_PROFILE="s_profile";const val S_RIGS="s_rigs";const val S_CAPTURE="s_capture";const val S_APPEARANCE="s_appearance";const val S_DATA="s_data";const val S_ABOUT="s_about";const val S_AI="s_ai";const val S_EXPORT="s_export";const val S_WELLNESS="s_wellness";const val S_STREAK="s_streak";const val S_CYCLE="s_cycle";const val S_MEDICATION="s_medication";const val RIG_EDIT="rig_edit";const val INJURY_EDIT="injury_edit";const val PLAN_EDIT="plan_edit";const val DOC_VIEW="doc_view";val TABS=setOf(HOME,TRAIN,PROGRESS,BODY,CALENDAR)}
+class MainActivity:ComponentActivity(){override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);setContent{FormAnalyserTheme{Surface(Modifier.fillMaxSize(),color=MaterialTheme.colorScheme.background){AppRoot()}}}}}
+@Composable private fun AppRoot(){val c=LocalContext.current;val p=remember{AppPrefs(c)};val onboarded by produceState<Boolean?>(null,p){p.onboarded.collect{value=it}};DbRecoveryNotice();when(onboarded){null->Box(Modifier.fillMaxSize());false->{val vm:OnboardingViewModel=viewModel();OnboardingScreen(vm){}};else->MainShell()}}
+@Composable private fun DbRecoveryNotice(){val c=LocalContext.current;var e by remember{mutableStateOf(xyz.mdhv.formanalyser.app.data.DbRecovery.pendingNotice(c))};val event=e?:return;AlertDialog(onDismissRequest={},title={Text("Your saved data was reset")},text={Text(event.backupPath?.let{"Crocodyl couldn't open your saved data after an update. Your previous data was backed up at:\n\n$it"}?:"Crocodyl couldn't open your saved data after an update. A backup could not be made.")},confirmButton={TextButton(onClick={xyz.mdhv.formanalyser.app.data.DbRecovery.dismissNotice(c);e=null}){Text("OK")}})}
+@Composable private fun MainShell(){val nav=rememberNavController();val c=LocalContext.current;val prefs=remember{AppPrefs(c)};val sessionVm:SessionViewModel=viewModel();val homeVm:HomeViewModel=viewModel();val rigsVm:RigsViewModel=viewModel();val settingsVm:SettingsViewModel=viewModel();val wellnessVm:WellnessViewModel=viewModel();val calendarVm:CalendarViewModel=viewModel();val bodyVm:BodyViewModel=viewModel();val cycle by prefs.cycleEnabled.collectAsState(initial=false);val injuries by homeVm.activeInjuryCount.collectAsState();val back by nav.currentBackStackEntryAsState();val route=back?.destination?.route;val onTab=route in Routes.TABS;var quick by remember{mutableStateOf(false)}
+ Scaffold(topBar={if(onTab)TopRow(tabTitle(route)){nav.navigate(Routes.SETTINGS)}},bottomBar={if(onTab)BottomBar(route,injuries>0){navigateTab(nav,it)}},floatingActionButton={if(onTab)FloatingActionButton(onClick={quick=true}){Text("+")}}){pad->NavHost(nav,Routes.HOME,Modifier.padding(pad)){
+  composable(Routes.HOME){HomeScreen(homeVm,{nav.navigate(Routes.TRAIN)},{nav.navigate(Routes.SCORE)},{id->sessionVm.openSession(id);nav.navigate(Routes.REVIEW)},{nav.navigate(Routes.S_RIGS)},{nav.navigate(Routes.LOG)},{nav.navigate(Routes.COACH)})}
+  composable(Routes.COACH){val app=LocalContext.current.applicationContext as Application;val vm:CoachViewModel=viewModel(factory=CoachViewModel.factory(app));CoachScreen(vm){nav.navigate(Routes.S_AI)}}
+  composable(Routes.TRAIN){TrainSetupScreen(sessionVm,{nav.navigate(Routes.CAPTURE)},{nav.navigate(Routes.S_RIGS)})}
+  composable(Routes.CAPTURE){CaptureScreen(sessionVm){nav.navigate(Routes.REVIEW)}};composable(Routes.REVIEW){ReviewScreen(sessionVm)}
+  composable(Routes.SCORE){val vm:ScoringViewModel=viewModel();ScoringScreen(vm)}
+  composable(Routes.PROGRESS){val vm:ProgressViewModel=viewModel();ProgressScreen(vm)}
+  composable(Routes.BODY){BodyScreen(bodyVm,{id->nav.navigate("${Routes.INJURY_EDIT}/${id?:"new"}")},{id->nav.navigate("${Routes.PLAN_EDIT}/${id?:"new"}")})}
+  composable(Routes.CALENDAR){CalendarScreen(calendarVm){nav.navigate(Routes.LOG)}};composable(Routes.LOG){LogScreen(wellnessVm,cycle){nav.popBackStack()}}
+  composable("${Routes.INJURY_EDIT}/{injuryId}"){e->val id=e.arguments?.getString("injuryId");InjuryEditScreen(bodyVm,if(id=="new")null else id,{nav.popBackStack()}){doc->nav.navigate("${Routes.DOC_VIEW}/$doc")}}
+  composable("${Routes.PLAN_EDIT}/{planId}"){e->val id=e.arguments?.getString("planId");PhysioPlanEditScreen(bodyVm,if(id=="new")null else id){nav.popBackStack()}}
+  composable("${Routes.DOC_VIEW}/{docId}"){e->val id=e.arguments?.getString("docId")?:return@composable;DocumentViewerScreen(bodyVm,id){nav.popBackStack()}}
+  settingsGraph(nav,rigsVm,settingsVm,wellnessVm)
+ }}
+ if(quick)QuickAddSheet({quick=false},{nav.navigate(Routes.TRAIN)},{nav.navigate(Routes.SCORE)},{nav.navigate(Routes.LOG)},{nav.navigate(Routes.S_RIGS)},{nav.navigate(Routes.PROGRESS)},{nav.navigate(Routes.PROGRESS)},{nav.navigate(Routes.LOG)},{nav.navigate(Routes.S_DATA)})
 }
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            FormAnalyserTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    AppRoot()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AppRoot() {
-    val context = LocalContext.current
-    val prefs = remember { AppPrefs(context) }
-    val onboarded by produceState<Boolean?>(initialValue = null, prefs) { prefs.onboarded.collect { value = it } }
-
-    DbRecoveryNotice()
-
-    when (onboarded) {
-        null -> Box(Modifier.fillMaxSize()) // brief splash while the flag loads
-        false -> {
-            val ovm: OnboardingViewModel = viewModel()
-            OnboardingScreen(ovm, onDone = { /* onboarded flag flips → AppRoot recomposes */ })
-        }
-        else -> MainShell()
-    }
-}
-
-/**
- * One-time, honest disclosure for [xyz.mdhv.formanalyser.app.data.DbRecovery]: if
- * [AppDatabase.get] had to back up and reset the database on this launch, say so — rather than the
- * silent recovery this replaced. Dismissing clears the flag so it doesn't reappear.
- */
-@Composable
-private fun DbRecoveryNotice() {
-    val context = LocalContext.current
-    var event by remember { mutableStateOf(xyz.mdhv.formanalyser.app.data.DbRecovery.pendingNotice(context)) }
-    val e = event ?: return
-
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = {},
-        title = { Text("Your saved data was reset") },
-        text = {
-            Text(
-                if (e.backupPath != null) {
-                    "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
-                        "created. Your previous data was backed up on this device at:\n\n${e.backupPath}"
-                } else {
-                    "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
-                        "created. A backup of the previous data could not be made."
-                },
-            )
-        },
-        confirmButton = {
-            androidx.compose.material3.TextButton(onClick = {
-                xyz.mdhv.formanalyser.app.data.DbRecovery.dismissNotice(context)
-                event = null
-            }) { Text("OK") }
-        },
-    )
-}
-
-@Composable
-private fun MainShell() {
-    val nav = rememberNavController()
-    val context = LocalContext.current
-    val prefs = remember { AppPrefs(context) }
-    val sessionVm: SessionViewModel = viewModel()
-    val homeVm: HomeViewModel = viewModel()
-    val rigsVm: RigsViewModel = viewModel()
-    val settingsVm: SettingsViewModel = viewModel()
-    val wellnessVm: WellnessViewModel = viewModel()
-    val calendarVm: CalendarViewModel = viewModel()
-    val bodyVm: BodyViewModel = viewModel()
-    val cycleEnabled by prefs.cycleEnabled.collectAsState(initial = false)
-    val activeInjuries by homeVm.activeInjuryCount.collectAsState()
-
-    val backStack by nav.currentBackStackEntryAsState()
-    val route = backStack?.destination?.route
-    val onTab = route in Routes.TABS
-
-    Scaffold(
-        topBar = { if (onTab) TopRow(title = tabTitle(route), onSettings = { nav.navigate(Routes.SETTINGS) }) },
-        bottomBar = { if (onTab) BottomBar(currentRoute = route, injuryBadge = activeInjuries > 0, onSelect = { navigateTab(nav, it) }) },
-    ) { padding ->
-        NavHost(navController = nav, startDestination = Routes.HOME, modifier = Modifier.padding(padding)) {
-            composable(Routes.HOME) {
-                HomeScreen(
-                    vm = homeVm,
-                    onStartSession = { nav.navigate(Routes.TRAIN) },
-                    onOpenReview = { id -> sessionVm.openSession(id); nav.navigate(Routes.REVIEW) },
-                    onManageRigs = { nav.navigate(Routes.S_RIGS) },
-                    onLog = { nav.navigate(Routes.LOG) },
-                    onCoach = { nav.navigate(Routes.COACH) },
-                )
-            }
-            composable(Routes.COACH) {
-                val app = LocalContext.current.applicationContext as Application
-                val coachVm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
-                CoachScreen(vm = coachVm, onOpenKeySettings = { nav.navigate(Routes.S_AI) })
-            }
-            composable(Routes.TRAIN) {
-                TrainSetupScreen(sessionVm, onStarted = { nav.navigate(Routes.CAPTURE) }, onManageRigs = { nav.navigate(Routes.S_RIGS) })
-            }
-            composable(Routes.CAPTURE) { CaptureScreen(sessionVm, onReview = { nav.navigate(Routes.REVIEW) }) }
-            composable(Routes.REVIEW) { ReviewScreen(sessionVm) }
-            composable(Routes.PROGRESS) { ComingSoonScreen("📈", listOf("Your baseline lives here soon —", "stability trends, projections, and what your form is telling you.")) }
-            composable(Routes.BODY) {
-                BodyScreen(
-                    vm = bodyVm,
-                    onEditInjury = { id -> nav.navigate("${Routes.INJURY_EDIT}/${id ?: "new"}") },
-                    onEditPlan = { id -> nav.navigate("${Routes.PLAN_EDIT}/${id ?: "new"}") },
-                )
-            }
-            composable(Routes.CALENDAR) { CalendarScreen(calendarVm, onLog = { nav.navigate(Routes.LOG) }) }
-            composable(Routes.LOG) { LogScreen(wellnessVm, cycleEnabled = cycleEnabled, onDone = { nav.popBackStack() }) }
-
-            composable("${Routes.INJURY_EDIT}/{injuryId}") { entry ->
-                val iid = entry.arguments?.getString("injuryId")
-                InjuryEditScreen(
-                    bodyVm,
-                    injuryId = if (iid == "new") null else iid,
-                    onDone = { nav.popBackStack() },
-                    onOpenDocument = { docId -> nav.navigate("${Routes.DOC_VIEW}/$docId") },
-                )
-            }
-            composable("${Routes.PLAN_EDIT}/{planId}") { entry ->
-                val pid = entry.arguments?.getString("planId")
-                PhysioPlanEditScreen(bodyVm, planId = if (pid == "new") null else pid, onDone = { nav.popBackStack() })
-            }
-            composable("${Routes.DOC_VIEW}/{docId}") { entry ->
-                val did = entry.arguments?.getString("docId") ?: return@composable
-                DocumentViewerScreen(bodyVm, documentId = did, onClose = { nav.popBackStack() })
-            }
-
-            settingsGraph(nav, rigsVm, settingsVm, wellnessVm)
-        }
-    }
-}
-
-private fun NavGraphBuilder.settingsGraph(
-    nav: androidx.navigation.NavHostController,
-    rigsVm: RigsViewModel,
-    settingsVm: SettingsViewModel,
-    wellnessVm: WellnessViewModel,
-) {
-    composable(Routes.SETTINGS) {
-        SettingsRootScreen(
-            onProfile = { nav.navigate(Routes.S_PROFILE) },
-            onRigs = { nav.navigate(Routes.S_RIGS) },
-            onCapture = { nav.navigate(Routes.S_CAPTURE) },
-            onWellness = { nav.navigate(Routes.S_WELLNESS) },
-            onStreak = { nav.navigate(Routes.S_STREAK) },
-            onCycle = { nav.navigate(Routes.S_CYCLE) },
-            onMedication = { nav.navigate(Routes.S_MEDICATION) },
-            onAppearance = { nav.navigate(Routes.S_APPEARANCE) },
-            onAi = { nav.navigate(Routes.S_AI) },
-            onData = { nav.navigate(Routes.S_DATA) },
-            onAbout = { nav.navigate(Routes.S_ABOUT) },
-        )
-    }
-    composable(Routes.S_AI) { AiSettingsScreen() }
-    composable(Routes.S_EXPORT) {
-        val exportVm: ExportViewModel = viewModel()
-        ExportScreen(exportVm)
-    }
-    composable(Routes.S_PROFILE) { SettingsProfileScreen(rigsVm) }
-    composable(Routes.S_RIGS) { SettingsRigsScreen(rigsVm, onEdit = { id -> nav.navigate("${Routes.RIG_EDIT}/${id ?: "new"}") }) }
-    composable("${Routes.RIG_EDIT}/{rigId}") { entry ->
-        val rid = entry.arguments?.getString("rigId")
-        RigEditScreen(rigsVm, rigId = if (rid == "new") null else rid, onDone = { nav.popBackStack() })
-    }
-    composable(Routes.S_CAPTURE) { SettingsCaptureScreen(settingsVm) }
-    composable(Routes.S_WELLNESS) { SettingsWellnessScreen(settingsVm) }
-    composable(Routes.S_STREAK) { SettingsStreakScreen(wellnessVm) }
-    composable(Routes.S_CYCLE) { SettingsCycleScreen(wellnessVm) }
-    composable(Routes.S_MEDICATION) { SettingsMedicationScreen(wellnessVm) }
-    composable(Routes.S_APPEARANCE) { SettingsAppearanceScreen(settingsVm) }
-    composable(Routes.S_DATA) {
-        SettingsDataScreen(
-            settingsVm,
-            onWiped = { /* onboarded flips → AppRoot recomposes */ },
-            onExport = { nav.navigate(Routes.S_EXPORT) },
-        )
-    }
-    composable(Routes.S_ABOUT) { SettingsAboutScreen() }
-}
-
-@Composable
-private fun TopRow(title: String, onSettings: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground, modifier = Modifier.weight(1f))
-        IconButton(onClick = onSettings) { Icon(Icons.Filled.Settings, contentDescription = "Settings", tint = Hyle.OnSurfaceDim) }
-    }
-}
-
-@Composable
-private fun BottomBar(currentRoute: String?, injuryBadge: Boolean, onSelect: (String) -> Unit) {
-    val items = listOf(
-        Routes.HOME to (Icons.Filled.Home to "Home"),
-        Routes.TRAIN to (Icons.Filled.CameraAlt to "Train"),
-        Routes.PROGRESS to (Icons.Filled.ShowChart to "Progress"),
-        Routes.BODY to (Icons.Filled.Accessibility to "Body"),
-        Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
-    )
-    NavigationBar(containerColor = Hyle.Surface) {
-        items.forEach { (dest, iconLabel) ->
-            val (icon: ImageVector, label) = iconLabel
-            NavigationBarItem(
-                selected = currentRoute == dest,
-                onClick = { onSelect(dest) },
-                icon = {
-                    if (dest == Routes.BODY && injuryBadge) {
-                        BadgedBox(badge = { Badge { Text("!") } }) { Icon(icon, contentDescription = label) }
-                    } else {
-                        Icon(icon, contentDescription = label)
-                    }
-                },
-                label = { Text(label) },
-            )
-        }
-    }
-}
-
-private fun tabTitle(route: String?): String = when (route) {
-    Routes.HOME -> "Crocodyl"; Routes.TRAIN -> "Train"; Routes.PROGRESS -> "Progress"; Routes.BODY -> "Body"; Routes.CALENDAR -> "Calendar"; else -> "Crocodyl"
-}
-
-private fun navigateTab(nav: androidx.navigation.NavHostController, dest: String) {
-    nav.navigate(dest) {
-        popUpTo(Routes.HOME) { saveState = true }
-        launchSingleTop = true
-        restoreState = true
-    }
-}
+private fun NavGraphBuilder.settingsGraph(nav:androidx.navigation.NavHostController,rigs:RigsViewModel,settings:SettingsViewModel,wellness:WellnessViewModel){composable(Routes.SETTINGS){SettingsRootScreen({nav.navigate(Routes.S_PROFILE)},{nav.navigate(Routes.S_RIGS)},{nav.navigate(Routes.S_CAPTURE)},{nav.navigate(Routes.S_WELLNESS)},{nav.navigate(Routes.S_STREAK)},{nav.navigate(Routes.S_CYCLE)},{nav.navigate(Routes.S_MEDICATION)},{nav.navigate(Routes.S_APPEARANCE)},{nav.navigate(Routes.S_AI)},{nav.navigate(Routes.S_DATA)},{nav.navigate(Routes.S_ABOUT)})};composable(Routes.S_AI){AiSettingsScreen()};composable(Routes.S_EXPORT){val vm:ExportViewModel=viewModel();ExportScreen(vm)};composable(Routes.S_PROFILE){SettingsProfileScreen(rigs)};composable(Routes.S_RIGS){SettingsRigsScreen(rigs){id->nav.navigate("${Routes.RIG_EDIT}/${id?:"new"}")}};composable("${Routes.RIG_EDIT}/{rigId}"){e->val id=e.arguments?.getString("rigId");RigEditScreen(rigs,if(id=="new")null else id){nav.popBackStack()}};composable(Routes.S_CAPTURE){SettingsCaptureScreen(settings)};composable(Routes.S_WELLNESS){SettingsWellnessScreen(settings)};composable(Routes.S_STREAK){SettingsStreakScreen(wellness)};composable(Routes.S_CYCLE){SettingsCycleScreen(wellness)};composable(Routes.S_MEDICATION){SettingsMedicationScreen(wellness)};composable(Routes.S_APPEARANCE){SettingsAppearanceScreen(settings)};composable(Routes.S_DATA){SettingsDataScreen(settings,{},{nav.navigate(Routes.S_EXPORT)})};composable(Routes.S_ABOUT){SettingsAboutScreen()}}
+@Composable private fun TopRow(title:String,onSettings:()->Unit){Row(Modifier.fillMaxWidth().padding(start=20.dp,end=8.dp,top=12.dp),verticalAlignment=Alignment.CenterVertically){Text(title,style=MaterialTheme.typography.titleLarge,color=Hyle.OnBackground,modifier=Modifier.weight(1f));IconButton(onClick=onSettings){Icon(Icons.Filled.Settings,"Settings",tint=Hyle.OnSurfaceDim)}}}
+@Composable private fun BottomBar(current:String?,badge:Boolean,onSelect:(String)->Unit){val items=listOf(Routes.HOME to (Icons.Filled.Home to "Home"),Routes.TRAIN to (Icons.Filled.CameraAlt to "Train"),Routes.PROGRESS to (Icons.Filled.ShowChart to "Progress"),Routes.BODY to (Icons.Filled.Accessibility to "Body"),Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"));NavigationBar(containerColor=Hyle.Surface){items.forEach{(dest,p)->val(icon:ImageVector,label)=p;NavigationBarItem(current==dest,{onSelect(dest)},icon={if(dest==Routes.BODY&&badge)BadgedBox({Badge{Text("!")}}){Icon(icon,label)}else Icon(icon,label)},label={Text(label)})}}}
+private fun tabTitle(r:String?)=when(r){Routes.HOME->"Crocodyl";Routes.TRAIN->"Train";Routes.PROGRESS->"Progress";Routes.BODY->"Body";Routes.CALENDAR->"Calendar";else->"Crocodyl"}
+private fun navigateTab(nav:androidx.navigation.NavHostController,dest:String){nav.navigate(dest){popUpTo(Routes.HOME){saveState=true};launchSingleTop=true;restoreState=true}}
