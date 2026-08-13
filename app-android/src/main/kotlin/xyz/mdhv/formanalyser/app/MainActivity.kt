@@ -103,9 +103,11 @@ private fun DbRecoveryNotice() {
         text = {
             Text(
                 event.backupPath?.let {
-                    "Crocodyl couldn't open your saved data after an update. Your previous data was backed up at:\n\n$it"
+                    "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
+                        "created. Your previous data was backed up on this device at:\n\n$it"
                 }
-                    ?: "Crocodyl couldn't open your saved data after an update. A backup could not be made."
+                    ?: "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
+                        "created. A backup of the previous data could not be made."
             )
         },
         confirmButton = {

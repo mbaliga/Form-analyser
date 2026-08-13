@@ -39,7 +39,12 @@ fun AiSettingsScreen() {
     val selected by settings.selectedModelId.collectAsState(initial = AiSettings.DEFAULT_MODEL_ID)
     val medical by settings.medicalGrantDefault.collectAsState(initial = false)
     val keepPrivate by settings.keepPrivate.collectAsState(initial = true)
-    val path by settings.onDeviceModelPath.collectAsState(initial = null)
+    val storedPath by settings.onDeviceModelPath.collectAsState(initial = null)
+    // Trust the file, not just the preference: a weights file the athlete deleted (or that
+    // landed truncated) must read as "not installed", because OnDeviceLlmClient refuses it
+    // too. Reporting it as installed would leave them believing local coaching is available
+    // while every request fails.
+    val path = storedPath?.takeIf { ModelInstall.isInstalled(it) }
     // The vault is synchronous (not a Flow); bump this to re-read hasKey after set/clear.
     var keyVersion by remember { mutableStateOf(0) }
     Column(
@@ -125,7 +130,7 @@ fun AiSettingsScreen() {
                 OutlinedButton(
                     onClick = {
                         scope.launch {
-                            withContext(Dispatchers.IO) { ModelInstall.remove(path) }
+                            withContext(Dispatchers.IO) { ModelInstall.remove(storedPath) }
                             settings.setOnDeviceModelPath(null)
                         }
                     }
