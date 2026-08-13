@@ -1,4 +1,5 @@
 package xyz.mdhv.formanalyser.app.ui
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,4 +10,118 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import xyz.mdhv.formanalyser.app.domain.HomeViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.*
-@Composable fun HomeScreen(vm:HomeViewModel,onStartSession:()->Unit,onScore:()->Unit,onOpenReview:(String)->Unit,onManageRigs:()->Unit,onLog:()->Unit,onCoach:()->Unit){LaunchedEffect(Unit){vm.load()};val athlete by vm.athlete.collectAsState();val activeRig by vm.activeRig.collectAsState();val recent by vm.recent.collectAsState();val readiness by vm.readiness.collectAsState();val streak by vm.streak.collectAsState();val quiet=readiness?.level==xyz.mdhv.formanalyser.wellness.ReadinessLevel.QUIET;LazyColumn(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)){item{Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){HyleAvatar(seed=athlete?.avatarSeed?:1L,sizeDp=56);Column{Text(athlete?.displayName?:"Athlete",style=MaterialTheme.typography.headlineMedium,color=Hyle.OnBackground);athlete?.club?.let{Text(it,color=Hyle.OnSurfaceDim)}}}};item{readiness?.let{r->if(quiet)HyleListRow("On pause","Everything's here when you want it.")else{val(g,l)=when(r.level){xyz.mdhv.formanalyser.wellness.ReadinessLevel.READY->"●" to "Ready";xyz.mdhv.formanalyser.wellness.ReadinessLevel.CAUTION->"◐" to "Caution";else->"○" to "Rest advised"};HyleListRow("$g  $l",r.reasons.firstOrNull())}}};item{streak?.let{s->Text("Streak ${s.length}"+(if(s.patchedCount>0)" ~${s.patchedCount}" else "")+if(s.provisionalToday)" · today counts" else "",color=if(quiet)Hyle.OnSurfaceDim else Hyle.RadiumGreen)}};item{HyleListRow("Active rig",vm.rigLabel()?:activeRig?.name?:"No rig yet",onClick=onManageRigs)};item{Button(onClick=onScore,modifier=Modifier.fillMaxWidth()){Text("Score arrows")}};item{if(quiet)OutlinedButton(onClick=onStartSession,modifier=Modifier.fillMaxWidth()){Text("Start session")}else Button(onClick=onStartSession,modifier=Modifier.fillMaxWidth()){Text("Start session")}};item{OutlinedButton(onClick=onLog,modifier=Modifier.fillMaxWidth()){Text("+ Log — wellness, rest, more")}};item{HyleListRow("Coach","What your data says — and ask a model over it",onClick=onCoach)};item{Text("Recent sessions",style=MaterialTheme.typography.titleLarge,color=Hyle.OnBackground)};if(recent.isEmpty())item{HyleEmptyState("🎯",listOf("No sessions yet.","Your first recorded end will show up here."))}else items(recent,key={it.id}){s->HyleListRow("Session · ${s.distanceMeters} m","tap to review",onClick={onOpenReview(s.id)})}}}
+
+@Composable
+fun HomeScreen(
+    vm: HomeViewModel,
+    onStartSession: () -> Unit,
+    onScore: () -> Unit,
+    onOpenReview: (String) -> Unit,
+    onManageRigs: () -> Unit,
+    onLog: () -> Unit,
+    onCoach: () -> Unit,
+) {
+    LaunchedEffect(Unit) { vm.load() }
+    val athlete by vm.athlete.collectAsState()
+    val activeRig by vm.activeRig.collectAsState()
+    val recent by vm.recent.collectAsState()
+    val readiness by vm.readiness.collectAsState()
+    val streak by vm.streak.collectAsState()
+    val quiet = readiness?.level == xyz.mdhv.formanalyser.wellness.ReadinessLevel.QUIET
+    LazyColumn(
+        Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        item {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                HyleAvatar(seed = athlete?.avatarSeed ?: 1L, sizeDp = 56)
+                Column {
+                    Text(
+                        athlete?.displayName ?: "Athlete",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Hyle.OnBackground,
+                    )
+                    athlete?.club?.let { Text(it, color = Hyle.OnSurfaceDim) }
+                }
+            }
+        }
+        item {
+            readiness?.let { r ->
+                if (quiet) HyleListRow("On pause", "Everything's here when you want it.")
+                else {
+                    val (g, l) =
+                        when (r.level) {
+                            xyz.mdhv.formanalyser.wellness.ReadinessLevel.READY -> "●" to "Ready"
+                            xyz.mdhv.formanalyser.wellness.ReadinessLevel.CAUTION ->
+                                "◐" to "Caution"
+                            else -> "○" to "Rest advised"
+                        }
+                    HyleListRow("$g  $l", r.reasons.firstOrNull())
+                }
+            }
+        }
+        item {
+            streak?.let { s ->
+                Text(
+                    "Streak ${s.length}" +
+                        (if (s.patchedCount > 0) " ~${s.patchedCount}" else "") +
+                        if (s.provisionalToday) " · today counts" else "",
+                    color = if (quiet) Hyle.OnSurfaceDim else Hyle.RadiumGreen,
+                )
+            }
+        }
+        item {
+            HyleListRow(
+                "Active rig",
+                vm.rigLabel() ?: activeRig?.name ?: "No rig yet",
+                onClick = onManageRigs,
+            )
+        }
+        item {
+            Button(onClick = onScore, modifier = Modifier.fillMaxWidth()) { Text("Score arrows") }
+        }
+        item {
+            if (quiet)
+                OutlinedButton(onClick = onStartSession, modifier = Modifier.fillMaxWidth()) {
+                    Text("Start session")
+                }
+            else
+                Button(onClick = onStartSession, modifier = Modifier.fillMaxWidth()) {
+                    Text("Start session")
+                }
+        }
+        item {
+            OutlinedButton(onClick = onLog, modifier = Modifier.fillMaxWidth()) {
+                Text("+ Log — wellness, rest, more")
+            }
+        }
+        item {
+            HyleListRow("Coach", "What your data says — and ask a model over it", onClick = onCoach)
+        }
+        item {
+            Text(
+                "Recent sessions",
+                style = MaterialTheme.typography.titleLarge,
+                color = Hyle.OnBackground,
+            )
+        }
+        if (recent.isEmpty())
+            item {
+                HyleEmptyState(
+                    "🎯",
+                    listOf("No sessions yet.", "Your first recorded end will show up here."),
+                )
+            }
+        else
+            items(recent, key = { it.id }) { s ->
+                HyleListRow(
+                    "Session · ${s.distanceMeters} m",
+                    "tap to review",
+                    onClick = { onOpenReview(s.id) },
+                )
+            }
+    }
+}
