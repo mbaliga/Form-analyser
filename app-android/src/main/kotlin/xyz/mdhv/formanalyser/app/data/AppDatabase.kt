@@ -14,6 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             SessionEntity::class,
             RigEntity::class,
             ShotEntity::class,
+            // Phase 2 — wellness + life layer
             CheckinEntity::class,
             SorenessEntity::class,
             RestDayEntity::class,
@@ -23,6 +24,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             CycleEntity::class,
             MedicationEntity::class,
             EventEntity::class,
+            // Phase 3 — body layer
             PainLogEntity::class,
             InjuryEntity::class,
             PhysioPlanEntity::class,
@@ -79,12 +81,32 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_4_5,
                     MIGRATION_5_6,
                 )
+                // No fallbackToDestructiveMigration: a missing migration path should surface as a
+                // thrown exception into the catch below (and get backed up + recorded), not vanish
+                // into Room's own silent wipe. See openResilient's kdoc for the full rationale.
                 .build()
 
+        /**
+         * Open the database, forcing the (potentially migrating) SQLite open to happen *here* under
+         * a guard instead of deep inside a coroutine where it would take the whole app down. The
+         * app has been installed over itself across many incrementally-schema'd builds, so a legacy
+         * DB with no clean migration path — or a migration that runs but throws, or fails Room's
+         * post-migration validation — is a real possibility.
+         *
+         * Recovery is deliberately **not silent**: per the Phased Implementation Plan's review ("a
+         * production build must never silently delete athlete history"), a failure here backs up
+         * the raw database file via [DbRecovery.backUpBeforeReset] *before* deleting anything, then
+         * records the event with [DbRecovery.markReset] so the UI can tell the athlete, after the
+         * fact, that a reset happened and where the backup lives. A blocking pre-open confirmation
+         * isn't possible — this runs synchronously before any Activity/Compose context exists — so
+         * "preserve the bytes, then disclose" is the practical version of "never silently delete"
+         * at this point in the app lifecycle. Real users on a correct migration chain never hit
+         * this branch.
+         */
         private fun openResilient(app: Context): AppDatabase {
             val db = build(app)
             return try {
-                db.openHelper.writableDatabase
+                db.openHelper.writableDatabase // triggers open + migrations now
                 db
             } catch (t: Throwable) {
                 runCatching { db.close() }
@@ -95,6 +117,12 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * V1 → V2 (Phase 1): athlete profile columns, the rig table, session rig/handedness
+         * columns, and a backfill giving every existing athlete a default active rig (tuning seeded
+         * from their most recent session's draw weight) with sessions repointed to it. Column names
+         * are camelCase to match Room's default derivation for the incumbent entities.
+         */
         val MIGRATION_1_2 =
             object : Migration(1, 2) {
                 override fun migrate(db: SupportSQLiteDatabase) {
@@ -148,6 +176,9 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                 }
             }
+        /**
+         * V2 → V3 (Phase 2): wellness + life-layer tables and session check-in/duration columns.
+         */
         val MIGRATION_2_3 =
             object : Migration(2, 3) {
                 override fun migrate(db: SupportSQLiteDatabase) {
@@ -196,6 +227,7 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL("ALTER TABLE sessions ADD COLUMN arrowsActual INTEGER")
                 }
             }
+        /** V3 → V4 (Phase 3): body layer — pain, injuries, physio, encrypted documents. */
         val MIGRATION_3_4 =
             object : Migration(3, 4) {
                 override fun migrate(db: SupportSQLiteDatabase) {
@@ -249,6 +281,12 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 }
             }
+        /**
+         * V4 → V5 (0.6.0): interruption-safe manual Recurve scoring — `score_session`,
+         * `score_arrow` and `score_opponent_end`. Arrows are append-only: undo retracts (`active =
+         * 0`) rather than deleting, so a scorecard keeps its full audit trail for later
+         * correction/provenance work.
+         */
         val MIGRATION_4_5 =
             object : Migration(4, 5) {
                 override fun migrate(db: SupportSQLiteDatabase) {
@@ -288,6 +326,13 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 }
             }
+        /**
+         * V5 → V6: the athlete-feature layer — `goal`, `intervention`, `training_plan`, the
+         * `session_default`/`session_context` pair behind explainable Train autofill, and
+         * `score_candidate`/`observer_score_event`, which hold *proposed* scores from End Scan and
+         * Live Observer. Candidates are advisory only: nothing here may alter an authoritative
+         * score until a human confirms it.
+         */
         val MIGRATION_5_6 =
             object : Migration(5, 6) {
                 override fun migrate(db: SupportSQLiteDatabase) {

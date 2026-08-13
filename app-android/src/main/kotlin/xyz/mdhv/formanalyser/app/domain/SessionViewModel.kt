@@ -20,6 +20,7 @@ import xyz.mdhv.formanalyser.athlete.SessionDefaults
 import xyz.mdhv.formanalyser.model.Handedness
 import xyz.mdhv.formanalyser.wellness.DurationModel
 
+/** Pre-check-in data from the gate sheet (≤15 s by construction). Skips are recorded. */
 data class PreCheckinData(
     val skipped: Boolean,
     val energy: Int? = null,
@@ -29,8 +30,10 @@ data class PreCheckinData(
     val note: String? = null,
 )
 
+/** Pending post-check-in state after a capture stops (drives the post sheet). */
 data class PostPending(val durationAutoS: Int, val detectedArrows: Int)
 
+/** A captured shot as the UI sees it: features + outcome + how far it deviates from baseline. */
 data class ShotView(
     val id: String,
     val index: Int,
@@ -46,6 +49,11 @@ data class BaselineInfo(val ready: Boolean, val repCount: Long) {
         get() = (8L - repCount).coerceAtLeast(0)
 }
 
+/**
+ * Drives the IMU-first MVP loop (handoff §11): capture → segment → features → baseline → deviation
+ * → fatigue + signal↔score. Uses manual refresh after each mutation (simple and predictable) rather
+ * than reactive Room Flows.
+ */
 class SessionViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = Repository(app)
     private val athleteFeatures = AthleteFeatureRepository(app)
@@ -98,6 +106,11 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * Start a session from the athlete's active rig; legacy draw-weight is written from its
+     * effective poundage (measured>estimated>marked) for compatibility. The pre-check-in (or its
+     * recorded skip) is written first and linked (Phase 2 §D).
+     */
     fun startSession(
         distanceMeters: Int,
         handednessOverride: Handedness? = null,
@@ -164,6 +177,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Reopen an existing session (e.g. from Home's recent list) into Review. */
     fun openSession(sessionId: String) {
         currentSessionId = sessionId
         currentHandednessOverride = null
@@ -177,6 +191,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         _isRecording.value = true
     }
 
+    /** Stop capture, segment the window into shots, persist them, and refresh the analysis. */
     fun stopRecordingAndAnalyze() {
         if (!_isRecording.value) return
         _isRecording.value = false
@@ -186,6 +201,8 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val athlete = repo.currentAthlete() ?: return@withContext
+                // Single handedness normalization point: mirror LH captures into the canonical RH
+                // frame before the segmenter/extractor touch them (Phase 1 §B).
                 val handed =
                     EffectiveHandedness.resolve(
                         Handedness.fromStorage(athlete.handedness),
@@ -207,6 +224,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                         )
                     }
                 )
+                // Idle-trimmed auto duration (Phase 2 §A4) → drives the post-check-in sheet.
                 val duration = DurationModel.auto(analysis.spans, analysis.recordingSeconds)
                 _postPending.value = PostPending(duration.seconds.toInt(), repo.shotsOnce(sid).size)
             }
@@ -214,6 +232,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Save the post-check-in and close out the session row (duration + arrow reconciliation). */
     fun savePostCheckin(rpe: Double?, feel: Int?, durationOverrideS: Int?, arrowsActual: Int?) {
         val sid = currentSessionId ?: return
         val pending = _postPending.value
@@ -245,6 +264,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Skip the post sheet: still persist auto duration + detected arrows, no checkin row. */
     fun skipPostCheckin() {
         val sid = currentSessionId ?: return
         val p =
@@ -275,6 +295,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Recompute baseline, per-shot deviation, fatigue, and signal→score correlation. */
     private suspend fun refresh() {
         val sid = currentSessionId ?: return
         val c =

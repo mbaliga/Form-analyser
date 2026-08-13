@@ -17,6 +17,19 @@ import xyz.mdhv.formanalyser.app.ai.*
 import xyz.mdhv.formanalyser.app.ui.theme.*
 import xyz.mdhv.formanalyser.coach.*
 
+/**
+ * Settings → AI coach. The one place to choose the coaching model, hold BYOK cloud keys, tune the
+ * two redaction defaults (medical grant / keep private), and install an on-device model.
+ *
+ * Self-contained (no dedicated ViewModel): [AiSettings] flows drive the toggles/selection, and the
+ * synchronous [KeyVault] holds the encrypted keys. A [keyVersion] tick forces recomposition after a
+ * key is saved or cleared, since the vault is not a Flow.
+ *
+ * NB: this screen is currently plain Material3 rather than the Hyle design system the rest of the
+ * app uses, and it states each model's locus in words ("On-device" / "Cloud · BYOK") instead of the
+ * provenance-coloured dot. That dot — cloud = alien-cyan, on-device = radium-green — still carries
+ * the meaning on the Coach screen; re-aligning this screen with Hyle is outstanding design work.
+ */
 @Composable
 fun AiSettingsScreen() {
     val c = LocalContext.current
@@ -27,6 +40,7 @@ fun AiSettingsScreen() {
     val medical by settings.medicalGrantDefault.collectAsState(initial = false)
     val keepPrivate by settings.keepPrivate.collectAsState(initial = true)
     val path by settings.onDeviceModelPath.collectAsState(initial = null)
+    // The vault is synchronous (not a Flow); bump this to re-read hasKey after set/clear.
     var keyVersion by remember { mutableStateOf(0) }
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
@@ -37,6 +51,7 @@ fun AiSettingsScreen() {
             "Cloud models are BYOK; facts are redacted for the destination first.",
             color = Hyle.OnSurfaceDim,
         )
+        // ── Model selection ──────────────────────────────────────────────────
         HyleSectionHeader("Model")
         ModelRegistry.models.forEach { m ->
             ListItem(
@@ -56,6 +71,7 @@ fun AiSettingsScreen() {
                 Text(if (m.id == selected) "Selected" else "Select")
             }
         }
+        // ── BYOK cloud keys ──────────────────────────────────────────────────
         HyleSectionHeader("Cloud API keys (BYOK)")
         BYOK.forEach { p ->
             KeyRow(
@@ -71,6 +87,7 @@ fun AiSettingsScreen() {
                 },
             )
         }
+        // ── Redaction defaults ───────────────────────────────────────────────
         HyleSectionHeader("Privacy defaults")
         ToggleRow(
             "Include medications by default",
@@ -86,6 +103,7 @@ fun AiSettingsScreen() {
         ) {
             scope.launch { settings.setKeepPrivate(it) }
         }
+        // ── On-device model ──────────────────────────────────────────────────
         HyleSectionHeader("On-device model")
         val picker =
             rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->

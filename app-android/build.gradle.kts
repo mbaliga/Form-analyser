@@ -1,3 +1,8 @@
+// The Android capture app. NOT wired into the root settings.gradle.kts by default, because
+// the Android Gradle Plugin needs the Android SDK (absent in headless CI). To build:
+//   1. add `include(":app-android")` to ../settings.gradle.kts
+//   2. ensure a local.properties with sdk.dir, or ANDROID_HOME, points at an Android SDK
+//   3. ./gradlew :app-android:assembleDebug
 import java.net.URI
 
 plugins {
@@ -23,6 +28,10 @@ android {
         versionCode = 6
         versionName = "0.6.0-spec-dev"
     }
+    // A committed debug keystore so every CI build is signed with the SAME key. Without this,
+    // assembleDebug uses the auto-generated ~/.android/debug.keystore, which GitHub Actions
+    // regenerates each run — so each release APK had a different signature and Android refused to
+    // install it over the previous one ("App not installed"). Debug-only key; safe to commit.
     signingConfigs {
         getByName("debug") {
             storeFile = file("debug.keystore")
@@ -41,18 +50,22 @@ android {
 }
 
 dependencies {
+    // The free engine + archery module — local project dependencies, no external repo.
     implementation(project(":engine"))
     implementation(project(":archery-module"))
+    // Pure-JVM cores (Phase 1+): shared model + equipment/poundage/wellness/body math.
     implementation(project(":core-model"))
     implementation(project(":core-equipment"))
     implementation(project(":core-wellness"))
     implementation(project(":core-body"))
+    // Phase 3 AI coach (BYOK + on-device grounding/redaction) and Phase 5 export/exchange consent.
     implementation(project(":core-coach"))
     implementation(project(":core-exchange"))
     implementation(project(":core-scoring"))
     implementation(project(":core-athlete"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // Document vault — Tink streaming AEAD (androidx.security-crypto is deprecated; not used).
     implementation("com.google.crypto.tink:tink-android:1.15.0")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-compose:1.9.3")
@@ -69,16 +82,22 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
+    // CameraX — capture frames for pose estimation.
     val camerax = "1.4.1"
     implementation("androidx.camera:camera-core:$camerax")
     implementation("androidx.camera:camera-camera2:$camerax")
     implementation("androidx.camera:camera-lifecycle:$camerax")
     implementation("androidx.camera:camera-view:$camerax")
+    // MediaPipe Pose (BlazePose) — on-device pose landmarks.
     implementation("com.google.mediapipe:tasks-vision:0.10.20")
+    // MediaPipe LLM Inference (Gemma 3n) — on-device coach runtime.
     implementation("com.google.mediapipe:tasks-genai:0.10.24")
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
 
+// Fetch the BlazePose model at build time and bundle it into assets, so the installed APK works
+// with zero setup (no manual file drop, no first-run download). Kept out of git; downloaded once
+// and cached by the up-to-date check.
 val poseModelUrl =
     "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
 val downloadPoseModel by

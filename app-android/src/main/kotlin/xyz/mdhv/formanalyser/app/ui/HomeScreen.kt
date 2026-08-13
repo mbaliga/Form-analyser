@@ -52,6 +52,7 @@ fun HomeScreen(
             readiness?.let { r ->
                 if (quiet) HyleListRow("On pause", "Everything's here when you want it.")
                 else {
+                    // shape + luminance, never hue-only: ● ready / ◐ caution / ○ rest advised
                     val (g, l) =
                         when (r.level) {
                             xyz.mdhv.formanalyser.wellness.ReadinessLevel.READY -> "●" to "Ready"

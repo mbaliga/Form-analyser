@@ -23,6 +23,10 @@ import xyz.mdhv.formanalyser.app.ui.*
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 
+// NB: must NOT be named `R` — in package xyz.mdhv.formanalyser.app that collides with AGP's
+// generated resources class xyz.mdhv.formanalyser.app.R at dex time (the resources class wins,
+// so the object's INSTANCE field vanishes and any non-const access — e.g. TABS — throws
+// NoSuchFieldError at runtime).
 private object Routes {
     const val HOME = "home"
     const val TRAIN = "train"
@@ -84,6 +88,11 @@ private fun AppRoot() {
 }
 
 @Composable
+/**
+ * One-time, honest disclosure for [xyz.mdhv.formanalyser.app.data.DbRecovery]: if [AppDatabase.get]
+ * had to back up and reset the database on this launch, say so — rather than the silent recovery
+ * this replaced. Dismissing clears the flag so it doesn't reappear.
+ */
 private fun DbRecoveryNotice() {
     val c = LocalContext.current
     var e by remember { mutableStateOf(xyz.mdhv.formanalyser.app.data.DbRecovery.pendingNotice(c)) }

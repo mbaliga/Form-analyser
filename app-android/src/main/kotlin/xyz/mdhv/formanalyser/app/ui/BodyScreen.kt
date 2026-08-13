@@ -18,6 +18,7 @@ import xyz.mdhv.formanalyser.body.BodyFace
 private val PAIN_TAGS = listOf("sharp", "dull", "ache", "tingling", "stiff")
 
 @Composable
+/** Body tab (Phase 3 §D): Today · History · Injuries · Physio over the 52-region atlas. */
 fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (String?) -> Unit) {
     val contextVm: BodyContextViewModel = viewModel()
     LaunchedEffect(Unit) {
