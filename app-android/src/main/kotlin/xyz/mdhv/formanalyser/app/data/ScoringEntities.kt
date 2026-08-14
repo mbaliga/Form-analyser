@@ -44,6 +44,16 @@ data class ScoreSessionEntity(
     val venue: String? = null,
     val conditions: String? = null,
     val trainingIntent: String? = null,
+    /**
+     * Reserved; **not currently enforced anywhere.**
+     *
+     * Export and coach redaction classify by *table* via `PrivacyRegistry`, which lists
+     * `score_session` as SHAREABLE — so every row here is treated as shareable regardless of what
+     * this column says. Setting it to PRIVATE today protects nothing. It is kept because the column
+     * exists in the v4→v5 DDL and dropping it needs a table rebuild, and because per-row privacy is
+     * a plausible future need; wire it into the `core-exchange` consent filter before relying on
+     * it.
+     */
     val privacyClass: String = "SHAREABLE",
 )
 
@@ -85,4 +95,13 @@ data class ScoreOpponentEndEntity(
     val endIndex: Int,
     val total: Int,
     val updatedAt: Long,
+)
+
+/** Projection for [ScoringDao.bestPerRound]: the athlete's best complete round of each kind. */
+data class RoundBest(
+    val roundId: String,
+    val roundName: String,
+    val best: Int,
+    val arrowsPerEnd: Int,
+    val endCount: Int,
 )

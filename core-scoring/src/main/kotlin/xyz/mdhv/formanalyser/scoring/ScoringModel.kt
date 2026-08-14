@@ -5,15 +5,38 @@ import kotlin.math.hypot
 import kotlin.math.max
 
 /** How a scorecard is resolved. Qualification and practice use cumulative points. */
-enum class ScoringKind { QUALIFICATION, SET_MATCH, PRACTICE }
+enum class ScoringKind {
+    QUALIFICATION,
+    SET_MATCH,
+    PRACTICE,
+}
 
-enum class FaceLayout { SINGLE, VERTICAL_TRIPLE, TRIANGULAR_TRIPLE }
+enum class FaceLayout {
+    SINGLE,
+    VERTICAL_TRIPLE,
+    TRIANGULAR_TRIPLE,
+}
 
-enum class ScoreSource { MANUAL_NUMERIC, MANUAL_PLOT, END_SCAN, LIVE_OBSERVER, IMPORT }
+enum class ScoreSource {
+    MANUAL_NUMERIC,
+    MANUAL_PLOT,
+    END_SCAN,
+    LIVE_OBSERVER,
+    IMPORT,
+}
 
-enum class AuthorityState { HUMAN_CONFIRMED, MACHINE_PROPOSED, UNRESOLVED }
+enum class AuthorityState {
+    HUMAN_CONFIRMED,
+    MACHINE_PROPOSED,
+    UNRESOLVED,
+}
 
-enum class ObservationResolution { SHOT_CONFIRMED, SHOT_INFERRED, END_ONLY, SESSION_ONLY }
+enum class ObservationResolution {
+    SHOT_CONFIRMED,
+    SHOT_INFERRED,
+    END_ONLY,
+    SESSION_ONLY,
+}
 
 /**
  * A versioned round definition. Built-in IDs are stable persistence keys; custom rounds should use
@@ -40,8 +63,11 @@ data class RoundDefinition(
         require(maxArrowScore > 0)
     }
 
-    val maxArrows: Int get() = arrowsPerEnd * endCount
-    val maximumTotal: Int get() = maxArrows * maxArrowScore
+    val maxArrows: Int
+        get() = arrowsPerEnd * endCount
+
+    val maximumTotal: Int
+        get() = maxArrows * maxArrowScore
 }
 
 /** X is stored separately because it scores 10 but matters to tie-break/count summaries. */
@@ -68,7 +94,8 @@ data class PlotPoint(val x: Double, val y: Double, val faceIndex: Int = 0) {
         require(faceIndex >= 0)
     }
 
-    val radius: Double get() = hypot(x, y)
+    val radius: Double
+        get() = hypot(x, y)
 }
 
 data class ScoredArrow(
@@ -102,7 +129,10 @@ data class SetMatchSummary(
     val completedSets: Int,
     val winner: Winner?,
 ) {
-    enum class Winner { ATHLETE, OPPONENT }
+    enum class Winner {
+        ATHLETE,
+        OPPONENT,
+    }
 }
 
 data class GroupMetrics(
@@ -131,19 +161,50 @@ data class Scorecard(
         }
     }
 
-    val total: Int get() = arrows.sumOf { it.score.points }
-    val xCount: Int get() = arrows.count { it.score.isX }
-    val tenCount: Int get() = arrows.count { it.score.points == 10 }
-    val arrowCount: Int get() = arrows.size
-    val isFull: Boolean get() = arrows.size >= round.maxArrows
-    val currentEndIndex: Int get() = if (isFull) max(0, round.endCount - 1) else arrows.size / round.arrowsPerEnd
-    val currentArrowIndex: Int get() = if (isFull) round.arrowsPerEnd - 1 else arrows.size % round.arrowsPerEnd
+    val total: Int
+        get() = arrows.sumOf { it.score.points }
+
+    val xCount: Int
+        get() = arrows.count { it.score.isX }
+
+    val tenCount: Int
+        get() = arrows.count { it.score.points == 10 }
+
+    val arrowCount: Int
+        get() = arrows.size
+
+    val isFull: Boolean
+        get() = arrows.size >= round.maxArrows
+
+    val currentEndIndex: Int
+        get() = if (isFull) max(0, round.endCount - 1) else arrows.size / round.arrowsPerEnd
+
+    val currentArrowIndex: Int
+        get() = if (isFull) round.arrowsPerEnd - 1 else arrows.size % round.arrowsPerEnd
+
+    /**
+     * The earliest fully-shot set that still has no opponent total, or null if none is outstanding.
+     *
+     * Set matches must be resolved in order — [setMatchSummary] stops at the first set with no
+     * opponent total, and [record] refuses to open a new set until the previous one has one. UI
+     * must therefore ask for *this* index, never [currentEndIndex]: once a set's last arrow lands,
+     * `currentEndIndex` has already advanced to the set about to be shot, so recording the
+     * opponent's total against it would file the score one set late and deadlock the match.
+     */
+    val pendingOpponentEndIndex: Int?
+        get() =
+            if (round.scoringKind != ScoringKind.SET_MATCH) null
+            else
+                ends()
+                    .firstOrNull { it.isComplete && !opponentEndTotals.containsKey(it.endIndex) }
+                    ?.endIndex
 
     fun record(
         id: String,
         score: ArrowScore,
         plot: PlotPoint? = null,
-        source: ScoreSource = if (plot == null) ScoreSource.MANUAL_NUMERIC else ScoreSource.MANUAL_PLOT,
+        source: ScoreSource =
+            if (plot == null) ScoreSource.MANUAL_NUMERIC else ScoreSource.MANUAL_PLOT,
         authority: AuthorityState = AuthorityState.HUMAN_CONFIRMED,
         resolution: ObservationResolution = ObservationResolution.SHOT_CONFIRMED,
     ): Scorecard {
@@ -161,21 +222,29 @@ data class Scorecard(
             }
         }
         val index = arrows.size
-        return copy(arrows = arrows + ScoredArrow(
-            id = id,
-            endIndex = index / round.arrowsPerEnd,
-            arrowIndex = index % round.arrowsPerEnd,
-            score = score,
-            plot = plot,
-            source = source,
-            authority = authority,
-            resolution = resolution,
-        ))
+        return copy(
+            arrows =
+                arrows +
+                    ScoredArrow(
+                        id = id,
+                        endIndex = index / round.arrowsPerEnd,
+                        arrowIndex = index % round.arrowsPerEnd,
+                        score = score,
+                        plot = plot,
+                        source = source,
+                        authority = authority,
+                        resolution = resolution,
+                    )
+        )
     }
 
     fun undoLast(): Scorecard = if (arrows.isEmpty()) this else copy(arrows = arrows.dropLast(1))
 
-    fun replaceArrow(index: Int, score: ArrowScore, plot: PlotPoint? = arrows.getOrNull(index)?.plot): Scorecard {
+    fun replaceArrow(
+        index: Int,
+        score: ArrowScore,
+        plot: PlotPoint? = arrows.getOrNull(index)?.plot,
+    ): Scorecard {
         require(index in arrows.indices)
         val next = arrows.toMutableList()
         val old = next[index]
@@ -187,21 +256,41 @@ data class Scorecard(
         require(round.scoringKind == ScoringKind.SET_MATCH)
         require(endIndex in 0 until round.endCount)
         require(total in 0..(round.arrowsPerEnd * round.maxArrowScore))
+        // Refuse a total for a set the athlete has not finished shooting. Without this the index
+        // is unchecked above its lower bound, so a caller that passes the *pending* set (rather
+        // than the one just shot) silently files the score against a future set — leaving the set
+        // actually awaiting a total unfilled, which blocks record() forever.
+        require(ends().any { it.endIndex == endIndex && it.isComplete }) {
+            "Set ${endIndex + 1} has not been shot yet"
+        }
         return copy(opponentEndTotals = opponentEndTotals + (endIndex to total))
     }
 
     fun withShootOffWinner(winner: SetMatchSummary.Winner): Scorecard {
         require(round.scoringKind == ScoringKind.SET_MATCH)
         val summary = setMatchSummary() ?: error("Not a set match")
-        require(summary.completedSets == round.endCount && summary.athleteSetPoints == summary.opponentSetPoints) {
+        require(
+            summary.completedSets == round.endCount &&
+                summary.athleteSetPoints == summary.opponentSetPoints
+        ) {
             "Shoot-off is only valid after a tied five-set match"
         }
         return copy(shootOffWinner = winner)
     }
 
-    fun ends(): List<EndSummary> = arrows.groupBy { it.endIndex }.toSortedMap().map { (endIndex, endArrows) ->
-        EndSummary(endIndex, endArrows, endArrows.sumOf { it.score.points }, endArrows.count { it.score.isX }, endArrows.size == round.arrowsPerEnd)
-    }
+    fun ends(): List<EndSummary> =
+        arrows
+            .groupBy { it.endIndex }
+            .toSortedMap()
+            .map { (endIndex, endArrows) ->
+                EndSummary(
+                    endIndex,
+                    endArrows,
+                    endArrows.sumOf { it.score.points },
+                    endArrows.count { it.score.isX },
+                    endArrows.size == round.arrowsPerEnd,
+                )
+            }
 
     fun setMatchSummary(): SetMatchSummary? {
         if (round.scoringKind != ScoringKind.SET_MATCH) return null
@@ -214,7 +303,10 @@ data class Scorecard(
             when {
                 end.total > opponentTotal -> athlete += 2
                 end.total < opponentTotal -> opponent += 2
-                else -> { athlete += 1; opponent += 1 }
+                else -> {
+                    athlete += 1
+                    opponent += 1
+                }
             }
             completed += 1
             if (athlete >= 6 || opponent >= 6) break
@@ -225,18 +317,20 @@ data class Scorecard(
                 SetMatchSummary.Winner.OPPONENT -> opponent += 1
             }
         }
-        val winner = when {
-            athlete >= 6 -> SetMatchSummary.Winner.ATHLETE
-            opponent >= 6 -> SetMatchSummary.Winner.OPPONENT
-            else -> null
-        }
+        val winner =
+            when {
+                athlete >= 6 -> SetMatchSummary.Winner.ATHLETE
+                opponent >= 6 -> SetMatchSummary.Winner.OPPONENT
+                else -> null
+            }
         return SetMatchSummary(athlete, opponent, completed, winner)
     }
 
-    fun isComplete(): Boolean = when (round.scoringKind) {
-        ScoringKind.SET_MATCH -> setMatchSummary()?.winner != null
-        else -> isFull
-    }
+    fun isComplete(): Boolean =
+        when (round.scoringKind) {
+            ScoringKind.SET_MATCH -> setMatchSummary()?.winner != null
+            else -> isFull
+        }
 
     fun grouping(): GroupMetrics? {
         val points = arrows.mapNotNull { it.plot }
@@ -249,7 +343,14 @@ data class Scorecard(
         for (i in points.indices) for (j in i + 1 until points.size) {
             maxSpread = max(maxSpread, hypot(points[i].x - points[j].x, points[i].y - points[j].y))
         }
-        return GroupMetrics(points.size, meanX, meanY, meanRadiusCm, maxSpread * faceRadiusCm, hypot(meanX, meanY) * faceRadiusCm)
+        return GroupMetrics(
+            points.size,
+            meanX,
+            meanY,
+            meanRadiusCm,
+            maxSpread * faceRadiusCm,
+            hypot(meanX, meanY) * faceRadiusCm,
+        )
     }
 }
 
@@ -263,10 +364,20 @@ fun scoreFromPlot(point: PlotPoint, faceLayout: FaceLayout = FaceLayout.SINGLE):
     return ArrowScore(points = score)
 }
 
-data class PersonalBestResult(val currentTotal: Int, val previousBest: Int?, val isNewPersonalBest: Boolean)
+data class PersonalBestResult(
+    val currentTotal: Int,
+    val previousBest: Int?,
+    val isNewPersonalBest: Boolean,
+)
 
 fun personalBest(scorecard: Scorecard, previousBest: Int?): PersonalBestResult {
-    require(scorecard.round.scoringKind != ScoringKind.SET_MATCH) { "PB total is not defined for set match" }
+    require(scorecard.round.scoringKind != ScoringKind.SET_MATCH) {
+        "PB total is not defined for set match"
+    }
     val eligible = scorecard.isComplete()
-    return PersonalBestResult(scorecard.total, previousBest, eligible && (previousBest == null || scorecard.total > previousBest))
+    return PersonalBestResult(
+        scorecard.total,
+        previousBest,
+        eligible && (previousBest == null || scorecard.total > previousBest),
+    )
 }

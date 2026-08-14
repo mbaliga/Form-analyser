@@ -143,6 +143,14 @@ fun ProgressScreen(vm: ProgressViewModel) {
                 }
             }
     }
+    s.error?.let { message ->
+        AlertDialog(
+            onDismissRequest = vm::clearError,
+            title = { Text("Progress") },
+            text = { Text(message) },
+            confirmButton = { TextButton(onClick = vm::clearError) { Text("OK") } },
+        )
+    }
     if (goalOpen)
         GoalDialog(
             onDismiss = { goalOpen = false },

@@ -14,6 +14,35 @@ class ScoringRepository(context: Context) {
 
     data class Snapshot(val session: ScoreSessionEntity, val card: Scorecard)
 
+    /**
+     * Every path that can change a scorecard's arrows, opponent totals or outcome must pass through
+     * here first.
+     *
+     * A finished session has already had `roundComplete` and `completedAt` written, and
+     * [ScoringDao.previousBest] and the Progress trend both read those columns to decide what
+     * counts as a complete round. [ScoringDao.updateSummary] rewrites only `total`/`xCount`/set
+     * points, so mutating a finished card leaves those columns describing a round that no longer
+     * exists — e.g. undoing two arrows off a finished 72-arrow card leaves a 70-arrow total still
+     * flagged `roundComplete = 1`, which then becomes a personal best and a point on the score
+     * trend. The UI also disables these controls, but the repository is the boundary that has to
+     * hold: it is the only thing standing between a future caller and corrupted PB history.
+     */
+    private fun requireActive(session: ScoreSessionEntity) =
+        check(session.status == "ACTIVE") {
+            "This scorecard is already finished; reopen or start a new one to keep scoring."
+        }
+
+    /**
+     * Triple-face rounds have no 1–5 rings, so anything scoring below 6 is a miss, not a low ring.
+     * Enforced centrally because every input path — numeric, plot, Live Observer tap and a
+     * confirmed End Scan candidate — has to agree; when this lived inline in the manual path only,
+     * observer taps and End Scan confirmations could write impossible scores onto a triple face.
+     */
+    private fun validateForLayout(score: ArrowScore, layout: FaceLayout) {
+        if (layout != FaceLayout.SINGLE && score.points in 1..5)
+            error("Triple-face scoring accepts 6-10 or miss")
+    }
+
     suspend fun currentAthlete(): AthleteEntity? = athletes.firstOrNull()
 
     suspend fun resumeActive(): Snapshot? {
@@ -84,15 +113,14 @@ class ScoringRepository(context: Context) {
     ): Snapshot =
         db.withTransaction {
             val cur = snapshotUnlocked(sessionId)
-            check(cur.session.status == "ACTIVE")
+            requireActive(cur.session)
             val score =
                 numericScore
                     ?: scoreFromPlot(
                         plot ?: error("Plot point required"),
                         cur.card.round.faceLayout,
                     )
-            if (cur.card.round.faceLayout != FaceLayout.SINGLE && score.points in 1..5)
-                error("Triple-face scoring accepts 6-10 or miss")
+            validateForLayout(score, cur.card.round.faceLayout)
             val next =
                 cur.card.record(
                     UUID.randomUUID().toString(),
@@ -110,6 +138,7 @@ class ScoringRepository(context: Context) {
     suspend fun undo(sessionId: String): Snapshot =
         db.withTransaction {
             val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
             val last = cur.card.arrows.lastOrNull() ?: return@withTransaction cur
             scoring.retractArrow(last.id, System.currentTimeMillis())
             val next = cur.card.undoLast()
@@ -120,10 +149,13 @@ class ScoringRepository(context: Context) {
     suspend fun setOpponentEndTotal(sessionId: String, endIndex: Int, total: Int): Snapshot =
         db.withTransaction {
             val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
+            // Validate against the card before writing the row: withOpponentEndTotal rejects a set
+            // that has not been shot, and inside withTransaction that throw rolls the write back.
+            val next = cur.card.withOpponentEndTotal(endIndex, total)
             scoring.upsertOpponentEnd(
                 ScoreOpponentEndEntity(sessionId, endIndex, total, System.currentTimeMillis())
             )
-            val next = cur.card.withOpponentEndTotal(endIndex, total)
             scoring.updateFrom(next, sessionId)
             Snapshot(scoring.session(sessionId)!!, next)
         }
@@ -131,6 +163,7 @@ class ScoringRepository(context: Context) {
     suspend fun setShootOffWinner(sessionId: String, winner: SetMatchSummary.Winner): Snapshot =
         db.withTransaction {
             val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
             val next = cur.card.withShootOffWinner(winner)
             scoring.setShootOffWinner(sessionId, winner.name, System.currentTimeMillis())
             scoring.updateFrom(next, sessionId)
@@ -166,6 +199,7 @@ class ScoringRepository(context: Context) {
     suspend fun finish(sessionId: String): Pair<Snapshot, Int?> =
         db.withTransaction {
             val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
             val pb =
                 if (cur.card.round.scoringKind == ScoringKind.SET_MATCH) null
                 else scoring.previousBest(cur.session.athleteId, cur.session.roundId, sessionId)
@@ -220,6 +254,8 @@ class ScoringRepository(context: Context) {
                     ?: error("End Scan candidate not found")
             check(c.status == "PROPOSED")
             val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
+            validateForLayout(ArrowScore(c.points, c.isX), cur.card.round.faceLayout)
             val plot =
                 if (c.plotX != null && c.plotY != null)
                     PlotPoint(c.plotX, c.plotY, c.plotFaceIndex ?: 0)
@@ -251,6 +287,9 @@ class ScoringRepository(context: Context) {
     ): Snapshot =
         db.withTransaction {
             require(ring in 0..10)
+            val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
+            validateForLayout(ArrowScore(ring, isX), cur.card.round.faceLayout)
             val now = System.currentTimeMillis()
             val e =
                 ObserverScoreEventEntity(
@@ -264,7 +303,6 @@ class ScoringRepository(context: Context) {
                     declaredText = if (isX) "X" else if (ring == 0) "M" else ring.toString(),
                 )
             features.upsertObserverEvent(e)
-            val cur = snapshotUnlocked(sessionId)
             val next =
                 cur.card.record(
                     UUID.randomUUID().toString(),
@@ -280,6 +318,12 @@ class ScoringRepository(context: Context) {
         }
 
     suspend fun observerEvents(sessionId: String) = features.observerEvents(sessionId)
+
+    /** Best complete round per roundId across all history — the same basis the scorer's PB uses. */
+    suspend fun bestPerRound(): List<RoundBest> {
+        val a = athletes.firstOrNull() ?: return emptyList()
+        return scoring.bestPerRound(a.id)
+    }
 
     suspend fun recent(limit: Int = 20): List<ScoreSessionEntity> {
         val a = athletes.firstOrNull() ?: return emptyList()

@@ -10,8 +10,10 @@ enum class PrivacyClass {
 /**
  * The single source of truth for each table's privacy class (Phase 2 §A7). Registered here in Phase
  * 2, enforced by the `core-exchange` consent filter in Phase 5. Later phases add entries
- * (additive). The app carries a Robolectric test that reflects over the Room entity list and
- * asserts every table name has an entry here — the test that keeps future phases honest.
+ * (additive). PrivacyRegistryTest.everyAndroidTableIsClassified scans the Room migration DDL and
+ * fails if any table created there is missing from this map — the test that keeps future phases
+ * honest. An unregistered table has no class for the consent filter to check, so it is a gap in the
+ * privacy model, not a harmless omission.
  *
  * Canonical logical table names (spec §8). The app-layer reflection test reconciles these with the
  * actual Room `tableName`s and any historical plural names.

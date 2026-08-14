@@ -42,6 +42,17 @@ class AthleteFeatureRepository(context: Context) {
     ): GoalEntity {
         val athleteId = athleteId() ?: error("No athlete profile")
         val now = System.currentTimeMillis()
+        // Reject at the door what GoalDefinition would reject on read. "Infinity" and "NaN" both
+        // parse as valid Doubles, so a target typed as either used to persist happily and then
+        // throw inside toDefinition() on *every* subsequent Progress load — bricking the one screen
+        // from which the offending goal could have been deleted.
+        require(targetValue.isFinite()) { "Goal target must be a real number" }
+        require(baselineValue == null || baselineValue.isFinite()) {
+            "Goal baseline must be a real number"
+        }
+        require(targetAtMs == null || targetAtMs >= (existing?.startAtMs ?: now)) {
+            "Goal target date cannot be before the goal starts"
+        }
         val entity =
             GoalEntity(
                 existing?.id ?: UUID.randomUUID().toString(),

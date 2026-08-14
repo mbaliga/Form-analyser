@@ -3,7 +3,6 @@ package xyz.mdhv.formanalyser.app.domain
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -61,45 +60,23 @@ class BodyContextViewModel(app: Application) : AndroidViewModel(app) {
                 RegionSignal(r, painBy[r] ?: 0, r in soreness, injuryBy[r] ?: 0, r in physio)
             }
         val from = today.minusDays(27)
-        var expected = 0
-        var completed = 0
-        plans.forEach { p ->
-            val start = maxOf(LocalDate.parse(p.startDate), from)
-            val end = minOf(p.endDate?.let(LocalDate::parse) ?: today, today)
-            val sched = JsonLists.decode(p.scheduleJson).mapNotNull(::dayCode).toSet()
-            var d = start
-            while (!d.isAfter(end)) {
-                if (d.dayOfWeek in sched) expected++
-                d = d.plusDays(1)
+        val window =
+            plans.fold(PhysioAdherence.Window.EMPTY) { acc, p ->
+                acc +
+                    PhysioAdherence.forPlan(
+                        LocalDate.parse(p.startDate),
+                        p.endDate?.let(LocalDate::parse),
+                        from,
+                        today,
+                        JsonLists.decode(p.scheduleJson),
+                        repo.body.physioSessionsFor(p.id).map {
+                            Instant.ofEpochMilli(it.ts).atZone(ZoneId.systemDefault()).toLocalDate()
+                        },
+                    )
             }
-            completed +=
-                repo.body.physioSessionsFor(p.id).count { s ->
-                    val date =
-                        Instant.ofEpochMilli(s.ts).atZone(ZoneId.systemDefault()).toLocalDate()
-                    !date.isBefore(from) && !date.isAfter(today)
-                }
-        }
-        val adherence =
-            if (expected > 0) ((100.0 * completed / expected).coerceAtMost(100.0)).toInt() else null
+        val expected = window.expected
+        val completed = window.completed
+        val adherence = window.percent?.toInt()
         return UiState(signals, injuries.size, adherence, completed, expected)
     }
-
-    private fun dayCode(code: String): DayOfWeek? =
-        when (code.uppercase()) {
-            "MO",
-            "MON" -> DayOfWeek.MONDAY
-            "TU",
-            "TUE" -> DayOfWeek.TUESDAY
-            "WE",
-            "WED" -> DayOfWeek.WEDNESDAY
-            "TH",
-            "THU" -> DayOfWeek.THURSDAY
-            "FR",
-            "FRI" -> DayOfWeek.FRIDAY
-            "SA",
-            "SAT" -> DayOfWeek.SATURDAY
-            "SU",
-            "SUN" -> DayOfWeek.SUNDAY
-            else -> null
-        }
 }

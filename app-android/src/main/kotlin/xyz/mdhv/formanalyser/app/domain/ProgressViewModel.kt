@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import java.time.LocalDate
-import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,13 +58,29 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
         val interventions: List<InterventionEntity> = emptyList(),
         val plans: List<TrainingPlanEntity> = emptyList(),
         val missingEvidence: List<String> = emptyList(),
+        /** Surfaced when a write was rejected — e.g. a goal target that is not a real number. */
+        val error: String? = null,
     )
 
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state
 
     fun load() {
-        viewModelScope.launch { _state.value = withContext(Dispatchers.IO) { buildState() } }
+        viewModelScope.launch {
+            // Progress reads every goal, plan and scorecard the athlete has. One malformed row
+            // must not brick the whole surface with no way back: without this, a goal that fails
+            // GoalDefinition's require() throws on every load and Progress can never be opened
+            // again to delete it.
+            _state.value =
+                runCatching { withContext(Dispatchers.IO) { buildState() } }
+                    .getOrElse { t ->
+                        UiState(
+                            loading = false,
+                            missingEvidence =
+                                listOf("Could not load Progress: ${t.message ?: "unknown error"}"),
+                        )
+                    }
+        }
     }
 
     private suspend fun buildState(): UiState {
@@ -122,13 +137,12 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
         goals
             .filter { it.entity.state == GoalState.ACTIVE.name && it.progress.achieved }
             .forEach { features.setGoalState(it.entity.id, GoalState.ACHIEVED) }
+        // From the whole history, not the recent-250 display window, so this agrees with the
+        // "New PB" the scorer announces via ScoringDao.previousBest.
         val pbs =
-            scores
-                .groupBy { it.roundId }
-                .values
-                .mapNotNull { p ->
-                    p.maxByOrNull { it.total }?.let { RoundPb(it.roundName, it.total, it.max) }
-                }
+            scoring
+                .bestPerRound()
+                .map { RoundPb(it.roundName, it.best, it.arrowsPerEnd * it.endCount * 10) }
                 .sortedByDescending { it.score.toDouble() / it.max.coerceAtLeast(1) }
         val names = repo.rigsOnce(athlete.id).associate { it.id to it.name }
         val equipment =
@@ -220,53 +234,26 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
         val a = repo.currentAthlete() ?: return emptyList()
         val today = LocalDate.now()
         val from = today.minusDays(27)
-        val plans = repo.body.activePlans(a.id, today.toString())
-        var expected = 0
-        var completed = 0
-        fun day(c: String) =
-            when (c.uppercase()) {
-                "MO",
-                "MON" -> java.time.DayOfWeek.MONDAY
-                "TU",
-                "TUE" -> java.time.DayOfWeek.TUESDAY
-                "WE",
-                "WED" -> java.time.DayOfWeek.WEDNESDAY
-                "TH",
-                "THU" -> java.time.DayOfWeek.THURSDAY
-                "FR",
-                "FRI" -> java.time.DayOfWeek.FRIDAY
-                "SA",
-                "SAT" -> java.time.DayOfWeek.SATURDAY
-                "SU",
-                "SUN" -> java.time.DayOfWeek.SUNDAY
-                else -> null
+        val window =
+            repo.body.activePlans(a.id, today.toString()).fold(PhysioAdherence.Window.EMPTY) {
+                acc,
+                p ->
+                acc +
+                    PhysioAdherence.forPlan(
+                        LocalDate.parse(p.startDate),
+                        p.endDate?.let(LocalDate::parse),
+                        from,
+                        today,
+                        JsonLists.decode(p.scheduleJson),
+                        repo.body.physioSessionsFor(p.id).map {
+                            java.time.Instant.ofEpochMilli(it.ts)
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toLocalDate()
+                        },
+                    )
             }
-        plans.forEach { p ->
-            val start = maxOf(LocalDate.parse(p.startDate), from)
-            val end = minOf(p.endDate?.let(LocalDate::parse) ?: today, today)
-            val sched = JsonLists.decode(p.scheduleJson).mapNotNull(::day).toSet()
-            var d = start
-            while (!d.isAfter(end)) {
-                if (d.dayOfWeek in sched) expected++
-                d = d.plusDays(1)
-            }
-            completed +=
-                repo.body.physioSessionsFor(p.id).count { r ->
-                    val date =
-                        java.time.Instant.ofEpochMilli(r.ts)
-                            .atZone(java.time.ZoneId.systemDefault())
-                            .toLocalDate()
-                    !date.isBefore(from) && !date.isAfter(today)
-                }
-        }
-        if (expected <= 0) return emptyList()
-        return listOf(
-            MetricObservation(
-                System.currentTimeMillis(),
-                (100.0 * completed / expected).coerceIn(0.0, 100.0),
-                "physio-28d",
-            )
-        )
+        val percent = window.percent ?: return emptyList()
+        return listOf(MetricObservation(System.currentTimeMillis(), percent, "physio-28d"))
     }
 
     private suspend fun scoringArrowCount(s: ScoreSessionEntity) =
@@ -283,48 +270,66 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
         aggregation: GoalAggregation,
         targetAtMs: Long? = null,
         scopeKey: String? = null,
-    ) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                features.saveGoal(
-                    metric = metric,
-                    title = title,
-                    targetValue = target,
-                    unit = unit,
-                    direction = direction,
-                    aggregation = aggregation,
-                    targetAtMs = targetAtMs,
-                    scopeKey = scopeKey,
-                )
-            }
-            load()
-        }
+    ) = mutate {
+        features.saveGoal(
+            metric = metric,
+            title = title,
+            targetValue = target,
+            unit = unit,
+            direction = direction,
+            aggregation = aggregation,
+            targetAtMs = targetAtMs,
+            scopeKey = scopeKey,
+        )
     }
 
-    fun setGoalState(id: String, s: GoalState) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) { features.setGoalState(id, s) }
-            load()
-        }
+    fun setGoalState(id: String, s: GoalState) = mutate { features.setGoalState(id, s) }
+
+    fun addIntervention(k: String, t: String, n: String?) = mutate {
+        features.addIntervention(k, t, n)
     }
 
-    fun addIntervention(k: String, t: String, n: String?) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) { features.addIntervention(k, t, n) }
-            load()
-        }
+    fun savePlan(t: String, p: String, f: String, w: Int?, i: String, r: String?) = mutate {
+        features.upsertPlan(null, t, p, f, LocalDate.now().toString(), null, w, i, r)
     }
 
-    fun savePlan(t: String, p: String, f: String, w: Int?, i: String, r: String?) {
+    fun clearError() {
+        _state.value = _state.value.copy(error = null)
+    }
+
+    /**
+     * Run a write off the main thread, then reload.
+     *
+     * The writes validate their input now (see AthleteFeatureRepository.saveGoal), so they can
+     * reject. Reporting that back as state rather than letting it escape the coroutine is the
+     * difference between "that target isn't a number" and the app disappearing.
+     */
+    private fun mutate(block: suspend () -> Unit) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                features.upsertPlan(null, t, p, f, LocalDate.now().toString(), null, w, i, r)
-            }
-            load()
+            runCatching { withContext(Dispatchers.IO) { block() } }
+                .onSuccess { load() }
+                .onFailure { t ->
+                    _state.value =
+                        _state.value.copy(error = t.message ?: "Could not save that change")
+                }
         }
     }
 
     companion object {
+        /**
+         * Shot-to-shot consistency across a session, 0–100, averaged over the pose features.
+         *
+         * Measured as spread against a per-feature tolerance rather than as a coefficient of
+         * variation. CV (`sd / |mean|`) is wrong for this data: four of the nine features
+         * (`spineLeanDeg`, `shoulderTiltDeg`, `headLeanDeg`, `drawArmTiltDeg`) are deviations from
+         * level or vertical, so a well-aligned archer drives the mean toward zero, the ratio
+         * explodes, and the score clamps to 0 — the better the alignment, the worse it read.
+         * Dispersion is what "stability" means here, and it is meaningful on its own scale.
+         *
+         * Tolerances are first-pass, in the same spirit as the deviation weights in ArcheryModule:
+         * the band of shot-to-shot spread beyond which a feature stops looking repeatable. Worth
+         * tuning against real footage and scores.
+         */
         fun formStability(shots: List<Map<String, Double>>): Double? {
             if (shots.size < 2) return null
             val vals =
@@ -336,9 +341,18 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
                         if (v.size < 2) return@mapNotNull null
                         val m = v.average()
                         val sd = sqrt(v.sumOf { (it - m) * (it - m) } / v.size)
-                        (1.0 - sd / abs(m).coerceAtLeast(1e-6)).coerceIn(0.0, 1.0) * 100
+                        (1.0 - sd / toleranceFor(k)).coerceIn(0.0, 1.0) * 100
                     }
             return vals.takeIf { it.isNotEmpty() }?.average()
         }
+
+        /** Spread at which a feature stops reading as repeatable, keyed off the unit suffix. */
+        private fun toleranceFor(key: String): Double =
+            when {
+                key.endsWith("Deg") -> 5.0 // degrees of shot-to-shot wobble
+                key.endsWith("Ratio") -> 0.10 // stance width, relative to shoulder width
+                key.endsWith("S") -> 1.0 // seconds of draw/hold timing
+                else -> 1.0
+            }
     }
 }

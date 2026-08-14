@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.data.ScoreCandidateEntity
@@ -46,32 +47,31 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             runCatching { withContext(Dispatchers.IO) { repo.resumeActive() to repo.recent(10) } }
                 .onSuccess { (a, r) ->
-                    _state.value =
-                        _state.value.copy(snapshot = a, recent = r, loading = false, error = null)
+                    _state.update {
+                        it.copy(snapshot = a, recent = r, loading = false, error = null)
+                    }
                 }
-                .onFailure {
-                    _state.value =
-                        _state.value.copy(
-                            loading = false,
-                            error = it.message ?: "Could not load scoring",
-                        )
+                .onFailure { t ->
+                    _state.update {
+                        it.copy(loading = false, error = t.message ?: "Could not load scoring")
+                    }
                 }
         }
     }
 
     fun quickStart() = action {
-        _state.value.copy(snapshot = repo.quickStart(), completionMessage = null)
+        val s = repo.quickStart() { copy(snapshot = s, completionMessage = null) }
     }
 
     fun openScorecard(id: String) = action {
-        _state.value.copy(snapshot = repo.snapshot(id), completionMessage = null)
+        val s = repo.snapshot(id) { copy(snapshot = s, completionMessage = null) }
     }
 
     fun startBuiltIn(id: String) = action {
-        _state.value.copy(
-            snapshot = repo.start(RoundPack.byId(id) ?: error("Unknown round: $id")),
-            completionMessage = null,
-        )
+        val s =
+            repo.start(RoundPack.byId(id) ?: error("Unknown round: $id")) {
+                copy(snapshot = s, completionMessage = null)
+            }
     }
 
     fun startCustom(
@@ -81,24 +81,26 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         arrowsPerEnd: Int,
         endCount: Int,
     ) = action {
-        _state.value.copy(
-            snapshot =
-                repo.start(
-                    RoundPack.customPractice(
-                        "custom.${java.util.UUID.randomUUID()}",
-                        name.ifBlank { "Custom practice" },
-                        distanceMeters,
-                        targetFaceCm,
-                        arrowsPerEnd,
-                        endCount,
-                    )
-                ),
-            completionMessage = null,
-        )
+        val s =
+            repo.start(
+                RoundPack.customPractice(
+                    // Derive the round id from the round's *shape*, not a fresh UUID. previousBest
+                    // matches on roundId, so a random id per session meant no custom practice ever
+                    // had a predecessor and every one of them reported "New PB".
+                    customRoundId(distanceMeters, targetFaceCm, arrowsPerEnd, endCount),
+                    name.ifBlank { "Custom practice" },
+                    distanceMeters,
+                    targetFaceCm,
+                    arrowsPerEnd,
+                    endCount,
+                )
+            ) {
+                copy(snapshot = s, completionMessage = null)
+            }
     }
 
     fun setInputMode(mode: ScoringInputMode) {
-        _state.value = _state.value.copy(inputMode = mode)
+        _state.update { it.copy(inputMode = mode) }
         if (mode == ScoringInputMode.END_SCAN) loadEndScanCandidates()
     }
 
@@ -106,52 +108,54 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         val id = _state.value.snapshot?.session?.id ?: return
         val score =
             runCatching { ScoreInput.parse(token) }
-                .getOrElse {
-                    _state.value = _state.value.copy(error = it.message)
+                .getOrElse { t ->
+                    _state.update { it.copy(error = t.message) }
                     return
                 }
-        action { _state.value.copy(snapshot = repo.recordNumeric(id, score)) }
+        action {
+            val s = repo.recordNumeric(id, score) { copy(snapshot = s) }
+        }
     }
 
     fun recordPlot(p: PlotPoint) {
         val id = _state.value.snapshot?.session?.id ?: return
-        action { _state.value.copy(snapshot = repo.recordPlot(id, p)) }
+        action {
+            val s = repo.recordPlot(id, p) { copy(snapshot = s) }
+        }
     }
 
     fun recordObserverToken(token: String, sector: String? = null) {
         val id = _state.value.snapshot?.session?.id ?: return
         val s =
             runCatching { ScoreInput.parse(token) }
-                .getOrElse {
-                    _state.value = _state.value.copy(error = it.message)
+                .getOrElse { t ->
+                    _state.update { it.copy(error = t.message) }
                     return
                 }
-        action { _state.value.copy(snapshot = repo.recordObserverTap(id, s.points, s.isX, sector)) }
+        action {
+            val n = repo.recordObserverTap(id, s.points, s.isX, sector) { copy(snapshot = n) }
+        }
     }
 
     fun loadEndScanCandidates() {
         val s = _state.value.snapshot ?: return
         viewModelScope.launch {
-            _state.value =
-                _state.value.copy(
-                    endScanCandidates =
-                        withContext(Dispatchers.IO) {
-                            repo.endScanCandidates(s.session.id, s.card.currentEndIndex)
-                        }
-                )
+            val c =
+                withContext(Dispatchers.IO) {
+                    repo.endScanCandidates(s.session.id, s.card.currentEndIndex)
+                }
+            _state.update { it.copy(endScanCandidates = c) }
         }
     }
 
     fun acceptDetectedCandidates(c: List<ScoringRepository.EndScanCandidate>) {
         val s = _state.value.snapshot ?: return
         viewModelScope.launch {
-            _state.value =
-                _state.value.copy(
-                    endScanCandidates =
-                        withContext(Dispatchers.IO) {
-                            repo.proposeEndScanCandidates(s.session.id, s.card.currentEndIndex, c)
-                        }
-                )
+            val proposed =
+                withContext(Dispatchers.IO) {
+                    repo.proposeEndScanCandidates(s.session.id, s.card.currentEndIndex, c)
+                }
+            _state.update { it.copy(endScanCandidates = proposed) }
         }
     }
 
@@ -159,10 +163,10 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         val s = _state.value.snapshot ?: return
         action {
             val n = repo.confirmEndScanCandidate(cid, s.session.id, s.card.currentEndIndex)
-            _state.value.copy(
-                snapshot = n,
-                endScanCandidates = repo.endScanCandidates(s.session.id, n.card.currentEndIndex),
-            )
+            val c =
+                repo.endScanCandidates(s.session.id, n.card.currentEndIndex) {
+                    copy(snapshot = n, endScanCandidates = c)
+                }
         }
     }
 
@@ -170,36 +174,45 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         val s = _state.value.snapshot ?: return
         action {
             repo.rejectEndScanCandidate(cid)
-            _state.value.copy(
-                endScanCandidates = repo.endScanCandidates(s.session.id, s.card.currentEndIndex)
-            )
+            val c =
+                repo.endScanCandidates(s.session.id, s.card.currentEndIndex) {
+                    copy(endScanCandidates = c)
+                }
         }
     }
 
     fun undo() {
         val id = _state.value.snapshot?.session?.id ?: return
-        action { _state.value.copy(snapshot = repo.undo(id)) }
+        action {
+            val s = repo.undo(id) { copy(snapshot = s) }
+        }
     }
 
     fun setOpponentEndTotal(e: Int, t: Int) {
         val id = _state.value.snapshot?.session?.id ?: return
-        action { _state.value.copy(snapshot = repo.setOpponentEndTotal(id, e, t)) }
+        action {
+            val s = repo.setOpponentEndTotal(id, e, t) { copy(snapshot = s) }
+        }
     }
 
     fun setShootOffWinner(w: SetMatchSummary.Winner) {
         val id = _state.value.snapshot?.session?.id ?: return
-        action { _state.value.copy(snapshot = repo.setShootOffWinner(id, w)) }
+        action {
+            val s = repo.setShootOffWinner(id, w) { copy(snapshot = s) }
+        }
     }
 
     fun togglePinned() {
         val id = _state.value.snapshot?.session?.id ?: return
-        action { _state.value.copy(snapshot = repo.togglePinned(id)) }
+        action {
+            val s = repo.togglePinned(id) { copy(snapshot = s) }
+        }
     }
 
     fun updateContext(sight: String?, venue: String?, conditions: String?, intent: String?) {
         val id = _state.value.snapshot?.session?.id ?: return
         action {
-            _state.value.copy(snapshot = repo.updateContext(id, sight, venue, conditions, intent))
+            val s = repo.updateContext(id, sight, venue, conditions, intent) { copy(snapshot = s) }
         }
     }
 
@@ -221,29 +234,49 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
                     c.isComplete() -> "Round finished · ${c.total}"
                     else -> "Practice saved · ${c.total}"
                 }
-            _state.value.copy(snapshot = f, completionMessage = msg)
+            { copy(snapshot = f, completionMessage = msg) }
         }
     }
 
     fun clearError() {
-        _state.value = _state.value.copy(error = null)
+        _state.update { it.copy(error = null) }
     }
 
-    private fun action(block: suspend () -> ScoringUiState) {
+    /**
+     * Run one scoring mutation off the main thread and fold its result into whatever state is
+     * current when it lands.
+     *
+     * [block] returns a *patch* rather than a finished state on purpose. The previous version built
+     * `_state.value.copy(...)` inside the block, which captured the state as it was before the IO
+     * and then wrote it back wholesale — so anything the athlete changed while the write was in
+     * flight (switching input mode, dismissing an error) was silently reverted. Applying the patch
+     * through [MutableStateFlow.update] keeps those concurrent edits.
+     *
+     * The [ScoringUiState.saving] flag still serialises actions: viewModelScope dispatches on
+     * Main.immediate, so the flag is set synchronously before the first suspension point.
+     */
+    private fun action(block: suspend () -> (ScoringUiState.() -> ScoringUiState)) {
         if (_state.value.saving) return
+        _state.update { it.copy(saving = true, error = null) }
         viewModelScope.launch {
-            _state.value = _state.value.copy(saving = true, error = null)
             try {
-                val n = withContext(Dispatchers.IO) { block() }
-                _state.value = n.copy(saving = false, loading = false, error = null)
+                val patch = withContext(Dispatchers.IO) { block() }
+                _state.update { it.patch().copy(saving = false, loading = false, error = null) }
             } catch (t: Throwable) {
-                _state.value =
-                    _state.value.copy(
+                _state.update {
+                    it.copy(
                         saving = false,
                         loading = false,
                         error = t.message ?: "Scoring action failed",
                     )
+                }
             }
         }
+    }
+
+    private companion object {
+        /** Stable id for a custom practice round, so repeats of the same shape share PB history. */
+        fun customRoundId(distanceM: Int, faceCm: Int, arrowsPerEnd: Int, endCount: Int) =
+            "custom.${distanceM}m.${faceCm}cm.${arrowsPerEnd}x$endCount"
     }
 }

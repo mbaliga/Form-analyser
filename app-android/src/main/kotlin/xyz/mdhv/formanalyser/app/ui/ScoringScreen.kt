@@ -1,5 +1,6 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -77,7 +78,10 @@ fun ScoringScreen(vm: ScoringViewModel) {
                         supportingContent = {
                             Text("${s.total} · ${s.distanceMeters} m · ${s.status}")
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        // Without this the list was inert and ScoringViewModel.openScorecard had no
+                        // caller: an interrupted card could only be resumed via Quick score, and a
+                        // finished one could not be reviewed at all.
+                        modifier = Modifier.fillMaxWidth().clickable { vm.openScorecard(s.id) },
                     )
                 }
             }
@@ -87,6 +91,10 @@ fun ScoringScreen(vm: ScoringViewModel) {
         val session = snapshot.session
         val match = card.setMatchSummary()
         val grouping = card.grouping()
+        // A finished scorecard is read-only. The repository refuses to mutate one anyway, so
+        // leaving the controls live would only produce an error dialog on every tap.
+        val open = session.status == "ACTIVE"
+        val canScore = open && !state.saving
         LazyColumn(
             Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -139,7 +147,7 @@ fun ScoringScreen(vm: ScoringViewModel) {
                         Keypad(
                             tokens = ScoreInput.keypad,
                             onToken = vm::recordToken,
-                            enabled = !state.saving,
+                            enabled = canScore,
                         )
                     }
                 ScoringInputMode.PLOT ->
@@ -148,7 +156,7 @@ fun ScoringScreen(vm: ScoringViewModel) {
                             TargetFaceCanvas(
                                 card.arrows,
                                 card.round.faceLayout,
-                                !state.saving,
+                                canScore,
                                 vm::recordPlot,
                             )
                             Text(
@@ -168,21 +176,28 @@ fun ScoringScreen(vm: ScoringViewModel) {
                                 "Ring-only input stays SHOT_INFERRED; Crocodyl does not invent exact target coordinates.",
                                 color = Hyle.OnSurfaceDim,
                             )
-                            Keypad(ScoreInput.keypad, { vm.recordObserverToken(it) }, !state.saving)
+                            Keypad(ScoreInput.keypad, { vm.recordObserverToken(it) }, canScore)
                         }
                     }
-                ScoringInputMode.END_SCAN -> item { EndScanPanel(state.endScanCandidates, vm) }
+                ScoringInputMode.END_SCAN ->
+                    item { EndScanPanel(state.endScanCandidates, vm, canScore) }
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = vm::undo,
-                        enabled = card.arrows.isNotEmpty() && !state.saving,
+                        enabled = card.arrows.isNotEmpty() && canScore,
                     ) {
                         Text("Undo")
                     }
-                    Button(onClick = vm::finish, enabled = !state.saving) {
-                        Text(if (card.isComplete()) "Finish" else "Save practice")
+                    Button(onClick = vm::finish, enabled = canScore) {
+                        Text(
+                            when {
+                                !open -> "Finished"
+                                card.isComplete() -> "Finish"
+                                else -> "Save practice"
+                            }
+                        )
                     }
                 }
             }
@@ -203,7 +218,7 @@ fun ScoringScreen(vm: ScoringViewModel) {
                 }
             }
             if (card.round.scoringKind.name == "SET_MATCH")
-                item { MatchControls(card.currentEndIndex, vm, match) }
+                item { MatchControls(card.pendingOpponentEndIndex, vm, match, canScore) }
             state.completionMessage?.let { msg ->
                 item { Card(Modifier.fillMaxWidth()) { Text(msg, Modifier.padding(16.dp)) } }
             }
@@ -263,6 +278,7 @@ private fun Keypad(tokens: List<String>, onToken: (String) -> Unit, enabled: Boo
 private fun EndScanPanel(
     candidates: List<xyz.mdhv.formanalyser.app.data.ScoreCandidateEntity>,
     vm: ScoringViewModel,
+    enabled: Boolean,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("End Scan review", style = MaterialTheme.typography.titleMedium)
@@ -285,10 +301,16 @@ private fun EndScanPanel(
                     ) {
                         Text(if (c.isX) "X" else if (c.points == 0) "M" else c.points.toString())
                         Row {
-                            TextButton(onClick = { vm.rejectEndScanCandidate(c.id) }) {
+                            TextButton(
+                                onClick = { vm.rejectEndScanCandidate(c.id) },
+                                enabled = enabled,
+                            ) {
                                 Text("Reject")
                             }
-                            Button(onClick = { vm.confirmEndScanCandidate(c.id) }) {
+                            Button(
+                                onClick = { vm.confirmEndScanCandidate(c.id) },
+                                enabled = enabled,
+                            ) {
                                 Text("Confirm")
                             }
                         }
@@ -298,35 +320,54 @@ private fun EndScanPanel(
     }
 }
 
+/**
+ * Opponent totals and the shoot-off decision for a set match.
+ *
+ * [pendingEnd] is the set awaiting a total ([Scorecard.pendingOpponentEndIndex]) — never
+ * `currentEndIndex`, which has already advanced to the set about to be shot. Filing a total against
+ * that future set leaves the set actually owed one unfilled, and `Scorecard.record` then refuses
+ * every subsequent arrow, deadlocking the match after set 1. When nothing is outstanding the input
+ * is hidden, but the shoot-off prompt still has to render, so it lives outside that branch.
+ */
 @Composable
 private fun MatchControls(
-    end: Int,
+    pendingEnd: Int?,
     vm: ScoringViewModel,
     summary: xyz.mdhv.formanalyser.scoring.SetMatchSummary?,
+    enabled: Boolean,
 ) {
-    var total by remember(end) { mutableStateOf("") }
+    var total by remember(pendingEnd) { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        OutlinedTextField(
-            total,
-            { total = it.filter(Char::isDigit) },
-            label = { Text("Opponent set total") },
-        )
-        Button(
-            onClick = {
-                total.toIntOrNull()?.let { vm.setOpponentEndTotal(end, it) }
-                total = ""
-            },
-            enabled = total.toIntOrNull() in 0..30,
-        ) {
-            Text("Record opponent")
+        if (pendingEnd != null) {
+            OutlinedTextField(
+                total,
+                { total = it.filter(Char::isDigit) },
+                label = { Text("Opponent total for set ${pendingEnd + 1}") },
+                enabled = enabled,
+            )
+            Button(
+                onClick = {
+                    total.toIntOrNull()?.let { vm.setOpponentEndTotal(pendingEnd, it) }
+                    total = ""
+                },
+                enabled = enabled && total.toIntOrNull() in 0..30,
+            ) {
+                Text("Record opponent")
+            }
         }
         if (summary?.completedSets == 5 && summary.athleteSetPoints == summary.opponentSetPoints) {
             Text("Shoot-off winner")
             Row {
-                TextButton(onClick = { vm.setShootOffWinner(SetMatchSummary.Winner.ATHLETE) }) {
+                TextButton(
+                    onClick = { vm.setShootOffWinner(SetMatchSummary.Winner.ATHLETE) },
+                    enabled = enabled,
+                ) {
                     Text("Athlete")
                 }
-                TextButton(onClick = { vm.setShootOffWinner(SetMatchSummary.Winner.OPPONENT) }) {
+                TextButton(
+                    onClick = { vm.setShootOffWinner(SetMatchSummary.Winner.OPPONENT) },
+                    enabled = enabled,
+                ) {
                     Text("Opponent")
                 }
             }

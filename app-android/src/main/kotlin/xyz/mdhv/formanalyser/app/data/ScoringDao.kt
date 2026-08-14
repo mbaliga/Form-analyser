@@ -64,6 +64,21 @@ interface ScoringDao {
     )
     suspend fun previousBest(athleteId: String, roundId: String, excludeSessionId: String): Int?
 
+    /**
+     * Best complete round per roundId, over the athlete's whole history.
+     *
+     * Deliberately unbounded, and filtered identically to [previousBest]. Progress used to derive
+     * its PB list from the most recent 250 scorecards while the scorer announced "New PB" from
+     * [previousBest] over all of them, so a long-standing best could scroll out of Progress's
+     * window and the two screens would disagree about the athlete's own record.
+     */
+    @Query(
+        "SELECT roundId, roundName, MAX(total) AS best, arrowsPerEnd, endCount " +
+            "FROM score_session WHERE athleteId = :athleteId AND status = 'FINISHED' " +
+            "AND roundComplete = 1 AND scoringKind != 'SET_MATCH' GROUP BY roundId"
+    )
+    suspend fun bestPerRound(athleteId: String): List<RoundBest>
+
     @Query(
         "UPDATE score_arrow SET active = 0, retractedAt = :at WHERE id = :arrowId AND active = 1"
     )
