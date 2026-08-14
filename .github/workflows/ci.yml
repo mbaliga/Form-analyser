@@ -5,12 +5,28 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      # `./gradlew test` covers every pure-JVM module, but this workflow only fired for the two
+      # above — so the core-* suites (scoring, athlete, wellness, coach, equipment, exchange, body)
+      # never ran in CI at all.
+      - "core-*/**"
+      # app-android is not built here (no SDK), but PrivacyRegistryTest reads its migration DDL to
+      # assert every Room table is classified. Adding a table only touches app-android, so without
+      # this path that test could never fire on the very change it exists to catch.
+      - "app-android/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
       - "engine/**"
       - "archery-module/**"
+      # `./gradlew test` covers every pure-JVM module, but this workflow only fired for the two
+      # above — so the core-* suites (scoring, athlete, wellness, coach, equipment, exchange, body)
+      # never ran in CI at all.
+      - "core-*/**"
+      # app-android is not built here (no SDK), but PrivacyRegistryTest reads its migration DDL to
+      # assert every Room table is classified. Adding a table only touches app-android, so without
+      # this path that test could never fire on the very change it exists to catch.
+      - "app-android/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
 
