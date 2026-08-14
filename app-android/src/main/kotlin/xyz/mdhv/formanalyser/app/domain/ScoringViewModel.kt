@@ -60,18 +60,18 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun quickStart() = action {
-        val s = repo.quickStart() { copy(snapshot = s, completionMessage = null) }
+        val s = repo.quickStart()
+        return@action { copy(snapshot = s, completionMessage = null) }
     }
 
     fun openScorecard(id: String) = action {
-        val s = repo.snapshot(id) { copy(snapshot = s, completionMessage = null) }
+        val s = repo.snapshot(id)
+        return@action { copy(snapshot = s, completionMessage = null) }
     }
 
     fun startBuiltIn(id: String) = action {
-        val s =
-            repo.start(RoundPack.byId(id) ?: error("Unknown round: $id")) {
-                copy(snapshot = s, completionMessage = null)
-            }
+        val s = repo.start(RoundPack.byId(id) ?: error("Unknown round: $id"))
+        return@action { copy(snapshot = s, completionMessage = null) }
     }
 
     fun startCustom(
@@ -94,9 +94,8 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
                     arrowsPerEnd,
                     endCount,
                 )
-            ) {
-                copy(snapshot = s, completionMessage = null)
-            }
+            )
+        return@action { copy(snapshot = s, completionMessage = null) }
     }
 
     fun setInputMode(mode: ScoringInputMode) {
@@ -113,14 +112,16 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
                     return
                 }
         action {
-            val s = repo.recordNumeric(id, score) { copy(snapshot = s) }
+            val s = repo.recordNumeric(id, score)
+            return@action { copy(snapshot = s) }
         }
     }
 
     fun recordPlot(p: PlotPoint) {
         val id = _state.value.snapshot?.session?.id ?: return
         action {
-            val s = repo.recordPlot(id, p) { copy(snapshot = s) }
+            val s = repo.recordPlot(id, p)
+            return@action { copy(snapshot = s) }
         }
     }
 
@@ -133,7 +134,8 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
                     return
                 }
         action {
-            val n = repo.recordObserverTap(id, s.points, s.isX, sector) { copy(snapshot = n) }
+            val n = repo.recordObserverTap(id, s.points, s.isX, sector)
+            return@action { copy(snapshot = n) }
         }
     }
 
@@ -163,10 +165,8 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         val s = _state.value.snapshot ?: return
         action {
             val n = repo.confirmEndScanCandidate(cid, s.session.id, s.card.currentEndIndex)
-            val c =
-                repo.endScanCandidates(s.session.id, n.card.currentEndIndex) {
-                    copy(snapshot = n, endScanCandidates = c)
-                }
+            val c = repo.endScanCandidates(s.session.id, n.card.currentEndIndex)
+            return@action { copy(snapshot = n, endScanCandidates = c) }
         }
     }
 
@@ -174,45 +174,48 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         val s = _state.value.snapshot ?: return
         action {
             repo.rejectEndScanCandidate(cid)
-            val c =
-                repo.endScanCandidates(s.session.id, s.card.currentEndIndex) {
-                    copy(endScanCandidates = c)
-                }
+            val c = repo.endScanCandidates(s.session.id, s.card.currentEndIndex)
+            return@action { copy(endScanCandidates = c) }
         }
     }
 
     fun undo() {
         val id = _state.value.snapshot?.session?.id ?: return
         action {
-            val s = repo.undo(id) { copy(snapshot = s) }
+            val s = repo.undo(id)
+            return@action { copy(snapshot = s) }
         }
     }
 
     fun setOpponentEndTotal(e: Int, t: Int) {
         val id = _state.value.snapshot?.session?.id ?: return
         action {
-            val s = repo.setOpponentEndTotal(id, e, t) { copy(snapshot = s) }
+            val s = repo.setOpponentEndTotal(id, e, t)
+            return@action { copy(snapshot = s) }
         }
     }
 
     fun setShootOffWinner(w: SetMatchSummary.Winner) {
         val id = _state.value.snapshot?.session?.id ?: return
         action {
-            val s = repo.setShootOffWinner(id, w) { copy(snapshot = s) }
+            val s = repo.setShootOffWinner(id, w)
+            return@action { copy(snapshot = s) }
         }
     }
 
     fun togglePinned() {
         val id = _state.value.snapshot?.session?.id ?: return
         action {
-            val s = repo.togglePinned(id) { copy(snapshot = s) }
+            val s = repo.togglePinned(id)
+            return@action { copy(snapshot = s) }
         }
     }
 
     fun updateContext(sight: String?, venue: String?, conditions: String?, intent: String?) {
         val id = _state.value.snapshot?.session?.id ?: return
         action {
-            val s = repo.updateContext(id, sight, venue, conditions, intent) { copy(snapshot = s) }
+            val s = repo.updateContext(id, sight, venue, conditions, intent)
+            return@action { copy(snapshot = s) }
         }
     }
 
@@ -234,7 +237,7 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
                     c.isComplete() -> "Round finished · ${c.total}"
                     else -> "Practice saved · ${c.total}"
                 }
-            { copy(snapshot = f, completionMessage = msg) }
+            return@action { copy(snapshot = f, completionMessage = msg) }
         }
     }
 
