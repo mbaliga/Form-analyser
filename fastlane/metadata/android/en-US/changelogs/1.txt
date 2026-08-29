@@ -1,0 +1,3 @@
+First release. On-device pose capture, a personal baseline built from your own
+shots, per-shot deviation scoring, session fatigue trajectory, and correlation
+between form signals and the score you actually shot.
