@@ -1,0 +1,36 @@
+Free, open archery form analysis. Put your phone on a tripod beside you, shoot a
+session, and get a per-shot read on your form instead of a general opinion about
+your technique.
+
+HOW IT WORKS
+Crocodyl watches you through the camera and estimates your pose on device. It
+builds a baseline from your own shots, not from a textbook archer, then scores
+every later shot as a deviation from that baseline. Your good is the reference.
+
+WHAT IT MEASURES
+• Form: bow-arm angle, steadiness through the hold, and the shot sequence from
+  set-up through hold to release.
+• Stability: a per-shot deviation score against your personal baseline.
+• Fatigue: how your form decays across a session, as a trajectory rather than a
+  single number.
+• The part that matters: it correlates those signals against the score you
+  actually shot. A form change that does not move the arrow is not an improvement.
+
+WHY ARCHERY FIRST
+Archery is a well-posed problem. Discrete repeatable shots, a known external load
+in the draw weight, a quasi-static hold, and the draw arm sitting in the camera's
+good plane. Best of all there is a real arrow score to validate against, which is
+what stops this being another app that tells you things it cannot check.
+
+ON YOUR DEVICE
+• Pose estimation runs locally. Video never leaves your phone and is not recorded
+  to a server.
+• The pose model is bundled in the app, so there is no first-run download and it
+  works with no connection at all.
+• No account, no ads, no analytics, no tracking.
+• Your sessions are stored on your device and are deleted when you uninstall.
+
+NO HARDWARE NEEDED
+This app is camera-only. There is nothing to mount on your bow and nothing to buy.
+
+Crocodyl is free and open source.
