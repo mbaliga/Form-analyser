@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,18 +43,20 @@ import xyz.mdhv.formanalyser.equipment.WarningSeverity
  * Collapsible "Advanced tuning" section for the rig editor (Phase 4).
  *
  * Owns the advanced-field editing state (brace/tiller/nock, plunger/clicker, string build,
- * stabilizer, arrow), emitting an updated [RigTuning] on every edit via [onChange]. It intentionally
- * does NOT own the basic poundage fields (marked/riser/otf) — those stay in the existing rig editor
- * and are the single source of truth. The emitted [RigTuning] preserves whatever basics were in
- * [initial]; the caller re-stamps its live basics onto the value before persisting (see the
- * integration note).
+ * stabilizer, arrow), emitting an updated [RigTuning] on every edit via [onChange]. It
+ * intentionally does NOT own the basic poundage fields (marked/riser/otf) — those stay in the
+ * existing rig editor and are the single source of truth. The emitted [RigTuning] preserves
+ * whatever basics were in [initial]; the caller re-stamps its live basics onto the value before
+ * persisting (see the integration note).
  *
  * Computed FOC %, GPP vs effective poundage, and [TuningValidator] warnings are shown inline. The
  * two derived numbers are computed on-device, so they carry the radium-green provenance mark.
  *
- * @param initial parsed starting spec (see [Tuning.parseFull]); state re-seeds when its identity changes.
+ * @param initial parsed starting spec (see [Tuning.parseFull]); state re-seeds when its identity
+ *   changes.
  * @param drawLengthMm athlete draw length, for arrow-length + KE context (may be null).
- * @param effectiveLbs live effective poundage resolved from the editor's basic fields (may be null).
+ * @param effectiveLbs live effective poundage resolved from the editor's basic fields (may be
+ *   null).
  * @param bowLengthIn estimated assembled bow length for the brace-height band check (may be null);
  *   see [Tuning.estimatedBowLengthIn].
  */
@@ -66,7 +69,7 @@ fun AdvancedTuningSection(
     onChange: (RigTuning) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var expanded by remember(initial) { mutableStateOf(!isAdvancedEmpty(initial)) }
+    var expanded by rememberSaveable(initial) { mutableStateOf(!isAdvancedEmpty(initial)) }
     var adv by remember(initial) { mutableStateOf(initial) }
 
     fun update(next: RigTuning) {
@@ -77,8 +80,7 @@ fun AdvancedTuningSection(
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         // Collapsible header.
         Row(
-            Modifier
-                .fillMaxWidth()
+            Modifier.fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .clickable { expanded = !expanded }
                 .padding(vertical = 6.dp),
@@ -243,9 +245,14 @@ fun AdvancedTuningSection(
 
 /** True when no advanced field is recorded (section starts collapsed). */
 private fun isAdvancedEmpty(t: RigTuning): Boolean =
-    t.braceHeightMm == null && t.tillerTopMm == null && t.tillerBottomMm == null &&
-        t.nockingPointHeightMm == null && t.plungerTensionSteps == null && t.clickerPositionMm == null &&
-        t.stringStrands == null && t.stringMaterial == null &&
+    t.braceHeightMm == null &&
+        t.tillerTopMm == null &&
+        t.tillerBottomMm == null &&
+        t.nockingPointHeightMm == null &&
+        t.plungerTensionSteps == null &&
+        t.clickerPositionMm == null &&
+        t.stringStrands == null &&
+        t.stringMaterial == null &&
         (t.stabilizer == null || t.stabilizer.isEmpty()) &&
         (t.arrow == null || t.arrow.isEmpty())
 
@@ -256,8 +263,7 @@ private fun ComputedMetrics(adv: RigTuning, effectiveLbs: Double?) {
     if (foc == null && gpp == null) return
     HyleSectionHeader("Computed")
     Column(
-        Modifier
-            .fillMaxWidth()
+        Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(Hyle.Surface)
             .padding(14.dp),
@@ -282,15 +288,18 @@ private fun ComputedMetrics(adv: RigTuning, effectiveLbs: Double?) {
 /** A computed-number row; the radium dot marks it as derived on-device. */
 @Composable
 private fun MetricRow(label: String, value: String, caption: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Box(
-            Modifier
-                .size(8.dp)
-                .clip(CircleShape)
-                .background(Hyle.RadiumGreen),
-        )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Box(Modifier.size(8.dp).clip(CircleShape).background(Hyle.RadiumGreen))
         Text(label, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
-        Text(value, color = Hyle.OnBackground, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+        Text(
+            value,
+            color = Hyle.OnBackground,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
         Text(caption, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
     }
 }
@@ -302,30 +311,34 @@ private fun TuningWarnings(
     effectiveLbs: Double?,
     bowLengthIn: Double?,
 ) {
-    val warnings = remember(adv, drawLengthMm, effectiveLbs, bowLengthIn) {
-        TuningValidator.validate(
-            adv.toSpec(),
-            TuningContext(
-                bowLengthIn = bowLengthIn,
-                drawLengthMm = drawLengthMm?.toDouble(),
-                effectiveLbs = effectiveLbs,
-            ),
-        )
-    }
+    val warnings =
+        remember(adv, drawLengthMm, effectiveLbs, bowLengthIn) {
+            TuningValidator.validate(
+                adv.toSpec(),
+                TuningContext(
+                    bowLengthIn = bowLengthIn,
+                    drawLengthMm = drawLengthMm?.toDouble(),
+                    effectiveLbs = effectiveLbs,
+                ),
+            )
+        }
     if (warnings.isEmpty()) return
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         warnings.forEach { w ->
             val tint = if (w.severity == WarningSeverity.ERROR) Hyle.Danger else Hyle.Warning
             Row(
-                Modifier
-                    .fillMaxWidth()
+                Modifier.fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .border(1.dp, tint.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
                     .padding(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Text(if (w.severity == WarningSeverity.ERROR) "●" else "▲", color = tint)
-                Text(w.message, color = Hyle.OnBackground, style = MaterialTheme.typography.labelMedium)
+                Text(
+                    w.message,
+                    color = Hyle.OnBackground,
+                    style = MaterialTheme.typography.labelMedium,
+                )
             }
         }
     }
@@ -336,7 +349,7 @@ private fun TuningWarnings(
 /** Optional decimal field. Seeds once from [initial]; emits the parsed value (null when blank). */
 @Composable
 private fun NumField(label: String, initial: Double?, suffix: String, onValue: (Double?) -> Unit) {
-    var text by remember(initial) { mutableStateOf(initial?.let(::fmtNum) ?: "") }
+    var text by rememberSaveable(initial) { mutableStateOf(initial?.let(::fmtNum) ?: "") }
     OutlinedTextField(
         value = text,
         onValueChange = {
@@ -354,7 +367,7 @@ private fun NumField(label: String, initial: Double?, suffix: String, onValue: (
 /** Optional integer field. */
 @Composable
 private fun IntField(label: String, initial: Int?, suffix: String, onValue: (Int?) -> Unit) {
-    var text by remember(initial) { mutableStateOf(initial?.toString() ?: "") }
+    var text by rememberSaveable(initial) { mutableStateOf(initial?.toString() ?: "") }
     OutlinedTextField(
         value = text,
         onValueChange = {
@@ -372,7 +385,7 @@ private fun IntField(label: String, initial: Int?, suffix: String, onValue: (Int
 /** Optional free-text field (blank → null). */
 @Composable
 private fun TextField(label: String, initial: String?, onValue: (String?) -> Unit) {
-    var text by remember(initial) { mutableStateOf(initial ?: "") }
+    var text by rememberSaveable(initial) { mutableStateOf(initial ?: "") }
     OutlinedTextField(
         value = text,
         onValueChange = {
@@ -392,8 +405,7 @@ private fun singleDot(s: String): String {
     return s.substring(0, i + 1) + s.substring(i + 1).replace(".", "")
 }
 
-private fun fmtNum(v: Double): String =
-    if (v % 1.0 == 0.0) v.toLong().toString() else v.toString()
+private fun fmtNum(v: Double): String = if (v % 1.0 == 0.0) v.toLong().toString() else v.toString()
 
 private fun fmt1(v: Double): String {
     val r = Math.round(v * 10.0) / 10.0

@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import xyz.mdhv.formanalyser.app.domain.ProgressViewModel
@@ -16,9 +17,9 @@ import xyz.mdhv.formanalyser.athlete.*
 fun ProgressScreen(vm: ProgressViewModel) {
     LaunchedEffect(Unit) { vm.load() }
     val s by vm.state.collectAsState()
-    var goalOpen by remember { mutableStateOf(false) }
-    var planOpen by remember { mutableStateOf(false) }
-    var interventionOpen by remember { mutableStateOf(false) }
+    var goalOpen by rememberSaveable { mutableStateOf(false) }
+    var planOpen by rememberSaveable { mutableStateOf(false) }
+    var interventionOpen by rememberSaveable { mutableStateOf(false) }
     if (s.loading) {
         Box(Modifier.fillMaxSize().padding(24.dp)) { CircularProgressIndicator() }
         return
@@ -244,10 +245,10 @@ private fun GoalDialog(
     onDismiss: () -> Unit,
     onSave: (GoalMetric, String, Double, String, GoalDirection, GoalAggregation) -> Unit,
 ) {
-    var metric by remember { mutableStateOf(GoalMetric.ROUND_TOTAL) }
-    var title by remember { mutableStateOf("") }
-    var target by remember { mutableStateOf("") }
-    var unit by remember { mutableStateOf("pts") }
+    var metric by rememberSaveable { mutableStateOf(GoalMetric.ROUND_TOTAL) }
+    var title by rememberSaveable { mutableStateOf("") }
+    var target by rememberSaveable { mutableStateOf("") }
+    var unit by rememberSaveable { mutableStateOf("pts") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("New goal") },
@@ -297,11 +298,11 @@ private fun PlanDialog(
     onDismiss: () -> Unit,
     onSave: (String, String, String, Int?, String, String?) -> Unit,
 ) {
-    var t by remember { mutableStateOf("") }
-    var p by remember { mutableStateOf("BUILD") }
-    var f by remember { mutableStateOf("") }
-    var w by remember { mutableStateOf("") }
-    var r by remember { mutableStateOf("") }
+    var t by rememberSaveable { mutableStateOf("") }
+    var p by rememberSaveable { mutableStateOf("BUILD") }
+    var f by rememberSaveable { mutableStateOf("") }
+    var w by rememberSaveable { mutableStateOf("") }
+    var r by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Training plan") },
@@ -327,9 +328,9 @@ private fun PlanDialog(
 
 @Composable
 private fun InterventionDialog(onDismiss: () -> Unit, onSave: (String, String, String?) -> Unit) {
-    var k by remember { mutableStateOf("EQUIPMENT") }
-    var t by remember { mutableStateOf("") }
-    var n by remember { mutableStateOf("") }
+    var k by rememberSaveable { mutableStateOf("EQUIPMENT") }
+    var t by rememberSaveable { mutableStateOf("") }
+    var n by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Record change") },

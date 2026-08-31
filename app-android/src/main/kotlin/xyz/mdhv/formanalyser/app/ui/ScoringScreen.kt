@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import java.time.Instant
@@ -29,9 +30,9 @@ fun ScoringScreen(vm: ScoringViewModel) {
     val state by vm.state.collectAsState()
     val snapshot = state.snapshot
     val haptic = rememberHaptics()
-    var chooser by remember { mutableStateOf(false) }
-    var custom by remember { mutableStateOf(false) }
-    var linking by remember { mutableStateOf(false) }
+    var chooser by rememberSaveable { mutableStateOf(false) }
+    var custom by rememberSaveable { mutableStateOf(false) }
+    var linking by rememberSaveable { mutableStateOf(false) }
 
     if (state.loading) {
         Box(Modifier.fillMaxSize().padding(24.dp)) { CircularProgressIndicator() }
@@ -447,7 +448,7 @@ private fun MatchControls(
     summary: xyz.mdhv.formanalyser.scoring.SetMatchSummary?,
     enabled: Boolean,
 ) {
-    var total by remember(pendingEnd) { mutableStateOf("") }
+    var total by rememberSaveable(pendingEnd) { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (pendingEnd != null) {
             OutlinedTextField(
@@ -491,11 +492,11 @@ private fun CustomRoundDialog(
     onDismiss: () -> Unit,
     onStart: (String, Int, Int, Int, Int) -> Unit,
 ) {
-    var n by remember { mutableStateOf("Custom practice") }
-    var d by remember { mutableStateOf("18") }
-    var f by remember { mutableStateOf("40") }
-    var a by remember { mutableStateOf("3") }
-    var e by remember { mutableStateOf("10") }
+    var n by rememberSaveable { mutableStateOf("Custom practice") }
+    var d by rememberSaveable { mutableStateOf("18") }
+    var f by rememberSaveable { mutableStateOf("40") }
+    var a by rememberSaveable { mutableStateOf("3") }
+    var e by rememberSaveable { mutableStateOf("10") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Custom practice") },

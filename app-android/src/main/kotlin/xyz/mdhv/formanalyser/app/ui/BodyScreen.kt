@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,11 +32,11 @@ fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (
     val injuries by vm.injuries.collectAsState()
     val plans by vm.plans.collectAsState()
     val planExercises by vm.planExercises.collectAsState()
-    var face by remember { mutableStateOf(BodyFace.BACK) }
-    var view by remember { mutableStateOf("Context") }
-    var dialRegion by remember { mutableStateOf<String?>(null) }
-    var historyRegion by remember { mutableStateOf<String?>(null) }
-    var logPhysioPlan by remember { mutableStateOf<String?>(null) }
+    var face by rememberSaveable { mutableStateOf(BodyFace.BACK) }
+    var view by rememberSaveable { mutableStateOf("Context") }
+    var dialRegion by rememberSaveable { mutableStateOf<String?>(null) }
+    var historyRegion by rememberSaveable { mutableStateOf<String?>(null) }
+    var logPhysioPlan by rememberSaveable { mutableStateOf<String?>(null) }
     val activeInjuryRegions =
         injuries
             .filter { it.status == "ACTIVE" }
@@ -198,7 +199,7 @@ fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (
 
 @Composable
 private fun PainDial(region: String, onSave: (Int, List<String>) -> Unit, onDismiss: () -> Unit) {
-    var intensity by remember { mutableStateOf(5) }
+    var intensity by rememberSaveable { mutableStateOf(5) }
     var tags by remember { mutableStateOf(setOf<String>()) }
     AlertDialog(
         onDismissRequest = onDismiss,

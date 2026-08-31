@@ -155,7 +155,11 @@ private fun MainShell() {
             if (onTab) FloatingActionButton(onClick = { quick = true }) { Text("+") }
         },
     ) { pad ->
-        NavHost(nav, Routes.HOME, Modifier.padding(pad)) {
+        // imePadding() once here rather than on eleven screens: every text field in the app lives
+        // inside this NavHost, and on targetSdk 35 the window no longer resizes for the keyboard,
+        // so without it the field being typed into can sit underneath the IME with no way to
+        // scroll it into view. Applied after the Scaffold's own padding so the two stack.
+        NavHost(nav, Routes.HOME, Modifier.padding(pad).imePadding()) {
             composable(Routes.HOME) {
                 HomeScreen(
                     homeVm,

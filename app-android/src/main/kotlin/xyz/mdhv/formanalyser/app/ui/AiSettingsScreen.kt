@@ -143,6 +143,10 @@ fun AiSettingsScreen() {
 
 @Composable
 private fun KeyRow(p: Provider, has: Boolean, onSave: (String) -> Unit, onClear: () -> Unit) {
+    // Plain remember, not rememberSaveable, unlike every other text field in the app: saved
+    // instance state is written to disk to survive process death, and a BYOK provider key is the
+    // one thing here that must not be left lying in it. Re-typing a key after a rotation is the
+    // cheaper of the two costs.
     var key by remember(p) { mutableStateOf("") }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

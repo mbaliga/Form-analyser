@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -42,7 +43,7 @@ import xyz.mdhv.formanalyser.body.BodyFace
 /** Two-face multi-select region picker used by injury + physio editors. */
 @Composable
 fun RegionPicker(selected: Set<String>, onToggle: (String) -> Unit) {
-    var face by remember { mutableStateOf(BodyFace.BACK) }
+    var face by rememberSaveable { mutableStateOf(BodyFace.BACK) }
     HyleSegmented(
         listOf(BodyFace.FRONT, BodyFace.BACK),
         face,
@@ -68,10 +69,11 @@ fun InjuryEditScreen(
 
     var regions by
         remember(existing?.id) { mutableStateOf(JsonLists.decode(existing?.regionsJson).toSet()) }
-    var severity by remember(existing?.id) { mutableStateOf(existing?.severity ?: 1) }
-    var mechanism by remember(existing?.id) { mutableStateOf(existing?.mechanism ?: "OVERUSE") }
-    var status by remember(existing?.id) { mutableStateOf(existing?.status ?: "ACTIVE") }
-    var notes by remember(existing?.id) { mutableStateOf(existing?.notes ?: "") }
+    var severity by rememberSaveable(existing?.id) { mutableStateOf(existing?.severity ?: 1) }
+    var mechanism by
+        rememberSaveable(existing?.id) { mutableStateOf(existing?.mechanism ?: "OVERUSE") }
+    var status by rememberSaveable(existing?.id) { mutableStateOf(existing?.status ?: "ACTIVE") }
+    var notes by rememberSaveable(existing?.id) { mutableStateOf(existing?.notes ?: "") }
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val picker =
@@ -181,7 +183,7 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
     val planExercises by vm.planExercises.collectAsState()
     val existing = plans.firstOrNull { it.id == planId }
 
-    var title by remember(existing?.id) { mutableStateOf(existing?.title ?: "") }
+    var title by rememberSaveable(existing?.id) { mutableStateOf(existing?.title ?: "") }
     var regions by
         remember(existing?.id) {
             mutableStateOf(JsonLists.decode(existing?.targetRegionsJson).toSet())

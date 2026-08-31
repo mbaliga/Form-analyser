@@ -23,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +33,6 @@ import kotlinx.coroutines.launch
 import xyz.mdhv.formanalyser.app.domain.RigsViewModel
 import xyz.mdhv.formanalyser.app.domain.SettingsViewModel
 import xyz.mdhv.formanalyser.app.domain.Tuning
-import xyz.mdhv.formanalyser.app.domain.TuningV0
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
@@ -57,7 +57,10 @@ fun SettingsRootScreen(
     onData: () -> Unit,
     onAbout: () -> Unit,
 ) {
-    Column(col().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(
+        col().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         Text("Settings", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         HyleListRow("Profile & identity", onClick = onProfile)
         HyleListRow("Equipment (rigs)", onClick = onRigs)
@@ -81,10 +84,21 @@ fun SettingsWellnessScreen(prefsOwner: SettingsViewModel) {
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val chips by prefs.sorenessChips.collectAsState(initial = false)
     Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Wellness & check-ins", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "Wellness & check-ins",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Hyle.OnBackground,
+        )
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text("Use chips for soreness", color = Hyle.OnBackground)
-            Switch(checked = chips, onCheckedChange = { v -> scope.launch { prefs.setSorenessChips(v) } })
+            Switch(
+                checked = chips,
+                onCheckedChange = { v -> scope.launch { prefs.setSorenessChips(v) } },
+            )
         }
         Text(
             if (chips) "Soreness is picked from named chips (accessibility fallback)."
@@ -99,29 +113,57 @@ fun SettingsProfileScreen(vm: RigsViewModel) {
     LaunchedEffect(Unit) { vm.load() }
     val athlete by vm.athlete.collectAsState()
     val a = athlete
-    if (a == null) { Text("Loading…", color = Hyle.OnSurfaceDim, modifier = col()); return }
+    if (a == null) {
+        Text("Loading…", color = Hyle.OnSurfaceDim, modifier = col())
+        return
+    }
 
-    var name by remember(a.id) { mutableStateOf(a.displayName) }
-    var club by remember(a.id) { mutableStateOf(a.club ?: "") }
-    var handed by remember(a.id) { mutableStateOf(Handedness.fromStorage(a.handedness)) }
-    var drawSet by remember(a.id) { mutableStateOf(a.drawLengthMm != null) }
-    var drawMm by remember(a.id) { mutableStateOf(a.drawLengthMm ?: 700) }
+    var name by rememberSaveable(a.id) { mutableStateOf(a.displayName) }
+    var club by rememberSaveable(a.id) { mutableStateOf(a.club ?: "") }
+    var handed by rememberSaveable(a.id) { mutableStateOf(Handedness.fromStorage(a.handedness)) }
+    var drawSet by rememberSaveable(a.id) { mutableStateOf(a.drawLengthMm != null) }
+    var drawMm by rememberSaveable(a.id) { mutableStateOf(a.drawLengthMm ?: 700) }
 
-    Column(col().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Profile & identity", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
-        OutlinedTextField(name, { name = it.take(40) }, label = { Text("Name") }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(club, { club = it.take(40) }, label = { Text("Club") }, modifier = Modifier.fillMaxWidth())
+    Column(
+        col().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            "Profile & identity",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Hyle.OnBackground,
+        )
+        OutlinedTextField(
+            name,
+            { name = it.take(40) },
+            label = { Text("Name") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            club,
+            { club = it.take(40) },
+            label = { Text("Club") },
+            modifier = Modifier.fillMaxWidth(),
+        )
         HyleSectionHeader("Handedness")
         HyleSegmented(listOf(Handedness.RH, Handedness.LH), handed, { it.name }) { handed = it }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             Switch(checked = drawSet, onCheckedChange = { drawSet = it })
-            Text(if (drawSet) "Draw length set" else "Draw length not set", color = Hyle.OnSurfaceDim)
+            Text(
+                if (drawSet) "Draw length set" else "Draw length not set",
+                color = Hyle.OnSurfaceDim,
+            )
         }
         if (drawSet) HyleStepper(drawMm, { drawMm = it }, 500..900, step = 5, suffix = " mm")
         Button(
             onClick = { vm.updateProfile(name, club, handed, if (drawSet) drawMm else null) },
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Save") }
+        ) {
+            Text("Save")
+        }
     }
 }
 
@@ -129,7 +171,7 @@ fun SettingsProfileScreen(vm: RigsViewModel) {
 fun SettingsRigsScreen(vm: RigsViewModel, onEdit: (String?) -> Unit) {
     LaunchedEffect(Unit) { vm.load() }
     val rigs by vm.rigs.collectAsState()
-    var note by remember { mutableStateOf<String?>(null) }
+    var note by rememberSaveable { mutableStateOf<String?>(null) }
 
     Column(col(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Rigs", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
@@ -140,7 +182,8 @@ fun SettingsRigsScreen(vm: RigsViewModel, onEdit: (String?) -> Unit) {
                 subtitle = rig.bowType.lowercase().replaceFirstChar(Char::uppercase),
                 onClick = { onEdit(rig.id) },
                 trailing = {
-                    if (!rig.active) OutlinedButton(onClick = { vm.activate(rig.id) }) { Text("Activate") }
+                    if (!rig.active)
+                        OutlinedButton(onClick = { vm.activate(rig.id) }) { Text("Activate") }
                 },
             )
         }
@@ -155,57 +198,120 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
     val existing = rigs.firstOrNull { it.id == rigId }
     val t = remember(existing?.id) { Tuning.parse(existing?.tuningJson) }
 
-    var name by remember(existing?.id) { mutableStateOf(existing?.name ?: "My bow") }
-    var bow by remember(existing?.id) { mutableStateOf(BowType.fromStorage(existing?.bowType)) }
-    var riser by remember(existing?.id) { mutableStateOf((t.riserLengthIn ?: 25.0).toInt()) }
-    var marked by remember(existing?.id) { mutableStateOf(t.markedLbs?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "") }
-    var otf by remember(existing?.id) { mutableStateOf(t.otfLbs?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "") }
-    var note by remember { mutableStateOf<String?>(null) }
-    // Phase 4: the full tuning spec (advanced fields). Basics stay the source of truth in the fields
+    var name by rememberSaveable(existing?.id) { mutableStateOf(existing?.name ?: "My bow") }
+    var bow by
+        rememberSaveable(existing?.id) { mutableStateOf(BowType.fromStorage(existing?.bowType)) }
+    var riser by
+        rememberSaveable(existing?.id) { mutableStateOf((t.riserLengthIn ?: 25.0).toInt()) }
+    var marked by
+        rememberSaveable(existing?.id) {
+            mutableStateOf(
+                t.markedLbs?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() }
+                    ?: ""
+            )
+        }
+    var otf by
+        rememberSaveable(existing?.id) {
+            mutableStateOf(
+                t.otfLbs?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() }
+                    ?: ""
+            )
+        }
+    var note by rememberSaveable { mutableStateOf<String?>(null) }
+    // Phase 4: the full tuning spec (advanced fields). Basics stay the source of truth in the
+    // fields
     // above and are re-stamped onto this value at save time; here we only carry the advanced setup.
     var adv by remember(existing?.id) { mutableStateOf(Tuning.parseFull(existing?.tuningJson)) }
 
-    Column(col().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(if (existing == null) "Add rig" else "Edit rig", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
-        OutlinedTextField(name, { name = it.take(40) }, label = { Text("Rig name") }, modifier = Modifier.fillMaxWidth())
-        HyleSegmented(listOf(BowType.RECURVE, BowType.BAREBOW, BowType.COMPOUND), bow, { it.name.lowercase().replaceFirstChar(Char::uppercase) }) { bow = it }
+    Column(
+        col().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            if (existing == null) "Add rig" else "Edit rig",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Hyle.OnBackground,
+        )
+        OutlinedTextField(
+            name,
+            { name = it.take(40) },
+            label = { Text("Rig name") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        HyleSegmented(
+            listOf(BowType.RECURVE, BowType.BAREBOW, BowType.COMPOUND),
+            bow,
+            { it.name.lowercase().replaceFirstChar(Char::uppercase) },
+        ) {
+            bow = it
+        }
         if (bow != BowType.COMPOUND) {
             HyleSectionHeader("Riser length")
             HyleSegmented(listOf(23, 25, 27), riser, { "$it″" }) { riser = it }
         }
-        OutlinedTextField(marked, { marked = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text(if (bow == BowType.COMPOUND) "Peak weight (lbs)" else "Marked poundage (lbs)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(otf, { otf = it.filter { c -> c.isDigit() || c == '.' } }, label = { Text("On-the-fingers (lbs, measured)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(
+            marked,
+            { marked = it.filter { c -> c.isDigit() || c == '.' } },
+            label = {
+                Text(if (bow == BowType.COMPOUND) "Peak weight (lbs)" else "Marked poundage (lbs)")
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        OutlinedTextField(
+            otf,
+            { otf = it.filter { c -> c.isDigit() || c == '.' } },
+            label = { Text("On-the-fingers (lbs, measured)") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.fillMaxWidth(),
+        )
 
-        // Phase 4 advanced tuning (collapsible). Live effective poundage (measured OTF, else marked)
+        // Phase 4 advanced tuning (collapsible). Live effective poundage (measured OTF, else
+        // marked)
         // and the estimated bow length feed the FOC/GPP readouts and the brace-band warnings.
         AdvancedTuningSection(
             initial = adv,
             drawLengthMm = null,
             effectiveLbs = otf.toDoubleOrNull() ?: marked.toDoubleOrNull(),
-            bowLengthIn = Tuning.estimatedBowLengthIn(if (bow == BowType.COMPOUND) null else riser.toDouble(), bow),
+            bowLengthIn =
+                Tuning.estimatedBowLengthIn(
+                    if (bow == BowType.COMPOUND) null else riser.toDouble(),
+                    bow,
+                ),
             onChange = { adv = it },
         )
 
         note?.let { Text(it, color = Hyle.Danger) }
         Button(
             onClick = {
-                // Re-stamp the live basics onto the advanced spec and persist the full tuning. RigTuning
+                // Re-stamp the live basics onto the advanced spec and persist the full tuning.
+                // RigTuning
                 // keeps marked/riser/otf top-level, so the legacy V0 poundage path keeps resolving.
-                val full = adv.copy(
-                    markedLbs = marked.toDoubleOrNull(),
-                    riserLengthIn = if (bow == BowType.COMPOUND) null else riser.toDouble(),
-                    otfLbs = otf.toDoubleOrNull(),
-                )
+                val full =
+                    adv.copy(
+                        markedLbs = marked.toDoubleOrNull(),
+                        riserLengthIn = if (bow == BowType.COMPOUND) null else riser.toDouble(),
+                        otfLbs = otf.toDoubleOrNull(),
+                    )
                 vm.saveRig(existing?.id, name, bow, Tuning.encodeFull(full))
                 onDone()
             },
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Save") }
+        ) {
+            Text("Save")
+        }
         if (existing != null) {
             OutlinedButton(
-                onClick = { vm.delete(existing) { ok -> if (ok) onDone() else note = "Can't delete the active or last rig — activate another first." } },
+                onClick = {
+                    vm.delete(existing) { ok ->
+                        if (ok) onDone()
+                        else note = "Can't delete the active or last rig — activate another first."
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Delete rig") }
+            ) {
+                Text("Delete rig")
+            }
         }
     }
 }
@@ -215,11 +321,18 @@ fun SettingsCaptureScreen(vm: SettingsViewModel) {
     val keep by vm.keepRawVideo.collectAsState(initial = false)
     Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Capture", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text("Keep raw video", color = Hyle.OnBackground)
             Switch(checked = keep, onCheckedChange = { vm.setKeepRawVideo(it) })
         }
-        Text("Off by default. Pose analysis runs on-device; raw video isn't retained.", color = Hyle.OnSurfaceDim)
+        Text(
+            "Off by default. Pose analysis runs on-device; raw video isn't retained.",
+            color = Hyle.OnSurfaceDim,
+        )
     }
 }
 
@@ -229,13 +342,27 @@ fun SettingsAppearanceScreen(vm: SettingsViewModel) {
     val haptic by vm.hapticStrength.collectAsState(initial = "MED")
     val glow by vm.glowIntensity.collectAsState(initial = 100)
     Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Appearance", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "Appearance",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Hyle.OnBackground,
+        )
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text("Reduce motion", color = Hyle.OnBackground)
             Switch(checked = reduce, onCheckedChange = { vm.setReduceMotion(it) })
         }
         HyleSectionHeader("Haptics")
-        HyleSegmented(listOf("OFF", "LOW", "MED", "HIGH"), haptic, { it.lowercase().replaceFirstChar(Char::uppercase) }) { vm.setHapticStrength(it) }
+        HyleSegmented(
+            listOf("OFF", "LOW", "MED", "HIGH"),
+            haptic,
+            { it.lowercase().replaceFirstChar(Char::uppercase) },
+        ) {
+            vm.setHapticStrength(it)
+        }
         HyleSectionHeader("Glow intensity")
         Slider(value = glow / 100f, onValueChange = { vm.setGlowIntensity((it * 100).toInt()) })
         Text("$glow%", color = Hyle.OnSurfaceDim)
@@ -244,20 +371,26 @@ fun SettingsAppearanceScreen(vm: SettingsViewModel) {
 
 @Composable
 fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () -> Unit) {
+    // Deliberately not rememberSaveable: this is the gate on erasing the athlete's whole history,
+    // and a half-typed confirmation that survives a rotation or a process restart is a gate that
+    // has partly opened itself. It costs a few seconds to re-arm and re-type.
     var arming by remember { mutableStateOf(false) }
     var confirm by remember { mutableStateOf("") }
     val context = androidx.compose.ui.platform.LocalContext.current
-    val vaultInfo by androidx.compose.runtime.produceState<String?>(initialValue = null) {
-        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            runCatching {
-                val repo = xyz.mdhv.formanalyser.app.data.Repository(context)
-                val a = repo.currentAthlete() ?: return@runCatching null
-                val n = repo.body.documentCount(a.id)
-                val kb = repo.body.documentBytes(a.id) / 1024
-                "Document vault: $n file(s) · $kb KB (encrypted)"
-            }.getOrNull()
+    val vaultInfo by
+        androidx.compose.runtime.produceState<String?>(initialValue = null) {
+            value =
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    runCatching {
+                            val repo = xyz.mdhv.formanalyser.app.data.Repository(context)
+                            val a = repo.currentAthlete() ?: return@runCatching null
+                            val n = repo.body.documentCount(a.id)
+                            val kb = repo.body.documentBytes(a.id) / 1024
+                            "Document vault: $n file(s) · $kb KB (encrypted)"
+                        }
+                        .getOrNull()
+                }
         }
-    }
     Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Data", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         vaultInfo?.let { Text(it, color = Hyle.OnSurfaceDim) }
@@ -271,15 +404,24 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
             color = Hyle.OnSurfaceDim,
         )
         if (!arming) {
-            OutlinedButton(onClick = { arming = true }, modifier = Modifier.fillMaxWidth()) { Text("Wipe everything") }
+            OutlinedButton(onClick = { arming = true }, modifier = Modifier.fillMaxWidth()) {
+                Text("Wipe everything")
+            }
         } else {
-            OutlinedTextField(confirm, { confirm = it }, label = { Text("Type WIPE to confirm") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                confirm,
+                { confirm = it },
+                label = { Text("Type WIPE to confirm") },
+                modifier = Modifier.fillMaxWidth(),
+            )
             Button(
                 onClick = { vm.wipe(onWiped) },
                 enabled = confirm.trim() == "WIPE",
                 colors = ButtonDefaults.buttonColors(containerColor = Hyle.Danger),
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Erase all data") }
+            ) {
+                Text("Erase all data")
+            }
         }
     }
 }

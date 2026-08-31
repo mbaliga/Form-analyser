@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -30,17 +31,17 @@ fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: 
     val handedness by vm.athleteHandedness.collectAsState()
     val activeRig by vm.activeRig.collectAsState()
     val smart by contextVm.defaults.collectAsState()
-    var applied by remember { mutableStateOf(false) }
-    var distance by remember { mutableStateOf("") }
-    var targetFace by remember { mutableStateOf("") }
-    var arrows by remember { mutableStateOf("") }
-    var venue by remember { mutableStateOf("") }
-    var intent by remember { mutableStateOf("") }
-    var selectedRound by remember { mutableStateOf<String?>(null) }
-    var pinSetup by remember { mutableStateOf(false) }
-    var advanced by remember { mutableStateOf(false) }
-    var override by remember { mutableStateOf<Handedness?>(null) }
-    var preGate by remember { mutableStateOf(false) }
+    var applied by rememberSaveable { mutableStateOf(false) }
+    var distance by rememberSaveable { mutableStateOf("") }
+    var targetFace by rememberSaveable { mutableStateOf("") }
+    var arrows by rememberSaveable { mutableStateOf("") }
+    var venue by rememberSaveable { mutableStateOf("") }
+    var intent by rememberSaveable { mutableStateOf("") }
+    var selectedRound by rememberSaveable { mutableStateOf<String?>(null) }
+    var pinSetup by rememberSaveable { mutableStateOf(false) }
+    var advanced by rememberSaveable { mutableStateOf(false) }
+    var override by rememberSaveable { mutableStateOf<Handedness?>(null) }
+    var preGate by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(smart) {
         val d = smart ?: return@LaunchedEffect
         if (!applied) {
