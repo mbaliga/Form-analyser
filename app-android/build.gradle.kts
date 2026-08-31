@@ -46,7 +46,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions { jvmTarget = "21" }
-    buildFeatures { compose = true }
+    // buildConfig is on so ExportViewModel can stamp the REAL versionName into every .crocbak
+    // manifest. It was a hand-copied constant and had drifted two releases stale (0.4.4 vs 0.6.0),
+    // which is exactly the failure a generated constant cannot have.
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 }
 
 dependencies {

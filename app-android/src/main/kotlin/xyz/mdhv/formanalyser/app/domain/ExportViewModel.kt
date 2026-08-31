@@ -5,17 +5,21 @@ import android.net.Uri
 import android.util.Base64
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import java.security.MessageDigest
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.Json
+import xyz.mdhv.formanalyser.app.BuildConfig
 import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.exchange.AndroidKeyProvider
 import xyz.mdhv.formanalyser.exchange.ConsentDecision
@@ -24,24 +28,25 @@ import xyz.mdhv.formanalyser.exchange.CrocbakManifest
 import xyz.mdhv.formanalyser.exchange.ExportTier
 import xyz.mdhv.formanalyser.wellness.PrivacyClass
 import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
-import java.security.MessageDigest
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 /**
  * Phase 5 export ceremony (over `core-exchange`). Drives the tier/grant selection, computes the
- * live [ConsentDecision] preview, and — on confirm — assembles a `.crocbak` zip to a caller-supplied
- * SAF [Uri].
+ * live [ConsentDecision] preview, and — on confirm — assembles a `.crocbak` zip to a
+ * caller-supplied SAF [Uri].
  *
  * Privacy enforcement is delegated entirely to [ConsentFilter]/[PrivacyRegistry]: this VM only ever
- * reads rows from tables the decision cleared, so PRIVATE tables are never even queried, and MEDICAL
- * tables are read only when the athlete granted them. The manifest's `createdAtMs` is stamped here
- * (`System.currentTimeMillis()`) and passed IN to the pure core, per the core's determinism contract.
+ * reads rows from tables the decision cleared, so PRIVATE tables are never even queried, and
+ * MEDICAL tables are read only when the athlete granted them. The manifest's `createdAtMs` is
+ * stamped here (`System.currentTimeMillis()`) and passed IN to the pure core, per the core's
+ * determinism contract.
  */
 class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     private val keyProvider = AndroidKeyProvider()
-    private val json = Json { prettyPrint = false; encodeDefaults = true }
+    private val json = Json {
+        prettyPrint = false
+        encodeDefaults = true
+    }
 
     /** Result of the last export attempt (null before any attempt). */
     data class ExportOutcome(val ok: Boolean, val message: String)
@@ -70,9 +75,10 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
     fun load() {
         if (_fingerprint.value != null) return
         viewModelScope.launch {
-            _fingerprint.value = withContext(Dispatchers.IO) {
-                runCatching { keyProvider.identity().fingerprint }.getOrNull()
-            }
+            _fingerprint.value =
+                withContext(Dispatchers.IO) {
+                    runCatching { keyProvider.identity().fingerprint }.getOrNull()
+                }
         }
     }
 
@@ -109,10 +115,16 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { runCatching { writeArchive(uri) } }
             _busy.value = false
-            _outcome.value = result.fold(
-                onSuccess = { ExportOutcome(true, it) },
-                onFailure = { ExportOutcome(false, "Export failed: ${it.message ?: it.javaClass.simpleName}") },
-            )
+            _outcome.value =
+                result.fold(
+                    onSuccess = { ExportOutcome(true, it) },
+                    onFailure = {
+                        ExportOutcome(
+                            false,
+                            "Export failed: ${it.message ?: it.javaClass.simpleName}",
+                        )
+                    },
+                )
         }
     }
 
@@ -138,21 +150,24 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         for (logical in payloads.keys) digest.update(payloads.getValue(logical))
         val checksum = "sha256:" + digest.digest().joinToString("") { "%02x".format(it) }
 
-        val fingerprint = _fingerprint.value
-            ?: keyProvider.identity().fingerprint.also { _fingerprint.value = it }
+        val fingerprint =
+            _fingerprint.value
+                ?: keyProvider.identity().fingerprint.also { _fingerprint.value = it }
 
-        val manifest = CrocbakManifest.fromDecision(
-            appVersion = APP_VERSION,
-            createdAtMs = System.currentTimeMillis(),
-            athletePubkeyFingerprint = fingerprint,
-            tier = tier,
-            decision = decision,
-            contentChecksum = checksum,
-            rowCounts = rowCounts,
-        )
+        val manifest =
+            CrocbakManifest.fromDecision(
+                appVersion = APP_VERSION,
+                createdAtMs = System.currentTimeMillis(),
+                athletePubkeyFingerprint = fingerprint,
+                tier = tier,
+                decision = decision,
+                contentChecksum = checksum,
+                rowCounts = rowCounts,
+            )
 
-        val out = getApplication<Application>().contentResolver.openOutputStream(uri)
-            ?: error("cannot open destination")
+        val out =
+            getApplication<Application>().contentResolver.openOutputStream(uri)
+                ?: error("cannot open destination")
         ZipOutputStream(out.buffered()).use { zip ->
             zip.putNextEntry(ZipEntry("manifest.json"))
             zip.write(manifest.serialize().toByteArray())
@@ -168,7 +183,10 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         return "Exported ${payloads.size} table(s), $rows row(s) to a .crocbak archive."
     }
 
-    /** Generic `SELECT *` dump of a fixed, code-owned table name to a JSON array (bytes + row count). */
+    /**
+     * Generic `SELECT *` dump of a fixed, code-owned table name to a JSON array (bytes + row
+     * count).
+     */
     private fun dumpTable(sqlName: String): Pair<ByteArray, Long> {
         val db = AppDatabase.get(getApplication()).openHelper.readableDatabase
         val rows = ArrayList<JsonElement>()
@@ -178,15 +196,19 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                 val obj = LinkedHashMap<String, JsonElement>(cols)
                 for (i in 0 until cols) {
                     val name = c.getColumnName(i)
-                    obj[name] = when (c.getType(i)) {
-                        android.database.Cursor.FIELD_TYPE_NULL -> JsonNull
-                        android.database.Cursor.FIELD_TYPE_INTEGER -> JsonPrimitive(c.getLong(i))
-                        android.database.Cursor.FIELD_TYPE_FLOAT -> JsonPrimitive(c.getDouble(i))
-                        android.database.Cursor.FIELD_TYPE_STRING -> JsonPrimitive(c.getString(i))
-                        android.database.Cursor.FIELD_TYPE_BLOB ->
-                            JsonPrimitive(Base64.encodeToString(c.getBlob(i), Base64.NO_WRAP))
-                        else -> JsonNull
-                    }
+                    obj[name] =
+                        when (c.getType(i)) {
+                            android.database.Cursor.FIELD_TYPE_NULL -> JsonNull
+                            android.database.Cursor.FIELD_TYPE_INTEGER ->
+                                JsonPrimitive(c.getLong(i))
+                            android.database.Cursor.FIELD_TYPE_FLOAT ->
+                                JsonPrimitive(c.getDouble(i))
+                            android.database.Cursor.FIELD_TYPE_STRING ->
+                                JsonPrimitive(c.getString(i))
+                            android.database.Cursor.FIELD_TYPE_BLOB ->
+                                JsonPrimitive(Base64.encodeToString(c.getBlob(i), Base64.NO_WRAP))
+                            else -> JsonNull
+                        }
                 }
                 rows.add(JsonObject(obj))
             }
@@ -197,11 +219,13 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     companion object {
         /**
-         * App version stamped into the manifest. Mirrors `versionName` in the app build script;
-         * BuildConfig is not enabled for this module, so it is a constant. (Integration note: if
-         * `buildConfig` is turned on, swap this for `BuildConfig.VERSION_NAME`.)
+         * App version stamped into every exported manifest, read from the build rather than copied.
+         * This was a hand-maintained constant that had drifted two releases stale — it still said
+         * "0.4.4" while the app shipped 0.6.0 — and every archive exported in between carries that
+         * wrong version. A generated value cannot drift.
          */
-        const val APP_VERSION: String = "0.4.4"
+        val APP_VERSION: String
+            get() = BuildConfig.VERSION_NAME
 
         /** Suggested SAF filename for the CreateDocument picker. */
         const val SUGGESTED_FILENAME: String = "crocodyl-export.crocbak"
@@ -214,13 +238,10 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
         /**
          * Logical table name (PrivacyRegistry / spec §8) -> actual Room `tableName`. Only the three
-         * incumbent plural tables differ; everything else is identity. Code-owned (never user input),
-         * so it is safe to interpolate into the dump query.
+         * incumbent plural tables differ; everything else is identity. Code-owned (never user
+         * input), so it is safe to interpolate into the dump query.
          */
-        private val SQL_NAME: Map<String, String> = mapOf(
-            "athlete" to "athletes",
-            "session" to "sessions",
-            "shot" to "shots",
-        )
+        private val SQL_NAME: Map<String, String> =
+            mapOf("athlete" to "athletes", "session" to "sessions", "shot" to "shots")
     }
 }

@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -142,7 +143,13 @@ private fun MainShell() {
     val onTab = route in Routes.TABS
     var quick by remember { mutableStateOf(false) }
     Scaffold(
-        topBar = { if (onTab) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) } },
+        topBar = {
+            if (onTab) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) }
+            // Every other route used to render with no bar, no back and no title. 22 of 27
+            // destinations were reachable and then inescapable except by system back — and on a
+            // desktop/ChromeOS window there is no system back gesture at all.
+            else DetailBar(detailTitle(route)) { nav.popBackStack() }
+        },
         bottomBar = { if (onTab) BottomBar(route, injuries > 0) { navigateTab(nav, it) } },
         floatingActionButton = {
             if (onTab) FloatingActionButton(onClick = { quick = true }) { Text("+") }
@@ -267,7 +274,20 @@ private fun NavGraphBuilder.settingsGraph(
     composable(Routes.S_MEDICATION) { SettingsMedicationScreen(wellness) }
     composable(Routes.S_APPEARANCE) { SettingsAppearanceScreen(settings) }
     composable(Routes.S_DATA) {
-        SettingsDataScreen(settings, {}, { nav.navigate(Routes.S_EXPORT) })
+        // A data wipe used to "work" only as a side effect: the empty lambda meant the screen
+        // stayed put and the tree happened to recompose when the onboarding pref flipped. Return
+        // the athlete to Home explicitly and clear the stack behind them — after a wipe, every
+        // entry above Home refers to records that no longer exist.
+        SettingsDataScreen(
+            settings,
+            {
+                nav.navigate(Routes.HOME) {
+                    popUpTo(Routes.HOME) { inclusive = true }
+                    launchSingleTop = true
+                }
+            },
+            { nav.navigate(Routes.S_EXPORT) },
+        )
     }
     composable(Routes.S_ABOUT) { SettingsAboutScreen() }
 }
@@ -316,6 +336,62 @@ private fun BottomBar(current: String?, badge: Boolean, onSelect: (String) -> Un
         }
     }
 }
+
+/**
+ * Top bar for every non-tab destination: a title and the way out.
+ *
+ * Deliberately mirrors [TopRow]'s metrics so a push does not feel like a different app — same
+ * titleLarge on [Hyle.OnBackground], same dim icon tint, same 12dp top inset. The back arrow is
+ * auto-mirrored because the app already takes handedness and RTL seriously elsewhere.
+ */
+@Composable
+private fun DetailBar(title: String, onBack: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, top = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Hyle.OnBackground)
+        }
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            color = Hyle.OnBackground,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+/**
+ * Title for a pushed destination. Matches on the route prefix so parameterised routes
+ * (`injury_edit/{injuryId}`) resolve without repeating the argument pattern here.
+ */
+private fun detailTitle(r: String?): String =
+    when (r?.substringBefore("/")) {
+        Routes.CAPTURE -> "Capture"
+        Routes.REVIEW -> "Review"
+        Routes.SCORE -> "Score"
+        Routes.LOG -> "Log"
+        Routes.COACH -> "Coach"
+        Routes.SETTINGS -> "Settings"
+        Routes.S_PROFILE -> "Profile"
+        Routes.S_RIGS -> "Rigs"
+        Routes.S_CAPTURE -> "Capture"
+        Routes.S_APPEARANCE -> "Appearance"
+        Routes.S_DATA -> "Data"
+        Routes.S_ABOUT -> "About"
+        Routes.S_AI -> "AI coach"
+        Routes.S_EXPORT -> "Export"
+        Routes.S_WELLNESS -> "Wellness"
+        Routes.S_STREAK -> "Streak"
+        Routes.S_CYCLE -> "Cycle"
+        Routes.S_MEDICATION -> "Medication"
+        Routes.RIG_EDIT -> "Rig"
+        Routes.INJURY_EDIT -> "Injury"
+        Routes.PLAN_EDIT -> "Physio plan"
+        Routes.DOC_VIEW -> "Document"
+        else -> "Crocodyl"
+    }
 
 private fun tabTitle(r: String?) =
     when (r) {
