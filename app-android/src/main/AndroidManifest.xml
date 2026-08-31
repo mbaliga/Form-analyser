@@ -3,7 +3,10 @@
 
     <!-- Vision is the core modality: the camera films the archer (sagittal) for pose/form. -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera.any" android:required="true" />
+    <!-- required="false": the app is fully usable without a camera (scoring, logs, progress),
+         and required="true" made it un-installable on camera-less Chromebooks — which is exactly
+         the desktop form factor the roadmap targets. CaptureScreen degrades gracefully. -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
     <!-- BYOK cloud coach calls only. On-device coaching and everything else stay offline; no key,
          no call. The AI coach is opt-in and every provider is bring-your-own-key. -->
