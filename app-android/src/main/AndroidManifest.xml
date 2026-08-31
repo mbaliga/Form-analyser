@@ -3,6 +3,10 @@
 
     <!-- Vision is the core modality: the camera films the archer (sagittal) for pose/form. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- The Haptics setting (Settings -> Appearance) has always been persisted; without this it
+         was read by nothing. Cues confirm a recorded arrow on a shooting line where the phone is
+         often not being looked at. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <!-- required="false": the app is fully usable without a camera (scoring, logs, progress),
          and required="true" made it un-installable on camera-less Chromebooks — which is exactly
          the desktop form factor the roadmap targets. CaptureScreen degrades gracefully. -->

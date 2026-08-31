@@ -11,7 +11,9 @@ import androidx.compose.ui.unit.dp
 import xyz.mdhv.formanalyser.app.domain.ScoringInputMode
 import xyz.mdhv.formanalyser.app.domain.ScoringViewModel
 import xyz.mdhv.formanalyser.app.ui.components.TargetFaceCanvas
+import xyz.mdhv.formanalyser.app.ui.theme.HapticCue
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.app.ui.theme.rememberHaptics
 import xyz.mdhv.formanalyser.scoring.RoundPack
 import xyz.mdhv.formanalyser.scoring.ScoreInput
 import xyz.mdhv.formanalyser.scoring.SetMatchSummary
@@ -21,6 +23,7 @@ fun ScoringScreen(vm: ScoringViewModel) {
     LaunchedEffect(Unit) { vm.load() }
     val state by vm.state.collectAsState()
     val snapshot = state.snapshot
+    val haptic = rememberHaptics()
     var chooser by remember { mutableStateOf(false) }
     var custom by remember { mutableStateOf(false) }
 
@@ -146,7 +149,10 @@ fun ScoringScreen(vm: ScoringViewModel) {
                     item {
                         Keypad(
                             tokens = ScoreInput.keypad,
-                            onToken = vm::recordToken,
+                            onToken = {
+                                haptic(HapticCue.ARROW)
+                                vm.recordToken(it)
+                            },
                             enabled = canScore,
                         )
                     }
@@ -176,7 +182,14 @@ fun ScoringScreen(vm: ScoringViewModel) {
                                 "Ring-only input stays SHOT_INFERRED; Crocodyl does not invent exact target coordinates.",
                                 color = Hyle.OnSurfaceDim,
                             )
-                            Keypad(ScoreInput.keypad, { vm.recordObserverToken(it) }, canScore)
+                            Keypad(
+                                ScoreInput.keypad,
+                                {
+                                    haptic(HapticCue.ARROW)
+                                    vm.recordObserverToken(it)
+                                },
+                                canScore,
+                            )
                         }
                     }
                 ScoringInputMode.END_SCAN ->
@@ -185,12 +198,21 @@ fun ScoringScreen(vm: ScoringViewModel) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
-                        onClick = vm::undo,
+                        onClick = {
+                            haptic(HapticCue.UNDO)
+                            vm.undo()
+                        },
                         enabled = card.arrows.isNotEmpty() && canScore,
                     ) {
                         Text("Undo")
                     }
-                    Button(onClick = vm::finish, enabled = canScore) {
+                    Button(
+                        onClick = {
+                            haptic(HapticCue.COMPLETE)
+                            vm.finish()
+                        },
+                        enabled = canScore,
+                    ) {
                         Text(
                             when {
                                 !open -> "Finished"
