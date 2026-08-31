@@ -106,6 +106,18 @@ interface ScoringDao {
     )
     suspend fun setShootOffWinner(sessionId: String, winner: String, updatedAt: Long)
 
+    /**
+     * Attach (or detach) the capture session this scorecard was shot alongside.
+     *
+     * Deliberately the only write in this DAO that does *not* touch `updatedAt`: [latest] and
+     * [recent] order by that column, so stamping it here would shuffle an old scorecard to the top
+     * of "Recent" — and make it the template [ScoringRepository.quickStart] copies — purely because
+     * the athlete corrected a link on it. The link is metadata about the card, not scoring
+     * activity.
+     */
+    @Query("UPDATE score_session SET linkedFormSessionId = :formSessionId WHERE id = :sessionId")
+    suspend fun setLinkedFormSession(sessionId: String, formSessionId: String?)
+
     @Query(
         "UPDATE score_session SET sightMark = :sightMark, venue = :venue, conditions = :conditions, trainingIntent = :trainingIntent, updatedAt = :updatedAt WHERE id = :sessionId"
     )

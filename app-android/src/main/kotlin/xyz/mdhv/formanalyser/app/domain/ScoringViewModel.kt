@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.data.ScoreCandidateEntity
 import xyz.mdhv.formanalyser.app.data.ScoreSessionEntity
 import xyz.mdhv.formanalyser.app.data.ScoringRepository
+import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.scoring.PlotPoint
 import xyz.mdhv.formanalyser.scoring.RoundPack
 import xyz.mdhv.formanalyser.scoring.ScoreInput
@@ -35,6 +36,8 @@ data class ScoringUiState(
     val error: String? = null,
     val completionMessage: String? = null,
     val endScanCandidates: List<ScoreCandidateEntity> = emptyList(),
+    /** Capture sessions offered by the link picker; loaded only when the athlete opens it. */
+    val linkableFormSessions: List<SessionEntity> = emptyList(),
 )
 
 class ScoringViewModel(app: Application) : AndroidViewModel(app) {
@@ -199,6 +202,23 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         val id = _state.value.snapshot?.session?.id ?: return
         action {
             val s = repo.setShootOffWinner(id, w)
+            return@action { copy(snapshot = s) }
+        }
+    }
+
+    /** Populate the link picker. Cheap, and only ever called when the athlete opens the dialog. */
+    fun loadLinkableFormSessions() {
+        viewModelScope.launch {
+            val s = withContext(Dispatchers.IO) { repo.linkableFormSessions() }
+            _state.update { it.copy(linkableFormSessions = s) }
+        }
+    }
+
+    /** [formSessionId] null detaches — the athlete can always take a link back off. */
+    fun setLinkedFormSession(formSessionId: String?) {
+        val id = _state.value.snapshot?.session?.id ?: return
+        action {
+            val s = repo.setLinkedFormSession(id, formSessionId)
             return@action { copy(snapshot = s) }
         }
     }

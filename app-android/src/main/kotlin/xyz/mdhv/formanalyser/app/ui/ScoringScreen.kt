@@ -8,11 +8,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.domain.ScoringInputMode
 import xyz.mdhv.formanalyser.app.domain.ScoringViewModel
 import xyz.mdhv.formanalyser.app.ui.components.TargetFaceCanvas
 import xyz.mdhv.formanalyser.app.ui.theme.HapticCue
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.rememberHaptics
 import xyz.mdhv.formanalyser.scoring.RoundPack
 import xyz.mdhv.formanalyser.scoring.ScoreInput
@@ -26,6 +31,7 @@ fun ScoringScreen(vm: ScoringViewModel) {
     val haptic = rememberHaptics()
     var chooser by remember { mutableStateOf(false) }
     var custom by remember { mutableStateOf(false) }
+    var linking by remember { mutableStateOf(false) }
 
     if (state.loading) {
         Box(Modifier.fillMaxSize().padding(24.dp)) { CircularProgressIndicator() }
@@ -98,6 +104,9 @@ fun ScoringScreen(vm: ScoringViewModel) {
         // leaving the controls live would only produce an error dialog on every tap.
         val open = session.status == "ACTIVE"
         val canScore = open && !state.saving
+        // Loaded with the card, not with the dialog, so the row can name the linked session rather
+        // than saying only "Linked" until the athlete happens to open the picker.
+        LaunchedEffect(session.id) { vm.loadLinkableFormSessions() }
         LazyColumn(
             Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -239,6 +248,18 @@ fun ScoringScreen(vm: ScoringViewModel) {
                     }
                 }
             }
+            item {
+                HyleListRow(
+                    title = "Training session",
+                    subtitle =
+                        session.linkedFormSessionId?.let { id ->
+                            state.linkableFormSessions
+                                .firstOrNull { it.id == id }
+                                ?.let { "Linked · ${sessionDay(it.startedAtEpochMs)}" } ?: "Linked"
+                        } ?: "Not linked · counted as its own session",
+                    onClick = { linking = true },
+                )
+            }
             if (card.round.scoringKind.name == "SET_MATCH")
                 item { MatchControls(card.pendingOpponentEndIndex, vm, match, canScore) }
             state.completionMessage?.let { msg ->
@@ -267,6 +288,16 @@ fun ScoringScreen(vm: ScoringViewModel) {
             },
             confirmButton = {},
         )
+    if (linking && snapshot != null)
+        LinkFormSessionDialog(
+            sessions = state.linkableFormSessions,
+            linkedId = snapshot.session.linkedFormSessionId,
+            onDismiss = { linking = false },
+            onPick = { id ->
+                linking = false
+                vm.setLinkedFormSession(id)
+            },
+        )
     if (custom)
         CustomRoundDialog(
             onDismiss = { custom = false },
@@ -276,6 +307,64 @@ fun ScoringScreen(vm: ScoringViewModel) {
             },
         )
 }
+
+/**
+ * Attach a scorecard to the capture session it was shot alongside.
+ *
+ * The link is what stops Progress counting one afternoon twice — once as a form session and once as
+ * a scorecard. It cannot be guessed: getting it wrong in the other direction would *drop* arrows
+ * from the athlete's volume, so this dialog is the only thing that ever writes it, and "Not linked"
+ * is always reachable.
+ */
+@Composable
+private fun LinkFormSessionDialog(
+    sessions: List<SessionEntity>,
+    linkedId: String?,
+    onDismiss: () -> Unit,
+    onPick: (String?) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Link to a training session") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    "Linked, this scorecard and that session count as one session in Progress instead of two.",
+                    color = Hyle.OnSurfaceDim,
+                )
+                if (sessions.isEmpty())
+                    Text("No recorded training sessions yet.", color = Hyle.OnSurfaceDim)
+                // The current choice is marked with a glyph, not a colour: Hyle never encodes state
+                // by hue alone.
+                TextButton(onClick = { onPick(null) }) {
+                    Text(if (linkedId == null) "✓ Not linked" else "Not linked")
+                }
+                sessions.forEach { s ->
+                    TextButton(onClick = { onPick(s.id) }) {
+                        Text(
+                            (if (s.id == linkedId) "✓ " else "") +
+                                "${sessionDay(s.startedAtEpochMs)} · ${s.distanceMeters} m"
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+/**
+ * Day-level label for a capture session.
+ *
+ * Deliberately the athlete's local date and time rather than a raw epoch: they are recognising "the
+ * session I shot on Tuesday evening", and two sessions on one day are common enough that the date
+ * alone would be ambiguous.
+ */
+private fun sessionDay(atMs: Long): String =
+    Instant.ofEpochMilli(atMs)
+        .atZone(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofPattern("d MMM, HH:mm"))
 
 @Composable
 private fun Keypad(tokens: List<String>, onToken: (String) -> Unit, enabled: Boolean) {

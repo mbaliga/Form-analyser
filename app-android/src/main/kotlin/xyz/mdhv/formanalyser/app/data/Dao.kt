@@ -9,38 +9,45 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AthleteDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(athlete: AthleteEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsert(athlete: AthleteEntity)
 
-    @Query("SELECT * FROM athletes LIMIT 1")
-    suspend fun firstOrNull(): AthleteEntity?
+    @Query("SELECT * FROM athletes LIMIT 1") suspend fun firstOrNull(): AthleteEntity?
 }
 
 @Dao
 interface SessionDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(session: SessionEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(session: SessionEntity)
 
     @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC")
     fun forAthlete(athleteId: String): Flow<List<SessionEntity>>
 
-    @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC LIMIT :limit")
+    @Query(
+        "SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC LIMIT :limit"
+    )
     suspend fun recent(athleteId: String, limit: Int): List<SessionEntity>
 
     @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs ASC")
     suspend fun allForAthlete(athleteId: String): List<SessionEntity>
 
+    @Query("SELECT * FROM sessions WHERE id = :id LIMIT 1")
+    suspend fun byId(id: String): SessionEntity?
+
     @Query(
         "UPDATE sessions SET postCheckinId = :postCheckinId, durationAutoS = :durationAutoS, " +
-            "durationS = :durationS, arrowsActual = :arrowsActual WHERE id = :sessionId",
+            "durationS = :durationS, arrowsActual = :arrowsActual WHERE id = :sessionId"
     )
-    suspend fun finishSession(sessionId: String, postCheckinId: String?, durationAutoS: Int?, durationS: Int?, arrowsActual: Int?)
+    suspend fun finishSession(
+        sessionId: String,
+        postCheckinId: String?,
+        durationAutoS: Int?,
+        durationS: Int?,
+        arrowsActual: Int?,
+    )
 }
 
 @Dao
 interface RigDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(rig: RigEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsert(rig: RigEntity)
 
     @Query("SELECT * FROM rig WHERE athleteId = :athleteId ORDER BY createdAt ASC")
     fun observeForAthlete(athleteId: String): Flow<List<RigEntity>>
@@ -57,8 +64,7 @@ interface RigDao {
     @Query("UPDATE rig SET active = 0 WHERE athleteId = :athleteId")
     suspend fun clearActive(athleteId: String)
 
-    @Query("UPDATE rig SET active = 1 WHERE id = :rigId")
-    suspend fun markActive(rigId: String)
+    @Query("UPDATE rig SET active = 1 WHERE id = :rigId") suspend fun markActive(rigId: String)
 
     @androidx.room.Transaction
     suspend fun setActive(athleteId: String, rigId: String) {
@@ -67,17 +73,14 @@ interface RigDao {
         markActive(rigId)
     }
 
-    @Query("DELETE FROM rig WHERE id = :rigId")
-    suspend fun delete(rigId: String)
+    @Query("DELETE FROM rig WHERE id = :rigId") suspend fun delete(rigId: String)
 }
 
 @Dao
 interface ShotDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(shots: List<ShotEntity>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAll(shots: List<ShotEntity>)
 
-    @Upsert
-    suspend fun upsert(shot: ShotEntity)
+    @Upsert suspend fun upsert(shot: ShotEntity)
 
     @Query("SELECT * FROM shots WHERE sessionId = :sessionId ORDER BY indexInSession ASC")
     fun forSession(sessionId: String): Flow<List<ShotEntity>>

@@ -114,12 +114,26 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
                     FormPoint(s.startedAtEpochMs, v, s.id)
                 }
                 .sortedBy { it.atMs }
+        // Arrows scored on cards the athlete attached to a capture session, keyed by that session.
+        // A linked pair is one afternoon on the shooting line, so it contributes one volume point —
+        // but the two halves can disagree (the capture stopped early, or only half the ends were
+        // scored), and taking the larger keeps a link from *removing* arrows the athlete shot.
+        val formIds = formSessions.mapTo(mutableSetOf()) { it.id }
+        // A link whose capture session is gone is not a link — the card stands on its own rather
+        // than folding its arrows into a session that will never be plotted.
+        fun ScoreSessionEntity.absorbedBy() = linkedFormSessionId?.takeIf { it in formIds }
+        val linkedScored =
+            scoreSessions
+                .mapNotNull { s -> s.absorbedBy()?.let { it to s } }
+                .groupBy({ it.first }, { it.second })
+                .mapValues { (_, cards) -> cards.sumOf { scoringArrowCount(it) } }
         val volume = mutableListOf<VolumePoint>()
         formSessions.forEach { s ->
-            volume += VolumePoint(s.startedAtEpochMs, s.arrowsActual ?: repo.shotCount(s.id))
+            val captured = s.arrowsActual ?: repo.shotCount(s.id)
+            volume += VolumePoint(s.startedAtEpochMs, maxOf(captured, linkedScored[s.id] ?: 0))
         }
         scoreSessions
-            .filter { it.linkedFormSessionId == null }
+            .filter { it.absorbedBy() == null }
             .forEach { s ->
                 volume += VolumePoint(s.completedAt ?: s.updatedAt, scoringArrowCount(s))
             }
@@ -190,7 +204,7 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
             volume.filter { it.atMs >= from28 }.sumOf { it.arrows },
             (formSessions.map { it.id to it.startedAtEpochMs } +
                     scoreSessions
-                        .filter { it.linkedFormSessionId == null }
+                        .filter { it.absorbedBy() == null }
                         .map { it.id to (it.completedAt ?: it.updatedAt) })
                 .count { it.second >= from28 },
             pbs,
@@ -232,10 +246,14 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
                 v.map { MetricObservation(it.atMs, it.arrows.toDouble(), "volume@${it.atMs}") }
             GoalMetric.FORM_STABILITY ->
                 fp.map { MetricObservation(it.atMs, it.stability, it.sessionId) }
-            GoalMetric.TRAINING_SESSIONS ->
+            GoalMetric.TRAINING_SESSIONS -> {
+                // Same absorption rule the volume/session count uses, so a "sessions per week" goal
+                // and the session count on the same screen can never disagree.
+                val formIds = fs.mapTo(mutableSetOf()) { it.id }
                 fs.map { MetricObservation(it.startedAtEpochMs, 1.0, it.id) } +
-                    ss.filter { it.linkedFormSessionId == null }
+                    ss.filter { it.linkedFormSessionId?.takeIf { id -> id in formIds } == null }
                         .map { MetricObservation(it.completedAt ?: it.updatedAt, 1.0, it.id) }
+            }
             GoalMetric.PHYSIO_ADHERENCE -> physioAdherenceObservation()
         }
 

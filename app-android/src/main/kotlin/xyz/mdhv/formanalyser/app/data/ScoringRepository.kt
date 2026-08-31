@@ -11,6 +11,7 @@ class ScoringRepository(context: Context) {
     private val features = db.athleteFeatureDao()
     private val athletes = db.athleteDao()
     private val rigs = db.rigDao()
+    private val sessions = db.sessionDao()
 
     data class Snapshot(val session: ScoreSessionEntity, val card: Scorecard)
 
@@ -174,6 +175,40 @@ class ScoringRepository(context: Context) {
         db.withTransaction {
             val s = scoring.session(sessionId) ?: error("Score session not found")
             scoring.setPinned(sessionId, !s.pinned, System.currentTimeMillis())
+            snapshotUnlocked(sessionId)
+        }
+
+    /**
+     * The capture sessions a scorecard may be attached to — most recent first.
+     *
+     * Bounded, because this is a picker and not a browser: the athlete is identifying the session
+     * they just shot, and a card scored weeks after the fact is a case for editing the capture
+     * session, not for scrolling a year of history in a dialog.
+     */
+    suspend fun linkableFormSessions(limit: Int = 12): List<SessionEntity> {
+        val a = athletes.firstOrNull() ?: return emptyList()
+        return sessions.recent(a.id, limit)
+    }
+
+    /**
+     * Attach this scorecard to a capture session, or pass null to detach it.
+     *
+     * Never inferred. Progress treats a linked pair as one training session, so a wrong guess would
+     * quietly *remove* arrows from the athlete's 28-day volume — a machine may not make that call
+     * on their behalf. The athlete says which session this was, or it stays unlinked.
+     *
+     * No [requireActive] guard, unlike every other write here: this changes no score, no arrow and
+     * no completion column, and the usual moment to record the link is *after* the card is
+     * finished.
+     */
+    suspend fun setLinkedFormSession(sessionId: String, formSessionId: String?): Snapshot =
+        db.withTransaction {
+            scoring.session(sessionId) ?: error("Score session not found: $sessionId")
+            if (formSessionId != null)
+                checkNotNull(sessions.byId(formSessionId)) {
+                    "That training session no longer exists."
+                }
+            scoring.setLinkedFormSession(sessionId, formSessionId)
             snapshotUnlocked(sessionId)
         }
 
