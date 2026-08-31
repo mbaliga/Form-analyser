@@ -170,9 +170,18 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
             scores,
             volume.sortedBy { it.atMs },
             form,
+            // Percent of each round's own maximum. Summarising RAW totals fitted one slope across
+            // mixed roundIds, so a stretch of 300-point indoor rounds next to 720-point outdoor
+            // ones moved the headline "pts/day" for reasons that had nothing to do with shooting.
+            // Normalising makes the number comparable, and makes it agree with the chart, which
+            // was already plotting percent.
             TrendEngine.summarize(
                 scores.map {
-                    MetricObservation(it.atMs, it.total.toDouble(), it.roundId + "@" + it.atMs)
+                    MetricObservation(
+                        it.atMs,
+                        100.0 * it.total / it.max.coerceAtLeast(1),
+                        it.roundId + "@" + it.atMs,
+                    )
                 }
             ),
             TrendEngine.summarize(

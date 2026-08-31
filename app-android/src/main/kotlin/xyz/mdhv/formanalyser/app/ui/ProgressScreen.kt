@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import xyz.mdhv.formanalyser.app.domain.ProgressViewModel
-import xyz.mdhv.formanalyser.app.ui.components.TrendLine
+import xyz.mdhv.formanalyser.app.ui.components.TimeTrendLine
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.athlete.*
 
@@ -47,11 +47,16 @@ fun ProgressScreen(vm: ProgressViewModel) {
         s.scoreTrend?.let { t ->
             item {
                 SectionCard("Score trend") {
-                    Text("${t.sampleCount} complete rounds · ${signed(t.delta)} pts overall")
-                    Text("${signed(t.slopePerDay)} pts/day linear trend", color = Hyle.OnSurfaceDim)
-                    TrendLine(
+                    // Percent of each round's own maximum, not raw points: a 720 and a 300 in one
+                    // series made "pts/day" partly an artefact of which rounds happened to be shot.
+                    Text("${t.sampleCount} complete rounds · ${signed(t.delta)}% of round max")
+                    Text(
+                        "${signed(t.slopePerDay)}% per day · normalised across rounds",
+                        color = Hyle.OnSurfaceDim,
+                    )
+                    TimeTrendLine(
                         s.scorePoints.takeLast(20).map {
-                            100.0 * it.total / it.max.coerceAtLeast(1)
+                            TimedValue(it.atMs, 100.0 * it.total / it.max.coerceAtLeast(1))
                         },
                         maxV = 100.0,
                     )
@@ -75,7 +80,9 @@ fun ProgressScreen(vm: ProgressViewModel) {
                         "Transparent 1−CV repeatability across captured pose features; not a causal performance score.",
                         color = Hyle.OnSurfaceDim,
                     )
-                    TrendLine(s.formPoints.takeLast(20).map { it.stability })
+                    TimeTrendLine(
+                        s.formPoints.takeLast(20).map { TimedValue(it.atMs, it.stability) }
+                    )
                 }
             }
         }
