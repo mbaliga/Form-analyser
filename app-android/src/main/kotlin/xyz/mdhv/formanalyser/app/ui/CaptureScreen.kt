@@ -2,6 +2,7 @@ package xyz.mdhv.formanalyser.app.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -15,11 +16,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +72,37 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
     }
 
     val recording by vm.isRecording.collectAsState()
+    var confirmLeave by rememberSaveable { mutableStateOf(false) }
+    // Leaving mid-recording throws away the pose window the recorder is holding — it is only
+    // segmented into shots by stopRecordingAndAnalyze, so a back gesture during a live capture
+    // silently discards everything filmed since the athlete pressed record. Ask first; when
+    // nothing is being recorded, back behaves normally.
+    BackHandler(enabled = recording) { confirmLeave = true }
+    if (confirmLeave)
+        AlertDialog(
+            onDismissRequest = { confirmLeave = false },
+            title = { Text("Still recording") },
+            text = {
+                Text(
+                    "This capture has not been analysed yet. Leaving now discards everything " +
+                        "filmed since you pressed record."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmLeave = false
+                        vm.stopRecordingAndAnalyze()
+                    }
+                ) {
+                    Text("Stop and keep")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmLeave = false }) { Text("Keep recording") }
+            },
+        )
+
     val tracking by vm.liveTracking.collectAsState()
     val bowAngle by vm.liveBowArmAngle.collectAsState()
     val shots by vm.shots.collectAsState()

@@ -1,5 +1,6 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -10,12 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +42,41 @@ import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.app.ui.theme.HyleStepper
 import xyz.mdhv.formanalyser.body.BodyFace
+
+/**
+ * Guards a half-filled editor on the way out, and returns the function Cancel should call.
+ *
+ * An untouched form leaves immediately — a confirm on a screen the athlete only glanced at is
+ * noise. A dirty one asks, because silently dropping what someone typed is the same instinct the
+ * never-silently-delete law exists to check; these two editors can hold up to 500 characters of
+ * injury notes, or a title, a region set, a weekly schedule and an unbounded exercise list.
+ *
+ * The [BackHandler] covers the system gesture; MainActivity's detail bar dispatches back rather
+ * than popping the stack, so its arrow lands here too.
+ */
+@Composable
+private fun rememberDiscardGuard(dirty: Boolean, onLeave: () -> Unit): () -> Unit {
+    var asking by rememberSaveable { mutableStateOf(false) }
+    BackHandler(enabled = dirty) { asking = true }
+    if (asking)
+        AlertDialog(
+            onDismissRequest = { asking = false },
+            title = { Text("Discard changes?") },
+            text = { Text("What you have filled in here has not been saved.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        asking = false
+                        onLeave()
+                    }
+                ) {
+                    Text("Discard", color = Hyle.Danger)
+                }
+            },
+            dismissButton = { TextButton(onClick = { asking = false }) { Text("Keep editing") } },
+        )
+    return { if (dirty) asking = true else onLeave() }
+}
 
 /** Two-face multi-select region picker used by injury + physio editors. */
 @Composable
@@ -74,6 +112,13 @@ fun InjuryEditScreen(
         rememberSaveable(existing?.id) { mutableStateOf(existing?.mechanism ?: "OVERUSE") }
     var status by rememberSaveable(existing?.id) { mutableStateOf(existing?.status ?: "ACTIVE") }
     var notes by rememberSaveable(existing?.id) { mutableStateOf(existing?.notes ?: "") }
+    val dirty =
+        regions != JsonLists.decode(existing?.regionsJson).toSet() ||
+            severity != (existing?.severity ?: 1) ||
+            mechanism != (existing?.mechanism ?: "OVERUSE") ||
+            status != (existing?.status ?: "ACTIVE") ||
+            notes != (existing?.notes ?: "")
+    val leave = rememberDiscardGuard(dirty, onDone)
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val picker =
@@ -154,7 +199,7 @@ fun InjuryEditScreen(
                 style = MaterialTheme.typography.labelMedium,
             )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(onClick = onDone, modifier = Modifier.weight(1f)) { Text("Cancel") }
+            OutlinedButton(onClick = leave, modifier = Modifier.weight(1f)) { Text("Cancel") }
             Button(
                 onClick = {
                     vm.saveInjury(
@@ -197,6 +242,14 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
                     ?: listOf(Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null)))
             )
         }
+    val dirty =
+        title != (existing?.title ?: "") ||
+            regions != JsonLists.decode(existing?.targetRegionsJson).toSet() ||
+            schedule != JsonLists.decode(existing?.scheduleJson).toSet() ||
+            exercises !=
+                (planExercises[existing?.id]?.map { Triple(it.name, it.sets, it.reps to it.holdS) }
+                    ?: listOf(Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null))))
+    val leave = rememberDiscardGuard(dirty, onDone)
 
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
@@ -288,7 +341,7 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
                 style = MaterialTheme.typography.labelMedium,
             )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(onClick = onDone, modifier = Modifier.weight(1f)) { Text("Cancel") }
+            OutlinedButton(onClick = leave, modifier = Modifier.weight(1f)) { Text("Cancel") }
             Button(
                 onClick = {
                     vm.savePlan(existing, title, regions.toList(), schedule.toList(), exercises)

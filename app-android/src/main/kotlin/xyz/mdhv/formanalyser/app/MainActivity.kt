@@ -3,6 +3,7 @@ package xyz.mdhv.formanalyser.app
 import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -142,13 +143,18 @@ private fun MainShell() {
     val route = back?.destination?.route
     val onTab = route in Routes.TABS
     var quick by remember { mutableStateOf(false) }
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     Scaffold(
         topBar = {
             if (onTab) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) }
             // Every other route used to render with no bar, no back and no title. 22 of 27
             // destinations were reachable and then inescapable except by system back — and on a
             // desktop/ChromeOS window there is no system back gesture at all.
-            else DetailBar(detailTitle(route)) { nav.popBackStack() }
+            // Dispatches back rather than popping the stack directly, so a screen guarding an
+            // in-flight capture or an unsaved form with a BackHandler is honoured by the bar's own
+            // arrow too. With no handler enabled the NavController's own callback pops, which is
+            // exactly what popBackStack() did.
+            else DetailBar(detailTitle(route)) { backDispatcher?.onBackPressed() }
         },
         bottomBar = { if (onTab) BottomBar(route, injuries > 0) { navigateTab(nav, it) } },
         floatingActionButton = {
