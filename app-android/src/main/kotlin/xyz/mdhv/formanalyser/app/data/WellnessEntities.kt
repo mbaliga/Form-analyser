@@ -6,34 +6,32 @@ import androidx.room.PrimaryKey
 
 /**
  * Phase 2 wellness + life layer. Table names match the PrivacyRegistry contract in core-wellness
- * exactly — the registry is the single source of privacy classes (PRIVATE/MEDICAL markers below
- * are documentation; enforcement lands with core-exchange in Phase 5).
+ * exactly — the registry is the single source of privacy classes (PRIVATE/MEDICAL markers below are
+ * documentation; enforcement lands with core-exchange in Phase 5).
  */
-
 @Entity(tableName = "checkin", indices = [Index("athleteId"), Index("ts")])
 data class CheckinEntity(
     @PrimaryKey val id: String,
     val athleteId: String,
     val ts: Long,
-    val kind: String,               // PRE | POST | STANDALONE
-    val skipped: Boolean = false,   // spec: skips are recorded
-    val energy: Int? = null,        // 1..5
-    val sleep: Int? = null,         // 1..5
-    val motivation: Int? = null,    // 1..5
-    val rpe: Double? = null,        // Borg CR10, POST only
-    val feel: Int? = null,          // 1..5, POST only
+    val kind: String, // PRE | POST | STANDALONE
+    val skipped: Boolean = false, // spec: skips are recorded
+    val energy: Int? = null, // 1..5
+    val sleep: Int? = null, // 1..5
+    val motivation: Int? = null, // 1..5
+    val rpe: Double? = null, // Borg CR10, POST only
+    val feel: Int? = null, // 1..5, POST only
     val note: String? = null,
+    /** Retraction timestamp; see AppDatabase.MIGRATION_6_7 for why this is not a DELETE. */
+    val deletedAt: Long? = null,
 )
 
 @Entity(tableName = "soreness", primaryKeys = ["checkinId", "regionId"])
-data class SorenessEntity(
-    val checkinId: String,
-    val regionId: String,
-)
+data class SorenessEntity(val checkinId: String, val regionId: String)
 
 @Entity(tableName = "rest_day")
 data class RestDayEntity(
-    @PrimaryKey val date: String,   // ISO LocalDate
+    @PrimaryKey val date: String, // ISO LocalDate
     val planned: Boolean,
     val note: String? = null,
 )
@@ -41,8 +39,8 @@ data class RestDayEntity(
 @Entity(tableName = "hiatus")
 data class HiatusEntity(
     @PrimaryKey val id: String,
-    val startDate: String,          // ISO LocalDate
-    val endDate: String? = null,    // null = open
+    val startDate: String, // ISO LocalDate
+    val endDate: String? = null, // null = open
     val lifeEventId: String? = null,
 )
 
@@ -51,8 +49,8 @@ data class HiatusEntity(
 data class MoodEntity(
     @PrimaryKey val id: String,
     val ts: Long,
-    val mood: Int,                  // 1..5
-    val tagsJson: String,           // ["stressed",...]
+    val mood: Int, // 1..5
+    val tagsJson: String, // ["stressed",...]
     val note: String? = null,
 )
 
@@ -61,9 +59,9 @@ data class MoodEntity(
 data class LifeEventEntity(
     @PrimaryKey val id: String,
     val startDate: String,
-    val endDate: String? = null,    // null = ongoing
-    val category: String,           // BEREAVEMENT|ILLNESS|EXAMS|WORK|TRAVEL|RELATIONSHIP|OTHER
-    val impact: Int,                // 1..3
+    val endDate: String? = null, // null = ongoing
+    val category: String, // BEREAVEMENT|ILLNESS|EXAMS|WORK|TRAVEL|RELATIONSHIP|OTHER
+    val impact: Int, // 1..3
     val title: String,
 )
 
@@ -73,7 +71,7 @@ data class CycleEntity(
     @PrimaryKey val id: String,
     val startDate: String,
     val endDate: String? = null,
-    val flow: Int? = null,          // 1..3
+    val flow: Int? = null, // 1..3
     val symptomsJson: String = "[]",
 )
 

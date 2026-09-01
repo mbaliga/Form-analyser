@@ -42,7 +42,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             ScoreCandidateEntity::class,
             ObserverScoreEventEntity::class,
         ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -81,6 +81,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_4_5,
                     MIGRATION_5_6,
                     MIGRATION_6_7,
+                    MIGRATION_7_8,
                 )
                 // No fallbackToDestructiveMigration: a missing migration path should surface as a
                 // thrown exception into the catch below (and get backed up + recorded), not vanish
@@ -416,6 +417,26 @@ abstract class AppDatabase : RoomDatabase() {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL("ALTER TABLE `sessions` ADD COLUMN `deletedAt` INTEGER")
                     db.execSQL("ALTER TABLE `score_session` ADD COLUMN `deletedAt` INTEGER")
+                }
+            }
+
+        /**
+         * V7 → V8: the same retraction column on the three remaining tables an athlete can be
+         * expected to want one row removed from.
+         *
+         * `checkin` feeds readiness, the streak, the calendar dots and — through `postCheckinId` →
+         * `rpe` — the load model. `pain_log` feeds the eight-week body heat map and the region
+         * signals the coach reads. `injury` feeds the atlas overlay, the Body tab badge, readiness,
+         * the coach factsheet and the auto-link stamped on every subsequent pain entry, and both
+         * `pain_log.injuryId` and `document.injuryId` point at it. Dropping any of those rows would
+         * leave dangling references and derived numbers no one can account for.
+         */
+        val MIGRATION_7_8 =
+            object : Migration(7, 8) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    listOf("checkin", "pain_log", "injury").forEach {
+                        db.execSQL("ALTER TABLE `$it` ADD COLUMN `deletedAt` INTEGER")
+                    }
                 }
             }
     }

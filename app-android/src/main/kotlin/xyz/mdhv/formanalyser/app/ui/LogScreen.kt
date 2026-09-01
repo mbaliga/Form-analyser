@@ -27,10 +27,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import java.text.DateFormat
 import java.time.LocalDate
+import java.util.Date
 import xyz.mdhv.formanalyser.app.domain.WellnessViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
+import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.app.ui.theme.HyleStepper
 
@@ -50,6 +53,7 @@ fun LogScreen(vm: WellnessViewModel, cycleEnabled: Boolean, onDone: () -> Unit) 
     LaunchedEffect(Unit) { vm.load() }
     var picked by rememberSaveable { mutableStateOf<LogType?>(null) }
     val hiatusOffer by vm.hiatusOfferFor.collectAsState()
+    val recent by vm.recentCheckins.collectAsState()
 
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
@@ -68,6 +72,33 @@ fun LogScreen(vm: WellnessViewModel, cycleEnabled: Boolean, onDone: () -> Unit) 
                         onClick = { picked = t },
                     )
                 }
+            // Log is where check-ins are made and the only surface that lists them, so it is where
+            // one logged in the wrong state has to be takeable back. Two weeks is the window the
+            // streak and readiness actually read; older entries stop mattering.
+            if (recent.isNotEmpty()) {
+                HyleSectionHeader("Last two weeks")
+                recent.take(8).forEach { c ->
+                    HyleListRow(
+                        title =
+                            "${DateFormat.getDateInstance(DateFormat.SHORT).format(Date(c.ts))} · ${c.kind.lowercase()}",
+                        subtitle =
+                            if (c.skipped) "skipped"
+                            else
+                                listOfNotNull(
+                                        c.energy?.let { "energy $it" },
+                                        c.sleep?.let { "sleep $it" },
+                                        c.rpe?.let { "RPE ${it.toInt()}" },
+                                    )
+                                    .joinToString(" · ")
+                                    .ifEmpty { null },
+                        trailing = {
+                            TextButton(onClick = { vm.deleteCheckin(c.id) }) {
+                                Text("Delete", color = Hyle.Danger)
+                            }
+                        },
+                    )
+                }
+            }
         } else {
             when (picked) {
                 LogType.CHECKIN -> CheckinForm(vm, onDone)

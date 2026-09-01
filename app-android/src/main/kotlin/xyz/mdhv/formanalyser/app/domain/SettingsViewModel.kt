@@ -44,6 +44,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         enum class Kind {
             SESSION,
             SCORECARD,
+            CHECKIN,
+            PAIN,
+            INJURY,
         }
     }
 
@@ -81,6 +84,30 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                                 it.roundName,
                                 "${it.total} · ${it.distanceMeters} m",
                             )
+                        } +
+                        repo.wellness.retractedCheckins(a.id).map {
+                            Retracted(
+                                it.id,
+                                Retracted.Kind.CHECKIN,
+                                "Check-in",
+                                it.kind.lowercase(),
+                            )
+                        } +
+                        repo.body.retractedPainLogs(a.id).map {
+                            Retracted(
+                                it.id,
+                                Retracted.Kind.PAIN,
+                                "Pain entry",
+                                "${it.regionId} · ${it.intensity}/10",
+                            )
+                        } +
+                        repo.body.retractedInjuries(a.id).map {
+                            Retracted(
+                                it.id,
+                                Retracted.Kind.INJURY,
+                                "Injury",
+                                "${it.mechanism.lowercase()} · severity ${it.severity}",
+                            )
                         }
                 }
         }
@@ -92,6 +119,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                 when (item.kind) {
                     Retracted.Kind.SESSION -> repo.restoreSession(item.id)
                     Retracted.Kind.SCORECARD -> scoring.restoreScorecard(item.id)
+                    Retracted.Kind.CHECKIN -> repo.wellness.restoreCheckin(item.id)
+                    Retracted.Kind.PAIN -> repo.body.restorePainLog(item.id)
+                    Retracted.Kind.INJURY -> repo.body.restoreInjury(item.id)
                 }
             }
             loadRetracted()

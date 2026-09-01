@@ -119,6 +119,7 @@ fun InjuryEditScreen(
             status != (existing?.status ?: "ACTIVE") ||
             notes != (existing?.notes ?: "")
     val leave = rememberDiscardGuard(dirty, onDone)
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val picker =
@@ -198,6 +199,39 @@ fun InjuryEditScreen(
                 color = Hyle.OnSurfaceDim,
                 style = MaterialTheme.typography.labelMedium,
             )
+        if (existing != null) {
+            // Mirrors "Delete rig". An injury logged against the wrong region colours the atlas,
+            // badges the Body tab and shapes readiness until it is taken back.
+            TextButton(onClick = { confirmDelete = true }) {
+                Text("Delete this injury", color = Hyle.Danger)
+            }
+            if (confirmDelete)
+                AlertDialog(
+                    onDismissRequest = { confirmDelete = false },
+                    title = { Text("Delete this injury?") },
+                    text = {
+                        Text(
+                            "It will stop colouring the body atlas, badging the Body tab and " +
+                                "affecting readiness. Nothing is erased — pain entries and any " +
+                                "documents attached to it are kept, and you can restore it from " +
+                                "Settings → Data."
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                confirmDelete = false
+                                vm.deleteInjury(existing.id, onDone)
+                            }
+                        ) {
+                            Text("Delete", color = Hyle.Danger)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { confirmDelete = false }) { Text("Keep") }
+                    },
+                )
+        }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(onClick = leave, modifier = Modifier.weight(1f)) { Text("Cancel") }
             Button(

@@ -156,9 +156,21 @@ fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (
                 Column {
                     if (history.isEmpty()) Text("No pain logged here.")
                     history.take(10).forEach {
-                        Text(
-                            "${DateFormat.getDateInstance(DateFormat.SHORT).format(Date(it.ts))} — ${it.intensity}/10 ${JsonLists.decode(it.tagsJson).joinToString(",")}"
-                        )
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(
+                                "${DateFormat.getDateInstance(DateFormat.SHORT).format(Date(it.ts))} — ${it.intensity}/10 ${JsonLists.decode(it.tagsJson).joinToString(",")}",
+                                modifier = Modifier.weight(1f),
+                            )
+                            // A mistyped intensity used to be permanent, and it goes on skewing the
+                            // eight-week heat map and the region signals the coach reads.
+                            TextButton(onClick = { vm.deletePainLog(it.id, r) }) {
+                                Text("Delete", color = Hyle.Danger)
+                            }
+                        }
                     }
                 }
             },

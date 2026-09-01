@@ -3,6 +3,8 @@ package xyz.mdhv.formanalyser.app.domain
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import java.time.LocalDate
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +23,6 @@ import xyz.mdhv.formanalyser.app.data.RestDayEntity
 import xyz.mdhv.formanalyser.app.data.SorenessEntity
 import xyz.mdhv.formanalyser.wellness.CycleEstimate
 import xyz.mdhv.formanalyser.wellness.CycleEstimator
-import java.time.LocalDate
-import java.util.UUID
 
 /** Standalone "+ Log" entries + hiatus + cycle + medication (Phase 2 §D/F). */
 class WellnessViewModel(app: Application) : AndroidViewModel(app) {
@@ -45,16 +45,43 @@ class WellnessViewModel(app: Application) : AndroidViewModel(app) {
     private val _hiatusOfferFor = MutableStateFlow<String?>(null)
     val hiatusOfferFor: StateFlow<String?> = _hiatusOfferFor
 
+    /** The last few check-ins, so Log can offer to take one back. */
+    private val _recentCheckins = MutableStateFlow<List<CheckinEntity>>(emptyList())
+    val recentCheckins: StateFlow<List<CheckinEntity>> = _recentCheckins
+
+    /**
+     * Retract a check-in.
+     *
+     * Not a delete: it feeds readiness, the streak and the calendar dots, and a post-session one is
+     * referenced by `sessions.postCheckinId` and carries the RPE the load model reads. Restorable
+     * from Settings → Data.
+     */
+    fun deleteCheckin(id: String) = io {
+        repo.wellness.retractCheckin(id, System.currentTimeMillis())
+    }
+
     fun load() {
         viewModelScope.launch {
             _openHiatus.value = withContext(Dispatchers.IO) { repo.wellness.openHiatus() }
             _medications.value = withContext(Dispatchers.IO) { repo.wellness.allMedications() }
             val cycles = withContext(Dispatchers.IO) { repo.wellness.allCycles() }
             _cycles.value = cycles
-            _cycleEstimate.value = CycleEstimator.estimate(
-                cycleStarts = cycles.map { LocalDate.parse(it.startDate) },
-                today = LocalDate.now(),
-            )
+            withContext(Dispatchers.IO) { repo.currentAthlete() }
+                ?.let { a ->
+                    _recentCheckins.value =
+                        withContext(Dispatchers.IO) {
+                                repo.wellness.checkinsSince(
+                                    a.id,
+                                    System.currentTimeMillis() - 14L * 86_400_000L,
+                                )
+                            }
+                            .sortedByDescending { it.ts }
+                }
+            _cycleEstimate.value =
+                CycleEstimator.estimate(
+                    cycleStarts = cycles.map { LocalDate.parse(it.startDate) },
+                    today = LocalDate.now(),
+                )
         }
     }
 
@@ -65,13 +92,32 @@ class WellnessViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun logStandaloneCheckin(energy: Int?, sleep: Int?, motivation: Int?, soreness: List<String>, note: String?) = io {
+    fun logStandaloneCheckin(
+        energy: Int?,
+        sleep: Int?,
+        motivation: Int?,
+        soreness: List<String>,
+        note: String?,
+    ) = io {
         val athlete = repo.currentAthlete() ?: return@io
         val cid = UUID.randomUUID().toString()
         repo.wellness.insertCheckin(
-            CheckinEntity(cid, athlete.id, System.currentTimeMillis(), "STANDALONE", false, energy, sleep, motivation, null, null, note),
+            CheckinEntity(
+                cid,
+                athlete.id,
+                System.currentTimeMillis(),
+                "STANDALONE",
+                false,
+                energy,
+                sleep,
+                motivation,
+                null,
+                null,
+                note,
+            )
         )
-        if (soreness.isNotEmpty()) repo.wellness.insertSoreness(soreness.distinct().map { SorenessEntity(cid, it) })
+        if (soreness.isNotEmpty())
+            repo.wellness.insertSoreness(soreness.distinct().map { SorenessEntity(cid, it) })
     }
 
     fun logRestDay(date: LocalDate, planned: Boolean, note: String?) = io {
@@ -79,7 +125,15 @@ class WellnessViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun logMood(mood: Int, tags: List<String>, note: String?) = io {
-        repo.wellness.insertMood(MoodEntity(UUID.randomUUID().toString(), System.currentTimeMillis(), mood, JsonLists.encode(tags), note))
+        repo.wellness.insertMood(
+            MoodEntity(
+                UUID.randomUUID().toString(),
+                System.currentTimeMillis(),
+                mood,
+                JsonLists.encode(tags),
+                note,
+            )
+        )
     }
 
     fun logLifeEvent(category: String, impact: Int, title: String, ongoing: Boolean) {
@@ -88,10 +142,13 @@ class WellnessViewModel(app: Application) : AndroidViewModel(app) {
             withContext(Dispatchers.IO) {
                 repo.wellness.insertLifeEvent(
                     LifeEventEntity(
-                        id = id, startDate = LocalDate.now().toString(),
+                        id = id,
+                        startDate = LocalDate.now().toString(),
                         endDate = if (ongoing) null else LocalDate.now().toString(),
-                        category = category, impact = impact, title = title,
-                    ),
+                        category = category,
+                        impact = impact,
+                        title = title,
+                    )
                 )
             }
             if (impact >= 3) _hiatusOfferFor.value = id
@@ -105,27 +162,57 @@ class WellnessViewModel(app: Application) : AndroidViewModel(app) {
         startHiatus(eventId)
     }
 
-    fun declineHiatusOffer() { _hiatusOfferFor.value = null }
+    fun declineHiatusOffer() {
+        _hiatusOfferFor.value = null
+    }
 
     fun startHiatus(lifeEventId: String? = null) = io {
         if (repo.wellness.openHiatus() == null) {
-            repo.wellness.insertHiatus(HiatusEntity(UUID.randomUUID().toString(), LocalDate.now().toString(), null, lifeEventId))
+            repo.wellness.insertHiatus(
+                HiatusEntity(
+                    UUID.randomUUID().toString(),
+                    LocalDate.now().toString(),
+                    null,
+                    lifeEventId,
+                )
+            )
         }
     }
 
     fun endHiatus() = io {
-        repo.wellness.openHiatus()?.let { repo.wellness.endHiatus(it.id, LocalDate.now().toString()) }
+        repo.wellness.openHiatus()?.let {
+            repo.wellness.endHiatus(it.id, LocalDate.now().toString())
+        }
     }
 
     fun logCycleStart(date: LocalDate, flow: Int?) = io {
-        repo.wellness.insertCycle(CycleEntity(UUID.randomUUID().toString(), date.toString(), null, flow))
+        repo.wellness.insertCycle(
+            CycleEntity(UUID.randomUUID().toString(), date.toString(), null, flow)
+        )
     }
 
     fun logMedication(name: String, dose: String?, taken: Boolean) = io {
-        repo.wellness.insertMedication(MedicationEntity(UUID.randomUUID().toString(), System.currentTimeMillis(), name.trim(), dose?.trim()?.ifBlank { null }, null, taken))
+        repo.wellness.insertMedication(
+            MedicationEntity(
+                UUID.randomUUID().toString(),
+                System.currentTimeMillis(),
+                name.trim(),
+                dose?.trim()?.ifBlank { null },
+                null,
+                taken,
+            )
+        )
     }
 
     fun logEvent(title: String, tags: List<String>) = io {
-        repo.wellness.insertEvent(EventEntity(UUID.randomUUID().toString(), System.currentTimeMillis(), title.trim(), null, JsonLists.encode(tags)))
+        repo.wellness.insertEvent(
+            EventEntity(
+                UUID.randomUUID().toString(),
+                System.currentTimeMillis(),
+                title.trim(),
+                null,
+                JsonLists.encode(tags),
+            )
+        )
     }
 }

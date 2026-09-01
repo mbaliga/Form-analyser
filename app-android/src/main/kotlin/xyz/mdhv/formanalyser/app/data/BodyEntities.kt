@@ -5,29 +5,32 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /** Phase 3 body layer. Table names match the core-wellness PrivacyRegistry contract. */
-
 @Entity(tableName = "pain_log", indices = [Index("athleteId"), Index("regionId"), Index("ts")])
 data class PainLogEntity(
     @PrimaryKey val id: String,
     val athleteId: String,
     val ts: Long,
     val regionId: String,
-    val intensity: Int,             // 0..10
-    val tagsJson: String,           // ["sharp","dull","ache","tingling","stiff"]
+    val intensity: Int, // 0..10
+    val tagsJson: String, // ["sharp","dull","ache","tingling","stiff"]
     val injuryId: String? = null,
+    /** Retraction timestamp; see AppDatabase.MIGRATION_6_7 for why this is not a DELETE. */
+    val deletedAt: Long? = null,
 )
 
 @Entity(tableName = "injury", indices = [Index("athleteId")])
 data class InjuryEntity(
     @PrimaryKey val id: String,
     val athleteId: String,
-    val onset: String,              // ISO LocalDate
-    val regionsJson: String,        // ["rotator_cuff_r", ...]
-    val severity: Int,              // 1..3
-    val mechanism: String,          // ACUTE | OVERUSE | UNKNOWN
-    val status: String,             // ACTIVE | RECOVERING | RESOLVED
+    val onset: String, // ISO LocalDate
+    val regionsJson: String, // ["rotator_cuff_r", ...]
+    val severity: Int, // 1..3
+    val mechanism: String, // ACUTE | OVERUSE | UNKNOWN
+    val status: String, // ACTIVE | RECOVERING | RESOLVED
     val resolvedDate: String? = null, // required when RESOLVED (repository invariant)
     val notes: String? = null,
+    /** Retraction timestamp; see AppDatabase.MIGRATION_6_7 for why this is not a DELETE. */
+    val deletedAt: Long? = null,
 )
 
 @Entity(tableName = "physio_plan", indices = [Index("athleteId")])
@@ -36,7 +39,7 @@ data class PhysioPlanEntity(
     val athleteId: String,
     val title: String,
     val targetRegionsJson: String,
-    val scheduleJson: String,       // ["MO","TH"]
+    val scheduleJson: String, // ["MO","TH"]
     val startDate: String,
     val endDate: String? = null,
     val source: String = "SELF",
@@ -58,7 +61,7 @@ data class PhysioSessionEntity(
     @PrimaryKey val id: String,
     val planId: String,
     val ts: Long,
-    val completedJson: String,      // exercise ids ticked
+    val completedJson: String, // exercise ids ticked
     val note: String? = null,
 )
 
