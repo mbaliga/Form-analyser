@@ -1,72 +1,128 @@
 package xyz.mdhv.formanalyser.app.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import xyz.mdhv.formanalyser.app.domain.SessionViewModel
-import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.app.domain.HomeViewModel
+import xyz.mdhv.formanalyser.app.ui.theme.*
 
 @Composable
-fun HomeScreen(vm: SessionViewModel, onSessionStarted: () -> Unit) {
-    val athlete by vm.athleteName.collectAsState()
-    var drawWeight by remember { mutableStateOf("40") }
-    var distance by remember { mutableStateOf("18") }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+fun HomeScreen(
+    vm: HomeViewModel,
+    onStartSession: () -> Unit,
+    onScore: () -> Unit,
+    onOpenReview: (String) -> Unit,
+    onManageRigs: () -> Unit,
+    onLog: () -> Unit,
+    onCoach: () -> Unit,
+) {
+    LaunchedEffect(Unit) { vm.load() }
+    val athlete by vm.athlete.collectAsState()
+    val activeRig by vm.activeRig.collectAsState()
+    val recent by vm.recent.collectAsState()
+    val readiness by vm.readiness.collectAsState()
+    val streak by vm.streak.collectAsState()
+    val quiet = readiness?.level == xyz.mdhv.formanalyser.wellness.ReadinessLevel.QUIET
+    LazyColumn(
+        Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text("Crocodyl", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
-        Text("Archery · form & shot-sequence analysis", color = Hyle.OnSurfaceDim)
-        Text("Athlete: $athlete", color = Hyle.OnBackground)
-
-        OutlinedTextField(
-            value = drawWeight,
-            onValueChange = { drawWeight = it.filter { c -> c.isDigit() || c == '.' } },
-            label = { Text("Draw weight (lbs)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = distance,
-            onValueChange = { distance = it.filter { c -> c.isDigit() } },
-            label = { Text("Distance (m)") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        Button(
-            onClick = {
-                vm.startSession(
-                    drawWeightLbs = drawWeight.toDoubleOrNull() ?: 0.0,
-                    distanceMeters = distance.toIntOrNull() ?: 0,
-                )
-                onSessionStarted()
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Start session")
+        item {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                HyleAvatar(seed = athlete?.avatarSeed ?: 1L, sizeDp = 56)
+                Column {
+                    Text(
+                        athlete?.displayName ?: "Athlete",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Hyle.OnBackground,
+                    )
+                    athlete?.club?.let { Text(it, color = Hyle.OnSurfaceDim) }
+                }
+            }
         }
-
-        Text(
-            "Set the phone on a tripod, side-on (sagittal) to the archer, framing the whole body. " +
-                "Each shot's draw → anchor → release is segmented from your pose automatically.",
-            color = Hyle.OnSurfaceDim,
-        )
+        item {
+            readiness?.let { r ->
+                if (quiet) HyleListRow("On pause", "Everything's here when you want it.")
+                else {
+                    // shape + luminance, never hue-only: ● ready / ◐ caution / ○ rest advised
+                    val (g, l) =
+                        when (r.level) {
+                            xyz.mdhv.formanalyser.wellness.ReadinessLevel.READY -> "●" to "Ready"
+                            xyz.mdhv.formanalyser.wellness.ReadinessLevel.CAUTION ->
+                                "◐" to "Caution"
+                            else -> "○" to "Rest advised"
+                        }
+                    HyleListRow("$g  $l", r.reasons.firstOrNull())
+                }
+            }
+        }
+        item {
+            streak?.let { s ->
+                Text(
+                    "Streak ${s.length}" +
+                        (if (s.patchedCount > 0) " ~${s.patchedCount}" else "") +
+                        if (s.provisionalToday) " · today counts" else "",
+                    color = if (quiet) Hyle.OnSurfaceDim else Hyle.RadiumGreen,
+                )
+            }
+        }
+        item {
+            HyleListRow(
+                "Active rig",
+                vm.rigLabel() ?: activeRig?.name ?: "No rig yet",
+                onClick = onManageRigs,
+            )
+        }
+        item {
+            Button(onClick = onScore, modifier = Modifier.fillMaxWidth()) { Text("Score arrows") }
+        }
+        item {
+            if (quiet)
+                OutlinedButton(onClick = onStartSession, modifier = Modifier.fillMaxWidth()) {
+                    Text("Start session")
+                }
+            else
+                Button(onClick = onStartSession, modifier = Modifier.fillMaxWidth()) {
+                    Text("Start session")
+                }
+        }
+        item {
+            OutlinedButton(onClick = onLog, modifier = Modifier.fillMaxWidth()) {
+                Text("+ Log — wellness, rest, more")
+            }
+        }
+        item {
+            HyleListRow("Coach", "What your data says — and ask a model over it", onClick = onCoach)
+        }
+        item {
+            Text(
+                "Recent sessions",
+                style = MaterialTheme.typography.titleLarge,
+                color = Hyle.OnBackground,
+            )
+        }
+        if (recent.isEmpty())
+            item {
+                HyleEmptyState(
+                    "🎯",
+                    listOf("No sessions yet.", "Your first recorded end will show up here."),
+                )
+            }
+        else
+            items(recent, key = { it.id }) { s ->
+                HyleListRow(
+                    "Session · ${s.distanceMeters} m",
+                    "tap to review",
+                    onClick = { onOpenReview(s.id) },
+                )
+            }
     }
 }

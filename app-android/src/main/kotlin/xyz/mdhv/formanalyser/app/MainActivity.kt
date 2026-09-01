@@ -1,62 +1,423 @@
 package xyz.mdhv.formanalyser.app
 
+import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import xyz.mdhv.formanalyser.app.domain.SessionViewModel
-import xyz.mdhv.formanalyser.app.ui.CaptureScreen
-import xyz.mdhv.formanalyser.app.ui.HomeScreen
-import xyz.mdhv.formanalyser.app.ui.ReviewScreen
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.*
+import xyz.mdhv.formanalyser.app.data.AppPrefs
+import xyz.mdhv.formanalyser.app.domain.*
+import xyz.mdhv.formanalyser.app.ui.*
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
+import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+
+// NB: must NOT be named `R` — in package xyz.mdhv.formanalyser.app that collides with AGP's
+// generated resources class xyz.mdhv.formanalyser.app.R at dex time (the resources class wins,
+// so the object's INSTANCE field vanishes and any non-const access — e.g. TABS — throws
+// NoSuchFieldError at runtime).
+private object Routes {
+    const val HOME = "home"
+    const val TRAIN = "train"
+    const val CAPTURE = "capture"
+    const val REVIEW = "review"
+    const val SCORE = "score"
+    const val PROGRESS = "progress"
+    const val BODY = "body"
+    const val CALENDAR = "calendar"
+    const val LOG = "log"
+    const val COACH = "coach"
+    const val SETTINGS = "settings"
+    const val S_PROFILE = "s_profile"
+    const val S_RIGS = "s_rigs"
+    const val S_CAPTURE = "s_capture"
+    const val S_APPEARANCE = "s_appearance"
+    const val S_DATA = "s_data"
+    const val S_ABOUT = "s_about"
+    const val S_AI = "s_ai"
+    const val S_EXPORT = "s_export"
+    const val S_WELLNESS = "s_wellness"
+    const val S_STREAK = "s_streak"
+    const val S_CYCLE = "s_cycle"
+    const val S_MEDICATION = "s_medication"
+    const val RIG_EDIT = "rig_edit"
+    const val INJURY_EDIT = "injury_edit"
+    const val PLAN_EDIT = "plan_edit"
+    const val DOC_VIEW = "doc_view"
+    val TABS = setOf(HOME, TRAIN, PROGRESS, BODY, CALENDAR)
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             FormAnalyserTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    // Activity-scoped VM so all screens share one session.
-                    val vm: SessionViewModel = viewModel()
-                    AppNav(vm)
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    AppRoot()
                 }
             }
         }
     }
 }
 
-private object Routes {
-    const val HOME = "home"
-    const val CAPTURE = "capture"
-    const val REVIEW = "review"
+@Composable
+private fun AppRoot() {
+    val c = LocalContext.current
+    val p = remember { AppPrefs(c) }
+    val onboarded by produceState<Boolean?>(null, p) { p.onboarded.collect { value = it } }
+    DbRecoveryNotice()
+    when (onboarded) {
+        null -> Box(Modifier.fillMaxSize())
+        false -> {
+            val vm: OnboardingViewModel = viewModel()
+            OnboardingScreen(vm) {}
+        }
+        else -> MainShell()
+    }
 }
 
 @Composable
-private fun AppNav(vm: SessionViewModel) {
+/**
+ * One-time, honest disclosure for [xyz.mdhv.formanalyser.app.data.DbRecovery]: if [AppDatabase.get]
+ * had to back up and reset the database on this launch, say so — rather than the silent recovery
+ * this replaced. Dismissing clears the flag so it doesn't reappear.
+ */
+private fun DbRecoveryNotice() {
+    val c = LocalContext.current
+    var e by remember { mutableStateOf(xyz.mdhv.formanalyser.app.data.DbRecovery.pendingNotice(c)) }
+    val event = e ?: return
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text("Your saved data was reset") },
+        text = {
+            Text(
+                event.backupPath?.let {
+                    "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
+                        "created. Your previous data was backed up on this device at:\n\n$it"
+                }
+                    ?: "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
+                        "created. A backup of the previous data could not be made."
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    xyz.mdhv.formanalyser.app.data.DbRecovery.dismissNotice(c)
+                    e = null
+                }
+            ) {
+                Text("OK")
+            }
+        },
+    )
+}
+
+@Composable
+private fun MainShell() {
     val nav = rememberNavController()
-    NavHost(navController = nav, startDestination = Routes.HOME) {
-        composable(Routes.HOME) {
-            HomeScreen(
-                vm = vm,
-                onSessionStarted = { nav.navigate(Routes.CAPTURE) },
+    val c = LocalContext.current
+    val prefs = remember { AppPrefs(c) }
+    val sessionVm: SessionViewModel = viewModel()
+    val homeVm: HomeViewModel = viewModel()
+    val rigsVm: RigsViewModel = viewModel()
+    val settingsVm: SettingsViewModel = viewModel()
+    val wellnessVm: WellnessViewModel = viewModel()
+    val calendarVm: CalendarViewModel = viewModel()
+    val bodyVm: BodyViewModel = viewModel()
+    val cycle by prefs.cycleEnabled.collectAsState(initial = false)
+    val injuries by homeVm.activeInjuryCount.collectAsState()
+    val back by nav.currentBackStackEntryAsState()
+    val route = back?.destination?.route
+    val onTab = route in Routes.TABS
+    var quick by remember { mutableStateOf(false) }
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    Scaffold(
+        topBar = {
+            if (onTab) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) }
+            // Every other route used to render with no bar, no back and no title. 22 of 27
+            // destinations were reachable and then inescapable except by system back — and on a
+            // desktop/ChromeOS window there is no system back gesture at all.
+            // Dispatches back rather than popping the stack directly, so a screen guarding an
+            // in-flight capture or an unsaved form with a BackHandler is honoured by the bar's own
+            // arrow too. With no handler enabled the NavController's own callback pops, which is
+            // exactly what popBackStack() did.
+            else DetailBar(detailTitle(route)) { backDispatcher?.onBackPressed() }
+        },
+        bottomBar = { if (onTab) BottomBar(route, injuries > 0) { navigateTab(nav, it) } },
+        floatingActionButton = {
+            if (onTab) FloatingActionButton(onClick = { quick = true }) { Text("+") }
+        },
+    ) { pad ->
+        // imePadding() once here rather than on eleven screens: every text field in the app lives
+        // inside this NavHost, and on targetSdk 35 the window no longer resizes for the keyboard,
+        // so without it the field being typed into can sit underneath the IME with no way to
+        // scroll it into view. Applied after the Scaffold's own padding so the two stack.
+        NavHost(nav, Routes.HOME, Modifier.padding(pad).imePadding()) {
+            composable(Routes.HOME) {
+                HomeScreen(
+                    homeVm,
+                    { nav.navigate(Routes.TRAIN) },
+                    { nav.navigate(Routes.SCORE) },
+                    { id ->
+                        sessionVm.openSession(id)
+                        nav.navigate(Routes.REVIEW)
+                    },
+                    { nav.navigate(Routes.S_RIGS) },
+                    { nav.navigate(Routes.LOG) },
+                    { nav.navigate(Routes.COACH) },
+                )
+            }
+            composable(Routes.COACH) {
+                val app = LocalContext.current.applicationContext as Application
+                val vm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
+                CoachScreen(vm) { nav.navigate(Routes.S_AI) }
+            }
+            composable(Routes.TRAIN) {
+                TrainSetupScreen(
+                    sessionVm,
+                    { nav.navigate(Routes.CAPTURE) },
+                    { nav.navigate(Routes.S_RIGS) },
+                )
+            }
+            composable(Routes.CAPTURE) { CaptureScreen(sessionVm) { nav.navigate(Routes.REVIEW) } }
+            // A deleted session has nothing left to review, so the screen cannot stay open on it.
+            composable(Routes.REVIEW) { ReviewScreen(sessionVm) { nav.popBackStack() } }
+            composable(Routes.SCORE) {
+                val vm: ScoringViewModel = viewModel()
+                ScoringScreen(vm)
+            }
+            composable(Routes.PROGRESS) {
+                val vm: ProgressViewModel = viewModel()
+                ProgressScreen(vm)
+            }
+            composable(Routes.BODY) {
+                BodyScreen(
+                    bodyVm,
+                    { id -> nav.navigate("${Routes.INJURY_EDIT}/${id?:"new"}") },
+                    { id -> nav.navigate("${Routes.PLAN_EDIT}/${id?:"new"}") },
+                )
+            }
+            composable(Routes.CALENDAR) { CalendarScreen(calendarVm) { nav.navigate(Routes.LOG) } }
+            composable(Routes.LOG) { LogScreen(wellnessVm, cycle) { nav.popBackStack() } }
+            composable("${Routes.INJURY_EDIT}/{injuryId}") { e ->
+                val id = e.arguments?.getString("injuryId")
+                InjuryEditScreen(bodyVm, if (id == "new") null else id, { nav.popBackStack() }) {
+                    doc ->
+                    nav.navigate("${Routes.DOC_VIEW}/$doc")
+                }
+            }
+            composable("${Routes.PLAN_EDIT}/{planId}") { e ->
+                val id = e.arguments?.getString("planId")
+                PhysioPlanEditScreen(bodyVm, if (id == "new") null else id) { nav.popBackStack() }
+            }
+            composable("${Routes.DOC_VIEW}/{docId}") { e ->
+                val id = e.arguments?.getString("docId") ?: return@composable
+                DocumentViewerScreen(bodyVm, id) { nav.popBackStack() }
+            }
+            settingsGraph(nav, rigsVm, settingsVm, wellnessVm)
+        }
+    }
+    if (quick)
+        QuickAddSheet(
+            { quick = false },
+            { nav.navigate(Routes.TRAIN) },
+            { nav.navigate(Routes.SCORE) },
+            { nav.navigate(Routes.LOG) },
+            { nav.navigate(Routes.S_RIGS) },
+            { nav.navigate(Routes.PROGRESS) },
+            { nav.navigate(Routes.PROGRESS) },
+            { nav.navigate(Routes.LOG) },
+            { nav.navigate(Routes.S_DATA) },
+        )
+}
+
+private fun NavGraphBuilder.settingsGraph(
+    nav: androidx.navigation.NavHostController,
+    rigs: RigsViewModel,
+    settings: SettingsViewModel,
+    wellness: WellnessViewModel,
+) {
+    composable(Routes.SETTINGS) {
+        SettingsRootScreen(
+            { nav.navigate(Routes.S_PROFILE) },
+            { nav.navigate(Routes.S_RIGS) },
+            { nav.navigate(Routes.S_CAPTURE) },
+            { nav.navigate(Routes.S_WELLNESS) },
+            { nav.navigate(Routes.S_STREAK) },
+            { nav.navigate(Routes.S_CYCLE) },
+            { nav.navigate(Routes.S_MEDICATION) },
+            { nav.navigate(Routes.S_APPEARANCE) },
+            { nav.navigate(Routes.S_AI) },
+            { nav.navigate(Routes.S_DATA) },
+            { nav.navigate(Routes.S_ABOUT) },
+        )
+    }
+    composable(Routes.S_AI) { AiSettingsScreen() }
+    composable(Routes.S_EXPORT) {
+        val vm: ExportViewModel = viewModel()
+        ExportScreen(vm)
+    }
+    composable(Routes.S_PROFILE) { SettingsProfileScreen(rigs) }
+    composable(Routes.S_RIGS) {
+        SettingsRigsScreen(rigs) { id -> nav.navigate("${Routes.RIG_EDIT}/${id?:"new"}") }
+    }
+    composable("${Routes.RIG_EDIT}/{rigId}") { e ->
+        val id = e.arguments?.getString("rigId")
+        RigEditScreen(rigs, if (id == "new") null else id) { nav.popBackStack() }
+    }
+    composable(Routes.S_CAPTURE) { SettingsCaptureScreen(settings) }
+    composable(Routes.S_WELLNESS) { SettingsWellnessScreen(settings) }
+    composable(Routes.S_STREAK) { SettingsStreakScreen(wellness) }
+    composable(Routes.S_CYCLE) { SettingsCycleScreen(wellness) }
+    composable(Routes.S_MEDICATION) { SettingsMedicationScreen(wellness) }
+    composable(Routes.S_APPEARANCE) { SettingsAppearanceScreen(settings) }
+    composable(Routes.S_DATA) {
+        // A data wipe used to "work" only as a side effect: the empty lambda meant the screen
+        // stayed put and the tree happened to recompose when the onboarding pref flipped. Return
+        // the athlete to Home explicitly and clear the stack behind them — after a wipe, every
+        // entry above Home refers to records that no longer exist.
+        SettingsDataScreen(
+            settings,
+            {
+                nav.navigate(Routes.HOME) {
+                    popUpTo(Routes.HOME) { inclusive = true }
+                    launchSingleTop = true
+                }
+            },
+            { nav.navigate(Routes.S_EXPORT) },
+        )
+    }
+    composable(Routes.S_ABOUT) { SettingsAboutScreen() }
+}
+
+@Composable
+private fun TopRow(title: String, onSettings: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            color = Hyle.OnBackground,
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = onSettings) {
+            Icon(Icons.Filled.Settings, "Settings", tint = Hyle.OnSurfaceDim)
+        }
+    }
+}
+
+@Composable
+private fun BottomBar(current: String?, badge: Boolean, onSelect: (String) -> Unit) {
+    val items =
+        listOf(
+            Routes.HOME to (Icons.Filled.Home to "Home"),
+            Routes.TRAIN to (Icons.Filled.CameraAlt to "Train"),
+            Routes.PROGRESS to (Icons.Filled.ShowChart to "Progress"),
+            Routes.BODY to (Icons.Filled.Accessibility to "Body"),
+            Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
+        )
+    NavigationBar(containerColor = Hyle.Surface) {
+        items.forEach { (dest, p) ->
+            val (icon: ImageVector, label) = p
+            NavigationBarItem(
+                current == dest,
+                { onSelect(dest) },
+                icon = {
+                    if (dest == Routes.BODY && badge)
+                        BadgedBox({ Badge { Text("!") } }) { Icon(icon, label) }
+                    else Icon(icon, label)
+                },
+                label = { Text(label) },
             )
         }
-        composable(Routes.CAPTURE) {
-            CaptureScreen(
-                vm = vm,
-                onReview = { nav.navigate(Routes.REVIEW) },
-            )
+    }
+}
+
+/**
+ * Top bar for every non-tab destination: a title and the way out.
+ *
+ * Deliberately mirrors [TopRow]'s metrics so a push does not feel like a different app — same
+ * titleLarge on [Hyle.OnBackground], same dim icon tint, same 12dp top inset. The back arrow is
+ * auto-mirrored because the app already takes handedness and RTL seriously elsewhere.
+ */
+@Composable
+private fun DetailBar(title: String, onBack: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, top = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Hyle.OnBackground)
         }
-        composable(Routes.REVIEW) {
-            ReviewScreen(vm = vm)
-        }
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            color = Hyle.OnBackground,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+/**
+ * Title for a pushed destination. Matches on the route prefix so parameterised routes
+ * (`injury_edit/{injuryId}`) resolve without repeating the argument pattern here.
+ */
+private fun detailTitle(r: String?): String =
+    when (r?.substringBefore("/")) {
+        Routes.CAPTURE -> "Capture"
+        Routes.REVIEW -> "Review"
+        Routes.SCORE -> "Score"
+        Routes.LOG -> "Log"
+        Routes.COACH -> "Coach"
+        Routes.SETTINGS -> "Settings"
+        Routes.S_PROFILE -> "Profile"
+        Routes.S_RIGS -> "Rigs"
+        Routes.S_CAPTURE -> "Capture"
+        Routes.S_APPEARANCE -> "Appearance"
+        Routes.S_DATA -> "Data"
+        Routes.S_ABOUT -> "About"
+        Routes.S_AI -> "AI coach"
+        Routes.S_EXPORT -> "Export"
+        Routes.S_WELLNESS -> "Wellness"
+        Routes.S_STREAK -> "Streak"
+        Routes.S_CYCLE -> "Cycle"
+        Routes.S_MEDICATION -> "Medication"
+        Routes.RIG_EDIT -> "Rig"
+        Routes.INJURY_EDIT -> "Injury"
+        Routes.PLAN_EDIT -> "Physio plan"
+        Routes.DOC_VIEW -> "Document"
+        else -> "Crocodyl"
+    }
+
+private fun tabTitle(r: String?) =
+    when (r) {
+        Routes.HOME -> "Crocodyl"
+        Routes.TRAIN -> "Train"
+        Routes.PROGRESS -> "Progress"
+        Routes.BODY -> "Body"
+        Routes.CALENDAR -> "Calendar"
+        else -> "Crocodyl"
+    }
+
+private fun navigateTab(nav: androidx.navigation.NavHostController, dest: String) {
+    nav.navigate(dest) {
+        popUpTo(Routes.HOME) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }

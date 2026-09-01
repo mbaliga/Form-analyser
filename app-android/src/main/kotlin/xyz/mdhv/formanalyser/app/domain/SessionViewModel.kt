@@ -3,19 +3,35 @@ package xyz.mdhv.formanalyser.app.domain
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import xyz.mdhv.crocodyl.engine.fatigue.FatigueTrajectory
 import xyz.mdhv.crocodyl.engine.model.FeatureVector
 import xyz.mdhv.crocodyl.engine.sport.FeatureScoreRelation
-import xyz.mdhv.crocodyl.engine.fatigue.FatigueTrajectory
 import xyz.mdhv.formanalyser.app.capture.PoseRecorder
-import xyz.mdhv.formanalyser.app.data.Repository
-import xyz.mdhv.formanalyser.app.data.SessionEntity
-import xyz.mdhv.formanalyser.app.data.ShotEntity
-import java.util.UUID
+import xyz.mdhv.formanalyser.app.data.*
+import xyz.mdhv.formanalyser.archery.EffectiveHandedness
+import xyz.mdhv.formanalyser.archery.HandednessNormalizer
+import xyz.mdhv.formanalyser.athlete.SessionDefaults
+import xyz.mdhv.formanalyser.model.Handedness
+import xyz.mdhv.formanalyser.wellness.DurationModel
+
+/** Pre-check-in data from the gate sheet (≤15 s by construction). Skips are recorded. */
+data class PreCheckinData(
+    val skipped: Boolean,
+    val energy: Int? = null,
+    val sleep: Int? = null,
+    val motivation: Int? = null,
+    val sorenessRegionIds: List<String> = emptyList(),
+    val note: String? = null,
+)
+
+/** Pending post-check-in state after a capture stops (drives the post sheet). */
+data class PostPending(val durationAutoS: Int, val detectedArrows: Int)
 
 /** A captured shot as the UI sees it: features + outcome + how far it deviates from baseline. */
 data class ShotView(
@@ -23,78 +39,186 @@ data class ShotView(
     val index: Int,
     val features: FeatureVector,
     val score: Double?,
-    val stability: Double?,        // null until a baseline is ready
+    val stability: Double?,
     val topDeviationFeature: String?,
     val isBaseline: Boolean,
 )
 
 data class BaselineInfo(val ready: Boolean, val repCount: Long) {
-    val needed: Long get() = (8L - repCount).coerceAtLeast(0)
+    val needed: Long
+        get() = (8L - repCount).coerceAtLeast(0)
 }
 
 /**
- * Drives the IMU-first MVP loop (handoff §11): capture → segment → features → baseline →
- * deviation → fatigue + signal↔score. Uses manual refresh after each mutation (simple and
- * predictable) rather than reactive Room Flows.
+ * Drives the IMU-first MVP loop (handoff §11): capture → segment → features → baseline → deviation
+ * → fatigue + signal↔score. Uses manual refresh after each mutation (simple and predictable) rather
+ * than reactive Room Flows.
  */
 class SessionViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = Repository(app)
+    private val athleteFeatures = AthleteFeatureRepository(app)
     val recorder = PoseRecorder(app)
+    val liveTracking: StateFlow<Boolean>
+        get() = recorder.liveTracking
 
-    val liveTracking: StateFlow<Boolean> get() = recorder.liveTracking
-    val liveBowArmAngle: StateFlow<Double?> get() = recorder.liveBowArmAngle
+    val liveBowArmAngle: StateFlow<Double?>
+        get() = recorder.liveBowArmAngle
 
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording
-
     private val _sessionActive = MutableStateFlow(false)
     val sessionActive: StateFlow<Boolean> = _sessionActive
-
     private val _shots = MutableStateFlow<List<ShotView>>(emptyList())
     val shots: StateFlow<List<ShotView>> = _shots
-
     private val _baseline = MutableStateFlow(BaselineInfo(false, 0))
     val baseline: StateFlow<BaselineInfo> = _baseline
-
     private val _fatigue = MutableStateFlow<FatigueTrajectory?>(null)
     val fatigue: StateFlow<FatigueTrajectory?> = _fatigue
-
     private val _correlations = MutableStateFlow<List<FeatureScoreRelation>>(emptyList())
     val correlations: StateFlow<List<FeatureScoreRelation>> = _correlations
-
     private val _athleteName = MutableStateFlow("Athlete")
     val athleteName: StateFlow<String> = _athleteName
-
+    private val _activeRig = MutableStateFlow<RigEntity?>(null)
+    val activeRig: StateFlow<RigEntity?> = _activeRig
+    private val _athleteHandedness = MutableStateFlow(Handedness.RH)
+    val athleteHandedness: StateFlow<Handedness> = _athleteHandedness
+    private val _postPending = MutableStateFlow<PostPending?>(null)
+    val postPending: StateFlow<PostPending?> = _postPending
     private var currentSessionId: String? = null
+    private var currentHandednessOverride: Handedness? = null
 
     init {
         viewModelScope.launch {
-            val athlete = withContext(Dispatchers.IO) {
-                repo.ensureAthlete(UUID.randomUUID().toString(), "Athlete", bodyMassKg = 70.0)
-            }
-            _athleteName.value = athlete.displayName
+            val a =
+                withContext(Dispatchers.IO) {
+                    repo.ensureAthlete(UUID.randomUUID().toString(), "Athlete", 70.0)
+                }
+            _athleteName.value = a.displayName
+            _athleteHandedness.value = Handedness.fromStorage(a.handedness)
+            _activeRig.value = withContext(Dispatchers.IO) { repo.activeRig(a.id) }
         }
     }
 
-    fun startSession(drawWeightLbs: Double, distanceMeters: Int) {
+    fun refreshActiveRig() {
+        viewModelScope.launch {
+            val a = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
+            _activeRig.value = withContext(Dispatchers.IO) { repo.activeRig(a.id) }
+        }
+    }
+
+    /**
+     * Start a session from the athlete's active rig; legacy draw-weight is written from its
+     * effective poundage (measured>estimated>marked) for compatibility. The pre-check-in (or its
+     * recorded skip) is written first and linked (Phase 2 §D).
+     */
+    fun startSession(
+        distanceMeters: Int,
+        handednessOverride: Handedness? = null,
+        pre: PreCheckinData? = null,
+        context: SessionDefaults? = null,
+    ) {
         viewModelScope.launch {
             val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
+            val rig = withContext(Dispatchers.IO) { repo.activeRig(athlete.id) }
+            _activeRig.value = rig
+            val poundage =
+                rig?.let { Tuning.effectivePoundage(it, athlete.drawLengthMm)?.lbs } ?: 0.0
+            currentHandednessOverride = handednessOverride
             val sid = UUID.randomUUID().toString()
+            val startedAtMs = System.currentTimeMillis()
             withContext(Dispatchers.IO) {
+                val preId =
+                    pre?.let { p ->
+                        val cid = UUID.randomUUID().toString()
+                        repo.wellness.insertCheckin(
+                            CheckinEntity(
+                                cid,
+                                athlete.id,
+                                System.currentTimeMillis(),
+                                "PRE",
+                                p.skipped,
+                                p.energy,
+                                p.sleep,
+                                p.motivation,
+                                note = p.note,
+                            )
+                        )
+                        if (p.sorenessRegionIds.isNotEmpty())
+                            repo.wellness.insertSoreness(
+                                p.sorenessRegionIds.distinct().map { SorenessEntity(cid, it) }
+                            )
+                        cid
+                    }
                 repo.createSession(
                     SessionEntity(
-                        id = sid,
-                        athleteId = athlete.id,
-                        startedAtEpochMs = System.currentTimeMillis(),
-                        drawWeightLbs = drawWeightLbs,
-                        distanceMeters = distanceMeters,
+                        sid,
+                        athlete.id,
+                        startedAtMs,
+                        poundage,
+                        distanceMeters,
+                        rigId = rig?.id,
+                        handednessOverride = handednessOverride?.name,
+                        preCheckinId = preId,
                     )
                 )
+                context?.let {
+                    athleteFeatures.saveSessionContext(
+                        sid,
+                        it.copy(rigId = rig?.id ?: it.rigId, distanceMeters = distanceMeters),
+                        startedAtMs,
+                    )
+                }
             }
             currentSessionId = sid
             _sessionActive.value = true
             _shots.value = emptyList()
+            _postPending.value = null
             refresh()
+        }
+    }
+
+    /** Reopen an existing session (e.g. from Home's recent list) into Review. */
+    fun openSession(sessionId: String) {
+        currentSessionId = sessionId
+        currentHandednessOverride = null
+        _sessionActive.value = true
+        viewModelScope.launch { refresh() }
+    }
+
+    private val _deletionPreview = MutableStateFlow<String?>(null)
+    /** Non-null while the delete confirmation for the open session is showing. */
+    val deletionPreview: StateFlow<String?> = _deletionPreview
+
+    /**
+     * Fetch the account of what deleting the open session would remove.
+     *
+     * Deliberately a separate call from [deleteOpenSession]: asking what would happen is not asking
+     * for it to happen, and nothing is touched until the athlete accepts the confirmation.
+     */
+    fun previewSessionDeletion() {
+        val sid = currentSessionId ?: return
+        viewModelScope.launch {
+            _deletionPreview.value =
+                runCatching { withContext(Dispatchers.IO) { repo.previewSessionDeletion(sid) } }
+                    .getOrNull()
+        }
+    }
+
+    fun dismissSessionDeletion() {
+        _deletionPreview.value = null
+    }
+
+    /** Erase the open session. [onDone] runs on the main thread once the rows are gone. */
+    fun deleteOpenSession(onDone: () -> Unit) {
+        val sid = currentSessionId ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { repo.deleteSession(sid) }
+            currentSessionId = null
+            _sessionActive.value = false
+            _shots.value = emptyList()
+            _fatigue.value = null
+            _deletionPreview.value = null
+            onDone()
         }
     }
 
@@ -114,22 +238,83 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val athlete = repo.currentAthlete() ?: return@withContext
-                val featuresList = ArcheryAnalyzer.analyze(window)
-                val offset = repo.shotsOnce(sid).size
-                val entities = featuresList.mapIndexed { i, f ->
-                    ShotEntity(
-                        id = UUID.randomUUID().toString(),
-                        sessionId = sid,
-                        athleteId = athlete.id,
-                        indexInSession = offset + i,
-                        featuresJson = ArcheryAnalyzer.featuresToJson(f),
-                        score = null,
-                        isBaseline = false,
+                // Single handedness normalization point: mirror LH captures into the canonical RH
+                // frame before the segmenter/extractor touch them (Phase 1 §B).
+                val handed =
+                    EffectiveHandedness.resolve(
+                        Handedness.fromStorage(athlete.handedness),
+                        currentHandednessOverride,
                     )
-                }
-                repo.saveShots(entities)
+                val normalized = HandednessNormalizer.normalize(window, handed)
+                val analysis = ArcheryAnalyzer.analyzeWithSpans(normalized)
+                val offset = repo.shotsOnce(sid).size
+                repo.saveShots(
+                    analysis.features.mapIndexed { i, f ->
+                        ShotEntity(
+                            UUID.randomUUID().toString(),
+                            sid,
+                            athlete.id,
+                            offset + i,
+                            ArcheryAnalyzer.featuresToJson(f),
+                            null,
+                            false,
+                        )
+                    }
+                )
+                // Idle-trimmed auto duration (Phase 2 §A4) → drives the post-check-in sheet.
+                val duration = DurationModel.auto(analysis.spans, analysis.recordingSeconds)
+                _postPending.value = PostPending(duration.seconds.toInt(), repo.shotsOnce(sid).size)
             }
             refresh()
+        }
+    }
+
+    /** Save the post-check-in and close out the session row (duration + arrow reconciliation). */
+    fun savePostCheckin(rpe: Double?, feel: Int?, durationOverrideS: Int?, arrowsActual: Int?) {
+        val sid = currentSessionId ?: return
+        val pending = _postPending.value
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val a = repo.currentAthlete() ?: return@withContext
+                val cid = UUID.randomUUID().toString()
+                repo.wellness.insertCheckin(
+                    CheckinEntity(
+                        cid,
+                        a.id,
+                        System.currentTimeMillis(),
+                        "POST",
+                        false,
+                        rpe = rpe,
+                        feel = feel,
+                    )
+                )
+                val auto = pending?.durationAutoS
+                repo.finishSession(
+                    sid,
+                    cid,
+                    auto,
+                    durationOverrideS ?: auto,
+                    arrowsActual ?: pending?.detectedArrows,
+                )
+            }
+            _postPending.value = null
+        }
+    }
+
+    /** Skip the post sheet: still persist auto duration + detected arrows, no checkin row. */
+    fun skipPostCheckin() {
+        val sid = currentSessionId ?: return
+        val p =
+            _postPending.value
+                ?: run {
+                    _postPending.value = null
+                    return
+                }
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repo.finishSession(sid, null, p.durationAutoS, p.durationAutoS, p.detectedArrows)
+            }
+            _postPending.value = null
         }
     }
 
@@ -150,35 +335,40 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
     /** Recompute baseline, per-shot deviation, fatigue, and signal→score correlation. */
     private suspend fun refresh() {
         val sid = currentSessionId ?: return
-        val computed = withContext(Dispatchers.IO) {
-            val athlete = repo.currentAthlete() ?: return@withContext null
-            val entities = repo.shotsOnce(sid)
-            val baselineFeatures = repo.baselineShots(athlete.id)
-                .map { ArcheryAnalyzer.featuresFromJson(it.featuresJson) }
-            val model = ArcheryAnalyzer.buildBaseline(baselineFeatures)
-
-            val views = entities.map { e ->
-                val f = ArcheryAnalyzer.featuresFromJson(e.featuresJson)
-                val dev = if (model.isReady()) ArcheryAnalyzer.score(model, f) else null
-                ShotView(
-                    id = e.id,
-                    index = e.indexInSession,
-                    features = f,
-                    score = e.score,
-                    stability = dev?.stability,
-                    topDeviationFeature = dev?.topDeviation?.key,
-                    isBaseline = e.isBaseline,
+        val c =
+            withContext(Dispatchers.IO) {
+                val a = repo.currentAthlete() ?: return@withContext null
+                val entities = repo.shotsOnce(sid)
+                val baselineFeatures =
+                    repo.baselineShots(a.id).map {
+                        ArcheryAnalyzer.featuresFromJson(it.featuresJson)
+                    }
+                val model = ArcheryAnalyzer.buildBaseline(baselineFeatures)
+                val views =
+                    entities.map { e ->
+                        val f = ArcheryAnalyzer.featuresFromJson(e.featuresJson)
+                        val dev = if (model.isReady()) ArcheryAnalyzer.score(model, f) else null
+                        ShotView(
+                            e.id,
+                            e.indexInSession,
+                            f,
+                            e.score,
+                            dev?.stability,
+                            dev?.topDeviation?.key,
+                            e.isBaseline,
+                        )
+                    }
+                Computed(
+                    views,
+                    BaselineInfo(model.isReady(), model.repCount),
+                    ArcheryAnalyzer.fatigue(views.sortedBy { it.index }.map { it.features }),
+                    ArcheryAnalyzer.correlations(repo.scoredReps(a.id)),
                 )
-            }
-            val fatigue = ArcheryAnalyzer.fatigue(views.sortedBy { it.index }.map { it.features })
-            val correlations = ArcheryAnalyzer.correlations(repo.scoredReps(athlete.id))
-            Computed(views, BaselineInfo(model.isReady(), model.repCount), fatigue, correlations)
-        } ?: return
-
-        _shots.value = computed.shots
-        _baseline.value = computed.baseline
-        _fatigue.value = computed.fatigue
-        _correlations.value = computed.correlations
+            } ?: return
+        _shots.value = c.shots
+        _baseline.value = c.baseline
+        _fatigue.value = c.fatigue
+        _correlations.value = c.correlations
     }
 
     private data class Computed(
