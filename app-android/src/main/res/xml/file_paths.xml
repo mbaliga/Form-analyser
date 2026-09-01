@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The single directory Crocodyl will ever hand to another app.
+
+  Deliberately one cache subdirectory and not cache-path="." or files-path: an exported .crocbak
+  can carry medical rows the athlete granted, and the database, the DataStore preferences and the
+  db-recovery backups all live under paths that a wider rule would expose. Only files this app
+  wrote to cache/share for the express purpose of being shared are reachable through the provider.
+-->
+<paths>
+    <cache-path name="share" path="share/" />
+</paths>

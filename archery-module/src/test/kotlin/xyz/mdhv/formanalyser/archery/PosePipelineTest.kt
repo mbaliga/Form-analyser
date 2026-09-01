@@ -13,7 +13,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /** Builds synthetic right-handed-archer pose frames (normalised coords, y-down). */
-private object PoseSynth {
+internal object PoseSynth {
     const val FPS = 30.0
 
     // Static body landmarks for a clean "good form" hold.

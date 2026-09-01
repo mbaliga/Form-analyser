@@ -1,0 +1,27 @@
+name: package-source
+
+on:
+  push:
+    branches:
+      - agent/crocodyl-package-export
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: crocodyl-source-snapshot
+          path: |
+            .
+            !.git
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1

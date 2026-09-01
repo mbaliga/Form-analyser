@@ -10,54 +10,65 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import xyz.mdhv.crocodyl.engine.sport.FeatureScoreRelation
-import xyz.mdhv.formanalyser.app.domain.ShotView
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
+import xyz.mdhv.formanalyser.app.domain.ShotView
 import xyz.mdhv.formanalyser.app.ui.components.Scatter
 import xyz.mdhv.formanalyser.app.ui.components.TrendLine
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
 
 @Composable
-fun ReviewScreen(vm: SessionViewModel) {
+fun ReviewScreen(vm: SessionViewModel, onDeleted: () -> Unit) {
     val shots by vm.shots.collectAsState()
     val baseline by vm.baseline.collectAsState()
     val fatigue by vm.fatigue.collectAsState()
     val correlations by vm.correlations.collectAsState()
+    val preview by vm.deletionPreview.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
-            Text("Session review", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+            Text(
+                "Session review",
+                style = MaterialTheme.typography.headlineMedium,
+                color = Hyle.OnBackground,
+            )
         }
         item {
-            val msg = if (baseline.ready) "Baseline ready (${baseline.repCount} shots)"
-            else "Building baseline — mark ${baseline.needed} more good shot(s)"
+            val msg =
+                if (baseline.ready) "Baseline ready (${baseline.repCount} shots)"
+                else "Building baseline — mark ${baseline.needed} more good shot(s)"
             Text(msg, color = if (baseline.ready) Hyle.RadiumGreen else Hyle.OnSurfaceDim)
         }
 
         item {
             SectionCard("Bow-arm trend (fatigue = downward slope)") {
                 TrendLine(
-                    values = shots.sortedBy { it.index }.map { it.features[FormFeatureExtractor.BOW_ARM_ANGLE] ?: 0.0 },
+                    values =
+                        shots
+                            .sortedBy { it.index }
+                            .map { it.features[FormFeatureExtractor.BOW_ARM_ANGLE] ?: 0.0 },
                     minV = 90.0,
                     maxV = 180.0,
                 )
@@ -73,11 +84,12 @@ fun ReviewScreen(vm: SessionViewModel) {
 
         item {
             SectionCard("Bow-arm angle vs arrow score") {
-                val pts = shots.mapNotNull { s ->
-                    val angle = s.features[FormFeatureExtractor.BOW_ARM_ANGLE]
-                    val score = s.score
-                    if (angle != null && score != null) angle to score else null
-                }
+                val pts =
+                    shots.mapNotNull { s ->
+                        val angle = s.features[FormFeatureExtractor.BOW_ARM_ANGLE]
+                        val score = s.score
+                        if (angle != null && score != null) angle to score else null
+                    }
                 Scatter(points = pts)
             }
         }
@@ -90,7 +102,9 @@ fun ReviewScreen(vm: SessionViewModel) {
             }
         }
 
-        item { Text("Shots", style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground) }
+        item {
+            Text("Shots", style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground)
+        }
 
         items(shots, key = { it.id }) { shot ->
             ShotCard(
@@ -99,6 +113,28 @@ fun ReviewScreen(vm: SessionViewModel) {
                 onBaseline = { vm.toggleBaseline(shot.id, it) },
             )
         }
+
+        item {
+            // A capture that went wrong — the phone knocked over, the wrong person in frame — was
+            // previously permanent: the only removal path in the app erased everything.
+            TextButton(onClick = vm::previewSessionDeletion) {
+                Text("Delete this session", color = Hyle.Danger)
+            }
+        }
+    }
+
+    preview?.let { detail ->
+        AlertDialog(
+            onDismissRequest = vm::dismissSessionDeletion,
+            title = { Text("Delete this session?") },
+            text = { Text(detail) },
+            confirmButton = {
+                TextButton(onClick = { vm.deleteOpenSession(onDeleted) }) {
+                    Text("Delete", color = Hyle.Danger)
+                }
+            },
+            dismissButton = { TextButton(onClick = vm::dismissSessionDeletion) { Text("Keep") } },
+        )
     }
 }
 
@@ -126,17 +162,22 @@ private fun CorrelationRow(r: FeatureScoreRelation) {
 
 @Composable
 private fun ShotCard(shot: ShotView, onScore: (Double?) -> Unit, onBaseline: (Boolean) -> Unit) {
-    var scoreText by remember(shot.id) { mutableStateOf(shot.score?.let { it.toInt().toString() } ?: "") }
+    var scoreText by
+        rememberSaveable(shot.id) {
+            mutableStateOf(shot.score?.let { it.toInt().toString() } ?: "")
+        }
     Card(
         colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceVariant),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Shot ${shot.index + 1}", color = Hyle.OnBackground, style = MaterialTheme.typography.titleLarge)
-                shot.stability?.let {
-                    Text("stability ${it.toInt()}", color = Hyle.RadiumGreen)
-                }
+                Text(
+                    "Shot ${shot.index + 1}",
+                    color = Hyle.OnBackground,
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                shot.stability?.let { Text("stability ${it.toInt()}", color = Hyle.RadiumGreen) }
             }
             Text(
                 "bow arm ${fmt(shot.features[FormFeatureExtractor.BOW_ARM_ANGLE], 0)}° · " +
@@ -145,8 +186,13 @@ private fun ShotCard(shot: ShotView, onScore: (Double?) -> Unit, onBaseline: (Bo
                     "shoulders ${fmt(shot.features[FormFeatureExtractor.SHOULDER_TILT], 1)}°",
                 color = Hyle.OnSurfaceDim,
             )
-            shot.topDeviationFeature?.let { Text("biggest deviation: $it", color = Hyle.OnSurfaceDim) }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            shot.topDeviationFeature?.let {
+                Text("biggest deviation: $it", color = Hyle.OnSurfaceDim)
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
                 OutlinedTextField(
                     value = scoreText,
                     onValueChange = { raw ->

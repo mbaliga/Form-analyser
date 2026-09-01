@@ -15,7 +15,7 @@ object ArcheryScoringRubric : ScoringRubric {
 }
 
 /**
- * The (free, vision-based) archery plug-in for the Crocodyl engine. Input is a pose capture
+ * The (free, vision-based) archery plug-in for the Baseline engine. Input is a pose capture
  * (`PoseSequence`); the module segments shots and extracts postural form + sequence-timing
  * features. The shot-to-shot sensor signals (drift / release / cant) are the paid Baseline
  * add-on's job, not here.

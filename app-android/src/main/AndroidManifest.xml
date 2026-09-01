@@ -3,21 +3,51 @@
 
     <!-- Vision is the core modality: the camera films the archer (sagittal) for pose/form. -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera.any" android:required="true" />
+    <!-- The Haptics setting (Settings -> Appearance) has always been persisted; without this it
+         was read by nothing. Cues confirm a recorded arrow on a shooting line where the phone is
+         often not being looked at. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- required="false": the app is fully usable without a camera (scoring, logs, progress),
+         and required="true" made it un-installable on camera-less Chromebooks — which is exactly
+         the desktop form factor the roadmap targets. CaptureScreen degrades gracefully. -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
+    <!-- BYOK cloud coach calls only. On-device coaching and everything else stay offline; no key,
+         no call. The AI coach is opt-in and every provider is bring-your-own-key. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- allowBackup off (pre-release): auto-backup could restore an old-schema form-analyser.db
+         onto a fresh install, making Room run a migration it can't reconcile and crash on first
+         write. Local-first data is rebuilt on device; nothing here needs cloud backup yet. -->
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.FormAnalyser">
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.FormAnalyser">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+          Grants read access to one exported archive at a time, and only to the app the athlete
+          picks in the sharesheet. exported=false + grantUriPermissions means no other app can
+          reach it uninvited; the paths file limits it to cache/share.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>
