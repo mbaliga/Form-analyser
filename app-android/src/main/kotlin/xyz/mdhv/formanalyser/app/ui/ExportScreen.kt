@@ -1,7 +1,9 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.background
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -26,8 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import xyz.mdhv.formanalyser.app.domain.ExportViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -43,8 +45,8 @@ import xyz.mdhv.formanalyser.exchange.WithheldReason
  * button that launches the SAF CreateDocument picker.
  *
  * Provenance material law: data that WILL leave the device is dotted alien-cyan (bound elsewhere);
- * data that stays is dotted radium-green (native/on-device) — the meaning is carried by the dot, not
- * only the words.
+ * data that stays is dotted radium-green (native/on-device) — the meaning is carried by the dot,
+ * not only the words.
  */
 @Composable
 fun ExportScreen(vm: ExportViewModel) {
@@ -56,10 +58,14 @@ fun ExportScreen(vm: ExportViewModel) {
     val fingerprint by vm.fingerprint.collectAsState()
     val busy by vm.busy.collectAsState()
     val outcome by vm.outcome.collectAsState()
+    val context = LocalContext.current
 
-    val picker = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument(ExportViewModel.MIME_ZIP),
-    ) { uri -> if (uri != null) vm.export(uri) }
+    val picker =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument(ExportViewModel.MIME_ZIP)
+        ) { uri ->
+            if (uri != null) vm.export(uri)
+        }
 
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
@@ -78,7 +84,9 @@ fun ExportScreen(vm: ExportViewModel) {
             selected = tier,
             label = { if (it == ExportTier.SHAREABLE_ONLY) "Shareable only" else "Full" },
             modifier = Modifier.fillMaxWidth(),
-        ) { vm.setTier(it) }
+        ) {
+            vm.setTier(it)
+        }
         Text(
             if (tier == ExportTier.SHAREABLE_ONLY) "Freely shareable performance data only."
             else "Shareable data plus any medical items you explicitly grant below.",
@@ -92,8 +100,9 @@ fun ExportScreen(vm: ExportViewModel) {
             vm.medicalTables.forEach { table ->
                 HyleListRow(
                     title = prettyTable(table),
-                    subtitle = if (enabled) "Include this medical table in the export"
-                    else "Switch to the Full tier to grant",
+                    subtitle =
+                        if (enabled) "Include this medical table in the export"
+                        else "Switch to the Full tier to grant",
                     trailing = {
                         Switch(
                             checked = table in grants,
@@ -121,15 +130,16 @@ fun ExportScreen(vm: ExportViewModel) {
         } else {
             // PRIVATE first — the crown-jewel guarantee — then medical, then the rest.
             listOf(
-                WithheldReason.PRIVATE_ALWAYS_EXCLUDED,
-                WithheldReason.MEDICAL_NEEDS_GRANT,
-                WithheldReason.NOT_IN_TIER,
-                WithheldReason.UNKNOWN_TABLE,
-            ).forEach { reason ->
-                withheld[reason]?.sorted()?.forEach { table ->
-                    ProvenanceRow(prettyTable(table), reasonText(reason), Hyle.RadiumGreen)
+                    WithheldReason.PRIVATE_ALWAYS_EXCLUDED,
+                    WithheldReason.MEDICAL_NEEDS_GRANT,
+                    WithheldReason.NOT_IN_TIER,
+                    WithheldReason.UNKNOWN_TABLE,
+                )
+                .forEach { reason ->
+                    withheld[reason]?.sorted()?.forEach { table ->
+                        ProvenanceRow(prettyTable(table), reasonText(reason), Hyle.RadiumGreen)
+                    }
                 }
-            }
         }
 
         HyleSectionHeader("This device's identity")
@@ -145,20 +155,50 @@ fun ExportScreen(vm: ExportViewModel) {
             style = MaterialTheme.typography.labelMedium,
         )
 
-        outcome?.let {
-            Text(it.message, color = if (it.ok) Hyle.RadiumGreen else Hyle.Danger)
-        }
+        outcome?.let { Text(it.message, color = if (it.ok) Hyle.RadiumGreen else Hyle.Danger) }
 
         Button(
             onClick = { picker.launch(ExportViewModel.SUGGESTED_FILENAME) },
             enabled = !busy && leaving.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(),
-        ) { Text(if (busy) "Exporting…" else "Export .crocbak") }
+        ) {
+            Text(if (busy) "Exporting…" else "Save .crocbak to this device")
+        }
+
+        // Same archive, same consent decision — only the destination differs. Saving to storage
+        // was previously the only way out of the app, which meant handing a coach or a physio a
+        // file took a file manager and a second app.
+        OutlinedButton(
+            onClick = {
+                vm.exportForSharing { uri ->
+                    val send =
+                        Intent(Intent.ACTION_SEND).apply {
+                            type = ExportViewModel.MIME_ZIP
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                    context.startActivity(Intent.createChooser(send, "Share export"))
+                }
+            },
+            enabled = !busy && leaving.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Share…")
+        }
+        Text(
+            "Sharing sends exactly what the two lists above describe — nothing more.",
+            color = Hyle.OnSurfaceDim,
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
 }
 
 @Composable
-private fun ProvenanceRow(title: String, subtitle: String?, dot: androidx.compose.ui.graphics.Color) {
+private fun ProvenanceRow(
+    title: String,
+    subtitle: String?,
+    dot: androidx.compose.ui.graphics.Color,
+) {
     Row(
         Modifier.fillMaxWidth().padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -168,18 +208,23 @@ private fun ProvenanceRow(title: String, subtitle: String?, dot: androidx.compos
         Column {
             Text(title, color = Hyle.OnBackground, style = MaterialTheme.typography.bodyMedium)
             if (subtitle != null) {
-                Text(subtitle, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
+                Text(
+                    subtitle,
+                    color = Hyle.OnSurfaceDim,
+                    style = MaterialTheme.typography.labelMedium,
+                )
             }
         }
     }
 }
 
-private fun reasonText(reason: WithheldReason): String = when (reason) {
-    WithheldReason.PRIVATE_ALWAYS_EXCLUDED -> "private — never leaves this device"
-    WithheldReason.MEDICAL_NEEDS_GRANT -> "medical — grant it above to include"
-    WithheldReason.NOT_IN_TIER -> "not included in this tier"
-    WithheldReason.UNKNOWN_TABLE -> "unrecognised table"
-}
+private fun reasonText(reason: WithheldReason): String =
+    when (reason) {
+        WithheldReason.PRIVATE_ALWAYS_EXCLUDED -> "private — never leaves this device"
+        WithheldReason.MEDICAL_NEEDS_GRANT -> "medical — grant it above to include"
+        WithheldReason.NOT_IN_TIER -> "not included in this tier"
+        WithheldReason.UNKNOWN_TABLE -> "unrecognised table"
+    }
 
 /** "medication_entry" -> "Medication entry". */
 private fun prettyTable(table: String): String =

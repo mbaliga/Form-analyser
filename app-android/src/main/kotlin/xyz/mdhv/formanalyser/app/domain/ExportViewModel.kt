@@ -3,8 +3,11 @@ package xyz.mdhv.formanalyser.app.domain
 import android.app.Application
 import android.net.Uri
 import android.util.Base64
+import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import java.io.File
+import java.io.OutputStream
 import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -128,7 +131,67 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * Build the archive into the app's own cache and hand back a content [Uri] for the sharesheet.
+     *
+     * Sharing does not widen what leaves the device by a single row: the archive is assembled from
+     * exactly the same [ConsentDecision] the preview above is showing, so the tier and the medical
+     * grants govern a shared file identically to a saved one. What changes is only the destination
+     * — SAF writes it somewhere the athlete picked on this device, this hands it to an app they
+     * pick.
+     *
+     * Previous share exports are deleted first. A .crocbak can carry medical rows, and leaving old
+     * copies in a world-readable-to-the-recipient cache is exactly the quiet accumulation the
+     * privacy model exists to prevent.
+     */
+    fun exportForSharing(onReady: (Uri) -> Unit) {
+        if (_busy.value) return
+        _busy.value = true
+        _outcome.value = null
+        viewModelScope.launch {
+            val result =
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        val app = getApplication<Application>()
+                        val dir = File(app.cacheDir, SHARE_DIR).apply { mkdirs() }
+                        dir.listFiles()?.forEach { it.delete() }
+                        val file = File(dir, SUGGESTED_FILENAME)
+                        val message = file.outputStream().use { writeArchive(it) }
+                        val uri =
+                            FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
+                        uri to message
+                    }
+                }
+            _busy.value = false
+            result.fold(
+                onSuccess = { (uri, message) ->
+                    _outcome.value = ExportOutcome(true, message)
+                    onReady(uri)
+                },
+                onFailure = {
+                    _outcome.value =
+                        ExportOutcome(
+                            false,
+                            "Export failed: ${it.message ?: it.javaClass.simpleName}",
+                        )
+                },
+            )
+        }
+    }
+
     private fun writeArchive(uri: Uri): String {
+        val out =
+            getApplication<Application>().contentResolver.openOutputStream(uri)
+                ?: error("cannot open destination")
+        return out.use { writeArchive(it) }
+    }
+
+    /**
+     * The one archive writer. Both destinations — a SAF document the athlete picked and the cache
+     * file the sharesheet hands on — go through it, so a shared archive and a saved one are
+     * byte-for-byte the same ceremony and cannot drift apart in what they include.
+     */
+    private fun writeArchive(out: OutputStream): String {
         val decision = _decision.value
         val tier = _tier.value
         val included = decision.included.sorted()
@@ -165,9 +228,6 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                 rowCounts = rowCounts,
             )
 
-        val out =
-            getApplication<Application>().contentResolver.openOutputStream(uri)
-                ?: error("cannot open destination")
         ZipOutputStream(out.buffered()).use { zip ->
             zip.putNextEntry(ZipEntry("manifest.json"))
             zip.write(manifest.serialize().toByteArray())
@@ -232,6 +292,9 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
         /** MIME for the archive. */
         const val MIME_ZIP: String = "application/zip"
+
+        /** Cache subdirectory the FileProvider exposes; nothing else in the cache is shareable. */
+        const val SHARE_DIR: String = "share"
 
         /** Every registered logical table — the requested set fed to the consent filter. */
         val ALL_TABLES: Set<String> = PrivacyRegistry.byTable.keys
