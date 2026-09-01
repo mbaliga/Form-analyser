@@ -40,27 +40,27 @@ interface ScoringDao {
     fun observeOpponentEnds(sessionId: String): Flow<List<ScoreOpponentEndEntity>>
 
     @Query(
-        "SELECT * FROM score_session WHERE athleteId = :athleteId AND status = 'ACTIVE' ORDER BY updatedAt DESC LIMIT 1"
+        "SELECT * FROM score_session WHERE athleteId = :athleteId AND status = 'ACTIVE' AND deletedAt IS NULL ORDER BY updatedAt DESC LIMIT 1"
     )
     suspend fun activeForAthlete(athleteId: String): ScoreSessionEntity?
 
     @Query(
-        "SELECT * FROM score_session WHERE athleteId = :athleteId AND pinned = 1 ORDER BY updatedAt DESC LIMIT 1"
+        "SELECT * FROM score_session WHERE athleteId = :athleteId AND pinned = 1 AND deletedAt IS NULL ORDER BY updatedAt DESC LIMIT 1"
     )
     suspend fun latestPinned(athleteId: String): ScoreSessionEntity?
 
     @Query(
-        "SELECT * FROM score_session WHERE athleteId = :athleteId ORDER BY updatedAt DESC LIMIT 1"
+        "SELECT * FROM score_session WHERE athleteId = :athleteId AND deletedAt IS NULL ORDER BY updatedAt DESC LIMIT 1"
     )
     suspend fun latest(athleteId: String): ScoreSessionEntity?
 
     @Query(
-        "SELECT * FROM score_session WHERE athleteId = :athleteId ORDER BY updatedAt DESC LIMIT :limit"
+        "SELECT * FROM score_session WHERE athleteId = :athleteId AND deletedAt IS NULL ORDER BY updatedAt DESC LIMIT :limit"
     )
     suspend fun recent(athleteId: String, limit: Int): List<ScoreSessionEntity>
 
     @Query(
-        "SELECT MAX(total) FROM score_session WHERE athleteId = :athleteId AND roundId = :roundId AND status = 'FINISHED' AND roundComplete = 1 AND id != :excludeSessionId"
+        "SELECT MAX(total) FROM score_session WHERE athleteId = :athleteId AND roundId = :roundId AND status = 'FINISHED' AND roundComplete = 1 AND deletedAt IS NULL AND id != :excludeSessionId"
     )
     suspend fun previousBest(athleteId: String, roundId: String, excludeSessionId: String): Int?
 
@@ -75,7 +75,7 @@ interface ScoringDao {
     @Query(
         "SELECT roundId, roundName, MAX(total) AS best, arrowsPerEnd, endCount " +
             "FROM score_session WHERE athleteId = :athleteId AND status = 'FINISHED' " +
-            "AND roundComplete = 1 AND scoringKind != 'SET_MATCH' GROUP BY roundId"
+            "AND roundComplete = 1 AND deletedAt IS NULL AND scoringKind != 'SET_MATCH' GROUP BY roundId"
     )
     suspend fun bestPerRound(athleteId: String): List<RoundBest>
 
@@ -136,17 +136,42 @@ interface ScoringDao {
     suspend fun finish(sessionId: String, roundComplete: Boolean, completedAt: Long)
 
     @Query(
-        "SELECT * FROM score_session WHERE athleteId = :athleteId AND status = 'FINISHED' ORDER BY completedAt ASC"
+        "SELECT * FROM score_session WHERE athleteId = :athleteId AND status = 'FINISHED' AND deletedAt IS NULL ORDER BY completedAt ASC"
     )
     suspend fun completedForAthlete(athleteId: String): List<ScoreSessionEntity>
 
     @Query("SELECT COUNT(*) FROM score_arrow WHERE scoreSessionId = :sessionId AND active = 1")
     suspend fun activeArrowCount(sessionId: String): Int
 
-    // --- Athlete-initiated deletion -------------------------------------------------------------
-    // There is no cascade on these tables, so every row a scorecard owns is removed by name.
-    // Nothing in the app calls these except an explicit, counted confirmation the athlete accepts;
-    // see ScoringRepository.deleteScorecard.
+    // --- Athlete-initiated retraction -----------------------------------------------------------
+    // Nothing here runs except from an explicit confirmation the athlete accepted. Retraction is
+    // the normal case and is reversible; the outright DELETEs below are reachable only for a
+    // scorecard that never held an arrow, which nothing has ever derived anything from.
+
+    /** Retract a scorecard: it leaves every athlete-wide query but stays on the device. */
+    @Query("UPDATE score_session SET deletedAt = :at WHERE id = :sessionId")
+    suspend fun retractSession(sessionId: String, at: Long)
+
+    /** Undo a retraction from Settings → Data → Recently deleted. */
+    @Query("UPDATE score_session SET deletedAt = NULL WHERE id = :sessionId")
+    suspend fun restoreSession(sessionId: String)
+
+    @Query(
+        "SELECT * FROM score_session WHERE athleteId = :athleteId AND deletedAt IS NOT NULL ORDER BY deletedAt DESC"
+    )
+    suspend fun retractedForAthlete(athleteId: String): List<ScoreSessionEntity>
+
+    /**
+     * Arrows ever written to this card, retracted ones included.
+     *
+     * Not [activeArrowCount]: a card whose only arrows were undone is still a card that was scored
+     * on, and the discard path below must not treat it as an untouched mis-tap.
+     */
+    @Query("SELECT COUNT(*) FROM score_arrow WHERE scoreSessionId = :sessionId")
+    suspend fun everArrowCount(sessionId: String): Int
+
+    @Query("SELECT COUNT(*) FROM score_opponent_end WHERE scoreSessionId = :sessionId")
+    suspend fun opponentEndCount(sessionId: String): Int
 
     @Query("DELETE FROM score_arrow WHERE scoreSessionId = :sessionId")
     suspend fun deleteArrows(sessionId: String)
@@ -157,7 +182,9 @@ interface ScoringDao {
     @Query("DELETE FROM score_session WHERE id = :sessionId")
     suspend fun deleteSession(sessionId: String)
 
-    @Query("SELECT COUNT(*) FROM score_session WHERE linkedFormSessionId = :formSessionId")
+    @Query(
+        "SELECT COUNT(*) FROM score_session WHERE linkedFormSessionId = :formSessionId AND deletedAt IS NULL"
+    )
     suspend fun linkedCardCount(formSessionId: String): Int
 
     /**

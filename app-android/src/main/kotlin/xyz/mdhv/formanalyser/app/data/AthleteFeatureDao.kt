@@ -74,7 +74,4 @@ interface AthleteFeatureDao {
 
     @Query("DELETE FROM observer_score_event WHERE scoreSessionId = :sessionId")
     suspend fun deleteObserverEvents(sessionId: String)
-
-    @Query("DELETE FROM session_context WHERE sessionId = :sessionId")
-    suspend fun deleteSessionContext(sessionId: String)
 }

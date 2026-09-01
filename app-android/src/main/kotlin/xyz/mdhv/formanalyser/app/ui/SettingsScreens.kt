@@ -377,6 +377,8 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
     var arming by remember { mutableStateOf(false) }
     var confirm by remember { mutableStateOf("") }
     val context = androidx.compose.ui.platform.LocalContext.current
+    val retracted by vm.retracted.collectAsState()
+    LaunchedEffect(Unit) { vm.loadRetracted() }
     val vaultInfo by
         androidx.compose.runtime.produceState<String?>(initialValue = null) {
             value =
@@ -391,7 +393,12 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
                         .getOrNull()
                 }
         }
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    // Scrollable now that "Recently deleted" can grow: the wipe gate is the last thing on the
+    // screen and must stay reachable however many retracted rows sit above it.
+    Column(
+        col().verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         Text("Data", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         vaultInfo?.let { Text(it, color = Hyle.OnSurfaceDim) }
         HyleListRow(
@@ -399,6 +406,28 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
             subtitle = "Choose exactly what leaves this device",
             onClick = onExport,
         )
+        // The way back. Deleting a session or a scorecard retracts it rather than erasing it, and
+        // that promise means nothing without somewhere to see and undo it.
+        HyleSectionHeader("Recently deleted")
+        if (retracted.isEmpty()) {
+            Text("Nothing deleted.", color = Hyle.OnSurfaceDim)
+        } else {
+            Text(
+                "These are kept on this device and excluded from your trends and exports until you restore them.",
+                color = Hyle.OnSurfaceDim,
+                style = MaterialTheme.typography.labelMedium,
+            )
+            retracted.forEach { item ->
+                HyleListRow(
+                    title = item.label,
+                    subtitle = item.detail,
+                    trailing = {
+                        OutlinedButton(onClick = { vm.restore(item) }) { Text("Restore") }
+                    },
+                )
+            }
+        }
+
         Text(
             "Everything runs on this device — nothing is stored anywhere else, so a wipe has no undo.",
             color = Hyle.OnSurfaceDim,

@@ -28,10 +28,16 @@ class ScoringRepository(context: Context) {
      * trend. The UI also disables these controls, but the repository is the boundary that has to
      * hold: it is the only thing standing between a future caller and corrupted PB history.
      */
-    private fun requireActive(session: ScoreSessionEntity) =
+    private fun requireActive(session: ScoreSessionEntity) {
+        // A retracted card is addressable by id (restore needs that), so the boundary has to say so
+        // rather than relying on it having left the lists.
+        check(session.deletedAt == null) {
+            "This scorecard was deleted; restore it from Settings → Data to keep scoring."
+        }
         check(session.status == "ACTIVE") {
             "This scorecard is already finished; reopen or start a new one to keep scoring."
         }
+    }
 
     /**
      * Triple-face rounds have no 1–5 rings, so anything scoring below 6 is a miss, not a low ring.
@@ -362,34 +368,85 @@ class ScoringRepository(context: Context) {
      * owes them is an exact account of what goes — which is what this produces, and what the
      * confirmation renders.
      */
-    data class DeletionPreview(val label: String, val detail: String)
+    data class DeletionPreview(
+        val label: String,
+        val detail: String,
+        /** True for the discard path, where there is genuinely nothing to restore. */
+        val permanent: Boolean,
+    )
 
     suspend fun previewScorecardDeletion(sessionId: String): DeletionPreview {
         val s = scoring.session(sessionId) ?: error("Score session not found: $sessionId")
-        val arrows = scoring.activeArrowCount(sessionId)
-        return DeletionPreview(
-            s.roundName,
-            "$arrows arrow(s) and a total of ${s.total} will be permanently removed from this " +
-                "device. This cannot be undone.",
-        )
+        return if (isDiscardable(s)) {
+            DeletionPreview(
+                s.roundName,
+                "This scorecard has no arrows on it, so nothing has been derived from it. It will " +
+                    "be discarded outright — this one cannot be restored.",
+                permanent = true,
+            )
+        } else {
+            val arrows = scoring.activeArrowCount(sessionId)
+            val pb =
+                if (s.roundComplete && s.status == "FINISHED")
+                    scoring.previousBest(s.athleteId, s.roundId, sessionId)
+                else null
+            DeletionPreview(
+                s.roundName,
+                "$arrows arrow(s) and a total of ${s.total} will stop counting towards your " +
+                    "trends, volume and personal bests." +
+                    (if (pb != null && s.total > pb)
+                        " This is your best ${s.roundName}; your record becomes $pb."
+                    else "") +
+                    " Nothing is erased — you can restore it from Settings → Data.",
+                permanent = false,
+            )
+        }
     }
 
     /**
-     * Erase a scorecard and everything it owns.
+     * A scorecard that was opened and never scored on: still ACTIVE, never finished, no arrow ever
+     * written (retracted ones included) and no opponent end filed.
      *
-     * Five tables, because none of them cascade: the card, its arrows, its opponent end totals, any
-     * End Scan candidates proposed against it and any Live Observer events recorded for it. Leaving
-     * any of them behind would keep the athlete's data on the device after they asked for it to be
-     * gone, and would leave rows pointing at a scorecard that no longer exists.
+     * Every query that could have derived anything from a card requires `status = 'FINISHED'`, so
+     * such a row has contributed to no trend, no volume figure and no personal best. It is a
+     * mis-tap rather than history, and keeping a tombstone for it would only clutter the restore
+     * list with rounds the athlete never shot.
+     */
+    private suspend fun isDiscardable(s: ScoreSessionEntity): Boolean =
+        s.status == "ACTIVE" &&
+            s.completedAt == null &&
+            scoring.everArrowCount(s.id) == 0 &&
+            scoring.opponentEndCount(s.id) == 0
+
+    /**
+     * Retract a scorecard — or, for a never-scored one, discard it outright.
+     *
+     * Retraction rather than deletion is the whole point: this card feeds `previousBest`,
+     * `bestPerRound`, the score trend and the PB list, and dropping the bytes would rewrite all of
+     * that with nothing left on the device to explain why the numbers moved. The athlete asked for
+     * it to stop counting, not for their own history to become unaccountable. [restoreScorecard]
+     * puts it back.
      */
     suspend fun deleteScorecard(sessionId: String) =
         db.withTransaction {
-            features.deleteCandidates(sessionId)
-            features.deleteObserverEvents(sessionId)
-            scoring.deleteOpponentEnds(sessionId)
-            scoring.deleteArrows(sessionId)
-            scoring.deleteSession(sessionId)
+            val s = scoring.session(sessionId) ?: error("Score session not found: $sessionId")
+            if (isDiscardable(s)) {
+                features.deleteCandidates(sessionId)
+                features.deleteObserverEvents(sessionId)
+                scoring.deleteOpponentEnds(sessionId)
+                scoring.deleteArrows(sessionId)
+                scoring.deleteSession(sessionId)
+            } else {
+                scoring.retractSession(sessionId, System.currentTimeMillis())
+            }
         }
+
+    suspend fun restoreScorecard(sessionId: String) = scoring.restoreSession(sessionId)
+
+    suspend fun retractedScorecards(): List<ScoreSessionEntity> {
+        val a = athletes.firstOrNull() ?: return emptyList()
+        return scoring.retractedForAthlete(a.id)
+    }
 
     /** Best complete round per roundId across all history — the same basis the scorer's PB uses. */
     suspend fun bestPerRound(): List<RoundBest> {

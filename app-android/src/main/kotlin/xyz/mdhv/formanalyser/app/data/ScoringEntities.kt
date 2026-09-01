@@ -55,6 +55,14 @@ data class ScoreSessionEntity(
      * it.
      */
     val privacyClass: String = "SHAREABLE",
+    /**
+     * Set when the athlete retracts this row, null otherwise.
+     *
+     * Retraction, not deletion: the derived history this row feeds (see MIGRATION_6_7) cannot be
+     * rewritten honestly by dropping the bytes. Every query that should ignore a retracted row
+     * carries `AND deletedAt IS NULL` explicitly.
+     */
+    val deletedAt: Long? = null,
 )
 
 @Entity(

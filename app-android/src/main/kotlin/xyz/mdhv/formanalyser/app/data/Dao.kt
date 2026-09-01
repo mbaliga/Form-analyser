@@ -18,21 +18,35 @@ interface AthleteDao {
 interface SessionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(session: SessionEntity)
 
-    @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC")
+    @Query(
+        "SELECT * FROM sessions WHERE athleteId = :athleteId AND deletedAt IS NULL ORDER BY startedAtEpochMs DESC"
+    )
     fun forAthlete(athleteId: String): Flow<List<SessionEntity>>
 
     @Query(
-        "SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs DESC LIMIT :limit"
+        "SELECT * FROM sessions WHERE athleteId = :athleteId AND deletedAt IS NULL ORDER BY startedAtEpochMs DESC LIMIT :limit"
     )
     suspend fun recent(athleteId: String, limit: Int): List<SessionEntity>
 
-    @Query("SELECT * FROM sessions WHERE athleteId = :athleteId ORDER BY startedAtEpochMs ASC")
+    @Query(
+        "SELECT * FROM sessions WHERE athleteId = :athleteId AND deletedAt IS NULL ORDER BY startedAtEpochMs ASC"
+    )
     suspend fun allForAthlete(athleteId: String): List<SessionEntity>
 
     @Query("SELECT * FROM sessions WHERE id = :id LIMIT 1")
     suspend fun byId(id: String): SessionEntity?
 
-    @Query("DELETE FROM sessions WHERE id = :id") suspend fun delete(id: String)
+    /** Retract a capture session: it leaves every athlete-wide query but stays on the device. */
+    @Query("UPDATE sessions SET deletedAt = :at WHERE id = :id")
+    suspend fun retract(id: String, at: Long)
+
+    /** Undo a retraction from Settings → Data → Recently deleted. */
+    @Query("UPDATE sessions SET deletedAt = NULL WHERE id = :id") suspend fun restore(id: String)
+
+    @Query(
+        "SELECT * FROM sessions WHERE athleteId = :athleteId AND deletedAt IS NOT NULL ORDER BY deletedAt DESC"
+    )
+    suspend fun retractedForAthlete(athleteId: String): List<SessionEntity>
 
     @Query(
         "UPDATE sessions SET postCheckinId = :postCheckinId, durationAutoS = :durationAutoS, " +
@@ -91,11 +105,17 @@ interface ShotDao {
     suspend fun forSessionOnce(sessionId: String): List<ShotEntity>
 
     /** The athlete's "good" shots — the material a baseline is built from. */
-    @Query("SELECT * FROM shots WHERE athleteId = :athleteId AND isBaseline = 1")
+    @Query(
+        "SELECT * FROM shots WHERE athleteId = :athleteId AND isBaseline = 1 " +
+            "AND sessionId IN (SELECT id FROM sessions WHERE deletedAt IS NULL)"
+    )
     suspend fun baselineShots(athleteId: String): List<ShotEntity>
 
     /** All scored shots for the athlete — the basis for signal->score correlation. */
-    @Query("SELECT * FROM shots WHERE athleteId = :athleteId AND score IS NOT NULL")
+    @Query(
+        "SELECT * FROM shots WHERE athleteId = :athleteId AND score IS NOT NULL " +
+            "AND sessionId IN (SELECT id FROM sessions WHERE deletedAt IS NULL)"
+    )
     suspend fun scoredShots(athleteId: String): List<ShotEntity>
 
     @Query("UPDATE shots SET score = :score WHERE id = :shotId")
@@ -106,7 +126,4 @@ interface ShotDao {
 
     @Query("SELECT COUNT(*) FROM shots WHERE sessionId = :sessionId")
     suspend fun countForSession(sessionId: String): Int
-
-    @Query("DELETE FROM shots WHERE sessionId = :sessionId")
-    suspend fun deleteForSession(sessionId: String)
 }

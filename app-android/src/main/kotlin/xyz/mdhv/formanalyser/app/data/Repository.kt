@@ -97,28 +97,41 @@ class Repository(context: Context) {
     suspend fun previewSessionDeletion(sessionId: String): String {
         val shotCount = shots.countForSession(sessionId)
         val cards = db.scoringDao().linkedCardCount(sessionId)
-        return "$shotCount recorded shot(s) and this session's setup will be permanently removed " +
-            "from this device. This cannot be undone." +
+        return "$shotCount recorded shot(s) will stop counting towards your streak, your volume " +
+            "and your form trends, and this session will leave the calendar. Nothing is erased — " +
+            "you can restore it from Settings → Data." +
             if (cards > 0)
-                " $cards linked scorecard(s) are kept — they are unlinked, not deleted, and count " +
-                    "as their own session in Progress from then on."
+                " $cards linked scorecard(s) are unaffected; they simply count as their own " +
+                    "session in Progress from then on."
             else ""
     }
 
     /**
-     * Erase a capture session and everything it owns, keeping the scores shot alongside it.
+     * Retract a capture session.
      *
-     * Pre- and post-session check-ins are deliberately left in place: they are wellness entries the
-     * athlete made about their own body on a given day, not properties of this recording, and they
-     * are read on their own in Log and Calendar.
+     * Not a delete. This session feeds the streak, the load series, the calendar grid and
+     * Progress's volume and stability trends; dropping the rows would rewrite all of that with
+     * nothing left on the device to account for the change. The athlete asked for it to stop
+     * counting, and that is exactly what happens — reversibly.
+     *
+     * Its shots ride the retraction with no column of their own: they are only ever read by parent
+     * id, except the two athlete-wide baseline queries, which now exclude a retracted session's
+     * shots so the retraction is not merely cosmetic.
+     *
+     * Linked scorecards are detached, because scores are separate evidence recorded by hand and
+     * must go on counting as their own session. Pre- and post-session check-ins are left alone:
+     * they are wellness entries about the athlete's body on a day, not properties of a recording.
      */
     suspend fun deleteSession(sessionId: String) =
         db.withTransaction {
             db.scoringDao().clearLinksTo(sessionId)
-            db.athleteFeatureDao().deleteSessionContext(sessionId)
-            shots.deleteForSession(sessionId)
-            sessions.delete(sessionId)
+            sessions.retract(sessionId, System.currentTimeMillis())
         }
+
+    suspend fun restoreSession(sessionId: String) = sessions.restore(sessionId)
+
+    suspend fun retractedSessions(athleteId: String): List<SessionEntity> =
+        sessions.retractedForAthlete(athleteId)
 
     suspend fun scoredReps(athleteId: String): List<Rep> =
         shots.scoredShots(athleteId).map { it.toRep() }

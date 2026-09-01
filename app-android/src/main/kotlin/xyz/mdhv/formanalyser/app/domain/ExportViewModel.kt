@@ -250,7 +250,10 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
     private fun dumpTable(sqlName: String): Pair<ByteArray, Long> {
         val db = AppDatabase.get(getApplication()).openHelper.readableDatabase
         val rows = ArrayList<JsonElement>()
-        db.query("SELECT * FROM `$sqlName`").use { c ->
+        // A retracted row must not ride out in an archive the athlete believes they cleaned up.
+        // The athlete deleted it here; handing it to a coach anyway would make the delete a lie.
+        val where = if (sqlName in RETRACTABLE) " WHERE deletedAt IS NULL" else ""
+        db.query("SELECT * FROM `$sqlName`$where").use { c ->
             val cols = c.columnCount
             while (c.moveToNext()) {
                 val obj = LinkedHashMap<String, JsonElement>(cols)
@@ -306,5 +309,8 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
          */
         private val SQL_NAME: Map<String, String> =
             mapOf("athlete" to "athletes", "session" to "sessions", "shot" to "shots")
+
+        /** SQL tables carrying a `deletedAt` retraction column (see AppDatabase.MIGRATION_6_7). */
+        private val RETRACTABLE: Set<String> = setOf("sessions", "score_session")
     }
 }

@@ -299,10 +299,12 @@ fun ScoringScreen(vm: ScoringViewModel) {
     state.deletionPreview?.let { p ->
         AlertDialog(
             onDismissRequest = vm::dismissDeletion,
-            title = { Text("Delete ${p.label}?") },
+            title = { Text(if (p.permanent) "Discard ${p.label}?" else "Delete ${p.label}?") },
             text = { Text(p.detail) },
             confirmButton = {
-                TextButton(onClick = vm::deleteScorecard) { Text("Delete", color = Hyle.Danger) }
+                TextButton(onClick = vm::deleteScorecard) {
+                    Text(if (p.permanent) "Discard" else "Delete", color = Hyle.Danger)
+                }
             },
             dismissButton = { TextButton(onClick = vm::dismissDeletion) { Text("Keep") } },
         )

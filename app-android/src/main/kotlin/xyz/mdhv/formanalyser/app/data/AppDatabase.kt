@@ -42,7 +42,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             ScoreCandidateEntity::class,
             ObserverScoreEventEntity::class,
         ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -80,6 +80,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_3_4,
                     MIGRATION_4_5,
                     MIGRATION_5_6,
+                    MIGRATION_6_7,
                 )
                 // No fallbackToDestructiveMigration: a missing migration path should surface as a
                 // thrown exception into the catch below (and get backed up + recorded), not vanish
@@ -388,6 +389,33 @@ abstract class AppDatabase : RoomDatabase() {
                             "CREATE INDEX IF NOT EXISTS `index_observer_score_event_$c` ON `observer_score_event` (`$c`)"
                         )
                     }
+                }
+            }
+
+        /**
+         * V6 → V7: retraction instead of destruction.
+         *
+         * A capture session feeds the streak, the load series, the calendar grid and Progress's
+         * volume and stability trends; a scorecard feeds `previousBest`, `bestPerRound`, the score
+         * trend and the PB list. Hard-deleting either rewrites months of derived history with
+         * nothing left on the device to explain why the numbers moved — which is exactly what
+         * "never silently delete athlete history" forbids, even when the athlete asked. One
+         * nullable timestamp per table keeps the bytes, makes every query that should ignore a
+         * retracted row say so explicitly, and makes the decision reversible.
+         *
+         * Two ALTERs and no new table, deliberately. A tombstone ledger would carry human-readable
+         * labels drawn from rows of different privacy classes, and [PrivacyRegistry] classifies by
+         * table, so there would be no honest class to register it under. A column inherits its
+         * row's class for free.
+         *
+         * `ALTER TABLE ADD COLUMN` with no NOT NULL and no default is the one shape SQLite performs
+         * without rewriting the table, so this cannot fail part-way through on a large history.
+         */
+        val MIGRATION_6_7 =
+            object : Migration(6, 7) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `sessions` ADD COLUMN `deletedAt` INTEGER")
+                    db.execSQL("ALTER TABLE `score_session` ADD COLUMN `deletedAt` INTEGER")
                 }
             }
     }
