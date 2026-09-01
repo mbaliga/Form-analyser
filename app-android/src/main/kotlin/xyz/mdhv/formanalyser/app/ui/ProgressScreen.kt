@@ -14,7 +14,7 @@ import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.athlete.*
 
 @Composable
-fun ProgressScreen(vm: ProgressViewModel) {
+fun ProgressScreen(vm: ProgressViewModel, onBody: () -> Unit) {
     LaunchedEffect(Unit) { vm.load() }
     val s by vm.state.collectAsState()
     var goalOpen by rememberSaveable { mutableStateOf(false) }
@@ -38,6 +38,11 @@ fun ProgressScreen(vm: ProgressViewModel) {
                 "Understand what changes performance · local evidence only",
                 color = Hyle.OnSurfaceDim,
             )
+        }
+        item {
+            OutlinedButton(onClick = onBody, modifier = Modifier.fillMaxWidth()) {
+                Text("Physical readiness and body history")
+            }
         }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

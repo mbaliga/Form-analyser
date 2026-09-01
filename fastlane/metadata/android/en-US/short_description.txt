@@ -1,0 +1,1 @@
+Your camera builds an archery baseline, then flags the shot that broke it.

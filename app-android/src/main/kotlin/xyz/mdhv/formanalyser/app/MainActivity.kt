@@ -57,7 +57,7 @@ private object Routes {
     const val INJURY_EDIT = "injury_edit"
     const val PLAN_EDIT = "plan_edit"
     const val DOC_VIEW = "doc_view"
-    val TABS = setOf(HOME, TRAIN, PROGRESS, BODY, CALENDAR)
+    val TABS = setOf(HOME, TRAIN, SCORE, CALENDAR, PROGRESS)
 }
 
 class MainActivity : ComponentActivity() {
@@ -201,7 +201,7 @@ private fun MainShell() {
             }
             composable(Routes.PROGRESS) {
                 val vm: ProgressViewModel = viewModel()
-                ProgressScreen(vm)
+                ProgressScreen(vm) { nav.navigate(Routes.BODY) }
             }
             composable(Routes.BODY) {
                 BodyScreen(
@@ -325,11 +325,11 @@ private fun TopRow(title: String, onSettings: () -> Unit) {
 private fun BottomBar(current: String?, badge: Boolean, onSelect: (String) -> Unit) {
     val items =
         listOf(
-            Routes.HOME to (Icons.Filled.Home to "Home"),
+            Routes.HOME to (Icons.Filled.Home to "Today"),
             Routes.TRAIN to (Icons.Filled.CameraAlt to "Train"),
+            Routes.SCORE to (Icons.Filled.TrackChanges to "Score"),
+            Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Plan"),
             Routes.PROGRESS to (Icons.Filled.ShowChart to "Progress"),
-            Routes.BODY to (Icons.Filled.Accessibility to "Body"),
-            Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
         )
     NavigationBar(containerColor = Hyle.Surface) {
         items.forEach { (dest, p) ->
@@ -338,7 +338,7 @@ private fun BottomBar(current: String?, badge: Boolean, onSelect: (String) -> Un
                 current == dest,
                 { onSelect(dest) },
                 icon = {
-                    if (dest == Routes.BODY && badge)
+                    if (dest == Routes.PROGRESS && badge)
                         BadgedBox({ Badge { Text("!") } }) { Icon(icon, label) }
                     else Icon(icon, label)
                 },
@@ -406,11 +406,11 @@ private fun detailTitle(r: String?): String =
 
 private fun tabTitle(r: String?) =
     when (r) {
-        Routes.HOME -> "Crocodyl"
+        Routes.HOME -> "Today"
         Routes.TRAIN -> "Train"
+        Routes.SCORE -> "Score"
         Routes.PROGRESS -> "Progress"
-        Routes.BODY -> "Body"
-        Routes.CALENDAR -> "Calendar"
+        Routes.CALENDAR -> "Plan"
         else -> "Crocodyl"
     }
 
