@@ -55,6 +55,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // The free engine + archery module — local project dependencies, no external repo.
     implementation(project(":engine"))
