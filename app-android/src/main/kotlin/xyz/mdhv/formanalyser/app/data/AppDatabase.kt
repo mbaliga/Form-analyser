@@ -43,7 +43,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             ObserverScoreEventEntity::class,
         ],
     version = 8,
-    exportSchema = false,
+    exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun athleteDao(): AthleteDao
