@@ -32,6 +32,8 @@ interface SessionDao {
     @Query("SELECT * FROM sessions WHERE id = :id LIMIT 1")
     suspend fun byId(id: String): SessionEntity?
 
+    @Query("DELETE FROM sessions WHERE id = :id") suspend fun delete(id: String)
+
     @Query(
         "UPDATE sessions SET postCheckinId = :postCheckinId, durationAutoS = :durationAutoS, " +
             "durationS = :durationS, arrowsActual = :arrowsActual WHERE id = :sessionId"
@@ -104,4 +106,7 @@ interface ShotDao {
 
     @Query("SELECT COUNT(*) FROM shots WHERE sessionId = :sessionId")
     suspend fun countForSession(sessionId: String): Int
+
+    @Query("DELETE FROM shots WHERE sessionId = :sessionId")
+    suspend fun deleteForSession(sessionId: String)
 }

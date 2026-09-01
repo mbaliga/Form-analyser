@@ -187,7 +187,8 @@ private fun MainShell() {
                 )
             }
             composable(Routes.CAPTURE) { CaptureScreen(sessionVm) { nav.navigate(Routes.REVIEW) } }
-            composable(Routes.REVIEW) { ReviewScreen(sessionVm) }
+            // A deleted session has nothing left to review, so the screen cannot stay open on it.
+            composable(Routes.REVIEW) { ReviewScreen(sessionVm) { nav.popBackStack() } }
             composable(Routes.SCORE) {
                 val vm: ScoringViewModel = viewModel()
                 ScoringScreen(vm)

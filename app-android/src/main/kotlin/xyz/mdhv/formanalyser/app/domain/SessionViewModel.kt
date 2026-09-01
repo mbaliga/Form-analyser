@@ -185,6 +185,43 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { refresh() }
     }
 
+    private val _deletionPreview = MutableStateFlow<String?>(null)
+    /** Non-null while the delete confirmation for the open session is showing. */
+    val deletionPreview: StateFlow<String?> = _deletionPreview
+
+    /**
+     * Fetch the account of what deleting the open session would remove.
+     *
+     * Deliberately a separate call from [deleteOpenSession]: asking what would happen is not asking
+     * for it to happen, and nothing is touched until the athlete accepts the confirmation.
+     */
+    fun previewSessionDeletion() {
+        val sid = currentSessionId ?: return
+        viewModelScope.launch {
+            _deletionPreview.value =
+                runCatching { withContext(Dispatchers.IO) { repo.previewSessionDeletion(sid) } }
+                    .getOrNull()
+        }
+    }
+
+    fun dismissSessionDeletion() {
+        _deletionPreview.value = null
+    }
+
+    /** Erase the open session. [onDone] runs on the main thread once the rows are gone. */
+    fun deleteOpenSession(onDone: () -> Unit) {
+        val sid = currentSessionId ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { repo.deleteSession(sid) }
+            currentSessionId = null
+            _sessionActive.value = false
+            _shots.value = emptyList()
+            _fatigue.value = null
+            _deletionPreview.value = null
+            onDone()
+        }
+    }
+
     fun startRecording() {
         if (!recorder.isAvailable || _isRecording.value) return
         recorder.start()

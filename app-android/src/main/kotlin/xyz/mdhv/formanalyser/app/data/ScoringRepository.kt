@@ -354,6 +354,43 @@ class ScoringRepository(context: Context) {
 
     suspend fun observerEvents(sessionId: String) = features.observerEvents(sessionId)
 
+    /**
+     * What deleting a scorecard would destroy, so the athlete is told before it happens rather than
+     * after.
+     *
+     * Crocodyl never removes athlete history on its own. When the athlete asks it to, the least it
+     * owes them is an exact account of what goes — which is what this produces, and what the
+     * confirmation renders.
+     */
+    data class DeletionPreview(val label: String, val detail: String)
+
+    suspend fun previewScorecardDeletion(sessionId: String): DeletionPreview {
+        val s = scoring.session(sessionId) ?: error("Score session not found: $sessionId")
+        val arrows = scoring.activeArrowCount(sessionId)
+        return DeletionPreview(
+            s.roundName,
+            "$arrows arrow(s) and a total of ${s.total} will be permanently removed from this " +
+                "device. This cannot be undone.",
+        )
+    }
+
+    /**
+     * Erase a scorecard and everything it owns.
+     *
+     * Five tables, because none of them cascade: the card, its arrows, its opponent end totals, any
+     * End Scan candidates proposed against it and any Live Observer events recorded for it. Leaving
+     * any of them behind would keep the athlete's data on the device after they asked for it to be
+     * gone, and would leave rows pointing at a scorecard that no longer exists.
+     */
+    suspend fun deleteScorecard(sessionId: String) =
+        db.withTransaction {
+            features.deleteCandidates(sessionId)
+            features.deleteObserverEvents(sessionId)
+            scoring.deleteOpponentEnds(sessionId)
+            scoring.deleteArrows(sessionId)
+            scoring.deleteSession(sessionId)
+        }
+
     /** Best complete round per roundId across all history — the same basis the scorer's PB uses. */
     suspend fun bestPerRound(): List<RoundBest> {
         val a = athletes.firstOrNull() ?: return emptyList()

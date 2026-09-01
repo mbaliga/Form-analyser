@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,11 +37,12 @@ import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
 
 @Composable
-fun ReviewScreen(vm: SessionViewModel) {
+fun ReviewScreen(vm: SessionViewModel, onDeleted: () -> Unit) {
     val shots by vm.shots.collectAsState()
     val baseline by vm.baseline.collectAsState()
     val fatigue by vm.fatigue.collectAsState()
     val correlations by vm.correlations.collectAsState()
+    val preview by vm.deletionPreview.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -110,6 +113,28 @@ fun ReviewScreen(vm: SessionViewModel) {
                 onBaseline = { vm.toggleBaseline(shot.id, it) },
             )
         }
+
+        item {
+            // A capture that went wrong — the phone knocked over, the wrong person in frame — was
+            // previously permanent: the only removal path in the app erased everything.
+            TextButton(onClick = vm::previewSessionDeletion) {
+                Text("Delete this session", color = Hyle.Danger)
+            }
+        }
+    }
+
+    preview?.let { detail ->
+        AlertDialog(
+            onDismissRequest = vm::dismissSessionDeletion,
+            title = { Text("Delete this session?") },
+            text = { Text(detail) },
+            confirmButton = {
+                TextButton(onClick = { vm.deleteOpenSession(onDeleted) }) {
+                    Text("Delete", color = Hyle.Danger)
+                }
+            },
+            dismissButton = { TextButton(onClick = vm::dismissSessionDeletion) { Text("Keep") } },
+        )
     }
 }
 

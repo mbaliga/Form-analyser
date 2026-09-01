@@ -266,6 +266,13 @@ fun ScoringScreen(vm: ScoringViewModel) {
             state.completionMessage?.let { msg ->
                 item { Card(Modifier.fillMaxWidth()) { Text(msg, Modifier.padding(16.dp)) } }
             }
+            item {
+                // The only way to remove a single bad scorecard. Before this the athlete's choices
+                // were to keep a mis-scored round in their PB history forever or wipe everything.
+                TextButton(onClick = vm::previewDeletion) {
+                    Text("Delete this scorecard", color = Hyle.Danger)
+                }
+            }
         }
     }
 
@@ -289,6 +296,17 @@ fun ScoringScreen(vm: ScoringViewModel) {
             },
             confirmButton = {},
         )
+    state.deletionPreview?.let { p ->
+        AlertDialog(
+            onDismissRequest = vm::dismissDeletion,
+            title = { Text("Delete ${p.label}?") },
+            text = { Text(p.detail) },
+            confirmButton = {
+                TextButton(onClick = vm::deleteScorecard) { Text("Delete", color = Hyle.Danger) }
+            },
+            dismissButton = { TextButton(onClick = vm::dismissDeletion) { Text("Keep") } },
+        )
+    }
     if (linking && snapshot != null)
         LinkFormSessionDialog(
             sessions = state.linkableFormSessions,

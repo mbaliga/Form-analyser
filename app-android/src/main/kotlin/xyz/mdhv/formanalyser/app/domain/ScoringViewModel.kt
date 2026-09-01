@@ -38,6 +38,8 @@ data class ScoringUiState(
     val endScanCandidates: List<ScoreCandidateEntity> = emptyList(),
     /** Capture sessions offered by the link picker; loaded only when the athlete opens it. */
     val linkableFormSessions: List<SessionEntity> = emptyList(),
+    /** Non-null while the delete confirmation is open, holding what it will say. */
+    val deletionPreview: ScoringRepository.DeletionPreview? = null,
 )
 
 class ScoringViewModel(app: Application) : AndroidViewModel(app) {
@@ -203,6 +205,44 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         action {
             val s = repo.setShootOffWinner(id, w)
             return@action { copy(snapshot = s) }
+        }
+    }
+
+    /**
+     * Load the account of what deleting this scorecard would remove, so the confirmation can state
+     * it. Never a step towards deleting on its own — [deleteScorecard] is a separate, later call.
+     */
+    fun previewDeletion() {
+        val id = _state.value.snapshot?.session?.id ?: return
+        viewModelScope.launch {
+            val p =
+                runCatching { withContext(Dispatchers.IO) { repo.previewScorecardDeletion(id) } }
+                    .getOrNull()
+            _state.update { it.copy(deletionPreview = p) }
+        }
+    }
+
+    fun dismissDeletion() {
+        _state.update { it.copy(deletionPreview = null) }
+    }
+
+    /**
+     * Erases the open scorecard and returns the screen to the list. Only ever called from the
+     * confirmation the athlete accepted.
+     */
+    fun deleteScorecard() {
+        val id = _state.value.snapshot?.session?.id ?: return
+        action {
+            repo.deleteScorecard(id)
+            val recent = repo.recent(10)
+            return@action {
+                copy(
+                    snapshot = null,
+                    recent = recent,
+                    deletionPreview = null,
+                    completionMessage = null,
+                )
+            }
         }
     }
 

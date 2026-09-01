@@ -142,4 +142,33 @@ interface ScoringDao {
 
     @Query("SELECT COUNT(*) FROM score_arrow WHERE scoreSessionId = :sessionId AND active = 1")
     suspend fun activeArrowCount(sessionId: String): Int
+
+    // --- Athlete-initiated deletion -------------------------------------------------------------
+    // There is no cascade on these tables, so every row a scorecard owns is removed by name.
+    // Nothing in the app calls these except an explicit, counted confirmation the athlete accepts;
+    // see ScoringRepository.deleteScorecard.
+
+    @Query("DELETE FROM score_arrow WHERE scoreSessionId = :sessionId")
+    suspend fun deleteArrows(sessionId: String)
+
+    @Query("DELETE FROM score_opponent_end WHERE scoreSessionId = :sessionId")
+    suspend fun deleteOpponentEnds(sessionId: String)
+
+    @Query("DELETE FROM score_session WHERE id = :sessionId")
+    suspend fun deleteSession(sessionId: String)
+
+    @Query("SELECT COUNT(*) FROM score_session WHERE linkedFormSessionId = :formSessionId")
+    suspend fun linkedCardCount(formSessionId: String): Int
+
+    /**
+     * Detach every scorecard pointing at a capture session that is being deleted.
+     *
+     * Deleting a training session must not take its scores with it: the arrows and the totals are
+     * separate evidence the athlete recorded by hand, and they survive on their own. As with
+     * [setLinkedFormSession], `updatedAt` is left alone so this does not reorder "Recent".
+     */
+    @Query(
+        "UPDATE score_session SET linkedFormSessionId = NULL WHERE linkedFormSessionId = :formSessionId"
+    )
+    suspend fun clearLinksTo(formSessionId: String)
 }
