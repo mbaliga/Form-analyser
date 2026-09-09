@@ -1,12 +1,16 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
+import android.content.Context
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
+import androidx.core.content.FileProvider
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.time.LocalDate
 import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,9 +25,12 @@ import xyz.mdhv.formanalyser.app.data.PhysioSessionEntity
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.app.vault.Vault
 
-class BodyViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
-    val vault = Vault(app)
+@HiltViewModel
+class BodyViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val repo: Repository,
+    val vault: Vault,
+) : ViewModel() {
 
     private val _painToday =
         MutableStateFlow<Map<String, Int>>(emptyMap()) // region -> max intensity today
@@ -238,28 +245,77 @@ class BodyViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Shared by [importDocument] and [importCapturedPhoto] — encrypt into the vault, then record
+     * the row. The two callers differ only in where the plaintext bytes come from (a SAF pick vs a
+     * just-taken photo) and in what happens to that source afterward. */
+    private suspend fun encryptAndRecord(
+        athleteId: String,
+        source: Uri,
+        title: String,
+        mime: String,
+        injuryId: String?,
+    ) {
+        val docId = UUID.randomUUID().toString()
+        runCatching { vault.encryptFrom(source, docId) }
+            .onSuccess { enc ->
+                repo.body.insertDocument(
+                    DocumentEntity(
+                        id = docId,
+                        athleteId = athleteId,
+                        ts = System.currentTimeMillis(),
+                        title = title.ifBlank { "Document" },
+                        mime = mime,
+                        encPath = enc.encPath,
+                        sha256 = enc.sha256,
+                        sizeBytes = enc.sizeBytes,
+                        injuryId = injuryId,
+                    )
+                )
+            }
+            .onFailure { _vaultError.value = it.message ?: "Import failed" }
+    }
+
     fun importDocument(source: Uri, title: String, mime: String, injuryId: String?) {
         viewModelScope.launch {
             val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
+            withContext(Dispatchers.IO) { encryptAndRecord(athlete.id, source, title, mime, injuryId) }
+            load()
+        }
+    }
+
+    /** Cache subdirectory the FileProvider exposes for one in-flight camera capture (see
+     * `res/xml/file_paths.xml`) — nothing else in the cache is grantable this way. */
+    private fun captureDir(): File =
+        File(context.cacheDir, CAPTURE_DIR).apply { mkdirs() }
+
+    /**
+     * A writable content:// Uri for the system camera to save one document photo into (Phase 3
+     * deviation log: "Document import is SAF-only for now ... TakePicture/FileProvider plumbing
+     * deferred" — this is that plumbing). Any previous capture is cleared first: only one photo is
+     * ever in flight, so an abandoned camera launch (back button, app switch) never leaves a stray
+     * plaintext file for the next attempt to collide with or leak into.
+     */
+    fun newCaptureUri(): Uri {
+        val dir = captureDir()
+        dir.listFiles()?.forEach { it.delete() }
+        val file = File(dir, "capture.jpg")
+        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }
+
+    /**
+     * Imports the photo the camera just wrote to [captureUri] (from [newCaptureUri]) into the vault
+     * — same encrypt-then-record path and the same authority as a SAF-picked file, so a photographed
+     * document is a first-class vault entry, not a lesser one. The plaintext in cache is deleted
+     * unconditionally afterward, success or failure: it exists only to bridge the camera intent to
+     * `Vault.encryptFrom`, and once that has run there is no reason for an unencrypted copy of a
+     * medical document photo to keep occupying the cache.
+     */
+    fun importCapturedPhoto(captureUri: Uri, title: String, injuryId: String) {
+        viewModelScope.launch {
+            val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
             withContext(Dispatchers.IO) {
-                val docId = UUID.randomUUID().toString()
-                runCatching { vault.encryptFrom(source, docId) }
-                    .onSuccess { enc ->
-                        repo.body.insertDocument(
-                            DocumentEntity(
-                                id = docId,
-                                athleteId = athlete.id,
-                                ts = System.currentTimeMillis(),
-                                title = title.ifBlank { "Document" },
-                                mime = mime,
-                                encPath = enc.encPath,
-                                sha256 = enc.sha256,
-                                sizeBytes = enc.sizeBytes,
-                                injuryId = injuryId,
-                            )
-                        )
-                    }
-                    .onFailure { _vaultError.value = it.message ?: "Import failed" }
+                encryptAndRecord(athlete.id, captureUri, title, "image/jpeg", injuryId)
+                captureDir().listFiles()?.forEach { it.delete() }
             }
             load()
         }
@@ -293,6 +349,12 @@ class BodyViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         vault.wipeViewCache()
+        captureDir().listFiles()?.forEach { it.delete() }
         super.onCleared()
+    }
+
+    companion object {
+        /** Must match `res/xml/file_paths.xml`'s "capture" cache-path. */
+        private const val CAPTURE_DIR = "capture"
     }
 }

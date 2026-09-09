@@ -2,6 +2,7 @@ package xyz.mdhv.formanalyser.app.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -30,11 +33,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Locale
 import xyz.mdhv.formanalyser.app.domain.CalendarViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
+import xyz.mdhv.formanalyser.wellness.DayFacts
+import xyz.mdhv.formanalyser.wellness.StreakEngine
 import xyz.mdhv.formanalyser.wellness.WellnessConstants
 
 /** Calendar tab (Phase 2 §E): month grid + streak strip, with a Load view toggle. */
@@ -44,8 +51,10 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
     val month by vm.month.collectAsState()
     val marks by vm.marks.collectAsState()
     val streak by vm.streak.collectAsState()
+    val weekStrip by vm.weekStrip.collectAsState()
     val loads by vm.loads.collectAsState()
     val acwr by vm.acwr.collectAsState()
+    val srpeAcwr by vm.srpeAcwr.collectAsState()
     var view by rememberSaveable { mutableStateOf("Calendar") }
 
     Column(
@@ -65,7 +74,9 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
             HyleSegmented(listOf("Calendar", "Load"), view, { it }) { view = it }
         }
 
-        // Streak strip
+        // Streak strip: the count line, plus a 7-glyph week-at-a-glance underneath it (previously
+        // text-only — see CROCODYL_BUILD_NOTES.md "Streak week-strip is a text summary line, not 7
+        // glyph dots").
         streak?.let { s ->
             val frozen = marks[LocalDate.now()]?.hiatus == true
             Text(
@@ -78,6 +89,7 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
                 color = if (frozen) Hyle.OnSurfaceDim else Hyle.RadiumGreen,
             )
         }
+        if (weekStrip.isNotEmpty()) WeekStrip(weekStrip)
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TextButton(onClick = { vm.setMonth(month.minusMonths(1)) }) { Text("← prev") }
@@ -98,7 +110,49 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
                 acwr?.let { if (it.warmupComplete) it.latest?.acwr else null },
                 acwr?.warmupDaysElapsed,
                 acwr?.warmupComplete == true,
+                srpeAcwr?.let { if (it.warmupComplete) it.latest?.acwr else null },
             )
+        }
+    }
+}
+
+/**
+ * The 7-glyph week strip under the streak count: one dot per day, oldest (6 days ago) to newest
+ * (today, rightmost), rendered from the same [StreakEngine.qualifies] rule the streak count itself
+ * uses — so the dots and the number can never disagree about what counted. A filled dot is a
+ * qualifying day; a hollow ring is a day that has not (yet, for today) qualified; the hiatus tone
+ * matches the month grid's frozen band. Today gets an accent ring on top of whichever fill it has,
+ * since — unlike every other day here — its outcome is still provisional.
+ */
+@Composable
+private fun WeekStrip(days: List<DayFacts>) {
+    val today = LocalDate.now()
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        days.forEach { d ->
+            val qualifies = StreakEngine.qualifies(d)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    d.date.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.getDefault()),
+                    color = Hyle.OnSurfaceDim,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+                Box(
+                    Modifier.size(18.dp)
+                        .clip(CircleShape)
+                        .background(
+                            when {
+                                d.hiatus -> Hyle.SurfaceVariant
+                                qualifies -> Hyle.RadiumGreen
+                                else -> Hyle.Background
+                            }
+                        )
+                        .border(
+                            width = if (d.date == today) 2.dp else 1.dp,
+                            color = if (d.date == today) Hyle.Accent else Hyle.OnSurfaceDim.copy(alpha = 0.35f),
+                            shape = CircleShape,
+                        )
+                )
+            }
         }
     }
 }
@@ -180,12 +234,48 @@ private fun MonthGrid(
     }
 }
 
+/** One lane's ISO-week sums over the last 8 weeks, paired with whether that week is missing an
+ * input the lane depends on (flagged with a hollow bar, never silently folded into the total —
+ * same "flagged, never silently zeroed" rule [LoadModel] uses for the day it aggregates from). */
+private fun weeklyBars(
+    loads: List<xyz.mdhv.formanalyser.wellness.DailyLoad>,
+    valueOf: (xyz.mdhv.formanalyser.wellness.DailyLoad) -> Double,
+    incompleteOf: (xyz.mdhv.formanalyser.wellness.DailyLoad) -> Boolean,
+): List<Pair<Double, Boolean>> {
+    val wf = WeekFields.of(Locale.getDefault())
+    return loads
+        .groupBy { it.date.get(wf.weekBasedYear()) * 100 + it.date.get(wf.weekOfWeekBasedYear()) }
+        .toSortedMap()
+        .values
+        .map { wk -> wk.sumOf(valueOf) to wk.any(incompleteOf) }
+        .takeLast(8)
+}
+
+@Composable
+private fun WeeklyBarsChart(weekly: List<Pair<Double, Boolean>>, barColor: androidx.compose.ui.graphics.Color) {
+    val maxLoad = weekly.maxOf { it.first }.coerceAtLeast(1.0)
+    Canvas(Modifier.fillMaxWidth().height(100.dp)) {
+        val n = weekly.size
+        val barW = size.width / (n * 1.5f)
+        weekly.forEachIndexed { i, (load, incomplete) ->
+            val h = (load / maxLoad * size.height).toFloat()
+            val x = i * size.width / n + (size.width / n - barW) / 2
+            drawRect(
+                color = if (incomplete) Hyle.SurfaceVariant else barColor,
+                topLeft = Offset(x, size.height - h),
+                size = androidx.compose.ui.geometry.Size(barW, h),
+            )
+        }
+    }
+}
+
 @Composable
 private fun LoadView(
     loads: List<xyz.mdhv.formanalyser.wellness.DailyLoad>,
     latestAcwr: Double?,
     warmupDays: Int?,
     warm: Boolean,
+    latestSrpeAcwr: Double?,
 ) {
     if (!warm) {
         Text(
@@ -198,38 +288,37 @@ private fun LoadView(
             color = Hyle.OnBackground,
         )
     }
-    // Weekly bars: shot-load summed per ISO week, last 8 weeks.
-    val wf = WeekFields.of(Locale.getDefault())
-    val weekly =
-        loads
-            .groupBy {
-                it.date.get(wf.weekBasedYear()) * 100 + it.date.get(wf.weekOfWeekBasedYear())
-            }
-            .toSortedMap()
-            .values
-            .map { wk -> wk.sumOf { it.shotLoad } to wk.any { !it.complete } }
-            .takeLast(8)
-    if (weekly.isEmpty()) {
+    val shotWeekly = weeklyBars(loads, { it.shotLoad }, { !it.complete })
+    if (shotWeekly.isEmpty()) {
         Text("No load yet — shoot a session.", color = Hyle.OnSurfaceDim)
         return
     }
-    val maxLoad = weekly.maxOf { it.first }.coerceAtLeast(1.0)
-    Canvas(Modifier.fillMaxWidth().height(140.dp)) {
-        val n = weekly.size
-        val barW = size.width / (n * 1.5f)
-        weekly.forEachIndexed { i, (load, incomplete) ->
-            val h = (load / maxLoad * size.height).toFloat()
-            val x = i * size.width / n + (size.width / n - barW) / 2
-            drawRect(
-                color = if (incomplete) Hyle.SurfaceVariant else Hyle.Accent,
-                topLeft = Offset(x, size.height - h),
-                size = androidx.compose.ui.geometry.Size(barW, h),
-            )
-        }
-    }
+    WeeklyBarsChart(shotWeekly, Hyle.Accent)
     Text(
         "Weekly shot load (arrows × kg). Hollow = missing poundage.",
         color = Hyle.OnSurfaceDim,
         style = MaterialTheme.typography.labelMedium,
     )
+
+    // sRPE secondary lane (session RPE × duration): a strain read the shot-load lane can't see —
+    // a long, gruelling holds/SPT session or a hot exhausting day still loads the body without
+    // adding a single arrow to the shot-load total. Previously computed (LoadModel.srpeLoad,
+    // Acwr.computeSrpe) but never surfaced here — see CROCODYL_BUILD_NOTES.md "srpe lane is
+    // computed but the Load view shows shot-load bars only (secondary lane deferred)".
+    HyleSectionHeader("sRPE load")
+    Text(
+        "sRPE ACWR ${latestSrpeAcwr?.let { String.format("%.2f", it) } ?: "—"}  (sweet 0.8–1.3)",
+        color = Hyle.OnBackground,
+    )
+    val srpeWeekly = weeklyBars(loads, { it.srpeLoad }, { it.shotLoad > 0.0 && it.srpeLoad <= 0.0 })
+    if (srpeWeekly.all { it.first <= 0.0 }) {
+        Text("No sRPE yet — log a post-session RPE.", color = Hyle.OnSurfaceDim)
+    } else {
+        WeeklyBarsChart(srpeWeekly, Hyle.RadiumGreen)
+        Text(
+            "Weekly sRPE load (minutes × RPE). Hollow = shot that week without a logged RPE.",
+            color = Hyle.OnSurfaceDim,
+            style = MaterialTheme.typography.labelMedium,
+        )
+    }
 }
