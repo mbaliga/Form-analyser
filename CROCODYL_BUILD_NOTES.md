@@ -122,11 +122,19 @@ Body-tab injury badge; vault meter in Settings → Data.
 **Deviations (R1/R2, logged):**
 - Atlas geometry is schematic rounded-rects (v0), not hand-drawn SVG paths — integrity suite is the
   contract; override seam kept for hand-drawn art later.
-- Streak week-strip is a text summary line, not 7 glyph dots (visual polish deferred).
-- srpe lane is computed but the Load view shows shot-load bars only (secondary lane deferred).
+- ~~Streak week-strip is a text summary line, not 7 glyph dots (visual polish deferred).~~ Done in a
+  later pass: `CalendarScreen.WeekStrip` renders 7 dots off `WellnessAssembler.weekFacts` +
+  `StreakEngine.qualifies`. CI-compiled only, not device-verified.
+- ~~srpe lane is computed but the Load view shows shot-load bars only (secondary lane
+  deferred).~~ Done in a later pass: `Acwr.computeSrpe` (same generic `compute(loadOf=...)` this
+  file already had, just called with `it.srpeLoad`) feeds a second weekly-bars chart + ACWR line in
+  the Load view. CI-compiled only, not device-verified.
 - Physio session logging lives on the Body tab (plan row → Log), not in "+ Log" (fewer nav seams).
-- Document import is SAF-only for now (no in-app camera capture — TakePicture/FileProvider plumbing
-  deferred); mime from ContentResolver.
+- ~~Document import is SAF-only for now (no in-app camera capture — TakePicture/FileProvider
+  plumbing deferred); mime from ContentResolver.~~ Done in a later pass: a second FileProvider
+  cache-path (`capture/`) + `BodyViewModel.newCaptureUri`/`importCapturedPhoto` add a "Photograph
+  document" button next to "Attach document", using `ActivityResultContracts.TakePicture` and the
+  same `Vault.encryptFrom` path as a SAF pick. CI-compiled only, not device-verified.
 - Robolectric tests (migrations, registry reflection, VM suites) still deferred to a verified pass —
   no local Android SDK; pure-JVM suites cover the math.
 
@@ -161,3 +169,67 @@ ramp anchors, #08FED5 physio hatch) stay as spec'd in the Crocodyl briefs — th
 law, not general theme tokens. Releases: `v0.4.0-hyle-approx` (before) vs `v0.4.1-hyle-real`
 (after) for side-by-side comparison. Future step: consume `dev.aarso:hyle` as a real dependency
 instead of ported constants (needs artifact publishing wiring).
+
+## Hyle: real tokens → real dependency
+
+`dev.aarso:hyle` doesn't publish to a Maven repo (no CI job in `mbaliga/Hyle-Design-System`
+runs `publish`/`publishToMavenLocal` against a real registry) — "needs artifact publishing wiring"
+above was never going to resolve itself. The actual mechanism already proven in this repo for
+`dev.aarso:crash-recovery` (rebase commit `2725f80`, since dropped from `main` when that branch's
+crash-recovery work was superseded — the wiring pattern is still sound, just not currently in the
+tree) is a **git submodule + Gradle composite build**, not a publish step:
+
+- `hyle-design-system` submodule → `mbaliga/Hyle-Design-System.git`, pinned at a commit (its own
+  README dates the `:hyle` module to "the first single-sourced release, 0.2.0" — earlier commits
+  shipped from three divergent copies of the token pipeline pre-single-sourcing).
+- `settings.gradle.kts`: `includeBuild("hyle-design-system")` under the same `-PwithAndroid` gate
+  as `:app-android` (its modules are Android libraries — including it unconditionally would break
+  the SDK-free `./gradlew test`). Gradle's composite-build dependency substitution matches
+  `dev.aarso:hyle` to the submodule's `:hyle` project by `group`/`name` automatically — no explicit
+  `dependencySubstitution` block needed (same as the crash-recovery precedent).
+- `app-android/build.gradle.kts`: `implementation("dev.aarso:hyle:0.2.0")`, AGP bumped 8.7.3 →
+  8.9.1 to match the submodule's pinned AGP (composite builds require one AGP version across every
+  participating build — Personal-Tracker DECISIONS.md D-Q, the same constraint the crash-recovery
+  wiring hit).
+- `android.yml` / `release.yml`: `submodules: recursive` on checkout, or the includeBuild sees an
+  empty directory.
+
+**The `:hyle` minSdk mismatch.** The submodule's `:hyle` module declares `minSdk = 31`; this app
+is `minSdk = 26`. Left alone, that's a hard manifest-merger failure ("uses-sdk:minSdkVersion 26
+cannot be smaller than version 31 declared in library"). Two ways out: bump this app's `minSdk` to
+31 (a real, user-visible decision — drops API 26-30 devices — not something to do silently inside
+a token-wiring change), or tell the merger to honor the app's real minSdk for this one library via
+`<uses-sdk tools:overrideLibrary="dev.aarso.hyle" />`. Went with the override, because reading
+`:hyle`'s entire Android surface (`Hyle.kt`, `HyleTokens.kt`, two generated `res/values/*.xml`
+files) turns up zero platform-API calls above API 26 — it is, today, plain Kotlin constants,
+sealed interfaces/data classes, and static color/dimen resources. That makes the override a safe
+read of *today's* module, not a permanently safe assumption: if a future `:hyle` bump adds real
+platform code gated above API 26 (the module's own README says Compose Modifiers/AGSL shaders are
+coming), this needs re-checking, not just re-approving.
+
+**What actually moved.** `ui/theme/Theme.kt`'s `object Hyle` — every `Color(0x....)` literal now
+reads `dev.aarso.hyle.tokens.HyleTokens.Color.*` (an `Argb` = `Long` typealias in the exact
+0xAARRGGBB packing Compose's `Color(Long)` already expects — no conversion helper needed), and the
+radium/cold-cyan provenance pair now reads `dev.aarso.hyle.RadiantHues.RADIUM`/`COLD_CYAN` — the
+hand-authored `Provenance` contract's canonical hue source, not just its generated token echo.
+Every value is bit-identical to what was hand-copied (verified property-by-property against the
+submodule's `HyleTokens.kt` before swapping), so this is a source change, not a value change.
+`object Hyle`'s public shape is unchanged, so every consuming screen and `HyleAtoms.kt` (which
+never duplicated token constants itself — it only ever consumed `Hyle.*`) compiles untouched.
+
+**What did NOT move, on purpose — a partial migration, not a full swap:**
+- `Hyle.Easing` (`CubicBezierEasing(0.4f, 0f, 0.2f, 1f)`) — `:hyle` compiles only token
+  *durations* to Kotlin (`HyleTokens.Duration.*`, now wired); no bezier control points are exposed
+  from `tokens/motion.json` yet, so this stays an app-side literal.
+- The body-map encoding hexes in `ui/components/BodyAtlasCanvas.kt` (violet ramp anchors incl.
+  `0xFF8E7BFF`, `#08FED5` physio hatch) — confirmed by grep to be the only other place these
+  literals appear, and per the note above they are the Crocodyl briefs' body-map law, not general
+  theme tokens; never part of this port.
+- Any Compose-level `Finish`/`Pulse`/`Provenance` adoption (breathing radiant glow, colour-blind-
+  safe glyph pairing) — `:hyle` itself doesn't have a Compose bridge yet (its own README: "The
+  Compose Modifiers and AGSL shaders land next... this first cut is deliberately pure data"), so
+  there is nothing on the other side to adopt beyond the token values already wired.
+
+Not locally verified — no Android SDK in this environment; CI's `android` job (`-PwithAndroid`,
+`submodules: recursive`) is the first real compile of this wiring, same caveat as the rest of the
+Android layer.

@@ -57,7 +57,14 @@ Pure-JVM modules can be checked with:
 ./gradlew test
 ```
 
-Requires JDK 21. The Android app requires the Android toolchain and is built through the Android workflow / a development machine with the SDK. See [`app-android/README.md`](app-android/README.md).
+Requires JDK 21. The Android app requires the Android toolchain and is built through the Android workflow / a development machine with the SDK:
+
+```bash
+git submodule update --init --recursive        # brings in hyle-design-system (dev.aarso:hyle)
+./gradlew :app-android:assembleDebug -PwithAndroid
+```
+
+See [`app-android/README.md`](app-android/README.md).
 
 ## Product documents
 
