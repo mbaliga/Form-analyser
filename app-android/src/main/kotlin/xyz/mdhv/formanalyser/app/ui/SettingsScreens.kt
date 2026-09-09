@@ -370,7 +370,12 @@ fun SettingsAppearanceScreen(vm: SettingsViewModel) {
 }
 
 @Composable
-fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () -> Unit) {
+fun SettingsDataScreen(
+    vm: SettingsViewModel,
+    onWiped: () -> Unit,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
+) {
     // Deliberately not rememberSaveable: this is the gate on erasing the athlete's whole history,
     // and a half-typed confirmation that survives a rotation or a process restart is a gate that
     // has partly opened itself. It costs a few seconds to re-arm and re-type.
@@ -402,9 +407,17 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
         Text("Data", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         vaultInfo?.let { Text(it, color = Hyle.OnSurfaceDim) }
         HyleListRow(
-            title = "Export data (.crocbak)",
+            title = "Export data (.crocbak, .croc)",
             subtitle = "Choose exactly what leaves this device",
             onClick = onExport,
+        )
+        // The other direction. Read-only for now: it verifies who signed a file and shows what is
+        // in it, and writes nothing — so it lives next to Export rather than pretending to be a
+        // restore, which is a different promise entirely.
+        HyleListRow(
+            title = "Open a .croc someone sent",
+            subtitle = "Check the signature and see what is inside — nothing is imported",
+            onClick = onImport,
         )
         // The way back. Deleting a session or a scorecard retracts it rather than erasing it, and
         // that promise means nothing without somewhere to see and undo it.
