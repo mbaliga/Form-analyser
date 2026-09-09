@@ -14,9 +14,9 @@ import xyz.mdhv.formanalyser.coach.LlmError
 import xyz.mdhv.formanalyser.coach.LlmErrorKind
 import xyz.mdhv.formanalyser.coach.MessageRole
 import xyz.mdhv.formanalyser.coach.ModelKind
-import java.io.DigestInputStream
 import java.io.File
 import java.io.IOException
+import java.security.DigestInputStream
 import java.security.MessageDigest
 
 /**
