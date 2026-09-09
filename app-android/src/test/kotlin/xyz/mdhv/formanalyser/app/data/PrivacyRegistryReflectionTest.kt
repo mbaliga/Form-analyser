@@ -68,11 +68,16 @@ class PrivacyRegistryReflectionTest {
                 while (cursor.moveToNext()) tableNames.add(cursor.getString(0))
             }
             // sqlite_master also lists bookkeeping tables no @Entity ever declared: SQLite's own
-            // (sqlite_sequence, sqlite_stat*, ...) and Room's identity-hash ledger
+            // (sqlite_sequence, sqlite_stat*, ...), Room's identity-hash ledger
             // (room_master_table, androidx.room.RoomMasterTable.TABLE_NAME — kept as a literal here
-            // rather than a dependency on that internal, @RestrictTo class). Counting either as an
-            // unclassified Room table would be a false positive, not a real privacy gap.
-            return tableNames.filterNot { it == "room_master_table" || it.startsWith("sqlite_") }
+            // rather than a dependency on that internal, @RestrictTo class), and Android's own
+            // framework SQLiteDatabase locale table (android_metadata — created by the platform's
+            // SQLiteOpenHelper before Room ever runs, not by anything declared in this codebase).
+            // Counting any of these as an unclassified Room table would be a false positive, not a
+            // real privacy gap.
+            return tableNames.filterNot {
+                it == "room_master_table" || it == "android_metadata" || it.startsWith("sqlite_")
+            }
         } finally {
             db.close()
         }
