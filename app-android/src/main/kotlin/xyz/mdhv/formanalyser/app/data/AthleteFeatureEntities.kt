@@ -86,10 +86,27 @@ data class ScoreCandidateEntity(
     val plotFaceIndex: Int? = null,
     val confidence: Double? = null,
     val source: String = "END_SCAN",
+    /**
+     * `PROPOSED` until a human resolves it, then `CONFIRMED`, `REJECTED` — or `SUPERSEDED` when a
+     * later scan of the same end replaced it. A re-scan does not delete what the previous one
+     * thought; the athlete may have re-shot the photo precisely because the first read looked wrong,
+     * and that is a fact about the scan worth keeping.
+     */
     val status: String = "PROPOSED",
     val resolution: String = "END_ONLY",
     val createdAtMs: Long,
     val resolvedAtMs: Long? = null,
+    /**
+     * Which version of the detector produced this proposal (`EndScan.DETECTOR_VERSION`), or null for
+     * a candidate written before the column existed.
+     *
+     * The blueprint requires a machine candidate to carry the version of the model behind it, and
+     * the reason is concrete: the detector's constants are geometry-derived guesses that will change
+     * once real range photographs exist to check them against, and when they do, nothing else on the
+     * row would distinguish a candidate this release's detector proposed from one last release's
+     * did. Inherits `score_candidate`'s SHAREABLE class — a column is classified by its table.
+     */
+    val detectorVersion: String? = null,
 )
 
 @Entity(
