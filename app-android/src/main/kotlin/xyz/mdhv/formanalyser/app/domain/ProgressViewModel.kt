@@ -1,9 +1,12 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
+import javax.inject.Inject
 import kotlin.math.sqrt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,10 +16,13 @@ import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.data.*
 import xyz.mdhv.formanalyser.athlete.*
 
-class ProgressViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
-    private val scoring = ScoringRepository(app)
-    private val features = AthleteFeatureRepository(app)
+@HiltViewModel
+class ProgressViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val repo: Repository,
+    private val scoring: ScoringRepository,
+    private val features: AthleteFeatureRepository,
+) : ViewModel() {
 
     data class ScorePoint(
         val atMs: Long,
@@ -284,7 +290,7 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private suspend fun scoringArrowCount(s: ScoreSessionEntity) =
-        xyz.mdhv.formanalyser.app.data.AppDatabase.get(getApplication<Application>())
+        xyz.mdhv.formanalyser.app.data.AppDatabase.get(context)
             .scoringDao()
             .activeArrowCount(s.id)
 

@@ -2,12 +2,23 @@ package xyz.mdhv.formanalyser.app.data
 
 import android.content.Context
 import androidx.room.withTransaction
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import xyz.mdhv.crocodyl.engine.model.Rep
 import xyz.mdhv.formanalyser.app.domain.ArcheryAnalyzer
 
-/** Thin persistence facade over the Room DAOs, with mapping to engine [Rep]s. */
-class Repository(context: Context) {
+/**
+ * Thin persistence facade over the Room DAOs, with mapping to engine [Rep]s.
+ *
+ * `@Singleton` + `@Inject constructor`: Hilt hands every `@HiltViewModel` the SAME instance rather
+ * than each constructing its own (the pre-Hilt pattern was `Repository(app)` inline in every
+ * ViewModel). No behaviour change — [AppDatabase.get] was already a process-wide singleton
+ * underneath every one of those separate instances — just one fewer object per screen.
+ */
+@Singleton
+class Repository @Inject constructor(@ApplicationContext context: Context) {
     private val db = AppDatabase.get(context)
     private val athletes = db.athleteDao()
     private val sessions = db.sessionDao()

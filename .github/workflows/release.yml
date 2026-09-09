@@ -23,6 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # hyle-design-system submodule — see android.yml; the -PwithAndroid build below
+          # resolves dev.aarso:hyle from its includeBuild and needs the submodule populated.
+          submodules: recursive
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

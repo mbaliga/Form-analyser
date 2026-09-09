@@ -10,7 +10,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.domain.TrainingContextViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.*
@@ -20,7 +20,7 @@ import xyz.mdhv.formanalyser.scoring.RoundPack
 
 @Composable
 fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: () -> Unit) {
-    val contextVm: TrainingContextViewModel = viewModel()
+    val contextVm: TrainingContextViewModel = hiltViewModel()
     LaunchedEffect(Unit) {
         vm.refreshActiveRig()
         contextVm.load()

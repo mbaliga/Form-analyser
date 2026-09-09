@@ -1,7 +1,10 @@
 package xyz.mdhv.formanalyser.app.data
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 import xyz.mdhv.formanalyser.athlete.GoalAggregation
 import xyz.mdhv.formanalyser.athlete.GoalDefinition
 import xyz.mdhv.formanalyser.athlete.GoalDirection
@@ -11,7 +14,8 @@ import xyz.mdhv.formanalyser.athlete.SessionContextObservation
 import xyz.mdhv.formanalyser.athlete.SessionDefaults
 import xyz.mdhv.formanalyser.athlete.SmartDefaultsEngine
 
-class AthleteFeatureRepository(context: Context) {
+@Singleton
+class AthleteFeatureRepository @Inject constructor(@ApplicationContext context: Context) {
     private val db = AppDatabase.get(context.applicationContext)
     private val athlete = db.athleteDao()
     private val sessions = db.sessionDao()

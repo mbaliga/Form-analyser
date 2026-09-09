@@ -1,10 +1,11 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,9 +26,13 @@ import xyz.mdhv.formanalyser.wellness.CycleEstimate
 import xyz.mdhv.formanalyser.wellness.CycleEstimator
 
 /** Standalone "+ Log" entries + hiatus + cycle + medication (Phase 2 §D/F). */
-class WellnessViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
-    private val prefs = AppPrefs(app)
+@HiltViewModel
+class WellnessViewModel @Inject constructor(
+    private val repo: Repository,
+    // Unused today (pre-existing — carried over from the manual-DI version), kept for parity with
+    // the sibling ViewModels that all take AppPrefs alongside Repository.
+    private val prefs: AppPrefs,
+) : ViewModel() {
 
     private val _openHiatus = MutableStateFlow<HiatusEntity?>(null)
     val openHiatus: StateFlow<HiatusEntity?> = _openHiatus

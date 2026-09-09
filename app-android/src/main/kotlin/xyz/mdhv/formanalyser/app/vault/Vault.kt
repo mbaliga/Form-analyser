@@ -6,8 +6,10 @@ import com.google.crypto.tink.KeyTemplates
 import com.google.crypto.tink.StreamingAead
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import com.google.crypto.tink.streamingaead.StreamingAeadConfig
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.security.MessageDigest
+import javax.inject.Inject
 
 /**
  * Encrypted document vault (Phase 3 §C). Tink streaming AEAD (AES256_GCM_HKDF_4KB) with the
@@ -18,7 +20,7 @@ import java.security.MessageDigest
  * Note on deletion: ciphertext removal is a plain file delete — flash overwrite is theater and
  * we don't pretend otherwise.
  */
-class Vault(private val context: Context) {
+class Vault @Inject constructor(@ApplicationContext private val context: Context) {
 
     private val streamingAead: StreamingAead by lazy {
         StreamingAeadConfig.register()

@@ -1,9 +1,12 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,10 +57,13 @@ data class BaselineInfo(val ready: Boolean, val repCount: Long) {
  * → fatigue + signal↔score. Uses manual refresh after each mutation (simple and predictable) rather
  * than reactive Room Flows.
  */
-class SessionViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
-    private val athleteFeatures = AthleteFeatureRepository(app)
-    val recorder = PoseRecorder(app)
+@HiltViewModel
+class SessionViewModel @Inject constructor(
+    @ApplicationContext context: Context,
+    private val repo: Repository,
+    private val athleteFeatures: AthleteFeatureRepository,
+) : ViewModel() {
+    val recorder = PoseRecorder(context)
     val liveTracking: StateFlow<Boolean>
         get() = recorder.liveTracking
 
