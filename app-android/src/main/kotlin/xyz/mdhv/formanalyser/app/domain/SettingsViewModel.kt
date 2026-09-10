@@ -20,6 +20,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     val reduceMotion: Flow<Boolean> = prefs.reduceMotion
     val hapticStrength: Flow<String> = prefs.hapticStrength
     val glowIntensity: Flow<Int> = prefs.glowIntensity
+    val themeMode: Flow<String> = prefs.themeMode
     val keepRawVideo: Flow<Boolean> = prefs.keepRawVideo
 
     fun setReduceMotion(v: Boolean) = viewModelScope.launch { prefs.setReduceMotion(v) }
@@ -27,6 +28,8 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun setHapticStrength(v: String) = viewModelScope.launch { prefs.setHapticStrength(v) }
 
     fun setGlowIntensity(v: Int) = viewModelScope.launch { prefs.setGlowIntensity(v) }
+
+    fun setThemeMode(v: String) = viewModelScope.launch { prefs.setThemeMode(v) }
 
     fun setKeepRawVideo(v: Boolean) = viewModelScope.launch { prefs.setKeepRawVideo(v) }
 

@@ -28,28 +28,17 @@ import xyz.mdhv.formanalyser.body.RegionShape
 
 /** Visual encodings shared by pain, injury and physio views. */
 object BodyEncodings {
-    private val stops = listOf(
-        0 to Color.Transparent,
-        2 to Color(0xFF251D4B),
-        5 to Color(0xFF49388E),
-        8 to Color(0xFF7562E1),
-        10 to Color(0xFFA593FF),
-    )
-
     fun painColor(intensity: Int): Color {
         val value = intensity.coerceIn(0, 10)
-        for (i in 0 until stops.lastIndex) {
-            val (start, from) = stops[i]
-            val (end, to) = stops[i + 1]
-            if (value in start..end) {
-                val fraction = if (end == start) 0f else (value - start).toFloat() / (end - start)
-                return androidx.compose.ui.graphics.lerp(from, to, fraction)
-            }
-        }
-        return stops.last().second
+        if (value == 0) return Color.Transparent
+        return androidx.compose.ui.graphics.lerp(
+            Hyle.SurfaceVariant,
+            Hyle.AccentBright,
+            .12f + value * .088f,
+        )
     }
 
-    val physioCyan = Color(0xFF35E0FF)
+    val physioCyan get() = Hyle.AlienCyan
 }
 
 /**
@@ -99,7 +88,7 @@ fun BodyAtlasCanvas(
                 drawPath(
                     path,
                     Brush.verticalGradient(
-                        listOf(Color(0xFF282631).copy(alpha = .78f), Color(0xFF17161D).copy(alpha = .9f))
+                        listOf(Hyle.BodyMuscleTop.copy(alpha = .78f), Hyle.BodyMuscleBottom.copy(alpha = .9f))
                     ),
                 )
             }
@@ -119,7 +108,7 @@ fun BodyAtlasCanvas(
 
             badges[region.id]?.let { badge ->
                 val center = Offset(region.centerX.toFloat() * scale, region.centerY.toFloat() * scale)
-                drawCircle(Color(0xE60A0809), 27f * scale, center)
+                drawCircle(Hyle.Surface.copy(alpha = .94f), 27f * scale, center)
                 drawCircle(Hyle.OnBackground.copy(alpha = .45f), 27f * scale, center, style = Stroke(2f * scale))
                 val layout = textMeasurer.measure(
                     badge,
@@ -189,7 +178,7 @@ private fun DrawScope.drawSilhouette(scale: Float) {
         cubicTo(520f * scale, 25f * scale, 480f * scale, 25f * scale, 450f * scale, 48f * scale)
         close()
     }
-    drawPath(body, Brush.verticalGradient(listOf(Color(0xFF1C1B22), Color(0xFF0E0D12))))
+    drawPath(body, Brush.verticalGradient(listOf(Hyle.BodySilhouetteTop, Hyle.BodySilhouetteBottom)))
     drawPath(body, Hyle.HairlineStrong, style = Stroke(2.5f * scale))
 }
 

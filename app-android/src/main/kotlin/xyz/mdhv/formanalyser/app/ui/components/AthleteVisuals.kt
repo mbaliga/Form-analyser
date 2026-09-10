@@ -45,7 +45,7 @@ fun CrocodylHero(
             .clip(RoundedCornerShape(30.dp))
             .background(
                 Brush.linearGradient(
-                    listOf(Color(0xFF241B46), Color(0xFF12111A), Color(0xFF0D1718)),
+                    listOf(Hyle.SurfaceRich, Hyle.Surface, Hyle.SurfaceDeep),
                     start = Offset.Zero,
                     end = Offset(1100f, 700f),
                 )
@@ -131,7 +131,7 @@ fun CaptureHowTo(modifier: Modifier = Modifier) {
     Card(
         modifier,
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF15131D)),
+        colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceDeep),
         border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.Accent.copy(alpha = .2f)),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -209,7 +209,7 @@ fun ImprovementAreas(shots: List<ShotView>, modifier: Modifier = Modifier) {
     Card(
         modifier.fillMaxWidth(),
         shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF171421)),
+        colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceRich),
         border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.Accent.copy(alpha = .24f)),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {

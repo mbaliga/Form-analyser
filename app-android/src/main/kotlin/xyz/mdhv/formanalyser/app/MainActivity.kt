@@ -24,6 +24,7 @@ import xyz.mdhv.formanalyser.app.domain.*
 import xyz.mdhv.formanalyser.app.ui.*
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.app.ui.theme.ThemeMode
 
 // NB: must NOT be named `R` — in package xyz.mdhv.formanalyser.app that collides with AGP's
 // generated resources class xyz.mdhv.formanalyser.app.R at dex time (the resources class wins,
@@ -64,7 +65,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            FormAnalyserTheme {
+            val prefs = remember { AppPrefs(this@MainActivity) }
+            val storedTheme by prefs.themeMode.collectAsState(initial = ThemeMode.SYSTEM.name)
+            FormAnalyserTheme(ThemeMode.fromStorage(storedTheme)) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     AppRoot()
                 }

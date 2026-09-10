@@ -42,7 +42,7 @@ fun BodyContextPanel(
         Card(
             Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF171421)),
+            colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceRich),
             border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.Accent.copy(alpha = .2f)),
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
