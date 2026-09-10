@@ -33,6 +33,7 @@ import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.domain.ShotView
 import xyz.mdhv.formanalyser.app.ui.components.Scatter
 import xyz.mdhv.formanalyser.app.ui.components.TrendLine
+import xyz.mdhv.formanalyser.app.ui.components.ImprovementAreas
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
 
@@ -61,6 +62,8 @@ fun ReviewScreen(vm: SessionViewModel, onDeleted: () -> Unit) {
                 else "Building baseline — mark ${baseline.needed} more good shot(s)"
             Text(msg, color = if (baseline.ready) Hyle.RadiumGreen else Hyle.OnSurfaceDim)
         }
+
+        item { ImprovementAreas(shots) }
 
         item {
             SectionCard("Bow-arm trend (fatigue = downward slope)") {
