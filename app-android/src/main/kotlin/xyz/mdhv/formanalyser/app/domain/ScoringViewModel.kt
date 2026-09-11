@@ -144,6 +144,27 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun recordObserverPhrase(utterance: String) {
+        val id = _state.value.snapshot?.session?.id ?: return
+        val spoken =
+            runCatching { ScoreInput.parseSpoken(utterance) }
+                .getOrElse { t ->
+                    _state.update { it.copy(error = t.message ?: "No valid score heard") }
+                    return
+                }
+        action {
+            val next = repo.recordObserverTap(
+                id,
+                spoken.score.points,
+                spoken.score.isX,
+                spoken.sector,
+                inputKind = "VOICE",
+                declaredText = spoken.declaredText,
+            )
+            return@action { copy(snapshot = next) }
+        }
+    }
+
     fun loadEndScanCandidates() {
         val s = _state.value.snapshot ?: return
         viewModelScope.launch {

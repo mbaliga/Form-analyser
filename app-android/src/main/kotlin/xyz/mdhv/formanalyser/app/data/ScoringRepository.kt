@@ -325,6 +325,8 @@ class ScoringRepository(context: Context) {
         ring: Int,
         isX: Boolean = false,
         sector: String? = null,
+        inputKind: String = "TAP",
+        declaredText: String? = null,
     ): Snapshot =
         db.withTransaction {
             require(ring in 0..10)
@@ -340,8 +342,8 @@ class ScoringRepository(context: Context) {
                     ring,
                     isX,
                     sector,
-                    "TAP",
-                    declaredText = if (isX) "X" else if (ring == 0) "M" else ring.toString(),
+                    inputKind,
+                    declaredText = declaredText ?: if (isX) "X" else if (ring == 0) "M" else ring.toString(),
                 )
             features.upsertObserverEvent(e)
             val next =

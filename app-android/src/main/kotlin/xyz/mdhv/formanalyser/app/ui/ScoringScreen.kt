@@ -1,5 +1,10 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import android.app.Activity
+import android.content.Intent
+import android.speech.RecognizerIntent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.ZoneId
@@ -15,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.domain.ScoringInputMode
 import xyz.mdhv.formanalyser.app.domain.ScoringViewModel
+import xyz.mdhv.formanalyser.app.ui.components.EndScanPhoto
 import xyz.mdhv.formanalyser.app.ui.components.TargetFaceCanvas
 import xyz.mdhv.formanalyser.app.ui.theme.HapticCue
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -33,6 +40,29 @@ fun ScoringScreen(vm: ScoringViewModel) {
     var chooser by rememberSaveable { mutableStateOf(false) }
     var custom by rememberSaveable { mutableStateOf(false) }
     var linking by rememberSaveable { mutableStateOf(false) }
+    var voiceStatus by rememberSaveable { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val voiceIntent = remember {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Say an arrow, for example: eight bottom left")
+        }
+    }
+    val voiceAvailable = remember { voiceIntent.resolveActivity(context.packageManager) != null }
+    val voiceLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val heard = result.data
+                    ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    ?.firstOrNull()
+                if (heard != null) {
+                    voiceStatus = "Heard: $heard"
+                    vm.recordObserverPhrase(heard)
+                } else voiceStatus = "Nothing understood. Tap and try again."
+            }
+        }
 
     if (state.loading) {
         Box(Modifier.fillMaxSize().padding(24.dp)) { CircularProgressIndicator() }
@@ -200,10 +230,34 @@ fun ScoringScreen(vm: ScoringViewModel) {
                                 },
                                 canScore,
                             )
+                            Button(
+                                onClick = { voiceLauncher.launch(voiceIntent) },
+                                enabled = canScore && voiceAvailable,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text("Speak score")
+                            }
+                            Text(
+                                if (voiceAvailable)
+                                    voiceStatus ?: "Try “eight bottom left”. Offline recognition is requested; Android shows the recognizer it will use."
+                                else "No speech recognizer is installed. Tap scoring remains available.",
+                                color = Hyle.OnSurfaceDim,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
                         }
                     }
                 ScoringInputMode.END_SCAN ->
-                    item { EndScanPanel(state.endScanCandidates, vm, canScore) }
+                    item {
+                        EndScanPanel(
+                            candidates = state.endScanCandidates,
+                            vm = vm,
+                            enabled = canScore,
+                            maxArrows =
+                                if (card.isFull) 0
+                                else card.round.arrowsPerEnd - card.currentArrowIndex,
+                            faceLayout = card.round.faceLayout,
+                        )
+                    }
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -411,16 +465,25 @@ private fun EndScanPanel(
     candidates: List<xyz.mdhv.formanalyser.app.data.ScoreCandidateEntity>,
     vm: ScoringViewModel,
     enabled: Boolean,
+    maxArrows: Int,
+    faceLayout: xyz.mdhv.formanalyser.scoring.FaceLayout,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("End Scan review", style = MaterialTheme.typography.titleMedium)
+        Text("End Scan", style = MaterialTheme.typography.titleMedium)
         Text(
-            "Automatic target detection is not yet range-validated. Only proposed candidates from a validated detector may appear here; they never affect totals until you confirm them.",
+            "Choose a target photo, calibrate its centre and edge, then mark each arrow. Crocodyl calculates provisional rings; nothing affects your total until you confirm it.",
             color = Hyle.OnSurfaceDim,
         )
-        if (candidates.isEmpty())
+        EndScanPhoto(
+            maxArrows = maxArrows,
+            faceLayout = faceLayout,
+            enabled = enabled && maxArrows > 0,
+            onCandidates = vm::acceptDetectedCandidates,
+        )
+        if (candidates.none { it.status == "PROPOSED" })
             Text(
-                "No proposed candidates. Manual numeric/plot scoring remains authoritative.",
+                if (maxArrows > 0) "No arrows waiting for review."
+                else "This end is full. Confirm or reject any remaining proposals below.",
                 color = Hyle.OnSurfaceDim,
             )
         candidates

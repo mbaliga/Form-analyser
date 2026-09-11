@@ -9,6 +9,13 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,8 +53,11 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import java.io.File
+import android.os.Environment
 import java.util.concurrent.Executors
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
+import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.ui.components.CaptureFramingOverlay
 import xyz.mdhv.formanalyser.app.ui.components.CaptureHowTo
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -56,6 +66,9 @@ import xyz.mdhv.formanalyser.app.ui.theme.provenanceGlow
 @Composable
 fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
     val context = LocalContext.current
+    val prefs = remember { AppPrefs(context) }
+    val keepRawVideo by prefs.keepRawVideo.collectAsState(initial = false)
+    var videoNotice by rememberSaveable { mutableStateOf<String?>(null) }
     // Two different questions that were previously conflated under one `hasCamera` flag: does this
     // device HAVE a camera, and have we been GRANTED it. The manifest no longer requires camera
     // hardware (that made the app un-installable on camera-less Chromebooks), so the app must now
@@ -148,7 +161,13 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
                 Modifier.fillMaxWidth().height(390.dp).clip(RoundedCornerShape(26.dp))
                     .provenanceGlow(if (tracking) Hyle.RadiumGreen else Hyle.Accent)
             ) {
-                CameraPreview(vm, Modifier.fillMaxSize())
+                CameraPreview(
+                    vm = vm,
+                    recording = recording,
+                    keepRawVideo = keepRawVideo,
+                    onVideoResult = { videoNotice = it },
+                    modifier = Modifier.fillMaxSize(),
+                )
                 CaptureFramingOverlay(tracking, Modifier.fillMaxSize())
                 Surface(
                     color = if (tracking) Hyle.RadiumGreen.copy(alpha = .9f) else Hyle.Surface.copy(alpha = .82f),
@@ -179,6 +198,13 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
             },
             color = if (tracking) Hyle.RadiumGreen else Hyle.OnSurfaceDim,
         )
+        if (keepRawVideo) {
+            Text(
+                videoNotice ?: "Raw video is enabled · saved privately in Crocodyl’s app storage.",
+                color = Hyle.OnSurfaceDim,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
 
         Button(
             onClick = { if (recording) vm.stopRecordingAndAnalyze() else vm.startRecording() },
@@ -200,7 +226,14 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
 }
 
 @Composable
-private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
+private fun CameraPreview(
+    vm: SessionViewModel,
+    recording: Boolean,
+    keepRawVideo: Boolean,
+    onVideoResult: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val executor = remember { Executors.newSingleThreadExecutor() }
     DisposableEffect(Unit) { onDispose { executor.shutdown() } }
@@ -213,12 +246,48 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
     // re-resolving the provider future.
     var provider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     val preview = remember { Preview.Builder().build() }
+    val recorder = remember {
+        Recorder.Builder()
+            .setQualitySelector(
+                QualitySelector.fromOrderedList(
+                    listOf(Quality.HD, Quality.SD),
+                    androidx.camera.video.FallbackStrategy.lowerQualityOrHigherThan(Quality.SD),
+                )
+            )
+            .build()
+    }
+    val videoCapture = remember { VideoCapture.withOutput(recorder) }
+    var activeRecording by remember { mutableStateOf<Recording?>(null) }
     val analysis = remember {
         ImageAnalysis.Builder()
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
             .also { it.setAnalyzer(executor) { img -> vm.recorder.process(img) } }
+    }
+
+    LaunchedEffect(recording, keepRawVideo) {
+        if (recording && keepRawVideo && activeRecording == null) {
+            val root = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: context.filesDir
+            val dir = File(root, "captures").apply { mkdirs() }
+            val file = File(dir, "crocodyl-${System.currentTimeMillis()}.mp4")
+            val output = FileOutputOptions.Builder(file).build()
+            activeRecording =
+                videoCapture.output
+                    .prepareRecording(context, output)
+                    .start(ContextCompat.getMainExecutor(context)) { event ->
+                        if (event is VideoRecordEvent.Finalize) {
+                            activeRecording = null
+                            onVideoResult(
+                                if (event.error == VideoRecordEvent.Finalize.ERROR_NONE)
+                                    "Video saved privately · ${file.name}"
+                                else "Video could not be saved · analysis was kept"
+                            )
+                        }
+                    }
+        } else if (!recording && activeRecording != null) {
+            activeRecording?.stop()
+        }
     }
 
     AndroidView(
@@ -247,7 +316,9 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
                             // Unbind only OUR use cases. unbindAll() is process-global and would
                             // tear down another window's camera on a foldable or desktop.
                             p.unbind(preview, analysis)
-                            p.bindToLifecycle(lifecycleOwner, selector, preview, analysis)
+                            if (keepRawVideo)
+                                p.bindToLifecycle(lifecycleOwner, selector, preview, analysis, videoCapture)
+                            else p.bindToLifecycle(lifecycleOwner, selector, preview, analysis)
                         }
                     }
                 },
@@ -265,5 +336,10 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
         },
     )
 
-    DisposableEffect(Unit) { onDispose { runCatching { provider?.unbind(preview, analysis) } } }
+    DisposableEffect(Unit) {
+        onDispose {
+            activeRecording?.stop()
+            runCatching { provider?.unbind(preview, analysis, videoCapture) }
+        }
+    }
 }
