@@ -193,6 +193,23 @@ fun ExportScreen(vm: ExportViewModel) {
         ) {
             Text("Share…")
         }
+        Button(
+            onClick = {
+                vm.exportSignedForSharing { uri ->
+                    val send =
+                        Intent(Intent.ACTION_SEND).apply {
+                            type = ExportViewModel.MIME_CROC
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                    context.startActivity(Intent.createChooser(send, "Share signed Crocodyl exchange"))
+                }
+            },
+            enabled = !busy && leaving.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Share signed .croc")
+        }
         Text(
             "Sharing sends exactly what the two lists above describe — nothing more.",
             color = Hyle.OnSurfaceDim,
@@ -205,11 +222,20 @@ fun ExportScreen(vm: ExportViewModel) {
             color = Hyle.OnSurfaceDim,
         )
         OutlinedButton(
-            onClick = { importPicker.launch(arrayOf(ExportViewModel.MIME_ZIP, "application/octet-stream")) },
+            onClick = {
+                importPicker.launch(
+                    arrayOf(
+                        ExportViewModel.MIME_CROC,
+                        ExportViewModel.MIME_ZIP,
+                        "application/octet-stream",
+                        "application/json",
+                    )
+                )
+            },
             enabled = !busy,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (busy) "Checking archive…" else "Choose .crocbak archive")
+            Text(if (busy) "Checking archive…" else "Choose .croc or .crocbak")
         }
         importPreview?.let { preview ->
             Card(
@@ -238,7 +264,7 @@ fun ExportScreen(vm: ExportViewModel) {
             Text(it.message, color = if (it.ok) Hyle.RadiumGreen else Hyle.Danger)
         }
         Text(
-            "Device identity is informative, not a cryptographic signature. Signed person-to-person .croc exchange remains a separate protocol.",
+            "A .croc verifies its sender key, payload checksum and ECDSA signature before preview. A legacy .crocbak has checksum validation but no signature.",
             color = Hyle.OnSurfaceDim,
             style = MaterialTheme.typography.labelMedium,
         )

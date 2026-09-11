@@ -9,6 +9,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
 import java.security.MessageDigest
 import java.util.zip.ZipEntry
@@ -34,6 +35,7 @@ import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.exchange.AndroidKeyProvider
 import xyz.mdhv.formanalyser.exchange.ConsentDecision
 import xyz.mdhv.formanalyser.exchange.ConsentFilter
+import xyz.mdhv.formanalyser.exchange.CrocEnvelope
 import xyz.mdhv.formanalyser.exchange.CrocbakManifest
 import xyz.mdhv.formanalyser.exchange.ExportTier
 import xyz.mdhv.formanalyser.wellness.PrivacyClass
@@ -207,6 +209,46 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Build a cryptographically signed `.croc` envelope around the consent-filtered archive. */
+    fun exportSignedForSharing(onReady: (Uri) -> Unit) {
+        if (_busy.value) return
+        _busy.value = true
+        _outcome.value = null
+        viewModelScope.launch {
+            val result =
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        val app = getApplication<Application>()
+                        val dir = File(app.cacheDir, SHARE_DIR).apply { mkdirs() }
+                        dir.listFiles()?.forEach { it.delete() }
+                        val backup = java.io.ByteArrayOutputStream().also { writeArchive(it) }.toByteArray()
+                        val identity = keyProvider.identity()
+                        val envelope =
+                            CrocEnvelope.create(
+                                createdAtMs = System.currentTimeMillis(),
+                                senderPublicKey = identity.keyBytes,
+                                payloadType = CrocEnvelope.BACKUP_PAYLOAD,
+                                payload = backup,
+                                signer = keyProvider::sign,
+                            )
+                        val file = File(dir, SUGGESTED_CROC_FILENAME)
+                        file.writeText(envelope.serialize())
+                        FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
+                    }
+                }
+            _busy.value = false
+            result.fold(
+                onSuccess = { uri ->
+                    _outcome.value = ExportOutcome(true, "Signed .croc exchange ready.")
+                    onReady(uri)
+                },
+                onFailure = {
+                    _outcome.value = ExportOutcome(false, "Signed exchange failed: ${it.message ?: it.javaClass.simpleName}")
+                },
+            )
+        }
+    }
+
     /** Read and validate an archive without modifying the database. */
     fun inspectImport(uri: Uri) {
         if (_busy.value) return
@@ -371,6 +413,18 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         val input =
             getApplication<Application>().contentResolver.openInputStream(uri)
                 ?: error("cannot open archive")
+        val bytes = input.use { it.readBounded(MAX_ARCHIVE_BYTES) }
+        val first = bytes.firstOrNull { !it.toInt().toChar().isWhitespace() }
+        if (first?.toInt()?.toChar() == '{') {
+            val envelope = CrocEnvelope.deserialize(bytes.decodeToString())
+            require(envelope.payloadType == CrocEnvelope.BACKUP_PAYLOAD) { "unsupported .croc payload" }
+            require(envelope.verify()) { "the .croc signature is invalid" }
+            return readArchive(java.io.ByteArrayInputStream(envelope.payload()))
+        }
+        return readArchive(java.io.ByteArrayInputStream(bytes))
+    }
+
+    private fun readArchive(input: InputStream): ArchiveBundle {
         val entries = LinkedHashMap<String, ByteArray>()
         input.buffered().use { source ->
             ZipInputStream(source).use { zip ->
@@ -453,7 +507,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         return "Imported $inserted new row(s); kept $kept existing row(s). Nothing was overwritten."
     }
 
-    private fun ZipInputStream.readBounded(limit: Int): ByteArray {
+    private fun InputStream.readBounded(limit: Int): ByteArray {
         val output = java.io.ByteArrayOutputStream()
         val buffer = ByteArray(8192)
         var total = 0
@@ -479,9 +533,11 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
         /** Suggested SAF filename for the CreateDocument picker. */
         const val SUGGESTED_FILENAME: String = "crocodyl-export.crocbak"
+        const val SUGGESTED_CROC_FILENAME: String = "crocodyl-share.croc"
 
         /** MIME for the archive. */
         const val MIME_ZIP: String = "application/zip"
+        const val MIME_CROC: String = "application/vnd.crocodyl.exchange+json"
 
         /** Cache subdirectory the FileProvider exposes; nothing else in the cache is shareable. */
         const val SHARE_DIR: String = "share"
@@ -502,6 +558,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
         private val TABLE_ENTRY = Regex("tables/[a-z0-9_]+\\.json")
         private const val MAX_ENTRY_BYTES = 32 * 1024 * 1024
+        private const val MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
 
         /** Parents before children so foreign-key enforcement remains active throughout import. */
         private val IMPORT_ORDER =
