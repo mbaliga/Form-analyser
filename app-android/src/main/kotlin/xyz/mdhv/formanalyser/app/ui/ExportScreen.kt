@@ -16,6 +16,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
@@ -58,6 +60,8 @@ fun ExportScreen(vm: ExportViewModel) {
     val fingerprint by vm.fingerprint.collectAsState()
     val busy by vm.busy.collectAsState()
     val outcome by vm.outcome.collectAsState()
+    val importPreview by vm.importPreview.collectAsState()
+    val importOutcome by vm.importOutcome.collectAsState()
     val context = LocalContext.current
 
     val picker =
@@ -66,14 +70,18 @@ fun ExportScreen(vm: ExportViewModel) {
         ) { uri ->
             if (uri != null) vm.export(uri)
         }
+    val importPicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) vm.inspectImport(uri)
+        }
 
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Export", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+        Text("Data & exchange", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Text(
-            "Build a signed-identity .crocbak archive of your data. You choose exactly what leaves " +
+            "Build an identity-stamped .crocbak archive of your data. You choose exactly what leaves " +
                 "this device — private data (mood, life events, cycle) never can.",
             color = Hyle.OnSurfaceDim,
         )
@@ -187,6 +195,50 @@ fun ExportScreen(vm: ExportViewModel) {
         }
         Text(
             "Sharing sends exactly what the two lists above describe — nothing more.",
+            color = Hyle.OnSurfaceDim,
+            style = MaterialTheme.typography.labelMedium,
+        )
+
+        HyleSectionHeader("Import & recover")
+        Text(
+            "Crocodyl validates the manifest, declared tables, row counts and full payload checksum before showing a preview. Import only adds missing rows; it never overwrites your local history.",
+            color = Hyle.OnSurfaceDim,
+        )
+        OutlinedButton(
+            onClick = { importPicker.launch(arrayOf(ExportViewModel.MIME_ZIP, "application/octet-stream")) },
+            enabled = !busy,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(if (busy) "Checking archive…" else "Choose .crocbak archive")
+        }
+        importPreview?.let { preview ->
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceRich),
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Validated archive", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "${preview.tableCount} tables · ${preview.rowCount} rows · Crocodyl ${preview.appVersion}",
+                        color = Hyle.OnSurfaceDim,
+                    )
+                    Text(
+                        shortFingerprint(preview.sourceFingerprint),
+                        fontFamily = FontFamily.Monospace,
+                        color = Hyle.AlienCyan,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = vm::importInspected, enabled = !busy) { Text("Import missing rows") }
+                        OutlinedButton(onClick = vm::cancelImport, enabled = !busy) { Text("Cancel") }
+                    }
+                }
+            }
+        }
+        importOutcome?.let {
+            Text(it.message, color = if (it.ok) Hyle.RadiumGreen else Hyle.Danger)
+        }
+        Text(
+            "Device identity is informative, not a cryptographic signature. Signed person-to-person .croc exchange remains a separate protocol.",
             color = Hyle.OnSurfaceDim,
             style = MaterialTheme.typography.labelMedium,
         )
