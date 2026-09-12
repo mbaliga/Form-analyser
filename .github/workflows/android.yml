@@ -5,15 +5,25 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      # app-android depends on every core-* module (project(...)); without this, a core-only
+      # change (e.g. core-coach/core-exchange/core-scoring) would never trigger the Android
+      # assemble/test job that actually exercises it.
+      - "core-*/**"
       - "app-android/**"
       - "*.gradle.kts"
+      # the dev.aarso:hyle composite build (settings.gradle.kts) and its pinned submodule.
+      - "hyle-design-system/**"
+      - ".gitmodules"
       - ".github/workflows/android.yml"
   pull_request:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "core-*/**"
       - "app-android/**"
       - "*.gradle.kts"
+      - "hyle-design-system/**"
+      - ".gitmodules"
       - ".github/workflows/android.yml"
 
 jobs:
@@ -21,6 +31,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # hyle-design-system submodule — :app-android's dev.aarso:hyle dependency resolves
+          # from its includeBuild (settings.gradle.kts, under -PwithAndroid); an empty submodule
+          # dir breaks the build.
+          submodules: recursive
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -37,4 +52,18 @@ jobs:
         with:
           name: form-analyser-debug
           path: app-android/build/outputs/apk/debug/*.apk
+          if-no-files-found: ignore
+      # Robolectric local unit tests: Room migrations against hand-built fixtures, the
+      # PrivacyRegistry reflection guard, and the Scoring/Coach/Import ViewModels. This is the
+      # first place any of them can actually run — no Android SDK exists in the session that
+      # authored them (see CROCODYL_STATUS.md §4.4), so this step is where they are proven, not a
+      # formality after the fact.
+      - name: Run app-android unit tests (Robolectric)
+        run: ./gradlew :app-android:testDebugUnitTest -PwithAndroid --no-daemon
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-android-unit-test-report
+          path: app-android/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore

@@ -57,6 +57,12 @@ class WellnessAssembler(private val repo: Repository) {
     suspend fun acwr(athleteId: String, today: LocalDate = LocalDate.now()): AcwrSeries =
         Acwr.compute(dailyLoads(athleteId), today)
 
+    /** The sRPE secondary lane (Acwr.computeSrpe) over the same daily loads — see the Load view's
+     * second chart. Kept as its own call (rather than folding into [acwr]) so a screen that only
+     * wants the shot-load ratio never pays for or depends on the sRPE one. */
+    suspend fun srpeAcwr(athleteId: String, today: LocalDate = LocalDate.now()): AcwrSeries =
+        Acwr.computeSrpe(dailyLoads(athleteId), today)
+
     suspend fun streak(athleteId: String, plannedRestCsv: String, today: LocalDate = LocalDate.now()): StreakState {
         val sessions = repo.allSessions(athleteId)
         val sessionDays = sessions.map { epochToDate(it.startedAtEpochMs) }.toSet()
@@ -95,6 +101,44 @@ class WellnessAssembler(private val repo: Repository) {
             .map(::factsFor)
             .toList()
         return StreakEngine.evaluate(completed, today = factsFor(today))
+    }
+
+    /**
+     * [DayFacts] for the trailing 7 days (oldest first, [today] last) — the streak week-strip glyphs
+     * (Calendar tab). Deliberately its own DB read rather than reusing [streak]'s internal window: a
+     * future change to how far back the streak engine looks (`start`/warm-up) must not silently
+     * change what a 7-day glyph strip shows, and the read itself is cheap (same tables, one week).
+     */
+    suspend fun weekFacts(
+        athleteId: String,
+        plannedRestCsv: String,
+        today: LocalDate = LocalDate.now(),
+    ): List<DayFacts> {
+        val sessionDays = repo.allSessions(athleteId).map { epochToDate(it.startedAtEpochMs) }.toSet()
+        val restDays = repo.wellness.allRestDays().map { LocalDate.parse(it.date) }.toSet()
+        val checkinDays = repo.wellness.checkinsSince(athleteId, 0L).map { epochToDate(it.ts) }.toSet()
+        val hiatuses = repo.wellness.allHiatuses().map {
+            LocalDate.parse(it.startDate) to (it.endDate?.let(LocalDate::parse) ?: today)
+        }
+        val planned = plannedRestCsv.split(',').mapNotNull { code ->
+            when (code.trim().uppercase()) {
+                "MO" -> java.time.DayOfWeek.MONDAY; "TU" -> java.time.DayOfWeek.TUESDAY
+                "WE" -> java.time.DayOfWeek.WEDNESDAY; "TH" -> java.time.DayOfWeek.THURSDAY
+                "FR" -> java.time.DayOfWeek.FRIDAY; "SA" -> java.time.DayOfWeek.SATURDAY
+                "SU" -> java.time.DayOfWeek.SUNDAY; else -> null
+            }
+        }.toSet()
+        return (6 downTo 0).map { back ->
+            val d = today.minusDays(back.toLong())
+            DayFacts(
+                date = d,
+                session = d in sessionDays,
+                restLogged = d in restDays,
+                plannedRest = d.dayOfWeek in planned,
+                anyCheckin = d in checkinDays,
+                hiatus = hiatuses.any { (s, e) -> !d.isBefore(s) && !d.isAfter(e) },
+            )
+        }
     }
 
     suspend fun readiness(athleteId: String, today: LocalDate = LocalDate.now(), nowMs: Long = System.currentTimeMillis()): ReadinessResult {

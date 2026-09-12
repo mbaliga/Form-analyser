@@ -2,10 +2,14 @@ package xyz.mdhv.formanalyser.app.data
 
 import android.content.Context
 import androidx.room.withTransaction
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 import xyz.mdhv.formanalyser.scoring.*
 
-class ScoringRepository(context: Context) {
+@Singleton
+class ScoringRepository @Inject constructor(@ApplicationContext context: Context) {
     private val db = AppDatabase.get(context.applicationContext)
     private val scoring = db.scoringDao()
     private val features = db.athleteFeatureDao()
@@ -248,13 +252,30 @@ class ScoringRepository(context: Context) {
             snapshotUnlocked(sessionId) to pb
         }
 
+    /**
+     * One machine proposal, before it is anything at all.
+     *
+     * [detectorVersion] is `EndScan.DETECTOR_VERSION` for anything the target-photo detector found.
+     * It is nullable because this type predates the detector and a caller that is not one is not
+     * going to invent a version for itself.
+     */
     data class EndScanCandidate(
         val points: Int,
         val isX: Boolean = false,
         val plot: PlotPoint? = null,
         val confidence: Double? = null,
+        val detectorVersion: String? = null,
     )
 
+    /**
+     * File a scan's findings as proposals for one end. Changes no score and no total.
+     *
+     * Re-scanning an end supersedes whatever the previous scan proposed rather than stacking a
+     * second set of rows behind the first: the athlete who retakes the photo has already decided the
+     * first read was wrong, and leaving both in the review queue would mean confirming an arrow from
+     * a photograph they rejected. Superseded rows stay on the device — see
+     * [AthleteFeatureDao.supersedeProposedCandidates].
+     */
     suspend fun proposeEndScanCandidates(
         sessionId: String,
         endIndex: Int,
@@ -262,6 +283,7 @@ class ScoringRepository(context: Context) {
     ): List<ScoreCandidateEntity> =
         db.withTransaction {
             val now = System.currentTimeMillis()
+            features.supersedeProposedCandidates(sessionId, endIndex, now)
             candidates.mapIndexed { i, c ->
                 require(c.points in 0..10)
                 ScoreCandidateEntity(
@@ -276,6 +298,7 @@ class ScoringRepository(context: Context) {
                         c.plot?.faceIndex,
                         c.confidence?.coerceIn(0.0, 1.0),
                         createdAtMs = now,
+                        detectorVersion = c.detectorVersion,
                     )
                     .also { features.upsertCandidate(it) }
             }
@@ -359,6 +382,106 @@ class ScoringRepository(context: Context) {
         }
 
     suspend fun observerEvents(sessionId: String) = features.observerEvents(sessionId)
+
+    /**
+     * File one spoken arrow as a proposal — never as an authoritative score.
+     *
+     * Mirrors [proposeEndScanCandidates] for the same structural reason: [Scorecard.record] requires
+     * arrow indices to stay contiguous and [Scorecard.total] sums every arrow, so a transcription no
+     * human has confirmed cannot sit in `score_arrow` at all — it has to live in a side table.
+     * `observer_score_event` is that table already; this just gives it a second writer, alongside
+     * [recordObserverTap], distinguished by `status = "PROPOSED"` / `inputMode = "VOICE"` rather than
+     * the tap path's immediate `"CONFIRMED"` / `"TAP"`. A tap needs no propose step because a tap
+     * *is* the human confirming it; a machine transcription is not.
+     *
+     * Validated against the round's layout here, not only at [confirmObserverEvents] time, so a
+     * triple-face round refuses a spoken 5 before it ever reaches the review strip.
+     *
+     * Returns every arrow still awaiting confirm for this session, so the caller can replace its
+     * whole pending strip with the result instead of tracking one freshly-inserted row separately.
+     */
+    suspend fun proposeObserverSpoken(
+        sessionId: String,
+        ring: Int,
+        isX: Boolean,
+        sector: String?,
+        declaredText: String,
+    ): List<ObserverScoreEventEntity> =
+        db.withTransaction {
+            require(ring in 0..10)
+            val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
+            validateForLayout(ArrowScore(ring, isX), cur.card.round.faceLayout)
+            features.upsertObserverEvent(
+                ObserverScoreEventEntity(
+                    UUID.randomUUID().toString(),
+                    sessionId,
+                    System.currentTimeMillis(),
+                    ring,
+                    isX,
+                    sector,
+                    "VOICE",
+                    status = "PROPOSED",
+                    declaredText = declaredText,
+                )
+            )
+            features.pendingObserverEvents(sessionId)
+        }
+
+    suspend fun pendingObserverEvents(sessionId: String): List<ObserverScoreEventEntity> =
+        features.pendingObserverEvents(sessionId)
+
+    /**
+     * Turn some or all pending spoken arrows into authoritative ones, in the order they were spoken.
+     *
+     * One transaction and one [ScoringDao.updateFrom] at the end — chaining [Scorecard.record] calls
+     * in memory first and writing the summary once — so confirming a full end of six costs one
+     * summary write rather than six. [eventIds] must all still be `"PROPOSED"`; anything else (a row
+     * already confirmed or rejected by a stale reference) fails the whole batch rather than silently
+     * dropping it, the same all-or-nothing shape [Scorecard.init]'s contiguity check forces on every
+     * other multi-arrow write here.
+     *
+     * Each arrow lands with the identical provenance a tap would carry — `LIVE_OBSERVER` /
+     * `HUMAN_CONFIRMED` / `SHOT_INFERRED`, `plot = null` — because a human has now confirmed it
+     * exactly as they would have tapped it; nothing downstream can tell the two apart, which is the
+     * point.
+     */
+    suspend fun confirmObserverEvents(sessionId: String, eventIds: List<String>): Snapshot =
+        db.withTransaction {
+            val ids = eventIds.toSet()
+            val pending = features.pendingObserverEvents(sessionId).filter { it.id in ids }
+            check(pending.size == ids.size) { "Some spoken arrows are no longer pending." }
+            var cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
+            val now = System.currentTimeMillis()
+            pending
+                .sortedBy { it.atMs }
+                .forEach { e ->
+                    validateForLayout(ArrowScore(e.ring, e.isX), cur.card.round.faceLayout)
+                    val next =
+                        cur.card.record(
+                            UUID.randomUUID().toString(),
+                            ArrowScore(e.ring, e.isX),
+                            null,
+                            ScoreSource.LIVE_OBSERVER,
+                            AuthorityState.HUMAN_CONFIRMED,
+                            ObservationResolution.SHOT_INFERRED,
+                        )
+                    scoring.upsertArrow(next.arrows.last().toEntity(sessionId, now))
+                    features.resolveObserverEvent(e.id, "CONFIRMED")
+                    cur = Snapshot(cur.session, next)
+                }
+            scoring.updateFrom(cur.card, sessionId)
+            Snapshot(scoring.session(sessionId)!!, cur.card)
+        }
+
+    /**
+     * Discard one spoken proposal. Marked `"REJECTED"`, never deleted — see
+     * [AthleteFeatureDao.resolveObserverEvent].
+     */
+    suspend fun rejectObserverEvent(eventId: String) {
+        features.resolveObserverEvent(eventId, "REJECTED")
+    }
 
     /**
      * What deleting a scorecard would destroy, so the athlete is told before it happens rather than

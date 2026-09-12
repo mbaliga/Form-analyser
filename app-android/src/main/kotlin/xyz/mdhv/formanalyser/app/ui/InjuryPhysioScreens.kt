@@ -1,5 +1,7 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -134,6 +136,26 @@ fun InjuryEditScreen(
                 )
             }
         }
+    // In-app camera capture for the vault (Phase 3 deviation: this was SAF-import-only). The
+    // pending Uri is held here rather than read back from the launcher's Boolean result, per the
+    // TakePicture contract — it tells us only whether the camera wrote to the Uri we gave it, not
+    // what that Uri was. rememberSaveable (Uri is Parcelable) because the camera app backgrounds
+    // this activity — a config change or process death while it's in the foreground would otherwise
+    // lose plain `remember` state, and the TakePicture callback would then fire with savedOk=true
+    // but a null Uri, silently dropping the photo and leaving the plaintext JPEG in cache/capture.
+    var pendingCaptureUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val hasCameraHardware =
+        remember(context) {
+            context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+        }
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { savedOk ->
+            val uri = pendingCaptureUri
+            pendingCaptureUri = null
+            if (savedOk && uri != null && existing != null) {
+                vm.importCapturedPhoto(uri, title = "Photo ${documents.size + 1}", injuryId = existing.id)
+            }
+        }
 
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
@@ -188,6 +210,17 @@ fun InjuryEditScreen(
             ) {
                 Text("Attach document (PDF / image)")
             }
+            if (hasCameraHardware)
+                OutlinedButton(
+                    onClick = {
+                        val uri = vm.newCaptureUri()
+                        pendingCaptureUri = uri
+                        cameraLauncher.launch(uri)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Photograph document")
+                }
         }
 
         // Save is gated on a region, and used to be the ONLY control here — so an athlete who

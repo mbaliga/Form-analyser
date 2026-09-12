@@ -60,6 +60,10 @@ class PubkeyIdentity private constructor(private val bytes: ByteArray) {
  * Seam for obtaining the athlete's public-key identity. The core keeps this an interface so tests
  * can supply deterministic keys; the Android Keystore-backed implementation is provided in the app
  * layer. Never generates or handles private keys inside the core.
+ *
+ * Signing is deliberately NOT here — it is the separate [SigningKeyProvider] capability, so that
+ * "reads the athlete's public identity" (the `.crocbak` manifest, the settings screen) and "can sign
+ * as the athlete" (the `.croc` exchange envelope) stay distinguishable in a type.
  */
 interface KeyProvider {
     /** The athlete's current public-key identity. */

@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- dev.aarso:hyle (the design-token module — see build.gradle.kts and ui/theme/Theme.kt)
+         declares minSdk 31, above this app's 26: it started life inside a min-31 app and hasn't
+         had its floor re-checked against Hyle's other consumers yet. Without this override the
+         manifest merger hard-fails ("uses-sdk:minSdkVersion 26 cannot be smaller than version 31
+         declared in library"). The override is honored only because :hyle's Android surface is
+         plain Kotlin constants/sealed types (HyleTokens.kt, Hyle.kt) and two generated resource
+         files (colors/dimens) — no platform API calls gated above API 26, so nothing here can
+         throw NoSuchMethodError/ClassNotFoundException on API 26-30. Re-check this note if a
+         future :hyle bump adds real platform-API usage. -->
+    <uses-sdk tools:overrideLibrary="dev.aarso.hyle" />
 
     <!-- Vision is the core modality: the camera films the archer (sagittal) for pose/form. -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -12,14 +24,35 @@
          the desktop form factor the roadmap targets. CaptureScreen degrades gracefully. -->
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
+    <!-- Live Observer voice: an on-device recogniser turns one spoken score ("nine bottom left")
+         into a keypad token. Never streamed anywhere — see ObserverVoice for why
+         createOnDeviceSpeechRecognizer is the only default-enabled path, and why a transcription
+         still cannot become an authoritative arrow without a separate human confirm. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- required="false" for the same reason camera.any is above: declaring RECORD_AUDIO implies
+         android.hardware.microphone required=true, which would make the app un-installable on
+         mic-less devices (the same Chromebooks camera.any is guarding against). Voice degrades to
+         tap, which needs no microphone at all. -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
     <!-- BYOK cloud coach calls only. On-device coaching and everything else stay offline; no key,
          no call. The AI coach is opt-in and every provider is bring-your-own-key. -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- API 30+ package visibility: without declaring this query, isOnDeviceRecognitionAvailable()
+         and createOnDeviceSpeechRecognizer() cannot see any recognition service on the device and
+         voice reports itself unavailable everywhere, even where one exists. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
 
     <!-- allowBackup off (pre-release): auto-backup could restore an old-schema form-analyser.db
          onto a fresh install, making Room run a migration it can't reconcile and crash on first
          write. Local-first data is rebuilt on device; nothing here needs cloud backup yet. -->
     <application
+        android:name=".CrocodylApp"
         android:allowBackup="false"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -36,9 +69,11 @@
         </activity>
 
         <!--
-          Grants read access to one exported archive at a time, and only to the app the athlete
-          picks in the sharesheet. exported=false + grantUriPermissions means no other app can
-          reach it uninvited; the paths file limits it to cache/share.
+          Grants access to exactly two things at a time: one exported archive (read, to the app the
+          athlete picks in the sharesheet) and one document-vault camera capture (write, to whatever
+          camera app handles the TakePicture intent from BodyViewModel.newCaptureUri).
+          exported=false + grantUriPermissions means no other app can reach either uninvited; the
+          paths file limits it to cache/share and cache/capture.
         -->
         <provider
             android:name="androidx.core.content.FileProvider"

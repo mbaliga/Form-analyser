@@ -1,8 +1,9 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,9 +20,11 @@ import xyz.mdhv.formanalyser.wellness.ReadinessResult
 import xyz.mdhv.formanalyser.wellness.StreakState
 
 /** Home landing state (Phases 1–2). Manual refresh, matching the app's incumbent VM style. */
-class HomeViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
-    private val prefs = AppPrefs(app)
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val repo: Repository,
+    private val prefs: AppPrefs,
+) : ViewModel() {
     private val assembler = WellnessAssembler(repo)
 
     private val _athlete = MutableStateFlow<AthleteEntity?>(null)

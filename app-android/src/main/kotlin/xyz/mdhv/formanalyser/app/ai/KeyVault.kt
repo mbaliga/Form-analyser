@@ -6,6 +6,9 @@ import com.google.crypto.tink.Aead
 import com.google.crypto.tink.KeyTemplates
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import xyz.mdhv.formanalyser.coach.Provider
 
 /**
@@ -18,7 +21,8 @@ import xyz.mdhv.formanalyser.coach.Provider
  * The associated data binds each ciphertext to its provider so a key blob cannot be replayed under a
  * different provider. Keys are never logged, never exported, never written to Room or DataStore.
  */
-class KeyVault(private val context: Context) {
+@Singleton
+class KeyVault @Inject constructor(@ApplicationContext private val context: Context) {
 
     private val aead: Aead by lazy {
         AeadConfig.register()
