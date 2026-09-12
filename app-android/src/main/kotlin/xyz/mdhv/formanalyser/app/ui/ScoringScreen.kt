@@ -57,7 +57,10 @@ fun ScoringScreen(vm: ScoringViewModel) {
     fun startVoice() {
         voiceRecognizer?.listen(
             onStatus = { voiceStatus = it },
-            onResult = vm::recordObserverPhrase,
+            onResult = { phrase ->
+                voiceStatus = "Heard: “$phrase”"
+                vm.recordObserverPhrase(phrase)
+            },
         )
     }
     val audioPermission =
@@ -245,7 +248,7 @@ fun ScoringScreen(vm: ScoringViewModel) {
                             }
                             Text(
                                 if (voiceAvailable)
-                                    voiceStatus ?: "Try “eight bottom left”, “repeat” or “undo”. Audio is processed on-device and is not retained."
+                                    voiceStatus ?: "Try “eight bottom left”, “correct last to nine”, “finish end”, “skip”, “repeat” or “undo”. Audio is processed on-device and is not retained."
                                 else "This device has no on-device speech recognizer. Voice is disabled; tap scoring remains available.",
                                 color = Hyle.OnSurfaceDim,
                                 style = MaterialTheme.typography.bodySmall,

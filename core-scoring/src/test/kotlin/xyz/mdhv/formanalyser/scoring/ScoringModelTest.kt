@@ -19,6 +19,10 @@ class ScoringModelTest {
         assertEquals(0, ScoreInput.parseSpoken("miss high").score.points)
         assertEquals(ObserverCommand.Undo, ScoreInput.parseObserverCommand("undo last"))
         assertEquals(ObserverCommand.Repeat, ScoreInput.parseObserverCommand("same again"))
+        assertEquals(ObserverCommand.Skip, ScoreInput.parseObserverCommand("skip arrow"))
+        assertEquals(ObserverCommand.FinishEnd, ScoreInput.parseObserverCommand("finish end"))
+        val correction = ScoreInput.parseObserverCommand("correct last to nine") as ObserverCommand.Correct
+        assertEquals(9, correction.value.score.points)
         assertFailsWith<IllegalArgumentException> { ScoreInput.parseSpoken("nice shot") }
     }
     @Test

@@ -154,7 +154,8 @@ PR #11 (`feat/immersive-visuals`) now contains the current product surface:
 - graphical improvement-area cards and richer review/body presentation;
 - WA/manual numeric scoring, target plotting, set matches, PBs, grouping, score history and Progress;
 - constrained observer voice declarations such as “eight bottom left”, plus repeat/undo, using
-  Android's on-device recognizer only; declarations and observation resolution are preserved;
+  Android's on-device recognizer only; repeat, undo, skip, finish-end and audited last-arrow
+  correction are supported, and declarations/observation resolution are preserved;
 - photo-assisted End Scan: import a target photograph, calibrate centre/edge, mark arrows, calculate
   provisional rings, then confirm or reject each result before it affects a scorecard;
 - opt-in raw MP4 capture alongside pose analysis, stored in app-private media storage;
@@ -184,8 +185,8 @@ PR #11 (`feat/immersive-visuals`) now contains the current product surface:
 - **Automatic End Scan vision:** the current flow is calibrated photo marking, not an arrow detector.
   Perspective correction, automatic impact candidates, drag/add/remove correction and a measured
   device/target/lighting envelope remain.
-- **Voice command depth:** embedded Android on-device recognition, scoring, repeat and undo are
-  implemented. Skip/finish-end/correct-arrow commands and range false-acceptance validation remain.
+- **Voice command depth:** embedded Android on-device recognition, scoring, repeat, undo, skip,
+  finish-end and audited correct-last are implemented. Range false-acceptance validation remains.
 - **Synchronized media review:** durable shot-to-video timing and phase-aligned replay are built.
   A user-selectable automatic retention schedule remains; Review currently provides explicit raw
   video deletion.

@@ -53,7 +53,15 @@ object ScoreInput {
         return when (normalized) {
             "undo", "undo last", "take back" -> ObserverCommand.Undo
             "repeat", "repeat last", "same again" -> ObserverCommand.Repeat
-            else -> ObserverCommand.Score(parseSpoken(utterance))
+            "skip", "skip arrow", "no arrow" -> ObserverCommand.Skip
+            "finish end", "end complete", "close end" -> ObserverCommand.FinishEnd
+            else ->
+                if (
+                    normalized.startsWith("correct ") ||
+                        normalized.startsWith("change last ") ||
+                        normalized.startsWith("replace last ")
+                ) ObserverCommand.Correct(parseSpoken(utterance))
+                else ObserverCommand.Score(parseSpoken(utterance))
         }
     }
 }
@@ -64,4 +72,7 @@ sealed interface ObserverCommand {
     data class Score(val value: SpokenScore) : ObserverCommand
     data object Undo : ObserverCommand
     data object Repeat : ObserverCommand
+    data object Skip : ObserverCommand
+    data object FinishEnd : ObserverCommand
+    data class Correct(val value: SpokenScore) : ObserverCommand
 }

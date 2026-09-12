@@ -158,6 +158,21 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
             undo()
             return
         }
+        if (command == ObserverCommand.Skip) return
+        if (command == ObserverCommand.FinishEnd) {
+            action {
+                val next = repo.finishObserverEnd(id, utterance.trim())
+                return@action { copy(snapshot = next) }
+            }
+            return
+        }
+        if (command is ObserverCommand.Correct) {
+            action {
+                val next = repo.correctLastObserver(id, command.value)
+                return@action { copy(snapshot = next) }
+            }
+            return
+        }
         val spoken =
             when (command) {
                 is ObserverCommand.Score -> command.value
@@ -170,6 +185,8 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
                     SpokenScore(last.score, "unspecified", utterance.trim())
                 }
                 ObserverCommand.Undo -> return
+                ObserverCommand.Skip, ObserverCommand.FinishEnd -> return
+                is ObserverCommand.Correct -> return
             }
         action {
             val next = repo.recordObserverTap(
