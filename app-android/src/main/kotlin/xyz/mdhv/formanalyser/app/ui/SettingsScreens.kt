@@ -38,6 +38,7 @@ import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.app.ui.theme.HyleStepper
+import xyz.mdhv.formanalyser.app.ui.theme.ThemeMode
 import xyz.mdhv.formanalyser.model.BowType
 import xyz.mdhv.formanalyser.model.Handedness
 
@@ -319,6 +320,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
 @Composable
 fun SettingsCaptureScreen(vm: SettingsViewModel) {
     val keep by vm.keepRawVideo.collectAsState(initial = false)
+    val retention by vm.rawVideoRetentionDays.collectAsState(initial = 0)
     Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Capture", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Row(
@@ -330,7 +332,19 @@ fun SettingsCaptureScreen(vm: SettingsViewModel) {
             Switch(checked = keep, onCheckedChange = { vm.setKeepRawVideo(it) })
         }
         Text(
-            "Off by default. Pose analysis runs on-device; raw video isn't retained.",
+            "Off by default. Pose analysis runs on-device. Turning this off stops new recordings; existing clips follow the retention choice below.",
+            color = Hyle.OnSurfaceDim,
+        )
+        HyleSectionHeader("Raw video retention")
+        HyleSegmented(
+            options = listOf(7, 30, 0),
+            selected = retention,
+            label = { if (it == 0) "Forever" else "$it days" },
+            modifier = Modifier.fillMaxWidth(),
+        ) { vm.setRawVideoRetentionDays(it) }
+        Text(
+            if (retention == 0) "Clips stay private on this device until you delete them from Review."
+            else "Expired clips are removed the next time Crocodyl opens its training workspace.",
             color = Hyle.OnSurfaceDim,
         )
     }
@@ -338,6 +352,7 @@ fun SettingsCaptureScreen(vm: SettingsViewModel) {
 
 @Composable
 fun SettingsAppearanceScreen(vm: SettingsViewModel) {
+    val themeMode by vm.themeMode.collectAsState(initial = ThemeMode.SYSTEM.name)
     val reduce by vm.reduceMotion.collectAsState(initial = false)
     val haptic by vm.hapticStrength.collectAsState(initial = "MED")
     val glow by vm.glowIntensity.collectAsState(initial = 100)
@@ -346,6 +361,20 @@ fun SettingsAppearanceScreen(vm: SettingsViewModel) {
             "Appearance",
             style = MaterialTheme.typography.headlineMedium,
             color = Hyle.OnBackground,
+        )
+        HyleSectionHeader("Theme")
+        HyleSegmented(
+            ThemeMode.entries,
+            ThemeMode.fromStorage(themeMode),
+            { it.name.lowercase().replaceFirstChar(Char::uppercase) },
+        ) { vm.setThemeMode(it.name) }
+        Text(
+            when (ThemeMode.fromStorage(themeMode)) {
+                ThemeMode.SYSTEM -> "Follows your device and changes automatically."
+                ThemeMode.LIGHT -> "Warm paper surfaces with high-contrast athletic data."
+                ThemeMode.DARK -> "Inky surfaces for training in low light."
+            },
+            color = Hyle.OnSurfaceDim,
         )
         Row(
             Modifier.fillMaxWidth(),

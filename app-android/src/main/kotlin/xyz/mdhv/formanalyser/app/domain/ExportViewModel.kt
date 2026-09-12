@@ -1,15 +1,19 @@
 package xyz.mdhv.formanalyser.app.domain
 
 import android.app.Application
+import android.content.ContentValues
+import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import android.util.Base64
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
 import java.security.MessageDigest
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,13 +26,21 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.longOrNull
 import xyz.mdhv.formanalyser.app.BuildConfig
 import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.exchange.AndroidKeyProvider
+import xyz.mdhv.formanalyser.app.exchange.ExchangeTrustStore
 import xyz.mdhv.formanalyser.exchange.ConsentDecision
 import xyz.mdhv.formanalyser.exchange.ConsentFilter
+import xyz.mdhv.formanalyser.exchange.CrocEnvelope
 import xyz.mdhv.formanalyser.exchange.CrocbakManifest
 import xyz.mdhv.formanalyser.exchange.ExportTier
+import xyz.mdhv.formanalyser.exchange.ExchangeTrust
+import xyz.mdhv.formanalyser.exchange.ExchangeTrustState
 import xyz.mdhv.formanalyser.wellness.PrivacyClass
 import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
 
@@ -46,6 +58,7 @@ import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
 class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     private val keyProvider = AndroidKeyProvider()
+    private val trustStore = ExchangeTrustStore(app)
     private val json = Json {
         prettyPrint = false
         encodeDefaults = true
@@ -53,6 +66,28 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Result of the last export attempt (null before any attempt). */
     data class ExportOutcome(val ok: Boolean, val message: String)
+
+    data class ImportPreview(
+        val appVersion: String,
+        val createdAtMs: Long,
+        val sourceFingerprint: String,
+        val tableCount: Int,
+        val rowCount: Long,
+        val athleteNames: List<String>,
+        val signed: Boolean,
+        val trustState: ExchangeTrustState,
+        val newRows: Long,
+        val identicalRows: Long,
+        val conflictRows: Long,
+    )
+
+    private data class RowInspection(val newRows: Long, val identicalRows: Long, val conflictRows: Long)
+
+    private data class ArchiveBundle(
+        val manifest: CrocbakManifest,
+        val tables: Map<String, JsonArray>,
+        val signedFingerprint: String? = null,
+    )
 
     private val _tier = MutableStateFlow(ExportTier.SHAREABLE_ONLY)
     val tier: StateFlow<ExportTier> = _tier
@@ -71,6 +106,14 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _outcome = MutableStateFlow<ExportOutcome?>(null)
     val outcome: StateFlow<ExportOutcome?> = _outcome
+
+    private val _importPreview = MutableStateFlow<ImportPreview?>(null)
+    val importPreview: StateFlow<ImportPreview?> = _importPreview
+
+    private val _importOutcome = MutableStateFlow<ExportOutcome?>(null)
+    val importOutcome: StateFlow<ExportOutcome?> = _importOutcome
+
+    private var inspectedArchive: ArchiveBundle? = null
 
     /** MEDICAL tables the athlete may grant, per the registry (e.g. medication_entry, document). */
     val medicalTables: List<String> = PrivacyRegistry.medicalTables().sorted()
@@ -179,6 +222,136 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Build a cryptographically signed `.croc` envelope around the consent-filtered archive. */
+    fun exportSignedForSharing(onReady: (Uri) -> Unit) {
+        if (_busy.value) return
+        _busy.value = true
+        _outcome.value = null
+        viewModelScope.launch {
+            val result =
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        val app = getApplication<Application>()
+                        val dir = File(app.cacheDir, SHARE_DIR).apply { mkdirs() }
+                        dir.listFiles()?.forEach { it.delete() }
+                        val backup = java.io.ByteArrayOutputStream().also { writeArchive(it) }.toByteArray()
+                        val identity = keyProvider.identity()
+                        val envelope =
+                            CrocEnvelope.create(
+                                createdAtMs = System.currentTimeMillis(),
+                                senderPublicKey = identity.keyBytes,
+                                payloadType = CrocEnvelope.BACKUP_PAYLOAD,
+                                payload = backup,
+                                signer = keyProvider::sign,
+                            )
+                        val file = File(dir, SUGGESTED_CROC_FILENAME)
+                        file.writeText(envelope.serialize())
+                        FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
+                    }
+                }
+            _busy.value = false
+            result.fold(
+                onSuccess = { uri ->
+                    _outcome.value = ExportOutcome(true, "Signed .croc exchange ready.")
+                    onReady(uri)
+                },
+                onFailure = {
+                    _outcome.value = ExportOutcome(false, "Signed exchange failed: ${it.message ?: it.javaClass.simpleName}")
+                },
+            )
+        }
+    }
+
+    /** Read and validate an archive without modifying the database. */
+    fun inspectImport(uri: Uri) {
+        if (_busy.value) return
+        _busy.value = true
+        _importOutcome.value = null
+        _importPreview.value = null
+        inspectedArchive = null
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val archive = readArchive(uri)
+                    archive to inspectRows(archive)
+                }
+            }
+            _busy.value = false
+            result.fold(
+                onSuccess = { (archive, rows) ->
+                    inspectedArchive = archive
+                    val manifest = archive.manifest
+                    val athletes = archive.athletes()
+                    val trustState = trustState(archive, athletes.map { it.first })
+                    _importPreview.value =
+                        ImportPreview(
+                            appVersion = manifest.appVersion,
+                            createdAtMs = manifest.createdAtMs,
+                            sourceFingerprint = manifest.athletePubkeyFingerprint,
+                            tableCount = archive.tables.size,
+                            rowCount = archive.tables.values.sumOf { it.size.toLong() },
+                            athleteNames = athletes.map { it.second },
+                            signed = archive.signedFingerprint != null,
+                            trustState = trustState,
+                            newRows = rows.newRows,
+                            identicalRows = rows.identicalRows,
+                            conflictRows = rows.conflictRows,
+                        )
+                },
+                onFailure = {
+                    _importOutcome.value =
+                        ExportOutcome(false, "Archive rejected: ${it.message ?: it.javaClass.simpleName}")
+                },
+            )
+        }
+    }
+
+    /** Merge the inspected archive. Existing rows win; the import never erases local history. */
+    fun importInspected() {
+        val archive = inspectedArchive ?: return
+        val preview = _importPreview.value ?: return
+        if (preview.trustState == ExchangeTrustState.KEY_CHANGED) return
+        if (_busy.value) return
+        _busy.value = true
+        _importOutcome.value = null
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val message = mergeArchive(archive)
+                    archive.signedFingerprint?.let { fingerprint ->
+                        trustStore.pin(archive.athletes().map { it.first }, fingerprint)
+                    }
+                    message
+                }
+            }
+            _busy.value = false
+            result.fold(
+                onSuccess = { message ->
+                    _importOutcome.value = ExportOutcome(true, message)
+                    _importPreview.value = null
+                    inspectedArchive = null
+                },
+                onFailure = {
+                    _importOutcome.value =
+                        ExportOutcome(false, "Import failed; no rows were changed: ${it.message ?: it.javaClass.simpleName}")
+                },
+            )
+        }
+    }
+
+    fun cancelImport() {
+        inspectedArchive = null
+        _importPreview.value = null
+    }
+
+    /** First tap in the deliberate key-replacement ceremony; data remains quarantined. */
+    fun armKeyReplacement() {
+        val preview = _importPreview.value ?: return
+        if (preview.trustState == ExchangeTrustState.KEY_CHANGED) {
+            _importPreview.value = preview.copy(trustState = ExchangeTrustState.REPLACEMENT_ARMED)
+        }
+    }
+
     private fun writeArchive(uri: Uri): String {
         val out =
             getApplication<Application>().contentResolver.openOutputStream(uri)
@@ -280,6 +453,194 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         return text.toByteArray() to rows.size.toLong()
     }
 
+    private fun readArchive(uri: Uri): ArchiveBundle {
+        val input =
+            getApplication<Application>().contentResolver.openInputStream(uri)
+                ?: error("cannot open archive")
+        val bytes = input.use { it.readBounded(MAX_ARCHIVE_BYTES) }
+        val first = bytes.firstOrNull { !it.toInt().toChar().isWhitespace() }
+        if (first?.toInt()?.toChar() == '{') {
+            val envelope = CrocEnvelope.deserialize(bytes.decodeToString())
+            require(envelope.payloadType == CrocEnvelope.BACKUP_PAYLOAD) { "unsupported .croc payload" }
+            require(envelope.verify()) { "the .croc signature is invalid" }
+            val archive = readArchive(java.io.ByteArrayInputStream(envelope.payload()))
+            require(archive.manifest.athletePubkeyFingerprint == envelope.senderFingerprint) {
+                "signed sender does not match the archive identity"
+            }
+            return archive.copy(signedFingerprint = envelope.senderFingerprint)
+        }
+        return readArchive(java.io.ByteArrayInputStream(bytes))
+    }
+
+    private fun readArchive(input: InputStream): ArchiveBundle {
+        val entries = LinkedHashMap<String, ByteArray>()
+        input.buffered().use { source ->
+            ZipInputStream(source).use { zip ->
+                while (true) {
+                    val entry = zip.nextEntry ?: break
+                    val name = entry.name
+                    require(!entry.isDirectory) { "unexpected directory: $name" }
+                    require(name == "manifest.json" || TABLE_ENTRY.matches(name)) {
+                        "unexpected archive entry: $name"
+                    }
+                    require(name !in entries) { "duplicate archive entry: $name" }
+                    entries[name] = zip.readBounded(MAX_ENTRY_BYTES)
+                    zip.closeEntry()
+                }
+            }
+        }
+        val manifestBytes = entries["manifest.json"] ?: error("manifest.json is missing")
+        val manifest = CrocbakManifest.deserialize(manifestBytes.decodeToString())
+        require(manifest.schemaVersion in 1..CrocbakManifest.CURRENT_SCHEMA_VERSION) {
+            "unsupported schema ${manifest.schemaVersion}"
+        }
+        require(manifest.includedTables.distinct().size == manifest.includedTables.size) {
+            "manifest contains duplicate tables"
+        }
+        require(manifest.includedTables.all { it in ALL_TABLES }) { "archive contains an unknown table" }
+
+        val payloads = LinkedHashMap<String, ByteArray>()
+        val tables = LinkedHashMap<String, JsonArray>()
+        for (logical in manifest.includedTables.sorted()) {
+            val bytes = entries["tables/$logical.json"] ?: error("table payload missing: $logical")
+            val rows = json.parseToJsonElement(bytes.decodeToString()).jsonArray
+            val expected = manifest.rowCounts?.get(logical)
+            require(expected == null || expected == rows.size.toLong()) { "row count mismatch: $logical" }
+            payloads[logical] = bytes
+            tables[logical] = rows
+        }
+        require(entries.keys.all { it == "manifest.json" || it.removePrefix("tables/").removeSuffix(".json") in manifest.includedTables }) {
+            "archive contains an undeclared table"
+        }
+        val digest = MessageDigest.getInstance("SHA-256")
+        payloads.values.forEach(digest::update)
+        val checksum = "sha256:" + digest.digest().joinToString("") { "%02x".format(it) }
+        require(MessageDigest.isEqual(checksum.toByteArray(), manifest.contentChecksum.toByteArray())) {
+            "checksum does not match; the archive may be damaged or altered"
+        }
+        return ArchiveBundle(manifest, tables)
+    }
+
+    private fun ArchiveBundle.athletes(): List<Pair<String, String>> =
+        tables["athlete"].orEmpty().mapNotNull { row ->
+            val obj = row.jsonObject
+            val id = (obj["id"] as? JsonPrimitive)?.content ?: return@mapNotNull null
+            val name = (obj["displayName"] as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() } ?: "Athlete"
+            id to name
+        }
+
+    private fun trustState(archive: ArchiveBundle, athleteIds: List<String>): ExchangeTrustState =
+        ExchangeTrust.evaluate(
+            archive.signedFingerprint,
+            athleteIds.mapNotNull(trustStore::fingerprintFor),
+        )
+
+    private fun mergeArchive(archive: ArchiveBundle): String {
+        val room = AppDatabase.get(getApplication())
+        var inserted = 0L
+        var kept = 0L
+        room.runInTransaction {
+            val db = room.openHelper.writableDatabase
+            val ordered =
+                archive.tables.keys.sortedWith(compareBy({ IMPORT_ORDER.indexOf(it).let { i -> if (i < 0) Int.MAX_VALUE else i } }, { it }))
+            for (logical in ordered) {
+                val sqlName = SQL_NAME[logical] ?: logical
+                for (element in archive.tables.getValue(logical)) {
+                    val values = ContentValues()
+                    for ((column, value) in element.jsonObject) {
+                        when (value) {
+                            JsonNull -> values.putNull(column)
+                            is JsonPrimitive ->
+                                when {
+                                    value.isString -> values.put(column, value.content)
+                                    value.longOrNull != null -> values.put(column, value.longOrNull!!)
+                                    value.doubleOrNull != null -> values.put(column, value.doubleOrNull!!)
+                                    else -> error("unsupported value in $logical.$column")
+                                }
+                            else -> error("nested value in $logical.$column")
+                        }
+                    }
+                    if (db.insert(sqlName, SQLiteDatabase.CONFLICT_IGNORE, values) == -1L) kept++
+                    else inserted++
+                }
+            }
+        }
+        return "Imported $inserted new row(s); kept $kept existing row(s). Nothing was overwritten."
+    }
+
+    /** Compare every imported primary key before mutation so duplicates and conflicts are visible. */
+    private fun inspectRows(archive: ArchiveBundle): RowInspection {
+        val db = AppDatabase.get(getApplication()).openHelper.readableDatabase
+        var fresh = 0L
+        var identical = 0L
+        var conflicts = 0L
+        archive.tables.forEach { (logical, rows) ->
+            val table = SQL_NAME[logical] ?: logical
+            val primaryKeys = mutableListOf<Pair<Int, String>>()
+            db.query("PRAGMA table_info(`${table.replace("`", "``")}`)").use { schema ->
+                while (schema.moveToNext()) {
+                    val order = schema.getInt(5)
+                    if (order > 0) primaryKeys += order to schema.getString(1)
+                }
+            }
+            val keys = primaryKeys.sortedBy { it.first }.map { it.second }
+            require(keys.isNotEmpty()) { "table has no primary key: $logical" }
+            rows.forEach { element ->
+                val imported = element.jsonObject
+                val args = keys.map { key -> imported[key].asSqlArg(logical, key) }.toTypedArray()
+                val where = keys.joinToString(" AND ") { "`${it.replace("`", "``")}` = ?" }
+                db.query("SELECT * FROM `${table.replace("`", "``")}` WHERE $where LIMIT 1", args).use { cursor ->
+                    if (!cursor.moveToFirst()) fresh++
+                    else if (cursor.asJsonObject(imported.keys) == imported) identical++
+                    else conflicts++
+                }
+            }
+        }
+        return RowInspection(fresh, identical, conflicts)
+    }
+
+    private fun JsonElement?.asSqlArg(table: String, column: String): Any {
+        val value = this as? JsonPrimitive ?: error("missing primary key: $table.$column")
+        return when {
+            value.isString -> value.content
+            value.longOrNull != null -> value.longOrNull!!
+            value.doubleOrNull != null -> value.doubleOrNull!!
+            else -> error("invalid primary key: $table.$column")
+        }
+    }
+
+    private fun android.database.Cursor.asJsonObject(columns: Set<String>): JsonObject {
+        val obj = LinkedHashMap<String, JsonElement>(columns.size)
+        for (i in 0 until columnCount) {
+            val name = getColumnName(i)
+            if (name !in columns) continue
+            obj[name] =
+                when (getType(i)) {
+                    android.database.Cursor.FIELD_TYPE_NULL -> JsonNull
+                    android.database.Cursor.FIELD_TYPE_INTEGER -> JsonPrimitive(getLong(i))
+                    android.database.Cursor.FIELD_TYPE_FLOAT -> JsonPrimitive(getDouble(i))
+                    android.database.Cursor.FIELD_TYPE_STRING -> JsonPrimitive(getString(i))
+                    android.database.Cursor.FIELD_TYPE_BLOB -> JsonPrimitive(Base64.encodeToString(getBlob(i), Base64.NO_WRAP))
+                    else -> JsonNull
+                }
+        }
+        return JsonObject(obj)
+    }
+
+    private fun InputStream.readBounded(limit: Int): ByteArray {
+        val output = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(8192)
+        var total = 0
+        while (true) {
+            val read = read(buffer)
+            if (read < 0) break
+            total += read
+            require(total <= limit) { "archive entry is too large" }
+            output.write(buffer, 0, read)
+        }
+        return output.toByteArray()
+    }
+
     companion object {
         /**
          * App version stamped into every exported manifest, read from the build rather than copied.
@@ -292,9 +653,11 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
         /** Suggested SAF filename for the CreateDocument picker. */
         const val SUGGESTED_FILENAME: String = "crocodyl-export.crocbak"
+        const val SUGGESTED_CROC_FILENAME: String = "crocodyl-share.croc"
 
         /** MIME for the archive. */
         const val MIME_ZIP: String = "application/zip"
+        const val MIME_CROC: String = "application/vnd.crocodyl.exchange+json"
 
         /** Cache subdirectory the FileProvider exposes; nothing else in the cache is shareable. */
         const val SHARE_DIR: String = "share"
@@ -312,5 +675,18 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
         /** SQL tables carrying a `deletedAt` retraction column (see AppDatabase.MIGRATION_6_7). */
         private val RETRACTABLE: Set<String> = setOf("sessions", "score_session")
+
+        private val TABLE_ENTRY = Regex("tables/[a-z0-9_]+\\.json")
+        private const val MAX_ENTRY_BYTES = 32 * 1024 * 1024
+        private const val MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
+
+        /** Parents before children so foreign-key enforcement remains active throughout import. */
+        private val IMPORT_ORDER =
+            listOf(
+                "athlete", "rig", "session", "score_session", "checkin", "injury",
+                "physio_plan", "training_plan", "shot", "score_arrow", "score_opponent_end",
+                "soreness", "physio_exercise", "physio_session", "document",
+                "score_candidate", "observer_score_event", "session_context",
+            )
     }
 }

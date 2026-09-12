@@ -325,6 +325,8 @@ class ScoringRepository(context: Context) {
         ring: Int,
         isX: Boolean = false,
         sector: String? = null,
+        inputKind: String = "TAP",
+        declaredText: String? = null,
     ): Snapshot =
         db.withTransaction {
             require(ring in 0..10)
@@ -340,8 +342,8 @@ class ScoringRepository(context: Context) {
                     ring,
                     isX,
                     sector,
-                    "TAP",
-                    declaredText = if (isX) "X" else if (ring == 0) "M" else ring.toString(),
+                    inputKind,
+                    declaredText = declaredText ?: if (isX) "X" else if (ring == 0) "M" else ring.toString(),
                 )
             features.upsertObserverEvent(e)
             val next =
@@ -357,6 +359,86 @@ class ScoringRepository(context: Context) {
             scoring.updateFrom(next, sessionId)
             Snapshot(scoring.session(sessionId)!!, next)
         }
+
+    /** Fill only the current end's remaining declared slots with audited observer misses. */
+    suspend fun finishObserverEnd(sessionId: String, declaredText: String): Snapshot =
+        db.withTransaction {
+            val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
+            check(!cur.card.isFull) { "The scorecard is already full" }
+            val remaining = cur.card.round.arrowsPerEnd - cur.card.currentArrowIndex
+            check(remaining in 1..cur.card.round.arrowsPerEnd) { "This end is already complete" }
+            var next = cur.card
+            repeat(remaining) {
+                val now = System.currentTimeMillis()
+                features.upsertObserverEvent(
+                    ObserverScoreEventEntity(
+                        id = UUID.randomUUID().toString(),
+                        scoreSessionId = sessionId,
+                        atMs = now,
+                        ring = 0,
+                        isX = false,
+                        sector = null,
+                        inputMode = "VOICE",
+                        declaredText = declaredText,
+                    )
+                )
+                next = next.record(
+                    UUID.randomUUID().toString(),
+                    ArrowScore.MISS,
+                    null,
+                    ScoreSource.LIVE_OBSERVER,
+                    AuthorityState.HUMAN_CONFIRMED,
+                    ObservationResolution.SHOT_INFERRED,
+                )
+                scoring.upsertArrow(next.arrows.last().toEntity(sessionId, now))
+            }
+            scoring.updateFrom(next, sessionId)
+            Snapshot(scoring.session(sessionId)!!, next)
+        }
+
+    /** Correct the last arrow without erasing either the original declaration or score row. */
+    suspend fun correctLastObserver(
+        sessionId: String,
+        replacement: SpokenScore,
+    ): Snapshot = db.withTransaction {
+        val cur = snapshotUnlocked(sessionId)
+        requireActive(cur.session)
+        validateForLayout(replacement.score, cur.card.round.faceLayout)
+        val last = cur.card.arrows.lastOrNull() ?: error("There is no previous arrow to correct")
+        check(last.source == ScoreSource.LIVE_OBSERVER) {
+            "The last arrow was not an observer entry; correct it from its original input mode"
+        }
+        val previousEvent = features.observerEvents(sessionId).lastOrNull { it.status == "ACTIVE" }
+        val now = System.currentTimeMillis()
+        scoring.retractArrow(last.id, now)
+        previousEvent?.let { features.retractObserverEvent(it.id) }
+        val event = ObserverScoreEventEntity(
+            id = UUID.randomUUID().toString(),
+            scoreSessionId = sessionId,
+            atMs = now,
+            ring = replacement.score.points,
+            isX = replacement.score.isX,
+            sector = replacement.sector,
+            inputMode = "VOICE",
+            declaredText = replacement.declaredText,
+            correctionOfId = previousEvent?.id,
+        )
+        features.upsertObserverEvent(event)
+        val next = cur.card.undoLast().record(
+            UUID.randomUUID().toString(),
+            replacement.score,
+            null,
+            ScoreSource.LIVE_OBSERVER,
+            AuthorityState.HUMAN_CONFIRMED,
+            ObservationResolution.SHOT_INFERRED,
+        )
+        scoring.upsertArrow(
+            next.arrows.last().toEntity(sessionId, now).copy(supersedesArrowId = last.id)
+        )
+        scoring.updateFrom(next, sessionId)
+        Snapshot(scoring.session(sessionId)!!, next)
+    }
 
     suspend fun observerEvents(sessionId: String) = features.observerEvents(sessionId)
 

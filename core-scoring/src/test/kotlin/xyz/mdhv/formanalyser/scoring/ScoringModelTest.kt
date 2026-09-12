@@ -10,6 +10,22 @@ import kotlin.test.assertTrue
 
 class ScoringModelTest {
     @Test
+    fun `spoken observer input parses score and sector without inventing coordinates`() {
+        val parsed = ScoreInput.parseSpoken("eight bottom left")
+        assertEquals(8, parsed.score.points)
+        assertEquals(false, parsed.score.isX)
+        assertEquals("bottom left", parsed.sector)
+        assertEquals("centre", ScoreInput.parseSpoken("X center").sector)
+        assertEquals(0, ScoreInput.parseSpoken("miss high").score.points)
+        assertEquals(ObserverCommand.Undo, ScoreInput.parseObserverCommand("undo last"))
+        assertEquals(ObserverCommand.Repeat, ScoreInput.parseObserverCommand("same again"))
+        assertEquals(ObserverCommand.Skip, ScoreInput.parseObserverCommand("skip arrow"))
+        assertEquals(ObserverCommand.FinishEnd, ScoreInput.parseObserverCommand("finish end"))
+        val correction = ScoreInput.parseObserverCommand("correct last to nine") as ObserverCommand.Correct
+        assertEquals(9, correction.value.score.points)
+        assertFailsWith<IllegalArgumentException> { ScoreInput.parseSpoken("nice shot") }
+    }
+    @Test
     fun `qualification totals X and end summaries are deterministic`() {
         var card = Scorecard(RoundPack.WA_RECURVE_70M_72)
         val values =

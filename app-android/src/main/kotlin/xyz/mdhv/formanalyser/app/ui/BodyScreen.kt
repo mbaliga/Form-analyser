@@ -57,7 +57,11 @@ fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Body", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+        Text("Body intelligence", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+        Text(
+            "Pain, soreness, injury and recovery in one anatomical view.",
+            color = Hyle.OnSurfaceDim,
+        )
         HyleSegmented(
             listOf(BodyFace.FRONT, BodyFace.BACK),
             face,

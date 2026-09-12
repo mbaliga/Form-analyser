@@ -98,6 +98,7 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$camerax")
     implementation("androidx.camera:camera-lifecycle:$camerax")
     implementation("androidx.camera:camera-view:$camerax")
+    implementation("androidx.camera:camera-video:$camerax")
     // MediaPipe Pose (BlazePose) — on-device pose landmarks.
     implementation("com.google.mediapipe:tasks-vision:0.10.20")
     // MediaPipe LLM Inference (Gemma 3n) — on-device coach runtime.

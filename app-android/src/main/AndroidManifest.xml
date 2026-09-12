@@ -3,6 +3,9 @@
 
     <!-- Vision is the core modality: the camera films the archer (sagittal) for pose/form. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Used only for explicit push-to-talk observer scoring. Recognition is disabled unless
+         Android exposes its on-device recognizer; Crocodyl never falls back to cloud speech. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- The Haptics setting (Settings -> Appearance) has always been persisted; without this it
          was read by nothing. Cues confirm a recorded arrow on a shooting line where the phone is
          often not being looked at. -->

@@ -41,8 +41,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             TrainingPlanEntity::class,
             ScoreCandidateEntity::class,
             ObserverScoreEventEntity::class,
+            CaptureMediaEntity::class,
         ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -53,6 +54,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rigDao(): RigDao
 
     abstract fun shotDao(): ShotDao
+
+    abstract fun captureMediaDao(): CaptureMediaDao
 
     abstract fun wellnessDao(): WellnessDao
 
@@ -82,6 +85,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_5_6,
                     MIGRATION_6_7,
                     MIGRATION_7_8,
+                    MIGRATION_8_9,
                 )
                 // No fallbackToDestructiveMigration: a missing migration path should surface as a
                 // thrown exception into the catch below (and get backed up + recorded), not vanish
@@ -437,6 +441,22 @@ abstract class AppDatabase : RoomDatabase() {
                     listOf("checkin", "pain_log", "injury").forEach {
                         db.execSQL("ALTER TABLE `$it` ADD COLUMN `deletedAt` INTEGER")
                     }
+                }
+            }
+
+        /** V8 → V9: durable shot phase timestamps and session-linked private raw video. */
+        val MIGRATION_8_9 =
+            object : Migration(8, 9) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `drawStartS` REAL")
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `releaseS` REAL")
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `captureMediaId` TEXT")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `capture_media` (`id` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `path` TEXT NOT NULL, `poseStartedAtMs` INTEGER NOT NULL, `videoStartedAtMs` INTEGER NOT NULL, `durationMs` INTEGER NOT NULL, `sizeBytes` INTEGER NOT NULL, `createdAtMs` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+                    )
+                    db.execSQL(
+                        "CREATE INDEX IF NOT EXISTS `index_capture_media_sessionId` ON `capture_media` (`sessionId`)"
+                    )
                 }
             }
     }
