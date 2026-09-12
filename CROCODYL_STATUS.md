@@ -187,9 +187,8 @@ PR #11 (`feat/immersive-visuals`) now contains the current product surface:
   device/target/lighting envelope remain.
 - **Voice command depth:** embedded Android on-device recognition, scoring, repeat, undo, skip,
   finish-end and audited correct-last are implemented. Range false-acceptance validation remains.
-- **Synchronized media review:** durable shot-to-video timing and phase-aligned replay are built.
-  A user-selectable automatic retention schedule remains; Review currently provides explicit raw
-  video deletion.
+- **Synchronized media review:** durable shot-to-video timing, multi-clip phase-aligned replay,
+  explicit per-clip deletion and opt-in 7-day/30-day/forever retention are built.
 - **Human Coach product:** roster, athlete inbox/detail, notes, assignments, acknowledgement,
   coach-local score book, entitlement and retention controls remain. The existing “Coach” is the
   athlete's AI/rule coach, not this paid human workspace.
@@ -197,8 +196,9 @@ PR #11 (`feat/immersive-visuals`) now contains the current product surface:
   automatic form filling and offline tournament workflows remain.
 - **Static local web viewer:** local `.croc`/`.crocbak` inspection and report rendering in a PWA is
   not implemented.
-- **Exchange trust UX:** `.croc` signing/verification, Pairing Cards, TOFU pinning and key-change
-  quarantine now exist. Duplicate/conflict inspection and explicit athlete switching remain.
+- **Exchange trust UX:** `.croc` signing/verification, Pairing Cards, TOFU pinning, key-change
+  quarantine and pre-import new/identical/conflict inspection now exist. Explicit athlete
+  switching remains.
 - **Device ecosystem:** Garmin, Wear OS, Health Connect, Bluetooth sensors and Steady Aim A1 Pro are
   not integrated. These require their respective SDK/protocol work and hardware testing.
 - **Baseline seam:** a versioned, consent-filtered Crocodyl-to-Baseline factor/observation adapter is

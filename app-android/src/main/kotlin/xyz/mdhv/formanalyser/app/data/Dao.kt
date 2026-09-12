@@ -136,4 +136,7 @@ interface CaptureMediaDao {
     suspend fun forSession(sessionId: String): List<CaptureMediaEntity>
 
     @Query("DELETE FROM capture_media WHERE id = :id") suspend fun delete(id: String)
+
+    @Query("SELECT * FROM capture_media WHERE createdAtMs < :cutoffMs")
+    suspend fun olderThan(cutoffMs: Long): List<CaptureMediaEntity>
 }

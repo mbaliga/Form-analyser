@@ -7,6 +7,7 @@ import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.mdhv.crocodyl.engine.fatigue.FatigueTrajectory
@@ -61,6 +62,7 @@ data class BaselineInfo(val ready: Boolean, val repCount: Long) {
  */
 class SessionViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = Repository(app)
+    private val prefs = AppPrefs(app)
     private val athleteFeatures = AthleteFeatureRepository(app)
     val recorder = PoseRecorder(app)
     val liveTracking: StateFlow<Boolean>
@@ -98,6 +100,14 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val days = prefs.rawVideoRetentionDays.first()
+                if (days > 0) {
+                    repo.purgeCaptureMediaOlderThan(
+                        System.currentTimeMillis() - days * 24L * 60L * 60L * 1000L
+                    )
+                }
+            }
             val a =
                 withContext(Dispatchers.IO) {
                     repo.ensureAthlete(UUID.randomUUID().toString(), "Athlete", 70.0)
@@ -318,8 +328,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         val media = _captureMedia.value.firstOrNull { it.id == mediaId } ?: return
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                runCatching { java.io.File(media.path).delete() }
-                repo.deleteCaptureMedia(mediaId)
+                repo.deleteCaptureMedia(media)
             }
             _captureMedia.value = withContext(Dispatchers.IO) { repo.captureMedia(sid) }
         }

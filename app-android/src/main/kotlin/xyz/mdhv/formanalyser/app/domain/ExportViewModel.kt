@@ -76,7 +76,12 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         val athleteNames: List<String>,
         val signed: Boolean,
         val trustState: ExchangeTrustState,
+        val newRows: Long,
+        val identicalRows: Long,
+        val conflictRows: Long,
     )
+
+    private data class RowInspection(val newRows: Long, val identicalRows: Long, val conflictRows: Long)
 
     private data class ArchiveBundle(
         val manifest: CrocbakManifest,
@@ -265,10 +270,15 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         _importPreview.value = null
         inspectedArchive = null
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { runCatching { readArchive(uri) } }
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val archive = readArchive(uri)
+                    archive to inspectRows(archive)
+                }
+            }
             _busy.value = false
             result.fold(
-                onSuccess = { archive ->
+                onSuccess = { (archive, rows) ->
                     inspectedArchive = archive
                     val manifest = archive.manifest
                     val athletes = archive.athletes()
@@ -283,6 +293,9 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                             athleteNames = athletes.map { it.second },
                             signed = archive.signedFingerprint != null,
                             trustState = trustState,
+                            newRows = rows.newRows,
+                            identicalRows = rows.identicalRows,
+                            conflictRows = rows.conflictRows,
                         )
                 },
                 onFailure = {
@@ -553,6 +566,65 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         return "Imported $inserted new row(s); kept $kept existing row(s). Nothing was overwritten."
+    }
+
+    /** Compare every imported primary key before mutation so duplicates and conflicts are visible. */
+    private fun inspectRows(archive: ArchiveBundle): RowInspection {
+        val db = AppDatabase.get(getApplication()).openHelper.readableDatabase
+        var fresh = 0L
+        var identical = 0L
+        var conflicts = 0L
+        archive.tables.forEach { (logical, rows) ->
+            val table = SQL_NAME[logical] ?: logical
+            val primaryKeys = mutableListOf<Pair<Int, String>>()
+            db.query("PRAGMA table_info(`${table.replace("`", "``")}`)").use { schema ->
+                while (schema.moveToNext()) {
+                    val order = schema.getInt(5)
+                    if (order > 0) primaryKeys += order to schema.getString(1)
+                }
+            }
+            val keys = primaryKeys.sortedBy { it.first }.map { it.second }
+            require(keys.isNotEmpty()) { "table has no primary key: $logical" }
+            rows.forEach { element ->
+                val imported = element.jsonObject
+                val args = keys.map { key -> imported[key].asSqlArg(logical, key) }.toTypedArray()
+                val where = keys.joinToString(" AND ") { "`${it.replace("`", "``")}` = ?" }
+                db.query("SELECT * FROM `${table.replace("`", "``")}` WHERE $where LIMIT 1", args).use { cursor ->
+                    if (!cursor.moveToFirst()) fresh++
+                    else if (cursor.asJsonObject(imported.keys) == imported) identical++
+                    else conflicts++
+                }
+            }
+        }
+        return RowInspection(fresh, identical, conflicts)
+    }
+
+    private fun JsonElement?.asSqlArg(table: String, column: String): Any {
+        val value = this as? JsonPrimitive ?: error("missing primary key: $table.$column")
+        return when {
+            value.isString -> value.content
+            value.longOrNull != null -> value.longOrNull!!
+            value.doubleOrNull != null -> value.doubleOrNull!!
+            else -> error("invalid primary key: $table.$column")
+        }
+    }
+
+    private fun android.database.Cursor.asJsonObject(columns: Set<String>): JsonObject {
+        val obj = LinkedHashMap<String, JsonElement>(columns.size)
+        for (i in 0 until columnCount) {
+            val name = getColumnName(i)
+            if (name !in columns) continue
+            obj[name] =
+                when (getType(i)) {
+                    android.database.Cursor.FIELD_TYPE_NULL -> JsonNull
+                    android.database.Cursor.FIELD_TYPE_INTEGER -> JsonPrimitive(getLong(i))
+                    android.database.Cursor.FIELD_TYPE_FLOAT -> JsonPrimitive(getDouble(i))
+                    android.database.Cursor.FIELD_TYPE_STRING -> JsonPrimitive(getString(i))
+                    android.database.Cursor.FIELD_TYPE_BLOB -> JsonPrimitive(Base64.encodeToString(getBlob(i), Base64.NO_WRAP))
+                    else -> JsonNull
+                }
+        }
+        return JsonObject(obj)
     }
 
     private fun InputStream.readBounded(limit: Int): ByteArray {

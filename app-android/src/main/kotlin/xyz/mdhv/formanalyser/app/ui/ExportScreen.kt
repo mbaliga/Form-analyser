@@ -270,6 +270,10 @@ fun ExportScreen(vm: ExportViewModel) {
                         "${preview.tableCount} tables · ${preview.rowCount} rows · Crocodyl ${preview.appVersion}",
                         color = Hyle.OnSurfaceDim,
                     )
+                    Text(
+                        "${preview.newRows} new · ${preview.identicalRows} already identical · ${preview.conflictRows} local conflicts kept",
+                        color = if (preview.conflictRows > 0) Hyle.Accent else Hyle.RadiumGreen,
+                    )
                     if (preview.athleteNames.isNotEmpty()) {
                         Text(preview.athleteNames.joinToString(), color = Hyle.OnBackground)
                     }

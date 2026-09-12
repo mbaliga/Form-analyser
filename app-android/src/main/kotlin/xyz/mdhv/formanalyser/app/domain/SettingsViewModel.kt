@@ -22,6 +22,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     val glowIntensity: Flow<Int> = prefs.glowIntensity
     val themeMode: Flow<String> = prefs.themeMode
     val keepRawVideo: Flow<Boolean> = prefs.keepRawVideo
+    val rawVideoRetentionDays: Flow<Int> = prefs.rawVideoRetentionDays
 
     fun setReduceMotion(v: Boolean) = viewModelScope.launch { prefs.setReduceMotion(v) }
 
@@ -32,6 +33,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     fun setThemeMode(v: String) = viewModelScope.launch { prefs.setThemeMode(v) }
 
     fun setKeepRawVideo(v: Boolean) = viewModelScope.launch { prefs.setKeepRawVideo(v) }
+
+    fun setRawVideoRetentionDays(v: Int) =
+        viewModelScope.launch { prefs.setRawVideoRetentionDays(v) }
 
     /** Wipe everything on device and drop back to onboarding. */
     fun wipe(onDone: () -> Unit) {

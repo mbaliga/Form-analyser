@@ -21,6 +21,7 @@ class AppPrefs(private val context: Context) {
         val GLOW_INTENSITY = intPreferencesKey("glow_intensity")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val KEEP_RAW_VIDEO = booleanPreferencesKey("keep_raw_video")
+        val RAW_VIDEO_RETENTION_DAYS = intPreferencesKey("raw_video_retention_days")
         val PLANNED_REST_DAYS = stringPreferencesKey("planned_rest_days") // CSV: "MO,TH"
         val CYCLE_ENABLED = booleanPreferencesKey("cycle_enabled")
         val SORENESS_CHIPS = booleanPreferencesKey("soreness_chips")      // true = chips fallback, false = mini-atlas
@@ -33,6 +34,9 @@ class AppPrefs(private val context: Context) {
     val glowIntensity: Flow<Int> = context.dataStore.data.map { it[Keys.GLOW_INTENSITY] ?: 100 }
     val themeMode: Flow<String> = context.dataStore.data.map { it[Keys.THEME_MODE] ?: "SYSTEM" }
     val keepRawVideo: Flow<Boolean> = context.dataStore.data.map { it[Keys.KEEP_RAW_VIDEO] ?: false }
+    /** 0 means keep until the athlete deletes it; avoids surprise deletion after an upgrade. */
+    val rawVideoRetentionDays: Flow<Int> =
+        context.dataStore.data.map { it[Keys.RAW_VIDEO_RETENTION_DAYS] ?: 0 }
 
     suspend fun setRole(v: String) = context.dataStore.edit { it[Keys.ROLE] = v }
     suspend fun setOnboarded(v: Boolean) = context.dataStore.edit { it[Keys.ONBOARDED] = v }
@@ -41,6 +45,8 @@ class AppPrefs(private val context: Context) {
     suspend fun setGlowIntensity(v: Int) = context.dataStore.edit { it[Keys.GLOW_INTENSITY] = v }
     suspend fun setThemeMode(v: String) = context.dataStore.edit { it[Keys.THEME_MODE] = v }
     suspend fun setKeepRawVideo(v: Boolean) = context.dataStore.edit { it[Keys.KEEP_RAW_VIDEO] = v }
+    suspend fun setRawVideoRetentionDays(v: Int) =
+        context.dataStore.edit { it[Keys.RAW_VIDEO_RETENTION_DAYS] = v.coerceAtLeast(0) }
 
     val plannedRestDays: Flow<String> = context.dataStore.data.map { it[Keys.PLANNED_REST_DAYS] ?: "" }
     val cycleEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.CYCLE_ENABLED] ?: false }

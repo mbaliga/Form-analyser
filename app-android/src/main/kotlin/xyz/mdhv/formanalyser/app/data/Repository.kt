@@ -81,7 +81,21 @@ class Repository(context: Context) {
 
     suspend fun captureMedia(sessionId: String): List<CaptureMediaEntity> = media.forSession(sessionId)
 
-    suspend fun deleteCaptureMedia(id: String) = media.delete(id)
+    suspend fun deleteCaptureMedia(value: CaptureMediaEntity): Boolean {
+        val file = java.io.File(value.path)
+        if (file.exists() && !file.delete()) return false
+        media.delete(value.id)
+        return true
+    }
+
+    suspend fun purgeCaptureMediaOlderThan(cutoffMs: Long): Int {
+        val expired = media.olderThan(cutoffMs)
+        var removed = 0
+        expired.forEach {
+            if (deleteCaptureMedia(it)) removed++
+        }
+        return removed
+    }
 
     fun shotsFor(sessionId: String): Flow<List<ShotEntity>> = shots.forSession(sessionId)
 

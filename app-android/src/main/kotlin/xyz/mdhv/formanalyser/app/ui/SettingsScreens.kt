@@ -320,6 +320,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
 @Composable
 fun SettingsCaptureScreen(vm: SettingsViewModel) {
     val keep by vm.keepRawVideo.collectAsState(initial = false)
+    val retention by vm.rawVideoRetentionDays.collectAsState(initial = 0)
     Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Capture", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Row(
@@ -331,7 +332,19 @@ fun SettingsCaptureScreen(vm: SettingsViewModel) {
             Switch(checked = keep, onCheckedChange = { vm.setKeepRawVideo(it) })
         }
         Text(
-            "Off by default. Pose analysis runs on-device; raw video isn't retained.",
+            "Off by default. Pose analysis runs on-device. Turning this off stops new recordings; existing clips follow the retention choice below.",
+            color = Hyle.OnSurfaceDim,
+        )
+        HyleSectionHeader("Raw video retention")
+        HyleSegmented(
+            options = listOf(7, 30, 0),
+            selected = retention,
+            label = { if (it == 0) "Forever" else "$it days" },
+            modifier = Modifier.fillMaxWidth(),
+        ) { vm.setRawVideoRetentionDays(it) }
+        Text(
+            if (retention == 0) "Clips stay private on this device until you delete them from Review."
+            else "Expired clips are removed the next time Crocodyl opens its training workspace.",
             color = Hyle.OnSurfaceDim,
         )
     }
