@@ -201,8 +201,9 @@ PR #11 (`feat/immersive-visuals`) now contains the current product surface:
   switching remains.
 - **Device ecosystem:** Garmin, Wear OS, Health Connect, Bluetooth sensors and Steady Aim A1 Pro are
   not integrated. These require their respective SDK/protocol work and hardware testing.
-- **Baseline seam:** a versioned, consent-filtered Crocodyl-to-Baseline factor/observation adapter is
-  still required; Baseline-specific engines remain outside this repository.
+- **Baseline seam:** Crocodyl now owns a versioned, typed, per-observation consent-filtered
+  `InsightInput` adapter and constrained `Insight` presentation contract. Baseline-specific engines,
+  estimators and paid analytics remain outside this repository.
 - **Equipment depth:** individual arrows, catalog provenance, lifecycle/wear, tuning history and
   neutral upgrade evidence remain beyond the current rig/tuning calculator.
 - **Training depth:** competition planning, plan-vs-completed reconciliation, pressure games and the
