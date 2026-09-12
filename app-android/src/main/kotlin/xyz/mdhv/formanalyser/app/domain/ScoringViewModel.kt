@@ -15,10 +15,12 @@ import xyz.mdhv.formanalyser.app.data.ScoreSessionEntity
 import xyz.mdhv.formanalyser.app.data.ScoringRepository
 import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.scoring.PlotPoint
+import xyz.mdhv.formanalyser.scoring.ObserverCommand
 import xyz.mdhv.formanalyser.scoring.RoundPack
 import xyz.mdhv.formanalyser.scoring.ScoreInput
 import xyz.mdhv.formanalyser.scoring.ScoringKind
 import xyz.mdhv.formanalyser.scoring.SetMatchSummary
+import xyz.mdhv.formanalyser.scoring.SpokenScore
 
 enum class ScoringInputMode {
     NUMBERS,
@@ -146,12 +148,29 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
 
     fun recordObserverPhrase(utterance: String) {
         val id = _state.value.snapshot?.session?.id ?: return
-        val spoken =
-            runCatching { ScoreInput.parseSpoken(utterance) }
+        val command =
+            runCatching { ScoreInput.parseObserverCommand(utterance) }
                 .getOrElse { t ->
                     _state.update { it.copy(error = t.message ?: "No valid score heard") }
                     return
                 }
+        if (command == ObserverCommand.Undo) {
+            undo()
+            return
+        }
+        val spoken =
+            when (command) {
+                is ObserverCommand.Score -> command.value
+                ObserverCommand.Repeat -> {
+                    val last = _state.value.snapshot?.card?.arrows?.lastOrNull()
+                    if (last == null) {
+                        _state.update { it.copy(error = "There is no previous arrow to repeat") }
+                        return
+                    }
+                    SpokenScore(last.score, "unspecified", utterance.trim())
+                }
+                ObserverCommand.Undo -> return
+            }
         action {
             val next = repo.recordObserverTap(
                 id,

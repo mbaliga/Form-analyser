@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last updated: 2026-08-12 · current build: **v0.5.1** (versionCode 4)_
+_Last updated: 2026-09-11 · current development build: **v0.6.0-spec-dev** (versionCode 6)_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -144,75 +144,76 @@ manual-scoring wedge → `0.7.x` form/End-Scan/Live-Observer → `0.8.0` exchang
 `0.10.0` web viewer → `0.11.0` model UX → `0.12.x` equipment/training → `1.0.0` club release, rather
 than continuing ad hoc `0.4.x`/`0.5.x` numbering in isolation.
 
+### 3.6 Current development branch — immersive athlete experience
+
+PR #11 (`feat/immersive-visuals`) now contains the current product surface:
+
+- a complete System/Light/Dark theme switch with warm, high-contrast light surfaces;
+- an illustrated athlete Home hero, graphical capture placement guide and live framing overlay;
+- an anatomical, procedurally drawn front/back muscle atlas replacing rectangular body regions;
+- graphical improvement-area cards and richer review/body presentation;
+- WA/manual numeric scoring, target plotting, set matches, PBs, grouping, score history and Progress;
+- constrained observer voice declarations such as “eight bottom left”, plus repeat/undo, using
+  Android's on-device recognizer only; declarations and observation resolution are preserved;
+- photo-assisted End Scan: import a target photograph, calibrate centre/edge, mark arrows, calculate
+  provisional rings, then confirm or reject each result before it affects a scorecard;
+- opt-in raw MP4 capture alongside pose analysis, stored in app-private media storage;
+- DeepSeek BYOK, on-device model file import, and deterministic offline coaching fallback;
+- checksum-validated `.crocbak` preview/import that adds missing rows transactionally without
+  overwriting local history; and
+- ECDSA-signed `.croc` sharing using the Android Keystore identity, with signature, fingerprint and
+  payload verification before import preview.
+
 ---
 
 ## 4. Pending
 
-### 4.1 Verification (the honest gap)
-CI proves the Android app **compiles and packages** — not that it **behaves**. The pure-JVM cores are
-unit-tested; the Android UI/wiring has **not been exercised on a device yet**. First real-run pass is
-the immediate next step (onboarding → Home → all tabs → Body atlas → coach → export → tuning).
+### 4.1 Verification gates (intentionally not claimed by CI)
 
-### 4.2 AI coach polish
-- **On-device model UX:** today the user must supply a Gemma `.task`/`.bin` model file; add a guided
-  download/import flow (and consider bundling a small default).
-- Streaming responses, token/cost display, per-provider model-list refresh.
+- On-device behavioural, rotation/foldable, camera, microphone, thermal, battery and storage QA.
+- Range validation of pose metrics, shot segmentation and all target-photo scoring behavior.
+- Athlete/coach comprehension, accessibility and sunlight/glove testing.
+- Clinical/content review of recovery, pain, injury and return-to-training guidance.
 
-### 4.3 Design system
-- Wire **`dev.aarso:hyle`** as a real published dependency instead of ported token constants.
-- Hand-drawn body-atlas SVG art to replace the schematic rounded-rects (the integrity suite is the
-  contract; the override seam is ready).
+### 4.2 Remaining product implementation
 
-### 4.4 Deferred within Phases 1–3 (logged)
-- Hilt DI (kept manual to de-risk blind compilation).
-- Robolectric tests (migrations, PrivacyRegistry reflection, VM suites) — need the Android SDK.
-- Streak week-strip glyphs, sRPE secondary load lane, in-app document camera capture.
+- **Automatic End Scan vision:** the current flow is calibrated photo marking, not an arrow detector.
+  Perspective correction, automatic impact candidates, drag/add/remove correction and a measured
+  device/target/lighting envelope remain.
+- **Voice command depth:** embedded Android on-device recognition, scoring, repeat and undo are
+  implemented. Skip/finish-end/correct-arrow commands and range false-acceptance validation remain.
+- **Synchronized media review:** raw video is captured, but durable shot-to-video timecodes,
+  phase-aligned replay and retention management remain.
+- **Human Coach product:** roster, athlete inbox/detail, notes, assignments, acknowledgement,
+  coach-local score book, entitlement and retention controls remain. The existing “Coach” is the
+  athlete's AI/rule coach, not this paid human workspace.
+- **Organiser/referee and spectator display:** competition control, casting/external-display layout,
+  automatic form filling and offline tournament workflows remain.
+- **Static local web viewer:** local `.croc`/`.crocbak` inspection and report rendering in a PWA is
+  not implemented.
+- **Exchange trust UX:** `.croc` signing/verification and safe merge now exist; Pairing Cards, TOFU
+  pinning, key-change quarantine, duplicate/conflict inspection and explicit athlete switching remain.
+- **Device ecosystem:** Garmin, Wear OS, Health Connect, Bluetooth sensors and Steady Aim A1 Pro are
+  not integrated. These require their respective SDK/protocol work and hardware testing.
+- **Baseline seam:** a versioned, consent-filtered Crocodyl-to-Baseline factor/observation adapter is
+  still required; Baseline-specific engines remain outside this repository.
+- **Equipment depth:** individual arrows, catalog provenance, lifecycle/wear, tuning history and
+  neutral upgrade evidence remain beyond the current rig/tuning calculator.
+- **Training depth:** competition planning, plan-vs-completed reconciliation, pressure games and the
+  reviewed recovery action library remain beyond current goals/check-ins/calendar/body/physio.
+- **Model UX:** guided local-model download, streaming, cancellation, token/cost display and live
+  provider model discovery remain. Manual local-model import and all configured BYOK providers work.
+- **Additional disciplines/platforms:** Compound, Korean/traditional archery, Bouldering, Fencing,
+  Swimming, Rock climbing and iOS have not been implemented; only the sport-module seam exists.
+- **Release engineering:** localization, automated accessibility checks, migration fixtures,
+  malicious exchange fixtures, security review, store declarations and club-pilot evidence remain.
 
-### 4.5 Future phases (roadmap, not yet built)
-The full spec runs to ~Phase 12. Notable future work: deeper tuning history, richer export/import &
-coach↔athlete sharing (Phase 5 continuation), a Progress/stability-trends surface, and a Wear OS
-companion (Phase 12). These were always beyond the 1–3 + AI-coach + Phase-4/5 scope built so far.
+### 4.3 Repository decisions
 
-### 4.6 Delta vs. the new blueprint (2026-08-12)
-
-On 2026-08-12, Madhav pushed a Product Blueprint v2.1 + Phased Implementation Plan into this repo via
-a ChatGPT-driven agent (`agent/crocodyl-chatgpt-sync` / `agent/crocodyl-package-export`, reconciled
-into PR #4). It's a genuine strategic document, not mechanical — it repositions Crocodyl as a general
-"sovereign athlete performance system" (Olympic Recurve first, more sports later) and specifies a much
-larger surface than what's built so far. Concretely, **not yet built**, per that blueprint:
-
-- **Manual/plotted scoring** — WA Recurve round packs, cold-thumb numeric scoring, target-face
-  plotting, totals/set points/PBs. (Today's app has no manual scoring surface at all.)
-- **End Scan** — editable automatic post-end target-photo scoring.
-- **Live Observer** — tap/constrained-voice scoring during form capture; **Paired Target Cam** later.
-- **Coach workspace** — a paid, multi-athlete surface (roster, report review, notes, assignments).
-- **Static local-only web viewer** for exported files.
-- **Signed `.croc` exchange** — a person-to-person envelope, distinct from the device-backup
-  `.crocbak` this repo already has (Phase 5 built the backup half only).
-- **DeepSeek** as a BYOK provider (not in `core-coach`'s `ModelRegistry` yet).
-- **Equipment catalog/commerce** — provenance-rich catalog, wear forecasts, upgrade evidence,
-  affiliate-link laws (commerce must never steer evidence/ranking).
-- **Fuller training/recovery system** — plans, goals, habits, injury-risk context, conservative
-  recovery guidance, alongside the existing wellness/body layers.
-- **A formal longitudinal observation-resolution contract**
-  (`SHOT_CONFIRMED`/`SHOT_INFERRED`/`END_ONLY`/`SESSION_ONLY`/`DAY_WINDOW`/`PERIOD_WINDOW`) — stricter
-  than what the current wellness/coach cores implicitly assume. A design constraint for future work,
-  not retrofitted onto Phases 1–3 now.
-
-None of the above required changing any existing code — the blueprint is purely additive documentation
-and merges clean on top of `v0.5.1`.
-
-### 4.7 Owner to-dos (Madhav)
-- Review/merge **PR #4** (`claude/form-analyser-baseline-split-e9s6lr → main`) — the reconciled,
-  CI-green `v0.5.1` build, now including the Blueprint v2.1 docs. **PR #5** (the ChatGPT-agent branch
-  merged into #4) can be closed as superseded. **PR #3** (a stale ~v0.4.2 snapshot) remains superseded
-  from the earlier reconciliation pass and can also be closed.
-- Approve/edit the blueprint's "governing decisions" (§4.6 above; full list in
-  `docs/crocodyl/blueprint/01-product-direction.md`) — the blueprint itself calls these "proposed,"
-  governing only after owner approval.
-- Confirm the DECISION-21 OTF constants (shipped as defaults 2.0 lbs/in draw, 1.0 lb/in riser).
-- Baseline repo: the Crocodyl spec + phase briefs are committed there (PR #5 on `baseline`, draft) —
-  separate from this repo's own PR #5.
+- Merge PR #11 after review; it supersedes the stale implementation claims and visual branch work.
+- Confirm DECISION-21 OTF constants (current defaults: 2.0 lbs/in draw, 1.0 lb/in riser).
+- Keep EEG/bow-IMU and paid Baseline analytics out of this repository; exchange only typed,
+  consent-filtered observations across the future adapter.
 
 ---
 

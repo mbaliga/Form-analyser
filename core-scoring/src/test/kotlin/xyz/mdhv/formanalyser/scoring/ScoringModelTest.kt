@@ -17,6 +17,8 @@ class ScoringModelTest {
         assertEquals("bottom left", parsed.sector)
         assertEquals("centre", ScoreInput.parseSpoken("X center").sector)
         assertEquals(0, ScoreInput.parseSpoken("miss high").score.points)
+        assertEquals(ObserverCommand.Undo, ScoreInput.parseObserverCommand("undo last"))
+        assertEquals(ObserverCommand.Repeat, ScoreInput.parseObserverCommand("same again"))
         assertFailsWith<IllegalArgumentException> { ScoreInput.parseSpoken("nice shot") }
     }
     @Test

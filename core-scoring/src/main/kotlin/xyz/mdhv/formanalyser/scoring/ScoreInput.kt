@@ -47,6 +47,21 @@ object ScoreInput {
         }
         return SpokenScore(parse(token), sector, utterance.trim())
     }
+
+    fun parseObserverCommand(utterance: String): ObserverCommand {
+        val normalized = utterance.lowercase().replace(Regex("[^a-z0-9]+"), " ").trim()
+        return when (normalized) {
+            "undo", "undo last", "take back" -> ObserverCommand.Undo
+            "repeat", "repeat last", "same again" -> ObserverCommand.Repeat
+            else -> ObserverCommand.Score(parseSpoken(utterance))
+        }
+    }
 }
 
 data class SpokenScore(val score: ArrowScore, val sector: String, val declaredText: String)
+
+sealed interface ObserverCommand {
+    data class Score(val value: SpokenScore) : ObserverCommand
+    data object Undo : ObserverCommand
+    data object Repeat : ObserverCommand
+}

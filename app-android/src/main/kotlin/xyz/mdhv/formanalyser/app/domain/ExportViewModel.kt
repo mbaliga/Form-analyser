@@ -503,7 +503,6 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
         }
-        room.invalidationTracker.refreshAsync()
         return "Imported $inserted new row(s); kept $kept existing row(s). Nothing was overwritten."
     }
 

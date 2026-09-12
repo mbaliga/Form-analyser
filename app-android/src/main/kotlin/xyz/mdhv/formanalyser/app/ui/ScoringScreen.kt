@@ -1,8 +1,7 @@
 package xyz.mdhv.formanalyser.app.ui
 
-import android.app.Activity
-import android.content.Intent
-import android.speech.RecognizerIntent
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -15,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -22,6 +22,7 @@ import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.domain.ScoringInputMode
 import xyz.mdhv.formanalyser.app.domain.ScoringViewModel
 import xyz.mdhv.formanalyser.app.ui.components.EndScanPhoto
+import xyz.mdhv.formanalyser.app.ui.components.OfflineScoreRecognizer
 import xyz.mdhv.formanalyser.app.ui.components.TargetFaceCanvas
 import xyz.mdhv.formanalyser.app.ui.theme.HapticCue
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -42,26 +43,28 @@ fun ScoringScreen(vm: ScoringViewModel) {
     var linking by rememberSaveable { mutableStateOf(false) }
     var voiceStatus by rememberSaveable { mutableStateOf<String?>(null) }
     val context = LocalContext.current
-    val voiceIntent = remember {
-        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-            putExtra(RecognizerIntent.EXTRA_PROMPT, "Say an arrow, for example: eight bottom left")
-        }
+    val voiceAvailable = remember(context) { OfflineScoreRecognizer.isAvailable(context) }
+    val voiceRecognizer = remember(context, voiceAvailable) {
+        if (voiceAvailable) OfflineScoreRecognizer(context.applicationContext) else null
     }
-    val voiceAvailable = remember { voiceIntent.resolveActivity(context.packageManager) != null }
-    val voiceLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val heard = result.data
-                    ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-                    ?.firstOrNull()
-                if (heard != null) {
-                    voiceStatus = "Heard: $heard"
-                    vm.recordObserverPhrase(heard)
-                } else voiceStatus = "Nothing understood. Tap and try again."
-            }
+    DisposableEffect(voiceRecognizer) { onDispose { voiceRecognizer?.destroy() } }
+    var audioGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+        )
+    }
+    fun startVoice() {
+        voiceRecognizer?.listen(
+            onStatus = { voiceStatus = it },
+            onResult = vm::recordObserverPhrase,
+        )
+    }
+    val audioPermission =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            audioGranted = granted
+            if (granted) startVoice()
+            else voiceStatus = "Microphone permission was not granted. Tap scoring still works."
         }
 
     if (state.loading) {
@@ -231,7 +234,10 @@ fun ScoringScreen(vm: ScoringViewModel) {
                                 canScore,
                             )
                             Button(
-                                onClick = { voiceLauncher.launch(voiceIntent) },
+                                onClick = {
+                                    if (audioGranted) startVoice()
+                                    else audioPermission.launch(Manifest.permission.RECORD_AUDIO)
+                                },
                                 enabled = canScore && voiceAvailable,
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
@@ -239,8 +245,8 @@ fun ScoringScreen(vm: ScoringViewModel) {
                             }
                             Text(
                                 if (voiceAvailable)
-                                    voiceStatus ?: "Try “eight bottom left”. Offline recognition is requested; Android shows the recognizer it will use."
-                                else "No speech recognizer is installed. Tap scoring remains available.",
+                                    voiceStatus ?: "Try “eight bottom left”, “repeat” or “undo”. Audio is processed on-device and is not retained."
+                                else "This device has no on-device speech recognizer. Voice is disabled; tap scoring remains available.",
                                 color = Hyle.OnSurfaceDim,
                                 style = MaterialTheme.typography.bodySmall,
                             )
