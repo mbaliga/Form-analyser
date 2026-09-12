@@ -93,6 +93,7 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
     }
 
     val recording by vm.isRecording.collectAsState()
+    val activeCapture by vm.activeCapture.collectAsState()
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     // Leaving mid-recording throws away the pose window the recorder is holding — it is only
     // segmented into shots by stopRecordingAndAnalyze, so a back gesture during a live capture
@@ -165,6 +166,7 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
                     vm = vm,
                     recording = recording,
                     keepRawVideo = keepRawVideo,
+                    activeCapture = activeCapture,
                     onVideoResult = { videoNotice = it },
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -230,6 +232,7 @@ private fun CameraPreview(
     vm: SessionViewModel,
     recording: Boolean,
     keepRawVideo: Boolean,
+    activeCapture: xyz.mdhv.formanalyser.app.domain.ActiveCapture?,
     onVideoResult: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -266,11 +269,13 @@ private fun CameraPreview(
             .also { it.setAnalyzer(executor) { img -> vm.recorder.process(img) } }
     }
 
-    LaunchedEffect(recording, keepRawVideo) {
+    LaunchedEffect(recording, keepRawVideo, activeCapture?.id) {
         if (recording && keepRawVideo && activeRecording == null) {
+            val capture = activeCapture ?: return@LaunchedEffect
             val root = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES) ?: context.filesDir
             val dir = File(root, "captures").apply { mkdirs() }
             val file = File(dir, "crocodyl-${System.currentTimeMillis()}.mp4")
+            val videoStartedAtMs = System.currentTimeMillis()
             val output = FileOutputOptions.Builder(file).build()
             activeRecording =
                 videoCapture.output
@@ -278,6 +283,16 @@ private fun CameraPreview(
                     .start(ContextCompat.getMainExecutor(context)) { event ->
                         if (event is VideoRecordEvent.Finalize) {
                             activeRecording = null
+                            if (event.error == VideoRecordEvent.Finalize.ERROR_NONE) {
+                                vm.attachRawVideo(
+                                    captureId = capture.id,
+                                    poseStartedAtMs = capture.poseStartedAtMs,
+                                    path = file.absolutePath,
+                                    videoStartedAtMs = videoStartedAtMs,
+                                    durationMs = event.recordingStats.recordedDurationNanos / 1_000_000L,
+                                    sizeBytes = file.length(),
+                                )
+                            }
                             onVideoResult(
                                 if (event.error == VideoRecordEvent.Finalize.ERROR_NONE)
                                     "Video saved privately · ${file.name}"

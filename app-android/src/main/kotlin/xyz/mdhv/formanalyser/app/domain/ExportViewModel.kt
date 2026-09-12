@@ -33,11 +33,14 @@ import kotlinx.serialization.json.longOrNull
 import xyz.mdhv.formanalyser.app.BuildConfig
 import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.exchange.AndroidKeyProvider
+import xyz.mdhv.formanalyser.app.exchange.ExchangeTrustStore
 import xyz.mdhv.formanalyser.exchange.ConsentDecision
 import xyz.mdhv.formanalyser.exchange.ConsentFilter
 import xyz.mdhv.formanalyser.exchange.CrocEnvelope
 import xyz.mdhv.formanalyser.exchange.CrocbakManifest
 import xyz.mdhv.formanalyser.exchange.ExportTier
+import xyz.mdhv.formanalyser.exchange.ExchangeTrust
+import xyz.mdhv.formanalyser.exchange.ExchangeTrustState
 import xyz.mdhv.formanalyser.wellness.PrivacyClass
 import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
 
@@ -55,6 +58,7 @@ import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
 class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     private val keyProvider = AndroidKeyProvider()
+    private val trustStore = ExchangeTrustStore(app)
     private val json = Json {
         prettyPrint = false
         encodeDefaults = true
@@ -69,11 +73,15 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         val sourceFingerprint: String,
         val tableCount: Int,
         val rowCount: Long,
+        val athleteNames: List<String>,
+        val signed: Boolean,
+        val trustState: ExchangeTrustState,
     )
 
     private data class ArchiveBundle(
         val manifest: CrocbakManifest,
         val tables: Map<String, JsonArray>,
+        val signedFingerprint: String? = null,
     )
 
     private val _tier = MutableStateFlow(ExportTier.SHAREABLE_ONLY)
@@ -263,6 +271,8 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                 onSuccess = { archive ->
                     inspectedArchive = archive
                     val manifest = archive.manifest
+                    val athletes = archive.athletes()
+                    val trustState = trustState(archive, athletes.map { it.first })
                     _importPreview.value =
                         ImportPreview(
                             appVersion = manifest.appVersion,
@@ -270,6 +280,9 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                             sourceFingerprint = manifest.athletePubkeyFingerprint,
                             tableCount = archive.tables.size,
                             rowCount = archive.tables.values.sumOf { it.size.toLong() },
+                            athleteNames = athletes.map { it.second },
+                            signed = archive.signedFingerprint != null,
+                            trustState = trustState,
                         )
                 },
                 onFailure = {
@@ -283,11 +296,21 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
     /** Merge the inspected archive. Existing rows win; the import never erases local history. */
     fun importInspected() {
         val archive = inspectedArchive ?: return
+        val preview = _importPreview.value ?: return
+        if (preview.trustState == ExchangeTrustState.KEY_CHANGED) return
         if (_busy.value) return
         _busy.value = true
         _importOutcome.value = null
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { runCatching { mergeArchive(archive) } }
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val message = mergeArchive(archive)
+                    archive.signedFingerprint?.let { fingerprint ->
+                        trustStore.pin(archive.athletes().map { it.first }, fingerprint)
+                    }
+                    message
+                }
+            }
             _busy.value = false
             result.fold(
                 onSuccess = { message ->
@@ -306,6 +329,14 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
     fun cancelImport() {
         inspectedArchive = null
         _importPreview.value = null
+    }
+
+    /** First tap in the deliberate key-replacement ceremony; data remains quarantined. */
+    fun armKeyReplacement() {
+        val preview = _importPreview.value ?: return
+        if (preview.trustState == ExchangeTrustState.KEY_CHANGED) {
+            _importPreview.value = preview.copy(trustState = ExchangeTrustState.REPLACEMENT_ARMED)
+        }
     }
 
     private fun writeArchive(uri: Uri): String {
@@ -419,7 +450,11 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
             val envelope = CrocEnvelope.deserialize(bytes.decodeToString())
             require(envelope.payloadType == CrocEnvelope.BACKUP_PAYLOAD) { "unsupported .croc payload" }
             require(envelope.verify()) { "the .croc signature is invalid" }
-            return readArchive(java.io.ByteArrayInputStream(envelope.payload()))
+            val archive = readArchive(java.io.ByteArrayInputStream(envelope.payload()))
+            require(archive.manifest.athletePubkeyFingerprint == envelope.senderFingerprint) {
+                "signed sender does not match the archive identity"
+            }
+            return archive.copy(signedFingerprint = envelope.senderFingerprint)
         }
         return readArchive(java.io.ByteArrayInputStream(bytes))
     }
@@ -472,6 +507,20 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
         return ArchiveBundle(manifest, tables)
     }
+
+    private fun ArchiveBundle.athletes(): List<Pair<String, String>> =
+        tables["athlete"].orEmpty().mapNotNull { row ->
+            val obj = row.jsonObject
+            val id = (obj["id"] as? JsonPrimitive)?.content ?: return@mapNotNull null
+            val name = (obj["displayName"] as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() } ?: "Athlete"
+            id to name
+        }
+
+    private fun trustState(archive: ArchiveBundle, athleteIds: List<String>): ExchangeTrustState =
+        ExchangeTrust.evaluate(
+            archive.signedFingerprint,
+            athleteIds.mapNotNull(trustStore::fingerprintFor),
+        )
 
     private fun mergeArchive(archive: ArchiveBundle): String {
         val room = AppDatabase.get(getApplication())

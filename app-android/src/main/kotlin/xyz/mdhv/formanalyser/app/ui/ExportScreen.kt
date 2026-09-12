@@ -1,9 +1,12 @@
 package xyz.mdhv.formanalyser.app.ui
 
 import android.content.Intent
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import xyz.mdhv.formanalyser.app.domain.ExportViewModel
@@ -39,6 +43,7 @@ import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.exchange.ExportTier
+import xyz.mdhv.formanalyser.exchange.ExchangeTrustState
 import xyz.mdhv.formanalyser.exchange.WithheldReason
 
 /**
@@ -151,16 +156,23 @@ fun ExportScreen(vm: ExportViewModel) {
         }
 
         HyleSectionHeader("This device's identity")
-        Text(
-            fingerprint?.let { shortFingerprint(it) } ?: "Deriving…",
-            color = Hyle.OnBackground,
-            fontFamily = FontFamily.Monospace,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Text(
-            "Recorded in the archive manifest so a reader can tell which device produced it.",
-            color = Hyle.OnSurfaceDim,
-            style = MaterialTheme.typography.labelMedium,
+        PairingCard(
+            fingerprint = fingerprint,
+            onCopy = {
+                fingerprint?.let {
+                    val clipboard = context.getSystemService(ClipboardManager::class.java)
+                    clipboard.setPrimaryClip(ClipData.newPlainText("Crocodyl fingerprint", it))
+                }
+            },
+            onShare = {
+                fingerprint?.let {
+                    val text = "Crocodyl pairing fingerprint:\n$it\n\nCompare this on both devices before trusting an exchange."
+                    context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, text)
+                    }, "Share pairing card"))
+                }
+            },
         )
 
         outcome?.let { Text(it.message, color = if (it.ok) Hyle.RadiumGreen else Hyle.Danger) }
@@ -243,18 +255,40 @@ fun ExportScreen(vm: ExportViewModel) {
                 colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceRich),
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Validated archive", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        when (preview.trustState) {
+                            ExchangeTrustState.TRUSTED -> "Trusted exchange"
+                            ExchangeTrustState.FIRST_CONTACT -> "New signed identity"
+                            ExchangeTrustState.KEY_CHANGED -> "Identity change quarantined"
+                            ExchangeTrustState.REPLACEMENT_ARMED -> "Confirm identity replacement"
+                            ExchangeTrustState.LEGACY_UNSIGNED -> "Legacy checksum archive"
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (preview.trustState == ExchangeTrustState.KEY_CHANGED) Hyle.Danger else Hyle.OnBackground,
+                    )
                     Text(
                         "${preview.tableCount} tables · ${preview.rowCount} rows · Crocodyl ${preview.appVersion}",
                         color = Hyle.OnSurfaceDim,
                     )
+                    if (preview.athleteNames.isNotEmpty()) {
+                        Text(preview.athleteNames.joinToString(), color = Hyle.OnBackground)
+                    }
                     Text(
                         shortFingerprint(preview.sourceFingerprint),
                         fontFamily = FontFamily.Monospace,
                         color = Hyle.AlienCyan,
                     )
+                    Text(trustExplanation(preview.trustState), color = Hyle.OnSurfaceDim)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = vm::importInspected, enabled = !busy) { Text("Import missing rows") }
+                        when (preview.trustState) {
+                            ExchangeTrustState.KEY_CHANGED ->
+                                Button(onClick = vm::armKeyReplacement, enabled = !busy) { Text("Review new key") }
+                            ExchangeTrustState.REPLACEMENT_ARMED ->
+                                Button(onClick = vm::importInspected, enabled = !busy) { Text("Replace key & import") }
+                            ExchangeTrustState.FIRST_CONTACT ->
+                                Button(onClick = vm::importInspected, enabled = !busy) { Text("Trust & import") }
+                            else -> Button(onClick = vm::importInspected, enabled = !busy) { Text("Import missing rows") }
+                        }
                         OutlinedButton(onClick = vm::cancelImport, enabled = !busy) { Text("Cancel") }
                     }
                 }
@@ -270,6 +304,44 @@ fun ExportScreen(vm: ExportViewModel) {
         )
     }
 }
+
+@Composable
+private fun PairingCard(fingerprint: String?, onCopy: () -> Unit, onShare: () -> Unit) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceRich)) {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Canvas(Modifier.size(56.dp)) {
+                val bytes = fingerprint.orEmpty().filter(Char::isLetterOrDigit)
+                val cell = size.width / 4f
+                repeat(16) { i ->
+                    val active = bytes.getOrNull(i)?.digitToIntOrNull(16)?.let { it >= 8 } ?: false
+                    drawCircle(
+                        color = if (active) Hyle.AlienCyan else Hyle.RadiumGreen.copy(alpha = 0.28f),
+                        radius = cell * 0.28f,
+                        center = Offset((i % 4 + .5f) * cell, (i / 4 + .5f) * cell),
+                    )
+                }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text("Pairing card", style = MaterialTheme.typography.titleMedium)
+                Text(fingerprint?.let(::shortFingerprint) ?: "Deriving…", fontFamily = FontFamily.Monospace)
+                Text("Compare this fingerprint before trusting a new sender.", color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onCopy, enabled = fingerprint != null) { Text("Copy") }
+                    OutlinedButton(onClick = onShare, enabled = fingerprint != null) { Text("Share") }
+                }
+            }
+        }
+    }
+}
+
+private fun trustExplanation(state: ExchangeTrustState): String =
+    when (state) {
+        ExchangeTrustState.TRUSTED -> "Signature valid and the sender key matches your saved pairing."
+        ExchangeTrustState.FIRST_CONTACT -> "Signature valid. Compare the fingerprint with the sender before trusting it for the first time."
+        ExchangeTrustState.KEY_CHANGED -> "This athlete was previously paired with a different key. Import is blocked until you deliberately replace it."
+        ExchangeTrustState.REPLACEMENT_ARMED -> "Only continue if the athlete confirmed this exact new fingerprint through another channel."
+        ExchangeTrustState.LEGACY_UNSIGNED -> "Checksum valid, but no signed sender identity is available to pin."
+    }
 
 @Composable
 private fun ProvenanceRow(

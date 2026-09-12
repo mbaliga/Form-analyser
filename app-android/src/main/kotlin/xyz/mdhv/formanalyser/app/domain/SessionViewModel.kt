@@ -42,7 +42,12 @@ data class ShotView(
     val stability: Double?,
     val topDeviationFeature: String?,
     val isBaseline: Boolean,
+    val drawStartS: Double?,
+    val releaseS: Double?,
+    val captureMediaId: String?,
 )
+
+data class ActiveCapture(val id: String, val poseStartedAtMs: Long)
 
 data class BaselineInfo(val ready: Boolean, val repCount: Long) {
     val needed: Long
@@ -84,6 +89,10 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
     val athleteHandedness: StateFlow<Handedness> = _athleteHandedness
     private val _postPending = MutableStateFlow<PostPending?>(null)
     val postPending: StateFlow<PostPending?> = _postPending
+    private val _captureMedia = MutableStateFlow<List<CaptureMediaEntity>>(emptyList())
+    val captureMedia: StateFlow<List<CaptureMediaEntity>> = _captureMedia
+    private val _activeCapture = MutableStateFlow<ActiveCapture?>(null)
+    val activeCapture: StateFlow<ActiveCapture?> = _activeCapture
     private var currentSessionId: String? = null
     private var currentHandednessOverride: Handedness? = null
 
@@ -224,6 +233,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
 
     fun startRecording() {
         if (!recorder.isAvailable || _isRecording.value) return
+        _activeCapture.value = ActiveCapture(UUID.randomUUID().toString(), System.currentTimeMillis())
         recorder.start()
         _isRecording.value = true
     }
@@ -247,9 +257,11 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 val normalized = HandednessNormalizer.normalize(window, handed)
                 val analysis = ArcheryAnalyzer.analyzeWithSpans(normalized)
+                val captureId = _activeCapture.value?.id
                 val offset = repo.shotsOnce(sid).size
                 repo.saveShots(
                     analysis.features.mapIndexed { i, f ->
+                        val span = analysis.spans.getOrNull(i)
                         ShotEntity(
                             UUID.randomUUID().toString(),
                             sid,
@@ -258,6 +270,9 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                             ArcheryAnalyzer.featuresToJson(f),
                             null,
                             false,
+                            span?.drawStartS,
+                            span?.releaseS,
+                            captureId,
                         )
                     }
                 )
@@ -266,6 +281,47 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                 _postPending.value = PostPending(duration.seconds.toInt(), repo.shotsOnce(sid).size)
             }
             refresh()
+        }
+    }
+
+    /** Attach CameraX's finalized file to the active session and preserve both clock origins. */
+    fun attachRawVideo(
+        captureId: String,
+        poseStartedAtMs: Long,
+        path: String,
+        videoStartedAtMs: Long,
+        durationMs: Long,
+        sizeBytes: Long,
+    ) {
+        val sid = currentSessionId ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                repo.saveCaptureMedia(
+                    CaptureMediaEntity(
+                        id = captureId,
+                        sessionId = sid,
+                        path = path,
+                        poseStartedAtMs = poseStartedAtMs,
+                        videoStartedAtMs = videoStartedAtMs,
+                        durationMs = durationMs,
+                        sizeBytes = sizeBytes,
+                        createdAtMs = System.currentTimeMillis(),
+                    )
+                )
+            }
+            _captureMedia.value = withContext(Dispatchers.IO) { repo.captureMedia(sid) }
+        }
+    }
+
+    fun deleteRawVideo(mediaId: String) {
+        val sid = currentSessionId ?: return
+        val media = _captureMedia.value.firstOrNull { it.id == mediaId } ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching { java.io.File(media.path).delete() }
+                repo.deleteCaptureMedia(mediaId)
+            }
+            _captureMedia.value = withContext(Dispatchers.IO) { repo.captureMedia(sid) }
         }
     }
 
@@ -356,6 +412,9 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                             dev?.stability,
                             dev?.topDeviation?.key,
                             e.isBaseline,
+                            e.drawStartS,
+                            e.releaseS,
+                            e.captureMediaId,
                         )
                     }
                 Computed(
@@ -369,6 +428,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         _baseline.value = c.baseline
         _fatigue.value = c.fatigue
         _correlations.value = c.correlations
+        _captureMedia.value = currentSessionId?.let { withContext(Dispatchers.IO) { repo.captureMedia(it) } }.orEmpty()
     }
 
     private data class Computed(

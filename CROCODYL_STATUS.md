@@ -162,7 +162,11 @@ PR #11 (`feat/immersive-visuals`) now contains the current product surface:
 - checksum-validated `.crocbak` preview/import that adds missing rows transactionally without
   overwriting local history; and
 - ECDSA-signed `.croc` sharing using the Android Keystore identity, with signature, fingerprint and
-  payload verification before import preview.
+  payload verification before import preview;
+- visual Pairing Cards, explicit trust-on-first-use identity pinning, manifest/envelope identity
+  binding, and two-step quarantine/replacement when a known athlete's signing key changes; and
+- durable raw-video/session links, per-shot draw/release timestamps, phase-aligned replay from each
+  shot card, and explicit raw-video deletion from Review.
 
 ---
 
@@ -182,8 +186,9 @@ PR #11 (`feat/immersive-visuals`) now contains the current product surface:
   device/target/lighting envelope remain.
 - **Voice command depth:** embedded Android on-device recognition, scoring, repeat and undo are
   implemented. Skip/finish-end/correct-arrow commands and range false-acceptance validation remain.
-- **Synchronized media review:** raw video is captured, but durable shot-to-video timecodes,
-  phase-aligned replay and retention management remain.
+- **Synchronized media review:** durable shot-to-video timing and phase-aligned replay are built.
+  A user-selectable automatic retention schedule remains; Review currently provides explicit raw
+  video deletion.
 - **Human Coach product:** roster, athlete inbox/detail, notes, assignments, acknowledgement,
   coach-local score book, entitlement and retention controls remain. The existing “Coach” is the
   athlete's AI/rule coach, not this paid human workspace.
@@ -191,8 +196,8 @@ PR #11 (`feat/immersive-visuals`) now contains the current product surface:
   automatic form filling and offline tournament workflows remain.
 - **Static local web viewer:** local `.croc`/`.crocbak` inspection and report rendering in a PWA is
   not implemented.
-- **Exchange trust UX:** `.croc` signing/verification and safe merge now exist; Pairing Cards, TOFU
-  pinning, key-change quarantine, duplicate/conflict inspection and explicit athlete switching remain.
+- **Exchange trust UX:** `.croc` signing/verification, Pairing Cards, TOFU pinning and key-change
+  quarantine now exist. Duplicate/conflict inspection and explicit athlete switching remain.
 - **Device ecosystem:** Garmin, Wear OS, Health Connect, Bluetooth sensors and Steady Aim A1 Pro are
   not integrated. These require their respective SDK/protocol work and hardware testing.
 - **Baseline seam:** a versioned, consent-filtered Crocodyl-to-Baseline factor/observation adapter is
