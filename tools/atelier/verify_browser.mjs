@@ -57,21 +57,22 @@ try{
  await evaluate('window.CrocodylAtelier.resume()');await evaluate("document.querySelector('#rotate').click()");await settled();
  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
  // CDP acknowledgement precedes delivery of the page's MediaQueryList change event.
- // Wait for observable product behaviour; do not weaken or remove the assertion.
  await wait(()=>evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches && document.querySelector('#rotate').disabled"),'reduced-motion listener');
  check(await evaluate("document.querySelector('#rotate').disabled"),'reduced motion disables turntable');
  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
  await wait(()=>evaluate("!matchMedia('(prefers-reduced-motion: reduce)').matches && !document.querySelector('#rotate').disabled"),'normal-motion listener');
- // Posters are rendered by the SAME production shader and meshes, not generative lookalikes.
+ // Posters use the production shader/meshes. Keep the production CSP in force.
  for(const key of ['recurve','arrow','target'])for(const theme of ['dark','light']){
   const camera={recurve:'center=-0.20,0,0&radius=0.45&yaw=0.35&pitch=0.06',arrow:'center=-0.23,0,0&radius=0.22&yaw=0.10&pitch=0.24',target:'center=-0.34,0.50,0&radius=0.92&yaw=0.38&pitch=0.12'}[key];
   await send('Emulation.setDeviceMetricsOverride',{width:1200,height:700,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:`${origin}/atelier/index.html?poster=${key}-${theme}#model=${key}&theme=${theme}&${camera}`});await ready();
-  await evaluate(`(()=>{const s=document.createElement('style');s.textContent='body{overflow:hidden}main{display:block;width:100vw;height:100vh;min-height:0;padding:0;max-width:none}header,.intro,.detail,footer,.stage-caption,.stage-actions,.gesture-hint,#marker,.floor-shadow{display:none!important}.stage{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0}#view{height:100%;width:100%}';document.head.append(s)})()`);
-  await sleep(300);await screen(path.join(posters,`${key}-${theme}.jpg`),1200,700);
+  await evaluate("new Promise((resolve,reject)=>{const link=document.createElement('link');link.rel='stylesheet';link.href='poster.css';link.onload=()=>resolve(true);link.onerror=()=>reject(Error('Poster stylesheet failed'));document.head.append(link);})");
+  await wait(()=>evaluate("getComputedStyle(document.querySelector('header')).display==='none' && document.querySelector('canvas').clientWidth===innerWidth"),'text-free full-frame poster layout');
+  check(await evaluate("getComputedStyle(document.querySelector('.intro')).display==='none' && getComputedStyle(document.querySelector('.stage-actions')).display==='none'"),`${key}-${theme}: poster contains no UI chrome`);
+  await settled();await screen(path.join(posters,`${key}-${theme}.jpg`),1200,700);
  }
  check(errors.length===0,'no JavaScript exceptions');
  check(network.every(url=>url.startsWith(origin)||url.startsWith('data:')||url.startsWith('blob:')),'all model/page requests remain local');
- const report={verifiedAt:new Date().toISOString(),browser:version.product,renderer:await evaluate("(()=>{const gl=document.querySelector('canvas').getContext('webgl2');return gl.getParameter(gl.RENDERER)})()"),checks,notVerified:['physical Android device','battery/thermal/frame pacing','biomechanics or equipment fitting'],posterOrigin:'Rendered from committed GLBs with the production WebGL2 shader'};
+ const report={verifiedAt:new Date().toISOString(),browser:version.product,renderer:await evaluate("(()=>{const gl=document.querySelector('canvas').getContext('webgl2');return gl.getParameter(gl.RENDERER)})()"),checks,notVerified:['physical Android device','battery/thermal/frame pacing','biomechanics or equipment fitting'],posterOrigin:'Rendered from committed GLBs with the production WebGL2 shader; text-free layout checked with CSP enabled'};
  await fs.writeFile(path.join(preview,'verification.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
 }finally{proc.kill('SIGTERM');server.close();await sleep(200);await fs.rm(profile,{recursive:true,force:true}).catch(()=>{});}
