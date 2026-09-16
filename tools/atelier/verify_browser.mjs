@@ -56,8 +56,12 @@ try{
  check(await evaluate('window.CrocodylAtelier.getStatus().paused && !window.CrocodylAtelier.getStatus().renderPending'),'pause cancels animation');
  await evaluate('window.CrocodylAtelier.resume()');await evaluate("document.querySelector('#rotate').click()");await settled();
  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+ // CDP acknowledgement precedes delivery of the page's MediaQueryList change event.
+ // Wait for observable product behaviour; do not weaken or remove the assertion.
+ await wait(()=>evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches && document.querySelector('#rotate').disabled"),'reduced-motion listener');
  check(await evaluate("document.querySelector('#rotate').disabled"),'reduced motion disables turntable');
  await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+ await wait(()=>evaluate("!matchMedia('(prefers-reduced-motion: reduce)').matches && !document.querySelector('#rotate').disabled"),'normal-motion listener');
  // Posters are rendered by the SAME production shader and meshes, not generative lookalikes.
  for(const key of ['recurve','arrow','target'])for(const theme of ['dark','light']){
   const camera={recurve:'center=-0.20,0,0&radius=0.45&yaw=0.35&pitch=0.06',arrow:'center=-0.23,0,0&radius=0.22&yaw=0.10&pitch=0.24',target:'center=-0.34,0.50,0&radius=0.92&yaw=0.38&pitch=0.12'}[key];
