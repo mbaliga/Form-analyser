@@ -35,7 +35,7 @@ jobs:
       - name: Validate geometry, glTF contracts and reproducibility
         run: python3 tools/atelier/test_assets.py
       - name: Actual Chromium WebGL checks and model-matched posters
-        run: node tools/atelier/verify_browser.mjs
+        run: xvfb-run -a node tools/atelier/verify_browser.mjs
       - name: Retain portable asset and source bundle for visual review
         if: always()
         uses: actions/upload-artifact@v4
