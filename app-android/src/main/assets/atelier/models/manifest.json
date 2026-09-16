@@ -6,7 +6,7 @@
     "recurve": {
       "file": "recurve.glb",
       "bytes": 593164,
-      "sha256": "710f77a0e2eab708139d335c9631e93548c1876cd6476ef77aec8da7ba18e49f",
+      "sha256": "a6ffea61979f8b9d03c2f2fcc628a21c1a9f8cc8cd95794407ac9b47c7449ee8",
       "triangles": 16504,
       "vertices": 10646,
       "parts": [
@@ -134,8 +134,8 @@
     },
     "arrow": {
       "file": "arrow.glb",
-      "bytes": 127428,
-      "sha256": "65b9d7cac354bef4eed42ec9fc94927dd6aeddafe4576dc59ab6a51b9af2dbad",
+      "bytes": 127412,
+      "sha256": "24b9cf5eccf010f2e0fda9d439eb13f0adc6e6686c69aefeab89ccd361142d60",
       "triangles": 3288,
       "vertices": 2195,
       "parts": [
@@ -219,7 +219,7 @@
     "target": {
       "file": "target.glb",
       "bytes": 835076,
-      "sha256": "67f31d37d7d43471501827ed2ebce8b677eaff1df8cb7f666feb08c4cfdb5bec",
+      "sha256": "45293e63aa9d9c7a3d9377e09490402d6e94c76566c5f2367e5675a80bbfaff2",
       "triangles": 22928,
       "vertices": 15538,
       "parts": [
