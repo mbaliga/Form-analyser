@@ -1,0 +1,60 @@
+name: Bake Lancaster-grounded arrow taxonomy
+
+on:
+  push:
+    branches: [feat/immersive-visuals]
+    paths:
+      - tools/atelier/build_arrow_reference_library.py
+      - tools/atelier/test_arrow_reference_library.py
+      - tools/atelier/build_assets.py
+      - docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md
+      - .github/workflows/bake-arrow-reference-library.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: arrow-reference-library-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bake:
+    if: github.ref == 'refs/heads/feat/immersive-visuals'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/immersive-visuals
+          fetch-depth: 20
+      - name: Build taxonomy GLBs
+        run: python3 tools/atelier/build_arrow_reference_library.py
+      - name: Validate taxonomy contracts
+        run: python3 tools/atelier/test_arrow_reference_library.py
+      - name: Upload inspectable library
+        uses: actions/upload-artifact@v4
+        with:
+          name: crocodyl-arrow-reference-library-${{ github.run_id }}
+          retention-days: 7
+          path: |
+            app-android/src/main/assets/atelier/arrow-reference-library/
+            docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md
+            tools/atelier/build_arrow_reference_library.py
+          if-no-files-found: error
+      - name: Commit verified generated GLBs
+        run: |
+          source_head=$(git rev-parse HEAD)
+          git add app-android/src/main/assets/atelier/arrow-reference-library
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'assets: bake Lancaster-grounded arrow taxonomy GLBs'
+          if git push origin HEAD:feat/immersive-visuals; then exit 0; fi
+          git fetch origin feat/immersive-visuals
+          if ! git diff --quiet "$source_head" origin/feat/immersive-visuals -- tools/atelier/build_arrow_reference_library.py tools/atelier/test_arrow_reference_library.py tools/atelier/build_assets.py docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md; then
+            echo 'Arrow taxonomy inputs changed while baking; refuse stale publication.'
+            exit 1
+          fi
+          git rebase origin/feat/immersive-visuals
+          git push origin HEAD:feat/immersive-visuals
