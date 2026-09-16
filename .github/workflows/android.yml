@@ -29,6 +29,9 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: android-actions/setup-android@v3
+        with:
+          # setup-android defaults also request obsolete 'tools', absent in the SDK repository.
+          packages: platform-tools
       # Bake before assembly so even a source-only checkout contains the exact same assets.
       # Pure Python stdlib; no renderer download and no runtime network dependency.
       - name: Bake and validate original equipment assets
@@ -43,4 +46,4 @@ jobs:
         with:
           name: form-analyser-debug
           path: app-android/build/outputs/apk/debug/*.apk
-          if-no-files-found: ignore
+          if-no-files-found: error
