@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-16T21:42:46.065Z",
+  "verifiedAt": "2026-09-16T21:44:19.855Z",
   "browser": "Chrome/152.0.7977.82",
   "renderer": "WebKit WebGL",
   "checks": [
@@ -20,6 +20,12 @@
     "target: separate parts",
     "pause cancels animation",
     "reduced motion disables turntable",
+    "recurve-dark: poster contains no UI chrome",
+    "recurve-light: poster contains no UI chrome",
+    "arrow-dark: poster contains no UI chrome",
+    "arrow-light: poster contains no UI chrome",
+    "target-dark: poster contains no UI chrome",
+    "target-light: poster contains no UI chrome",
     "no JavaScript exceptions",
     "all model/page requests remain local"
   ],
@@ -28,5 +34,5 @@
     "battery/thermal/frame pacing",
     "biomechanics or equipment fitting"
   ],
-  "posterOrigin": "Rendered from committed GLBs with the production WebGL2 shader"
+  "posterOrigin": "Rendered from committed GLBs with the production WebGL2 shader; text-free layout checked with CSP enabled"
 }
