@@ -84,6 +84,7 @@ class Model:
         for i in range(len(points)-1):
             for j in range(sides):
                 a=i*(sides+1)+j;b=a+sides+1;f.extend([(a,b,a+1),(a+1,b,b+1)])
+        side_count = len(f)
         if caps:
             # Independent cap vertices preserve hard material edge normals.
             for i,flip in [(0,True),(len(points)-1,False)]:
@@ -91,8 +92,9 @@ class Model:
                 first=len(v)
                 for j in range(sides+1):v.append(v[i*(sides+1)+j]);uv.append((.5+.5*math.cos(TAU*j/sides),.5+.5*math.sin(TAU*j/sides)))
                 for j in range(sides): f.append((center,first+j+1,first+j) if flip else (center,first+j,first+j+1))
-        # The tube parameterization faces inward; reverse to outward for glTF culling.
-        self.mesh(part,material,v,[(a,c,b) for a,b,c in f],uv)
+        # Side parameterization is inward; cap fans already face outward.
+        # Reversing both hides cap defects in two-sided viewers but breaks standard culling.
+        self.mesh(part,material,v,[(a,c,b) if i < side_count else (a,b,c) for i,(a,b,c) in enumerate(f)],uv)
     def rod(self,p,m,a,b,r,sides=16): self.tube(p,m,[a,b],r,sides)
     def lathe(self,p,m,origin,axis,profile,sides=32):
         axis=norm(axis);u=norm(cross(axis,(0,0,1) if abs(axis[2])<.85 else (0,1,0)));w=cross(axis,u)
@@ -353,7 +355,7 @@ def export_glb(model,path):
         if not prim:continue
         gl['meshes'].append({'name':id,'primitives':prim})
         node={'name':id,'mesh':len(gl['meshes'])-1,'extras':part}
-        gl['scenes'][0]['nodes'].append(len(gl['nodes']));gl['nodes'].append(node)
+        gl['scenes'][0]['nodes'].append(len(gl['meshes'])-1);gl['nodes'].append(node)
     while len(data)%4:data.append(0)
     gl['buffers']=[{'byteLength':len(data)}]
     gl['extras']={'title':model.name,'units':'metres','upAxis':'+Y','visualizationOnly':True,'triangleCount':triangles,'vertexCount':vertices}
