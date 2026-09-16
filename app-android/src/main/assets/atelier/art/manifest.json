@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {
+      "id": "range-dawn",
+      "file": "range-dawn.webp",
+      "width": 640,
+      "height": 360,
+      "bytes": 17086,
+      "sha256": "ed91e8094c5035812dc66254e1ca18c5e628fbda0b9704f99aa369ca5276397c",
+      "kind": "AI-generated environmental illustration",
+      "createdFor": "Crocodyl",
+      "subject": "Unoccupied outdoor archery range in morning mist",
+      "usage": "Optional atmospheric card/background, not an instructional diagram or equipment reference",
+      "approval": "Art-direction study; owner review pending",
+      "crop": { "aspectRatio": "16:9", "subjectAnchor": "right", "quietTextArea": "left" },
+      "accessibility": { "decorativeAlt": "", "standaloneAlt": "Illustrated archery range in soft morning light" },
+      "restrictions": [
+        "Do not treat depicted equipment, target geometry or distances as factual specifications.",
+        "Do not use this image as measured range, scoring, posture or safety evidence.",
+        "Do not use generated human anatomy or technique imagery as coaching evidence."
+      ]
+    }
+  ]
+}

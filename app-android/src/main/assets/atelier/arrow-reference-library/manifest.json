@@ -1,0 +1,402 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "tools/atelier/build_arrow_reference_library.py",
+  "scope": "generic educational target-arrow taxonomy; not brand replicas",
+  "imagePolicy": "Lancaster product photography used as remote visual reference only; no source images embedded",
+  "sources": {
+    "parallel_x10_32": "https://lancasterarchery.com/products/easton-x10%E2%84%A2-3-2mm-parallel-pro-shafts",
+    "parallel_x10_4": "https://lancasterarchery.com/products/easton-x10-parallel-pro-4mm-shafts",
+    "barrel_x10": "https://lancasterarchery.com/products/easton-x10-arrow-shafts",
+    "front_taper_protour": "https://lancasterarchery.com/products/easton-x10-protour-arrow-shafts",
+    "rear_taper_vxt": "https://lancasterarchery.com/products/victory-vxt-v1-arrow-shafts",
+    "pure_carbon": "https://lancasterarchery.com/products/carbon-express-nano-pro-x-treme-shafts",
+    "aluminium_x7": "https://lancasterarchery.com/products/easton-x7-eclipse-black-arrow-shaft",
+    "fmj": "https://lancasterarchery.com/products/easton-4mm-fmj-arrow-shafts",
+    "breakoff_ss": "https://lancasterarchery.com/products/easton-4mm-hl-stainless-steel-break-off-point",
+    "breakoff_tungsten": "https://lancasterarchery.com/products/easton-x10-ballistic-tungsten-break-off-points-100-120-gr",
+    "aluminium_bullet": "https://lancasterarchery.com/products/easton-aluminum-glue-in-bullet-point",
+    "nibb": "https://lancasterarchery.com/products/easton-nibb-points",
+    "screw_bullet": "https://lancasterarchery.com/products/nap-bullet-screw-in-practice-points",
+    "field_point": "https://lancasterarchery.com/blogs/guides-and-information/basic-guide-to-target-archery-arrow-points",
+    "chisel": "https://lancasterarchery.com/products/pdp-glue-in-target-point",
+    "nock_guide": "https://lancasterarchery.com/blogs/guides-and-information/nocks-everything-you-need-to-know",
+    "beiter_pin": "https://lancasterarchery.com/products/beiter-pin-nock",
+    "beiter_pin_out": "https://lancasterarchery.com/products/beiter-pin-out-nock",
+    "beiter_insert": "https://lancasterarchery.com/products/beiter-insert-nock-204",
+    "impact_collar": "https://lancasterarchery.com/products/easton-x10-nock-impact-collar",
+    "tribute": "https://lancasterarchery.com/products/easton-xx75-tribute-arrow-shaft"
+  },
+  "models": {
+    "shaft_profiles": {
+      "file": "shaft_profiles.glb",
+      "bytes": 46200,
+      "sha256": "bab632d2a8ed7c51b0352715933bb6d677848d94f7aac426ce39c1d19279c5f5",
+      "triangles": 960,
+      "vertices": 627,
+      "parts": [
+        {
+          "id": "parallel",
+          "title": "Parallel cylindrical",
+          "description": "Constant external diameter. Representative dimensions use the published X10 Parallel Pro 600 size: 0.194 in OD, 32 in length.",
+          "hotspot": [
+            0,
+            -0.18,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "barrelled",
+          "title": "Barrelled",
+          "description": "Maximum diameter near the middle with reduced ends. Family is source-backed; exact X10 end diameters/taper stations are not published by Lancaster, so this is generic topology.",
+          "hotspot": [
+            0,
+            -0.06,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "front_taper",
+          "title": "Front taper",
+          "description": "Parallel rear/mid body tapering toward the point end. ProTour confirms the family; taper station and end diameter here are generic.",
+          "hotspot": [
+            0,
+            0.06,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "rear_taper",
+          "title": "Front-parallel / rear taper",
+          "description": "Parallel front body with a reduced rear section, based on the VXT front-parallel/rear-taper description. Exact dimensions are generic.",
+          "hotspot": [
+            0,
+            0.18,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        }
+      ]
+    },
+    "shaft_constructions": {
+      "file": "shaft_constructions.glb",
+      "bytes": 46512,
+      "sha256": "2e1edf3313d9e4e2da41ab70f24b7ccfd29d18591ed732930153fc579c1d6f1a",
+      "triangles": 672,
+      "vertices": 696,
+      "parts": [
+        {
+          "id": "aluminium",
+          "title": "Aluminium alloy",
+          "description": "Single aluminium-alloy tube, represented by an X7/XX75-style target-shaft construction.",
+          "hotspot": [
+            0,
+            -0.15,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "all_carbon",
+          "title": "All-carbon",
+          "description": "Carbon-fibre shaft family such as Nano Pro/VXT; no aluminium core.",
+          "hotspot": [
+            0,
+            -0.05,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "carbon_over_aluminium",
+          "title": "Carbon over aluminium",
+          "description": "Carbon exterior bonded to a precision aluminium core, as in X10/A/C/E families. Layer thickness schematic only.",
+          "hotspot": [
+            0,
+            0.05,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "aluminium_over_carbon",
+          "title": "Aluminium over carbon",
+          "description": "Carbon core with aluminium jacket (FMJ-style inverse construction). Included as construction taxonomy, not a target-arrow recommendation.",
+          "hotspot": [
+            0,
+            0.15,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        }
+      ]
+    },
+    "points": {
+      "file": "points.glb",
+      "bytes": 233784,
+      "sha256": "f63663eb6751c81af657d7aca67be40b1f1d108cd748555fca1ba53a8bc81342",
+      "triangles": 6608,
+      "vertices": 4469,
+      "parts": [
+        {
+          "id": "breakoff_stainless",
+          "title": "Stainless break-off target point",
+          "description": "Glue-in stainless target point with break-off weight-adjustment steps. Lancaster documents Easton 4 mm HL as 130 to 80 gr in 10 gr increments and black-nickel stainless.",
+          "hotspot": [
+            0,
+            -0.18,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "breakoff_tungsten",
+          "title": "Tungsten break-off target point",
+          "description": "Dense tungsten-alloy break-off family. Lancaster lists X10 Ballistic Tungsten at 100-120 gr; geometry here is generic, not an Easton replica.",
+          "hotspot": [
+            0,
+            -0.12,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "gluein_aluminium_bullet",
+          "title": "Aluminium glue-in bullet",
+          "description": "Rounded bullet-profile glue-in point for aluminium shafts; Lancaster lists 50-100 gr variants depending on shaft size.",
+          "hotspot": [
+            0,
+            -0.06,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "nibb",
+          "title": "NIBB / long-shank target point",
+          "description": "Hardened steel point with an extra-long aluminium shank, matching Lancaster construction description.",
+          "hotspot": [
+            0,
+            0,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "screw_bullet_8_32",
+          "title": "8-32 screw-in bullet",
+          "description": "Machined steel bullet point with standard 8-32 threaded attachment. Head uses a representative 9/32 in class.",
+          "hotspot": [
+            0,
+            0.06,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "screw_field_8_32",
+          "title": "8-32 screw-in field point",
+          "description": "Narrow field-profile screw-in point, distinct from bullet shape; standard insert-thread concept.",
+          "hotspot": [
+            0,
+            0.12,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "gluein_chisel",
+          "title": "Glue-in chisel target point",
+          "description": "Steel glue-in chisel-style target point family. Generic educational silhouette.",
+          "hotspot": [
+            0,
+            0.18,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        }
+      ]
+    },
+    "nock_systems": {
+      "file": "nock_systems.glb",
+      "bytes": 128480,
+      "sha256": "300fddab185c8316d78bde51c6f410c3e0e15ee0dad16920917be17dba32df34",
+      "triangles": 2984,
+      "vertices": 2501,
+      "parts": [
+        {
+          "id": "direct_insert_166",
+          "title": "Direct-fit insert nock",
+          "description": "Nock stem inserts into a .166-class shaft/bushing. Groove is represented from Lancaster Easton N example (0.081 in groove); not a brand replica.",
+          "hotspot": [
+            0,
+            -0.2,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "pin_small",
+          "title": "Pin nock / small groove",
+          "description": "Polymer nock fitted onto a separate metal pin. Representative groove uses Beiter/Easton small-groove class around .088 in.",
+          "hotspot": [
+            0,
+            -0.12,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "pin_large",
+          "title": "Pin nock / large groove",
+          "description": "Same pin interface with a larger groove class around .098 in.",
+          "hotspot": [
+            0,
+            -0.04,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "pin_out",
+          "title": "Pin-out / over-shaft nock",
+          "description": "Nock fits the pin and extends over the end of the shaft, matching the Beiter Pin-Out attachment concept.",
+          "hotspot": [
+            0,
+            0.04,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "bushing_insert",
+          "title": "Bushing-backed insert nock",
+          "description": "Metal rear bushing installed in the shaft with a replaceable insert nock, matching UNI/G-UNI/Super-UNI-style architecture.",
+          "hotspot": [
+            0,
+            0.12,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "swaged_conventional",
+          "title": "Conventional swaged/tapered rear",
+          "description": "Traditional aluminium-shaft nock swage/taper with a conventional replaceable nock.",
+          "hotspot": [
+            0,
+            0.2,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "rear_impact_collar",
+          "title": "Rear impact collar",
+          "description": "Thin metal collar around the rear shaft end; Lancaster lists the X10 3.2 mm collar at 3 gr. Compatibility remains product-family-specific.",
+          "hotspot": [
+            0,
+            0.28,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "provenanceRules": {
+    "published": "dimension/material/interface stated on a Lancaster product or guide page",
+    "photo-observed": "visible silhouette/relationship only, never treated as a measurement",
+    "generic-topology": "family is source-backed but exact hidden or dimensional geometry is not published"
+  }
+}

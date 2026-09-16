@@ -7,6 +7,7 @@ import xyz.mdhv.formanalyser.exchange.PubkeyIdentity
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.PublicKey
+import java.security.Signature
 
 /**
  * Android Keystore-backed [KeyProvider] for the Phase 5 export ceremony.
@@ -27,6 +28,17 @@ import java.security.PublicKey
 class AndroidKeyProvider : KeyProvider {
 
     override fun identity(): PubkeyIdentity = PubkeyIdentity.of(getOrCreatePublicKey().encoded)
+
+    fun sign(bytes: ByteArray): ByteArray {
+        getOrCreatePublicKey()
+        val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        val privateKey = ks.getKey(ALIAS, null) as java.security.PrivateKey
+        return Signature.getInstance("SHA256withECDSA").run {
+            initSign(privateKey)
+            update(bytes)
+            sign()
+        }
+    }
 
     private fun getOrCreatePublicKey(): PublicKey {
         val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }

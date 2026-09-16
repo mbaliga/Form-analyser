@@ -7,9 +7,9 @@ import kotlin.test.assertTrue
 
 class PrivacyRegistryTest {
     @Test
-    fun privateTablesAreExactlyCycleMoodLifeEvent() {
+    fun privateTablesAreExactlyLocalOnlyData() {
         assertEquals(
-            setOf("mood_entry", "life_event", "cycle_entry"),
+            setOf("mood_entry", "life_event", "cycle_entry", "capture_media"),
             PrivacyRegistry.privateTables(),
         )
     }

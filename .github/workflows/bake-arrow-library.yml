@@ -1,0 +1,53 @@
+name: Bake arrow taxonomy library
+
+on:
+  push:
+    branches: [feat/immersive-visuals]
+    paths:
+      - tools/atelier/arrow_library.py
+      - tools/atelier/test_arrow_library.py
+      - .github/workflows/bake-arrow-library.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: arrow-library-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bake:
+    if: github.ref == 'refs/heads/feat/immersive-visuals'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/immersive-visuals
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate source-backed arrow taxonomy GLBs
+        run: python3 tools/atelier/arrow_library.py
+      - name: Validate GLB, semantic and square-target contracts
+        run: python3 tools/atelier/test_arrow_library.py
+      - name: Retain portable models for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: crocodyl-arrow-library
+          retention-days: 7
+          path: app-android/src/main/assets/atelier/arrow-library/
+          if-no-files-found: error
+      - name: Commit verified portable models
+        run: |
+          git add app-android/src/main/assets/atelier/arrow-library
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'assets: bake verified modular target-arrow GLBs'
+          # Other atelier workflows can advance this shared visual branch while we bake.
+          # Rebase our generated-only commit rather than force-pushing over their work.
+          git fetch origin feat/immersive-visuals
+          git rebase origin/feat/immersive-visuals
+          git push origin HEAD:feat/immersive-visuals

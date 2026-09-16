@@ -72,4 +72,21 @@ data class ShotEntity(
     val score: Double?,
     /** Whether this shot is part of the athlete's "good" baseline set. */
     val isBaseline: Boolean,
+    /** Seconds from pose-capture start; nullable for shots captured before schema v9. */
+    val drawStartS: Double? = null,
+    val releaseS: Double? = null,
+    val captureMediaId: String? = null,
+)
+
+/** App-private raw capture linked to the form session it documents. Never exported. */
+@Entity(tableName = "capture_media", indices = [Index("sessionId")])
+data class CaptureMediaEntity(
+    @PrimaryKey val id: String,
+    val sessionId: String,
+    val path: String,
+    val poseStartedAtMs: Long,
+    val videoStartedAtMs: Long,
+    val durationMs: Long,
+    val sizeBytes: Long,
+    val createdAtMs: Long,
 )

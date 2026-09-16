@@ -1,0 +1,72 @@
+name: Bake original equipment assets
+
+on:
+  push:
+    branches: [feat/immersive-visuals]
+    paths:
+      - tools/atelier/**
+      - app-android/src/main/assets/atelier/index.html
+      - app-android/src/main/assets/atelier/atelier.js
+      - app-android/src/main/assets/atelier/atelier.css
+      - .github/workflows/bake-atelier.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atelier-assets-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bake:
+    if: github.ref == 'refs/heads/feat/immersive-visuals'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/immersive-visuals
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate standard GLB assets without dependencies
+        run: python3 tools/atelier/build_assets.py
+      - name: Validate geometry, glTF contracts and reproducibility
+        run: python3 tools/atelier/test_assets.py
+      - name: Actual Chromium WebGL checks and model-matched posters
+        run: xvfb-run -a node tools/atelier/verify_browser.mjs
+      - name: Commit verified portable models and posters
+        run: |
+          baked_from=$(git rev-parse HEAD)
+          git add app-android/src/main/assets/atelier/models app-android/src/main/assets/atelier/posters docs/crocodyl/atelier-previews
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'assets: bake verified Crocodyl GLBs, studio posters and browser review'
+          for attempt in 1 2 3; do
+            if git push origin HEAD:feat/immersive-visuals; then exit 0; fi
+            git fetch --deepen=20 origin feat/immersive-visuals
+            # A changed mesh, shader, viewer or bake/test input invalidates the render.
+            if ! git diff --quiet "$baked_from" origin/feat/immersive-visuals -- tools/atelier app-android/src/main/assets/atelier/index.html app-android/src/main/assets/atelier/atelier.js app-android/src/main/assets/atelier/atelier.css; then
+              echo 'Asset inputs changed during verification. Regenerate instead of publishing stale files.'
+              exit 1
+            fi
+            # Rebase only this generated-assets commit. Conflicts stop publication.
+            # No force push and no source-file conflict resolution are permitted here.
+            git rebase origin/feat/immersive-visuals || exit 1
+          done
+          echo 'Branch kept changing; verified files remain in the review artifact.'
+          exit 1
+      - name: Retain portable asset and source bundle for visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crocodyl-equipment-studio-${{ github.run_id }}-${{ github.run_attempt }}
+          retention-days: 3
+          path: |
+            tools/atelier/
+            app-android/src/main/assets/atelier/
+            docs/crocodyl/atelier-previews/
+            docs/crocodyl/atelier/ASSET_HANDOFF.md
+          if-no-files-found: error
