@@ -46,4 +46,8 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'assets: bake verified modular target-arrow GLBs'
+          # Other atelier workflows can advance this shared visual branch while we bake.
+          # Rebase our generated-only commit rather than force-pushing over their work.
+          git fetch origin feat/immersive-visuals
+          git rebase origin/feat/immersive-visuals
           git push origin HEAD:feat/immersive-visuals
