@@ -1,0 +1,40 @@
+name: Bake original equipment assets
+
+on:
+  push:
+    branches: [feat/immersive-visuals]
+    paths:
+      - tools/atelier/build_assets.py
+      - tools/atelier/test_assets.py
+      - .github/workflows/bake-atelier.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atelier-assets-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bake:
+    if: github.ref == 'refs/heads/feat/immersive-visuals'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/immersive-visuals
+      - name: Generate standard GLB assets without dependencies
+        run: python3 tools/atelier/build_assets.py
+      - name: Validate geometry, glTF contracts and reproducibility
+        run: python3 tools/atelier/test_assets.py
+      - name: Commit baked models to the same feature branch
+        run: |
+          git add app-android/src/main/assets/atelier/models
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'assets: bake original Crocodyl equipment GLBs'
+          # No force push: concurrent source work must never be overwritten.
+          git push origin HEAD:feat/immersive-visuals

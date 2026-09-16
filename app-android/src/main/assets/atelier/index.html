@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; script-src 'self'; style-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'">
+<title>Crocodyl | Equipment atelier</title>
+<link rel="stylesheet" href="atelier.css"><script src="atelier.js" defer></script>
+</head>
+<body>
+<main>
+  <header><span class="wordmark">CROCODYL<span class="wordmark-dot"></span></span><span class="eyebrow header-label">EQUIPMENT ATELIER</span><button id="theme" class="round" aria-label="Switch to light theme" title="Change lighting">◐</button></header>
+  <section class="intro"><p class="eyebrow">THE RECURVE COLLECTION / 01</p><h1>Know your<br><em>instrument.</em></h1><p class="lede">Every curve. Every contact point.<br>Explore the equipment behind the shot.</p>
+    <nav class="models" aria-label="Equipment model"><button data-model="recurve" aria-pressed="true">01 <span>Recurve</span></button><button data-model="arrow" aria-pressed="false">02 <span>Arrow</span></button><button data-model="target" aria-pressed="false">03 <span>Target</span></button></nav>
+    <div class="desktop-detail"><p class="eyebrow">LOOK CLOSER</p><div id="parts" aria-label="Model parts"></div></div>
+  </section>
+  <section class="stage" aria-label="Interactive 3D equipment view">
+    <div class="halo" aria-hidden="true"></div><div class="floor-shadow" aria-hidden="true"></div>
+    <canvas id="view" tabindex="0" role="img" aria-label="Three-dimensional recurve bow. Drag or use arrow keys to rotate; plus and minus to zoom. Use the part buttons for details."></canvas>
+    <div id="loading" role="status">Preparing the studio…</div><div id="fallback" hidden><h2>The 3D studio is unavailable.</h2><p>Your equipment descriptions are still available below. Reopen this screen to try again.</p></div>
+    <div id="marker" aria-hidden="true"><span></span><i></i><small></small></div>
+    <div class="stage-caption"><span class="eyebrow" id="model-type">OLYMPIC RECURVE / BRACED STUDY</span><span id="model-subtitle">Bronze · carbon · walnut</span></div>
+    <div class="stage-actions" aria-label="View controls"><button id="reset" title="Reset camera">Reset view</button><button id="explode" aria-pressed="false">Separate parts</button><button id="rotate" aria-pressed="false">Turntable</button></div>
+    <div class="gesture-hint">DRAG TO EXPLORE <span>·</span> PINCH TO ZOOM</div>
+  </section>
+  <aside class="detail" aria-live="polite"><div><span class="eyebrow" id="part-kicker">THE COMPLETE ASSEMBLY</span><h2 id="part-title">A study in balance.</h2></div><p id="part-body">A complete, original recurve assembly. Select a component to move closer, or separate the parts to inspect its construction.</p></aside>
+  <footer><span><i class="status-dot"></i>REAL 3D · ON YOUR DEVICE</span><span>Illustrative equipment. Not measurements or fitting advice.</span></footer>
+</main>
+</body></html>

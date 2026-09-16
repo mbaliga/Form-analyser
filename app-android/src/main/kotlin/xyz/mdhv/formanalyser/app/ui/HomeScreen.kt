@@ -14,6 +14,7 @@ import xyz.mdhv.formanalyser.app.domain.HomeViewModel
 import xyz.mdhv.formanalyser.app.ui.components.AthleteActionTile
 import xyz.mdhv.formanalyser.app.ui.components.CrocodylHero
 import xyz.mdhv.formanalyser.app.ui.components.ScoreActionIcon
+import xyz.mdhv.formanalyser.app.ui.components.EquipmentAtelierCard
 import xyz.mdhv.formanalyser.app.ui.theme.*
 
 @Composable
@@ -82,13 +83,14 @@ fun HomeScreen(
                 )
             }
         }
+        item { EquipmentAtelierCard() }
         item {
             OutlinedButton(onClick = onLog, modifier = Modifier.fillMaxWidth()) {
-                Text("+ Log — wellness, rest, more")
+                Text("+ Log \u2014 wellness, rest, more")
             }
         }
         item {
-            HyleListRow("Coach", "What your data says — and ask a model over it", onClick = onCoach)
+            HyleListRow("Coach", "What your data says \u2014 and ask a model over it", onClick = onCoach)
         }
         item {
             Text(
@@ -100,14 +102,14 @@ fun HomeScreen(
         if (recent.isEmpty())
             item {
                 HyleEmptyState(
-                    "🎯",
+                    "\uD83C\uDFAF",
                     listOf("No sessions yet.", "Your first recorded end will show up here."),
                 )
             }
         else
             items(recent, key = { it.id }) { s ->
                 HyleListRow(
-                    "Session · ${s.distanceMeters} m",
+                    "Session \u00b7 ${s.distanceMeters} m",
                     "tap to review",
                     onClick = { onOpenReview(s.id) },
                 )
