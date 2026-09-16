@@ -1,0 +1,75 @@
+/** Actual Chromium/WebGL review and poster bake. Node >=22, system Chromium; no npm/CDN. */
+import fs from 'node:fs/promises';
+import {existsSync} from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import os from 'node:os';
+import {fileURLToPath} from 'node:url';
+import {spawn} from 'node:child_process';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const assets=path.join(root,'app-android/src/main/assets');
+const preview=path.join(root,'docs/crocodyl/atelier-previews');
+const posters=path.join(assets,'atelier/posters');
+await fs.mkdir(preview,{recursive:true});await fs.mkdir(posters,{recursive:true});
+const chrome=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].find(existsSync);
+if(!chrome)throw Error('Install Chromium or set CHROME_BIN. No browser checks have run.');
+const server=http.createServer(async(req,res)=>{
+ try{const u=new URL(req.url,'http://localhost');const f=path.resolve(assets,'.'+decodeURIComponent(u.pathname));if(!f.startsWith(assets+path.sep))throw Error('Blocked');const b=await fs.readFile(f);res.writeHead(200,{'Content-Type':({'.html':'text/html','.css':'text/css','.js':'text/javascript','.glb':'model/gltf-binary','.jpg':'image/jpeg'})[path.extname(f)]||'application/octet-stream'});res.end(b);}catch{res.writeHead(404);res.end();}
+});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const origin=`http://127.0.0.1:${server.address().port}`;
+const profile=await fs.mkdtemp(path.join(os.tmpdir(),'crocodyl-browser-'));
+const proc=spawn(chrome,['--headless=new','--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--remote-debugging-port=0',`--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
+let stderr='';proc.stderr.on('data',b=>{stderr+=b.toString();});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let socket,seq=0;const pending=new Map(),errors=[],network=[];const checks=[];
+async function wait(fn,label,timeout=20000){const start=Date.now();while(Date.now()-start<timeout){try{const result=await fn();if(result)return result;}catch{}await sleep(60);}throw Error(`Timed out: ${label}\n${stderr.slice(-1200)}`);}
+function send(method,params={}){return new Promise((resolve,reject)=>{const id=++seq;const timeout=setTimeout(()=>{pending.delete(id);reject(Error(`CDP timeout: ${method}`));},15000);pending.set(id,{resolve:v=>{clearTimeout(timeout);resolve(v);},reject:e=>{clearTimeout(timeout);reject(e);}});socket.send(JSON.stringify({id,method,params}));});}
+async function evaluate(expression){const r=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(r.exceptionDetails.text);return r.result.value;}
+const ready=()=>wait(()=>evaluate('window.CrocodylAtelier?.getStatus().ready'),'model readiness');
+async function settled(){await wait(()=>evaluate('window.CrocodylAtelier?.getStatus().ready && !window.CrocodylAtelier.getStatus().renderPending'),'idle renderer');await sleep(100);}
+function check(ok,label){if(!ok)throw Error(label);checks.push(label);}
+async function screen(file,width=1440,height=1000){await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await sleep(130);const r=await send('Page.captureScreenshot',{format:'jpeg',quality:88,captureBeyondViewport:false});await fs.writeFile(file,Buffer.from(r.data,'base64'));}
+try{
+ const port=await wait(async()=>Number((await fs.readFile(path.join(profile,'DevToolsActivePort'),'utf8')).split('\n')[0]),'browser port');
+ const list=await fetch(`http://127.0.0.1:${port}/json/list`).then(r=>r.json());
+ socket=new WebSocket(list.find(p=>p.type==='page').webSocketDebuggerUrl);
+ await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
+ socket.addEventListener('message',event=>{const m=JSON.parse(event.data);if(m.id){const p=pending.get(m.id);if(p){pending.delete(m.id);m.error?p.reject(Error(m.error.message)):p.resolve(m.result);}}else if(m.method==='Runtime.exceptionThrown')errors.push(m.params.exceptionDetails);else if(m.method==='Network.requestWillBeSent')network.push(m.params.request.url);});
+ await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
+ for(const key of ['recurve','arrow','target']){
+  await send('Page.navigate',{url:`${origin}/atelier/index.html?review=${key}#model=${key}&theme=dark`});await ready();await settled();
+  check(await evaluate(`window.CrocodylAtelier.getStatus().model==='${key}' && window.CrocodylAtelier.getStatus().drawCalls>0`),`${key}: GLB uploaded and drawn`);
+  check(await evaluate("document.querySelector('canvas').getContext('webgl2').getError()===0"),`${key}: no WebGL error`);
+  await screen(path.join(preview,`${key}-desktop-dark.jpg`));
+  await evaluate("document.querySelector('#theme').click()");await settled();await screen(path.join(preview,`${key}-desktop-light.jpg`));
+  await screen(path.join(preview,`${key}-mobile-light.jpg`),412,915);
+  check(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),`${key}: no mobile horizontal overflow`);
+  const part={recurve:'grip',arrow:'vanes',target:'face'}[key];
+  await evaluate(`document.querySelector('[data-part=${part}]').click()`);await settled();
+  check(await evaluate(`window.CrocodylAtelier.getStatus().selected==='${part}'`),`${key}: component focus`);
+  await screen(path.join(preview,`${key}-detail.jpg`),1440,1000);
+  await evaluate("document.querySelector('#explode').click()");await settled();
+  check(await evaluate("document.querySelector('#explode').getAttribute('aria-pressed')==='true'"),`${key}: separate parts`);
+  await evaluate("document.querySelector('#explode').click()");await settled();
+ }
+ await evaluate("document.querySelector('#rotate').click()");await sleep(120);await evaluate('window.CrocodylAtelier.pause()');
+ check(await evaluate('window.CrocodylAtelier.getStatus().paused && !window.CrocodylAtelier.getStatus().renderPending'),'pause cancels animation');
+ await evaluate('window.CrocodylAtelier.resume()');await evaluate("document.querySelector('#rotate').click()");await settled();
+ await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+ check(await evaluate("document.querySelector('#rotate').disabled"),'reduced motion disables turntable');
+ await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'no-preference'}]});
+ // Posters are rendered by the SAME production shader and meshes, not generative lookalikes.
+ for(const key of ['recurve','arrow','target'])for(const theme of ['dark','light']){
+  const camera={recurve:'center=-0.20,0,0&radius=0.45&yaw=0.35&pitch=0.06',arrow:'center=-0.23,0,0&radius=0.22&yaw=0.10&pitch=0.24',target:'center=-0.34,0.50,0&radius=0.92&yaw=0.38&pitch=0.12'}[key];
+  await send('Emulation.setDeviceMetricsOverride',{width:1200,height:700,deviceScaleFactor:1,mobile:false});
+  await send('Page.navigate',{url:`${origin}/atelier/index.html?poster=${key}-${theme}#model=${key}&theme=${theme}&${camera}`});await ready();
+  await evaluate(`(()=>{const s=document.createElement('style');s.textContent='body{overflow:hidden}main{display:block;width:100vw;height:100vh;min-height:0;padding:0;max-width:none}header,.intro,.detail,footer,.stage-caption,.stage-actions,.gesture-hint,#marker,.floor-shadow{display:none!important}.stage{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0}#view{height:100%;width:100%}';document.head.append(s)})()`);
+  await sleep(300);await screen(path.join(posters,`${key}-${theme}.jpg`),1200,700);
+ }
+ check(errors.length===0,'no JavaScript exceptions');
+ check(network.every(url=>url.startsWith(origin)||url.startsWith('data:')||url.startsWith('blob:')),'all model/page requests remain local');
+ const version=await send('Browser.getVersion');
+ const report={verifiedAt:new Date().toISOString(),browser:version.product,renderer:await evaluate("(()=>{const gl=document.querySelector('canvas').getContext('webgl2');return gl.getParameter(gl.RENDERER)})()"),checks,notVerified:['physical Android device','battery/thermal/frame pacing','biomechanics or equipment fitting'],posterOrigin:'Rendered from committed GLBs with the production WebGL2 shader'};
+ await fs.writeFile(path.join(preview,'verification.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
+}finally{socket?.close();proc.kill('SIGTERM');server.close();await sleep(200);await fs.rm(profile,{recursive:true,force:true}).catch(()=>{});}
