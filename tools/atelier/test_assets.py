@@ -68,6 +68,25 @@ class AssetContracts(unittest.TestCase):
                     self.assertTrue(all(0<=i<len(verts) for i in indices))
                     self.assertTrue(all(abs(c)<5 for v in verts for c in v))
 
+    def test_tube_side_and_cap_winding_faces_outward(self):
+        model=bake.Model('winding regression probe')
+        model.tube('probe',0,[(0,0,0),(0,1,0)],.1,16,True)
+        mesh=model.meshes[('probe',0)]
+        checked={'bottom':0,'top':0,'side':0}
+        for i,j,k in mesh.f:
+            a,b,c=[mesh.v[n] for n in (i,j,k)]
+            face=bake.cross(bake.sub(b,a),bake.sub(c,a))
+            centre=tuple((a[q]+b[q]+c[q])/3 for q in range(3))
+            if all(abs(v[1])<1e-9 for v in (a,b,c)):
+                expected=(0,-1,0);kind='bottom'
+            elif all(abs(v[1]-1)<1e-9 for v in (a,b,c)):
+                expected=(0,1,0);kind='top'
+            else:
+                expected=(centre[0],0,centre[2]);kind='side'
+            self.assertGreater(bake.dot(face,expected),0,kind)
+            checked[kind]+=1
+        self.assertTrue(all(count>0 for count in checked.values()))
+
     def test_mobile_budgets(self):
         self.assertLess(sum(i['bytes'] for i in self.info.values()),2_000_000)
         for i in self.info.values():
