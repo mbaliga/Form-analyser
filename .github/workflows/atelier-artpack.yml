@@ -1,4 +1,4 @@
-name: Render cinematic equipment art
+name: Render cinematic equipment studies
 
 on:
   push:
@@ -23,21 +23,28 @@ jobs:
     timeout-minutes: 8
     env:
       VTK_DEFAULT_OPENGL_WINDOW: vtkEGLRenderWindow
+      LIBGL_ALWAYS_SOFTWARE: '1'
+      EGL_PLATFORM: surfaceless
     steps:
       - uses: actions/checkout@v4
         with:
           ref: feat/immersive-visuals
+      - name: Install software EGL for the headless authoring renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libegl1 libegl-mesa0 libgl1-mesa-dri libosmesa6
       - name: Install authoring-only renderer
         run: python3 -m pip install vtk==9.6.2 numpy==2.2.6 Pillow==11.3.0
-      - name: Bake original models and test geometry
+      - name: Bake original study models and test geometry contracts
         run: |
           python3 tools/atelier/build_assets.py
           python3 tools/atelier/test_assets.py
-      - name: Render model-matched hero and detail imagery
+      - name: Render model-matched study imagery
         run: python3 tools/atelier/render_posters.py
       - name: Package offline review
         run: python3 tools/atelier/make_preview.py
-      - name: Retain portable assets and source
+      - name: Retain review assets and source
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: crocodyl-cinematic-artpack
@@ -46,12 +53,17 @@ jobs:
             tools/atelier
             app-android/src/main/assets/atelier
             dist/Crocodyl-Equipment-Studio.html
+            docs/crocodyl/atelier
+            docs/crocodyl/visuals/ARROW_FIRST_ART_DIRECTION.md
           if-no-files-found: error
-      - name: Commit rendered images without touching application source
+      - name: Commit review imagery without overwriting concurrent work
         run: |
           git add app-android/src/main/assets/atelier/cinematic
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'assets: add model-matched cinematic equipment renders'
+          git commit -m 'assets: add model-matched cinematic equipment study renders'
+          # Rebase only this unpublished generated-assets commit; never force push.
+          git fetch origin feat/immersive-visuals --depth=50
+          git rebase origin/feat/immersive-visuals
           git push origin HEAD:feat/immersive-visuals
