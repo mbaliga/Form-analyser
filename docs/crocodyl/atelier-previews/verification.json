@@ -1,0 +1,32 @@
+{
+  "verifiedAt": "2026-09-16T21:42:46.065Z",
+  "browser": "Chrome/152.0.7977.82",
+  "renderer": "WebKit WebGL",
+  "checks": [
+    "recurve: GLB uploaded and drawn",
+    "recurve: no WebGL error",
+    "recurve: no mobile horizontal overflow",
+    "recurve: component focus",
+    "recurve: separate parts",
+    "arrow: GLB uploaded and drawn",
+    "arrow: no WebGL error",
+    "arrow: no mobile horizontal overflow",
+    "arrow: component focus",
+    "arrow: separate parts",
+    "target: GLB uploaded and drawn",
+    "target: no WebGL error",
+    "target: no mobile horizontal overflow",
+    "target: component focus",
+    "target: separate parts",
+    "pause cancels animation",
+    "reduced motion disables turntable",
+    "no JavaScript exceptions",
+    "all model/page requests remain local"
+  ],
+  "notVerified": [
+    "physical Android device",
+    "battery/thermal/frame pacing",
+    "biomechanics or equipment fitting"
+  ],
+  "posterOrigin": "Rendered from committed GLBs with the production WebGL2 shader"
+}
