@@ -6,7 +6,11 @@ on:
     paths:
       - tools/atelier/build_arrow_reference_library.py
       - tools/atelier/test_arrow_reference_library.py
+      - tools/atelier/verify_arrow_reference_browser.mjs
       - tools/atelier/build_assets.py
+      - app-android/src/main/assets/atelier/index.html
+      - app-android/src/main/assets/atelier/atelier.js
+      - app-android/src/main/assets/atelier/atelier.css
       - docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md
       - .github/workflows/bake-arrow-reference-library.yml
   workflow_dispatch:
@@ -22,25 +26,33 @@ jobs:
   bake:
     if: github.ref == 'refs/heads/feat/immersive-visuals'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
         with:
           ref: feat/immersive-visuals
           fetch-depth: 20
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Build taxonomy GLBs
         run: python3 tools/atelier/build_arrow_reference_library.py
       - name: Validate taxonomy contracts
         run: python3 tools/atelier/test_arrow_reference_library.py
-      - name: Upload inspectable library
+      - name: Exercise all reference families in Chromium/WebGL
+        run: xvfb-run -a node tools/atelier/verify_arrow_reference_browser.mjs
+      - name: Upload inspectable library and browser evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crocodyl-arrow-reference-library-${{ github.run_id }}
+          name: crocodyl-arrow-reference-library-${{ github.run_id }}-${{ github.run_attempt }}
           retention-days: 7
           path: |
             app-android/src/main/assets/atelier/arrow-reference-library/
             docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md
+            docs/crocodyl/arrow-reference-previews/
             tools/atelier/build_arrow_reference_library.py
+            tools/atelier/verify_arrow_reference_browser.mjs
           if-no-files-found: error
       - name: Commit verified generated GLBs
         run: |
@@ -52,8 +64,8 @@ jobs:
           git commit -m 'assets: bake Lancaster-grounded arrow taxonomy GLBs'
           if git push origin HEAD:feat/immersive-visuals; then exit 0; fi
           git fetch origin feat/immersive-visuals
-          if ! git diff --quiet "$source_head" origin/feat/immersive-visuals -- tools/atelier/build_arrow_reference_library.py tools/atelier/test_arrow_reference_library.py tools/atelier/build_assets.py docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md; then
-            echo 'Arrow taxonomy inputs changed while baking; refuse stale publication.'
+          if ! git diff --quiet "$source_head" origin/feat/immersive-visuals -- tools/atelier/build_arrow_reference_library.py tools/atelier/test_arrow_reference_library.py tools/atelier/verify_arrow_reference_browser.mjs tools/atelier/build_assets.py app-android/src/main/assets/atelier/index.html app-android/src/main/assets/atelier/atelier.js app-android/src/main/assets/atelier/atelier.css docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md; then
+            echo 'Arrow taxonomy or studio inputs changed while baking; refuse stale publication.'
             exit 1
           fi
           git rebase origin/feat/immersive-visuals
