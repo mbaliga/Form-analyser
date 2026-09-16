@@ -1,0 +1,57 @@
+name: Render cinematic equipment art
+
+on:
+  push:
+    branches: [feat/immersive-visuals]
+    paths:
+      - tools/atelier/render_posters.py
+      - tools/atelier/make_preview.py
+      - .github/workflows/atelier-artpack.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atelier-cinematic-art-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  art:
+    if: github.ref == 'refs/heads/feat/immersive-visuals'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      VTK_DEFAULT_OPENGL_WINDOW: vtkEGLRenderWindow
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/immersive-visuals
+      - name: Install authoring-only renderer
+        run: python3 -m pip install vtk==9.6.2 numpy==2.2.6 Pillow==11.3.0
+      - name: Bake original models and test geometry
+        run: |
+          python3 tools/atelier/build_assets.py
+          python3 tools/atelier/test_assets.py
+      - name: Render model-matched hero and detail imagery
+        run: python3 tools/atelier/render_posters.py
+      - name: Package offline review
+        run: python3 tools/atelier/make_preview.py
+      - name: Retain portable assets and source
+        uses: actions/upload-artifact@v4
+        with:
+          name: crocodyl-cinematic-artpack
+          retention-days: 3
+          path: |
+            tools/atelier
+            app-android/src/main/assets/atelier
+            dist/Crocodyl-Equipment-Studio.html
+          if-no-files-found: error
+      - name: Commit rendered images without touching application source
+        run: |
+          git add app-android/src/main/assets/atelier/cinematic
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'assets: add model-matched cinematic equipment renders'
+          git push origin HEAD:feat/immersive-visuals
