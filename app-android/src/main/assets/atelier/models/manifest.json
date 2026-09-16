@@ -1,0 +1,289 @@
+{
+  "version": 1,
+  "units": "metres",
+  "visualizationOnly": true,
+  "models": {
+    "recurve": {
+      "file": "recurve.glb",
+      "bytes": 593164,
+      "sha256": "710f77a0e2eab708139d335c9631e93548c1876cd6476ef77aec8da7ba18e49f",
+      "triangles": 16504,
+      "vertices": 10646,
+      "parts": [
+        {
+          "id": "riser",
+          "title": "Sculpted riser",
+          "description": "Original unbranded riser with open truss geometry. A visual study, not a measured replica.",
+          "hotspot": [
+            0,
+            0.17,
+            0.015
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "grip",
+          "title": "Walnut grip",
+          "description": "The grip locates the bow hand. This model does not prescribe grip pressure or hand position.",
+          "hotspot": [
+            -0.025,
+            -0.025,
+            0.022
+          ],
+          "explode": [
+            -0.1,
+            0,
+            0.09
+          ]
+        },
+        {
+          "id": "limbs",
+          "title": "Recurved limbs",
+          "description": "Tapered composite limbs. Shown braced at rest; there is no simulated draw-weight or flex measurement.",
+          "hotspot": [
+            -0.16,
+            0.63,
+            0
+          ],
+          "explode": [
+            0,
+            0.1,
+            0
+          ]
+        },
+        {
+          "id": "string",
+          "title": "String and serving",
+          "description": "Upper and lower string contacts with a served centre. No release or dry-fire animation.",
+          "hotspot": [
+            -0.225,
+            0.08,
+            0
+          ],
+          "explode": [
+            -0.09,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "sight",
+          "title": "Recurve sight",
+          "description": "Extension, elevation rail and open sight ring. Decorative positions are not sight marks.",
+          "hotspot": [
+            0.17,
+            0.17,
+            -0.072
+          ],
+          "explode": [
+            0.13,
+            0.04,
+            -0.1
+          ]
+        },
+        {
+          "id": "stabilisers",
+          "title": "Stabilisation system",
+          "description": "Long rod, V-bar, side rods and dampers, separated for inspection. Not a recommended weight setup.",
+          "hotspot": [
+            0.57,
+            -0.1,
+            0
+          ],
+          "explode": [
+            0.13,
+            -0.08,
+            0
+          ]
+        },
+        {
+          "id": "rest",
+          "title": "Rest, button and clicker",
+          "description": "Distinct small components beside the sight window. Visual identification only.",
+          "hotspot": [
+            -0.008,
+            0.05,
+            0.025
+          ],
+          "explode": [
+            0,
+            0.02,
+            0.11
+          ]
+        },
+        {
+          "id": "hardware",
+          "title": "Limb pockets and hardware",
+          "description": "Limb pockets, adjustment heads and fasteners are modelled separately.",
+          "hotspot": [
+            0.006,
+            0.3,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0.075
+          ]
+        }
+      ]
+    },
+    "arrow": {
+      "file": "arrow.glb",
+      "bytes": 127428,
+      "sha256": "65b9d7cac354bef4eed42ec9fc94927dd6aeddafe4576dc59ab6a51b9af2dbad",
+      "triangles": 3288,
+      "vertices": 2195,
+      "parts": [
+        {
+          "id": "shaft",
+          "title": "Carbon shaft",
+          "description": "A slender carbon target-arrow study. Spine, length and mass are not fitted to the athlete.",
+          "hotspot": [
+            0,
+            0,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "point",
+          "title": "Target point",
+          "description": "Rounded target-point profile, shown separately for identification. Not a broadhead.",
+          "hotspot": [
+            0.376,
+            0,
+            0
+          ],
+          "explode": [
+            0.11,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "nock",
+          "title": "Slotted nock",
+          "description": "A visible string slot in a separate polymer nock; not a solid cone.",
+          "hotspot": [
+            -0.382,
+            0,
+            0
+          ],
+          "explode": [
+            -0.1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "vanes",
+          "title": "Three fletching vanes",
+          "description": "Three individually modelled thin vanes at 120-degree spacing.",
+          "hotspot": [
+            -0.315,
+            0.01,
+            0
+          ],
+          "explode": [
+            -0.01,
+            0.05,
+            0
+          ]
+        },
+        {
+          "id": "wrap",
+          "title": "Wrap and identification bands",
+          "description": "Unbranded wrap and collars. No invented spine specifications.",
+          "hotspot": [
+            -0.333,
+            0,
+            0
+          ],
+          "explode": [
+            0,
+            -0.05,
+            0
+          ]
+        }
+      ]
+    },
+    "target": {
+      "file": "target.glb",
+      "bytes": 835076,
+      "sha256": "67f31d37d7d43471501827ed2ebce8b677eaff1df8cb7f666feb08c4cfdb5bec",
+      "triangles": 22928,
+      "vertices": 15538,
+      "parts": [
+        {
+          "id": "face",
+          "title": "Ten-ring target face",
+          "description": "Ten concentric scoring rings with the inner-X guide. This is an equipment illustration, not the scoring engine.",
+          "hotspot": [
+            0,
+            0.7,
+            0.115
+          ],
+          "explode": [
+            0,
+            0,
+            0.17
+          ]
+        },
+        {
+          "id": "butt",
+          "title": "Compressed target butt",
+          "description": "A layered cylindrical practice butt, with restrained fibre texture.",
+          "hotspot": [
+            0.56,
+            0.7,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            -0.07
+          ]
+        },
+        {
+          "id": "stand",
+          "title": "Timber stand",
+          "description": "Three supports, cross brace and retaining ledge. Visualization only, not a construction plan.",
+          "hotspot": [
+            0.35,
+            -0.06,
+            0
+          ],
+          "explode": [
+            0,
+            -0.06,
+            0
+          ]
+        },
+        {
+          "id": "pins",
+          "title": "Face retainers",
+          "description": "Four visible paper retainers near the outer edge.",
+          "hotspot": [
+            0.43,
+            1.13,
+            0.12
+          ],
+          "explode": [
+            0,
+            0,
+            0.22
+          ]
+        }
+      ]
+    }
+  }
+}
