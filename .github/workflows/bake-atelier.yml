@@ -4,8 +4,7 @@ on:
   push:
     branches: [feat/immersive-visuals]
     paths:
-      - tools/atelier/build_assets.py
-      - tools/atelier/test_assets.py
+      - tools/atelier/**
       - .github/workflows/bake-atelier.yml
   workflow_dispatch:
 
@@ -38,3 +37,12 @@ jobs:
           git commit -m 'assets: bake original Crocodyl equipment GLBs'
           # No force push: concurrent source work must never be overwritten.
           git push origin HEAD:feat/immersive-visuals
+      - name: Retain portable asset and source bundle for visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: crocodyl-equipment-studio
+          retention-days: 3
+          path: |
+            tools/atelier/
+            app-android/src/main/assets/atelier/
+          if-no-files-found: error
