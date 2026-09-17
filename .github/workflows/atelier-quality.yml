@@ -43,6 +43,9 @@ jobs:
           python3 tools/atelier/test_assets.py
           python3 tools/atelier/test_arrow_library.py
           python3 tools/atelier/test_arrow_reference_library.py
+          git diff --exit-code -- app-android/src/main/assets/atelier/models
+          python3 tools/atelier/build_arrow_reference_library.py
+          git diff --exit-code -- app-android/src/main/assets/atelier/arrow-reference-library
       - name: Render real models and test viewer
         run: python3 tools/atelier/render_qa.py
       - name: Exercise arrow-reference families in Chromium/WebGL

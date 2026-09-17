@@ -77,6 +77,10 @@ jobs:
           python3 tools/atelier/test_assets.py
           python3 tools/atelier/test_arrow_library.py
           python3 tools/atelier/test_arrow_reference_library.py
+          python3 tools/atelier/build_assets.py
+          git diff --exit-code -- app-android/src/main/assets/atelier/models
+          python3 tools/atelier/build_arrow_reference_library.py
+          git diff --exit-code -- app-android/src/main/assets/atelier/arrow-reference-library
       - name: Assemble signed release artifacts
         env:
           CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore

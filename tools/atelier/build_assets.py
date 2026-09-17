@@ -22,6 +22,11 @@ def norm(a):
 def mix(a,b,t): return add(mul(a,1-t),mul(b,t))
 def srgb(c): return ((c+.055)/1.055)**2.4 if c>.04045 else c/12.92
 
+def canonical_float(value):
+    """Normalize generated floats so equivalent Python runtimes emit identical GLBs."""
+    value=round(float(value),12)
+    return 0.0 if value==0.0 else value
+
 def mat(name, rgb, metal=0, rough=.4, texture=None):
     p={'baseColorFactor':[srgb(c) for c in rgb]+[1], 'metallicFactor':metal,'roughnessFactor':rough}
     return {'name':name,'pbrMetallicRoughness':p, 'doubleSided':False, '_texture':texture}
@@ -326,11 +331,12 @@ def export_glb(model,path):
         if target:view['target']=target
         views.append(view);data.extend(raw);return len(views)-1
     def attr(values,n,component=5126,target=34962):
-        flat=[c for a in values for c in (a if isinstance(a,(list,tuple)) else [a])]
+        raw_values=[c for a in values for c in (a if isinstance(a,(list,tuple)) else [a])]
+        flat=[canonical_float(c) if component==5126 else c for c in raw_values]
         code={5126:'f',5125:'I'}[component]
         raw=struct.pack('<'+code*len(flat),*flat);v=block(raw,target)
         a={'bufferView':v,'componentType':component,'count':len(values),'type':{1:'SCALAR',2:'VEC2',3:'VEC3'}[n]}
-        if n==3 and component==5126:a.update(min=[min(a[i] for a in values) for i in range(3)],max=[max(a[i] for a in values) for i in range(3)])
+        if n==3 and component==5126:a.update(min=[min(canonical_float(a[i]) for a in values) for i in range(3)],max=[max(canonical_float(a[i]) for a in values) for i in range(3)])
         access.append(a);return len(access)-1
     gl={'asset':{'version':'2.0','generator':'Crocodyl original equipment atelier 1.0','copyright':'Original Crocodyl visualization assets'},'scene':0,'scenes':[{'nodes':[]}],'nodes':[],'meshes':[],'materials':[],'bufferViews':views,'accessors':access,'buffers':[]}
     images=[];textures=[];texids={}
