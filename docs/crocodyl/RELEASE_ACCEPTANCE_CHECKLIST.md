@@ -27,6 +27,15 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 - A shareable-only export saved through SAF as `crocodyl-export.crocbak`, opened as a valid archive,
   and contained no mood, life-event, or cycle table entries. This evidence does not cover the
   required physical-device matrix, real subject/range behavior, or 30-session volume.
+- Final integration run: API-35 ARM64 emulator, 2026-09-18, tester: Codex. The rebuilt debug APK
+  (`e41306e6888867e2fd31549a92be90b1101214deae2fbb10db55f08c40263055`) installed successfully;
+  onboarding reached Home, the Home Atelier card opened the non-exported equipment activity, and
+  its local WebView remained resumed with no app fatal or WebGL texture warnings. The final
+  minified QA artifacts were also produced and verified: APK
+  `7686aa4d98d54519870e032d6c5a0b950ba0740f6e6600f5f724db4062a2c825`; AAB
+  `d8a346531fb1e4a41ae752980306f83f45de4cdbb99feb54e7936828d53b7955`. These artifacts use a
+  throwaway QA keystore, not the production release identity, and this remains evidence rather
+  than physical-device/range sign-off.
 
 ## 2. P0 functional flows
 

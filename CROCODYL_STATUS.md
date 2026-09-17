@@ -173,6 +173,14 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   focus/separation, local-only WebGL2 loading, semantic IDs, provenance metadata, deterministic
   generator/contract tests and committed Chromium evidence. It remains generic reference material,
   not an owner-approved arrow or a compatibility/catalog claim.
+- **Final integration gate (2026-09-18):** the root JVM suite, Android debug/release unit-test
+  variants, and `lintRelease` pass with zero failures/errors and no lint findings. Minified
+  `assembleRelease` and `bundleRelease` also pass R8, resource shrinking, signing, and packaging
+  with a temporary QA-only keystore; the production key remains a CI/release-owner input. Final QA
+  artifact digests are APK `7686aa4d98d54519870e032d6c5a0b950ba0740f6e6600f5f724db4062a2c825` and
+  AAB `d8a346531fb1e4a41ae752980306f83f45de4cdbb99feb54e7936828d53b7955`. On the API-35 ARM64
+  emulator, the rebuilt debug APK installed, Home opened the Atelier through its intended card,
+  the local WebView resumed, and the isolated log showed no app fatal or WebGL texture warnings.
 
 ### 3.5 Releases
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`

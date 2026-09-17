@@ -68,14 +68,20 @@ and the blueprint’s later phases
 - Latest verification: Android debug/release unit-test variants and `lintRelease` pass with zero
   failures/errors and no lint findings; a rebuilt debug APK passes `apksigner verify`. Including the
   root JVM run and the added model-path regression, the current root-plus-two-Android-variants
-  matrix totals 180 test cases, all passing. The release
-  APK/AAB still cannot be generated locally without the real production signing inputs; the
-  fail-closed `verifyReleaseSigning` guard is working as intended.
+  matrix totals 180 test cases, all passing. Release APK/AAB generation still fails closed without
+  the real production signing inputs; the `verifyReleaseSigning` guard is working as intended. For
+  final local validation on 2026-09-18, a throwaway QA-only keystore was supplied outside the
+  repository; the minified APK/AAB then passed R8, resource shrinking, APK v2 verification, and AAB
+  `jarsigner` verification. This proves the release path, not the identity of the production key.
 - An equipment continuity audit confirmed that the existing arrow tuning model/editor and FOC/GPP
   analysis remain present. The validated `feat/immersive-visuals` handoff is now integrated as a
   separate generic arrow-reference studio with four modular GLB families, seven selectors, local-only
   WebGL2 controls, semantic part IDs, provenance metadata, deterministic generator/contract tests and
   committed Chromium evidence. It is not an owner-approved arrow, compatibility claim or full catalog.
+- The rebuilt debug APK was installed on the API-35 ARM64 emulator and exercised through Home → the
+  Atelier card. The non-exported host reached a resumed local WebView; after binding a 1×1 fallback
+  texture for untextured meshes, the isolated log had no fatal exception or WebGL texture warning.
+  Final QA artifact SHA-256 values are recorded in `CROCODYL_STATUS.md` and the acceptance checklist.
 
 ## Historical recon findings
 
