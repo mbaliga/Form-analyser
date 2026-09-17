@@ -82,6 +82,10 @@ and the blueprint’s later phases
   Atelier card. The non-exported host reached a resumed local WebView; after binding a 1×1 fallback
   texture for untextured meshes, the isolated log had no fatal exception or WebGL texture warning.
   Final QA artifact SHA-256 values are recorded in `CROCODYL_STATUS.md` and the acceptance checklist.
+- The Atelier GLB exporter now canonicalizes float serialization, and both generators were rerun
+  successfully with no resulting worktree drift. `atelier-quality.yml` and `release.yml` compare
+  regenerated models against the checked-in outputs, closing the stale-generated-asset gap found in
+  the final production audit.
 
 ## Historical recon findings
 

@@ -177,10 +177,14 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   variants, and `lintRelease` pass with zero failures/errors and no lint findings. Minified
   `assembleRelease` and `bundleRelease` also pass R8, resource shrinking, signing, and packaging
   with a temporary QA-only keystore; the production key remains a CI/release-owner input. Final QA
-  artifact digests are APK `7686aa4d98d54519870e032d6c5a0b950ba0740f6e6600f5f724db4062a2c825` and
-  AAB `d8a346531fb1e4a41ae752980306f83f45de4cdbb99feb54e7936828d53b7955`. On the API-35 ARM64
+  artifact digests are APK `4dc69752ea3de7365de2b4178c24f9e31f7e8b26ac2e90188ab78708508b988c` and
+  AAB `90cf2041a54dcfecad48f17f2cf8e96a249d34638d33d2b540346adb0e2b8eda`. On the API-35 ARM64
   emulator, the rebuilt debug APK installed, Home opened the Atelier through its intended card,
   the local WebView resumed, and the isolated log showed no app fatal or WebGL texture warnings.
+- **Asset reproducibility gate (2026-09-18):** the Atelier exporter now canonicalizes float
+  attributes and accessor bounds before GLB serialization. Regenerating both the original study
+  models and all four arrow-reference families produces a clean worktree; CI and the release job
+  fail if checked-in generated assets drift from their generators.
 
 ### 3.5 Releases
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`
