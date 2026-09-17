@@ -216,7 +216,7 @@ private fun ShotCard(shot: ShotView, onScore: (Double?) -> Unit, onBaseline: (Bo
 
 private fun fmt(d: Double?, digits: Int): String {
     if (d == null) return "—"
-    return if (digits == 0) d.toInt().toString() else String.format("%.${digits}f", d)
+    return if (digits == 0) d.toInt().toString() else String.format(java.util.Locale.ROOT, "%.${digits}f", d)
 }
 
 private fun fmtPct(frac: Double): String = "${(frac * 100).toInt()}%"

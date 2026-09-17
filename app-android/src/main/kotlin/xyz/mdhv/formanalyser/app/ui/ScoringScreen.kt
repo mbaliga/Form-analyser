@@ -4,6 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -33,6 +36,7 @@ fun ScoringScreen(vm: ScoringViewModel) {
     var chooser by rememberSaveable { mutableStateOf(false) }
     var custom by rememberSaveable { mutableStateOf(false) }
     var linking by rememberSaveable { mutableStateOf(false) }
+    var contextOpen by rememberSaveable { mutableStateOf(false) }
 
     if (state.loading) {
         Box(Modifier.fillMaxSize().padding(24.dp)) { CircularProgressIndicator() }
@@ -135,7 +139,10 @@ fun ScoringScreen(vm: ScoringViewModel) {
                 }
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     ScoringInputMode.entries.forEach { mode ->
                         FilterChip(
                             selected = state.inputMode == mode,
@@ -261,6 +268,13 @@ fun ScoringScreen(vm: ScoringViewModel) {
                     onClick = { linking = true },
                 )
             }
+            item {
+                HyleListRow(
+                    title = "Session context",
+                    subtitle = contextSummary(session),
+                    onClick = { contextOpen = true },
+                )
+            }
             if (card.round.scoringKind.name == "SET_MATCH")
                 item { MatchControls(card.pendingOpponentEndIndex, vm, match, canScore) }
             state.completionMessage?.let { msg ->
@@ -319,6 +333,15 @@ fun ScoringScreen(vm: ScoringViewModel) {
                 vm.setLinkedFormSession(id)
             },
         )
+    if (contextOpen && snapshot != null)
+        ScoringContextDialog(
+            initial = snapshot.session,
+            onDismiss = { contextOpen = false },
+            onSave = { sightMark, venue, conditions, trainingIntent ->
+                contextOpen = false
+                vm.updateContext(sightMark, venue, conditions, trainingIntent)
+            },
+        )
     if (custom)
         CustomRoundDialog(
             onDismiss = { custom = false },
@@ -327,6 +350,85 @@ fun ScoringScreen(vm: ScoringViewModel) {
                 vm.startCustom(n, d, f, a, e)
             },
         )
+}
+
+private fun contextSummary(session: xyz.mdhv.formanalyser.app.data.ScoreSessionEntity): String {
+    val values =
+        listOfNotNull(
+            session.sightMark?.takeIf { it.isNotBlank() }?.let { "Sight $it" },
+            session.venue?.takeIf { it.isNotBlank() },
+            session.conditions?.takeIf { it.isNotBlank() },
+            session.trainingIntent?.takeIf { it.isNotBlank() },
+        )
+    return values.joinToString(" · ").ifBlank { "Sight mark, venue, conditions, intent" }
+}
+
+@Composable
+private fun ScoringContextDialog(
+    initial: xyz.mdhv.formanalyser.app.data.ScoreSessionEntity,
+    onDismiss: () -> Unit,
+    onSave: (sightMark: String?, venue: String?, conditions: String?, trainingIntent: String?) -> Unit,
+) {
+    var sightMark by rememberSaveable(initial.id) { mutableStateOf(initial.sightMark.orEmpty()) }
+    var venue by rememberSaveable(initial.id) { mutableStateOf(initial.venue.orEmpty()) }
+    var conditions by rememberSaveable(initial.id) { mutableStateOf(initial.conditions.orEmpty()) }
+    var trainingIntent by rememberSaveable(initial.id) { mutableStateOf(initial.trainingIntent.orEmpty()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Session context") },
+        text = {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    "Optional context stays with this scorecard and helps explain changes without inventing a cause.",
+                    color = Hyle.OnSurfaceDim,
+                )
+                OutlinedTextField(
+                    sightMark,
+                    { sightMark = it },
+                    label = { Text("Sight mark") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    venue,
+                    { venue = it },
+                    label = { Text("Venue") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    conditions,
+                    { conditions = it },
+                    label = { Text("Conditions") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                )
+                OutlinedTextField(
+                    trainingIntent,
+                    { trainingIntent = it },
+                    label = { Text("Training intent") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSave(
+                        sightMark.trim().takeIf { it.isNotEmpty() },
+                        venue.trim().takeIf { it.isNotEmpty() },
+                        conditions.trim().takeIf { it.isNotEmpty() },
+                        trainingIntent.trim().takeIf { it.isNotEmpty() },
+                    )
+                },
+            ) { Text("Save") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
 
 /**
@@ -348,7 +450,10 @@ private fun LinkFormSessionDialog(
         onDismissRequest = onDismiss,
         title = { Text("Link to a training session") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 Text(
                     "Linked, this scorecard and that session count as one session in Progress instead of two.",
                     color = Hyle.OnSurfaceDim,
@@ -521,7 +626,9 @@ private fun CustomRoundDialog(
         onDismissRequest = onDismiss,
         title = { Text("Custom practice") },
         text = {
-            Column {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+            ) {
                 OutlinedTextField(n, { n = it }, label = { Text("Name") })
                 OutlinedTextField(
                     d,

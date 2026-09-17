@@ -7,6 +7,16 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/**
+ * Raised when an existing database cannot be opened or migrated safely. The app must show the
+ * athlete the preserved backup and obtain an explicit reset confirmation before replacing it.
+ */
+class DatabaseRecoveryRequired(
+    val dbName: String,
+    val backupPath: String?,
+    cause: Throwable,
+) : IllegalStateException("Crocodyl could not safely open $dbName", cause)
+
 @Database(
     entities =
         [
@@ -43,7 +53,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             ObserverScoreEventEntity::class,
         ],
     version = 8,
-    exportSchema = false,
+    exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun athleteDao(): AthleteDao
@@ -95,15 +105,9 @@ abstract class AppDatabase : RoomDatabase() {
          * DB with no clean migration path — or a migration that runs but throws, or fails Room's
          * post-migration validation — is a real possibility.
          *
-         * Recovery is deliberately **not silent**: per the Phased Implementation Plan's review ("a
-         * production build must never silently delete athlete history"), a failure here backs up
-         * the raw database file via [DbRecovery.backUpBeforeReset] *before* deleting anything, then
-         * records the event with [DbRecovery.markReset] so the UI can tell the athlete, after the
-         * fact, that a reset happened and where the backup lives. A blocking pre-open confirmation
-         * isn't possible — this runs synchronously before any Activity/Compose context exists — so
-         * "preserve the bytes, then disclose" is the practical version of "never silently delete"
-         * at this point in the app lifecycle. Real users on a correct migration chain never hit
-         * this branch.
+         * A failed open never deletes or replaces the live database. Its bytes are copied to a
+         * private recovery folder and the exception carries that path to the launch screen. Only
+         * an explicit athlete action may reset the database, and only when the backup was verified.
          */
         private fun openResilient(app: Context): AppDatabase {
             val db = build(app)
@@ -113,11 +117,37 @@ abstract class AppDatabase : RoomDatabase() {
             } catch (t: Throwable) {
                 runCatching { db.close() }
                 val backup = DbRecovery.backUpBeforeReset(app, DB_NAME)
-                DbRecovery.markReset(app, backup)
-                app.deleteDatabase(DB_NAME)
-                build(app).also { it.openHelper.writableDatabase }
+                throw DatabaseRecoveryRequired(DB_NAME, backup, t)
             }
         }
+
+        /**
+         * Replace an unopenable database after the athlete has seen the backup path and confirmed
+         * the reset. A reset without a usable backup is rejected so a filesystem failure cannot
+         * turn a recoverable migration problem into permanent data loss.
+         */
+        fun resetAfterConfirmation(context: Context, backupPath: String?): AppDatabase =
+            synchronized(this) {
+                val app = context.applicationContext
+                check(DbRecovery.isUsableBackup(backupPath, DB_NAME)) {
+                    "Cannot reset $DB_NAME without a verified recovery backup"
+                }
+                runCatching { instance?.close() }
+                instance = null
+                check(app.deleteDatabase(DB_NAME) || !app.getDatabasePath(DB_NAME).exists()) {
+                    "Could not remove the failed $DB_NAME after the backup was preserved"
+                }
+                val fresh = build(app)
+                try {
+                    fresh.openHelper.writableDatabase
+                    DbRecovery.markReset(app, backupPath)
+                    instance = fresh
+                    fresh
+                } catch (t: Throwable) {
+                    runCatching { fresh.close() }
+                    throw DatabaseRecoveryRequired(DB_NAME, backupPath, t)
+                }
+            }
 
         /**
          * V1 → V2 (Phase 1): athlete profile columns, the rig table, session rig/handedness

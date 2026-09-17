@@ -186,8 +186,8 @@ fun ProgressScreen(vm: ProgressViewModel) {
 }
 
 @Composable
-private fun MetricCard(label: String, value: String, m: Modifier) {
-    Card(m) {
+private fun MetricCard(label: String, value: String, modifier: Modifier) {
+    Card(modifier) {
         Column(Modifier.padding(12.dp)) {
             Text(value, style = MaterialTheme.typography.headlineSmall)
             Text(label, color = Hyle.OnSurfaceDim)

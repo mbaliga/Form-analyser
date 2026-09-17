@@ -62,7 +62,7 @@ fun ExportScreen(vm: ExportViewModel) {
 
     val picker =
         rememberLauncherForActivityResult(
-            ActivityResultContracts.CreateDocument(ExportViewModel.MIME_ZIP)
+            ActivityResultContracts.CreateDocument(ExportViewModel.MIME_CROCBACKUP)
         ) { uri ->
             if (uri != null) vm.export(uri)
         }
@@ -173,7 +173,7 @@ fun ExportScreen(vm: ExportViewModel) {
                 vm.exportForSharing { uri ->
                     val send =
                         Intent(Intent.ACTION_SEND).apply {
-                            type = ExportViewModel.MIME_ZIP
+                            type = ExportViewModel.MIME_CROCBACKUP
                             putExtra(Intent.EXTRA_STREAM, uri)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }

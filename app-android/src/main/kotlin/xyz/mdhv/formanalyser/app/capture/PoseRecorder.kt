@@ -1,6 +1,7 @@
 package xyz.mdhv.formanalyser.app.capture
 
 import android.content.Context
+import android.util.Log
 import androidx.camera.core.ImageProxy
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
@@ -43,6 +44,8 @@ class PoseRecorder(
                 .setNumPoses(1)
                 .build(),
         )
+    }.onFailure { error ->
+        Log.e(TAG, "Unable to initialize the bundled pose model", error)
     }.getOrNull()
 
     val isAvailable: Boolean get() = landmarker != null
@@ -117,6 +120,7 @@ class PoseRecorder(
     }
 
     companion object {
+        private const val TAG = "CrocodylPose"
         const val MODEL_ASSET = "pose_landmarker_lite.task"
     }
 }

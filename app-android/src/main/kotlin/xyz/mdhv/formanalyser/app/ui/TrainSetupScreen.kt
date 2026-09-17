@@ -88,7 +88,7 @@ fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: 
             color = Hyle.OnBackground,
         )
         Text("Olympic Recurve · local autofill", color = Hyle.OnSurfaceDim)
-        HyleListRow("Rig", activeRig?.name ?: "No rig — tap to add", onClick = onManageRigs)
+        HyleListRow("Rig", subtitle = activeRig?.name ?: "No rig — tap to add", onClick = onManageRigs)
         Text("Round", style = MaterialTheme.typography.titleMedium, color = Hyle.OnBackground)
         RoundPack.builtIns
             .filter { it.scoringKind.name != "SET_MATCH" }

@@ -293,8 +293,12 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         /** Suggested SAF filename for the CreateDocument picker. */
         const val SUGGESTED_FILENAME: String = "crocodyl-export.crocbak"
 
-        /** MIME for the archive. */
-        const val MIME_ZIP: String = "application/zip"
+        /**
+         * MIME for Crocodyl's portable archive. Keep this vendor type rather than
+         * `application/zip`: Android's DocumentsUI otherwise appends `.zip` to the requested
+         * `.crocbak` filename, hiding the artifact type from users and import tooling.
+         */
+        const val MIME_CROCBACKUP: String = "application/vnd.crocodyl.crocbak"
 
         /** Cache subdirectory the FileProvider exposes; nothing else in the cache is shareable. */
         const val SHARE_DIR: String = "share"

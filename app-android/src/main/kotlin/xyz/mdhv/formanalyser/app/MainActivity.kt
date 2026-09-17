@@ -19,11 +19,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.data.AppPrefs
+import xyz.mdhv.formanalyser.app.data.DatabaseRecoveryRequired
+import xyz.mdhv.formanalyser.app.data.DbRecovery
 import xyz.mdhv.formanalyser.app.domain.*
 import xyz.mdhv.formanalyser.app.ui.*
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.app.vault.Vault
 
 // NB: must NOT be named `R` — in package xyz.mdhv.formanalyser.app that collides with AGP's
 // generated resources class xyz.mdhv.formanalyser.app.R at dex time (the resources class wins,
@@ -63,6 +71,10 @@ private object Routes {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // These directories contain only transient plaintext/staging bytes. Wipe them before any
+        // screen is rendered, including after a process death during document viewing/capture.
+        Vault.wipeViewCache(applicationContext)
+        runCatching { File(applicationContext.cacheDir, "camera").deleteRecursively() }
         setContent {
             FormAnalyserTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -75,25 +87,133 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun AppRoot() {
-    val c = LocalContext.current
-    val p = remember { AppPrefs(c) }
-    val onboarded by produceState<Boolean?>(null, p) { p.onboarded.collect { value = it } }
-    DbRecoveryNotice()
-    when (onboarded) {
-        null -> Box(Modifier.fillMaxSize())
-        false -> {
-            val vm: OnboardingViewModel = viewModel()
-            OnboardingScreen(vm) {}
+    val c = LocalContext.current.applicationContext
+    var attempt by remember { mutableIntStateOf(0) }
+    var databaseState by remember(c) {
+        mutableStateOf<DatabaseState>(DatabaseState.Loading)
+    }
+    LaunchedEffect(c, attempt) {
+        databaseState = DatabaseState.Loading
+        databaseState =
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    AppDatabase.get(c)
+                    DatabaseState.Ready
+                }.getOrElse { failure ->
+                    DatabaseState.Blocked(
+                        failure as? DatabaseRecoveryRequired
+                            ?: DatabaseRecoveryRequired(
+                                "form-analyser.db",
+                                null,
+                                failure,
+                            )
+                    )
+                }
+            }
+    }
+    when (val state = databaseState) {
+        DatabaseState.Loading -> Box(Modifier.fillMaxSize())
+        is DatabaseState.Blocked ->
+            DatabaseRecoveryScreen(
+                state.failure,
+                onRetry = { attempt++ },
+                onReset = {
+                    withContext(Dispatchers.IO) {
+                        AppDatabase.resetAfterConfirmation(c, state.failure.backupPath)
+                    }
+                    AppPrefs(c).setOnboarded(false)
+                    databaseState = DatabaseState.Ready
+                },
+            )
+        DatabaseState.Ready -> {
+            val p = remember { AppPrefs(c) }
+            val onboarded by p.onboarded.collectAsState(initial = null as Boolean?)
+            DbRecoveryNotice()
+            when (onboarded) {
+                null -> Box(Modifier.fillMaxSize())
+                false -> {
+                    val vm: OnboardingViewModel = viewModel()
+                    OnboardingScreen(vm) {}
+                }
+                else -> MainShell()
+            }
         }
-        else -> MainShell()
+    }
+}
+
+private sealed interface DatabaseState {
+    data object Loading : DatabaseState
+    data object Ready : DatabaseState
+    data class Blocked(val failure: DatabaseRecoveryRequired) : DatabaseState
+}
+
+/**
+ * A migration failure is a data-preservation event, not a reason to silently start over. This
+ * screen is deliberately outside the normal navigation graph: none of the normal ViewModels may
+ * be constructed until the athlete has either retried the open or explicitly approved a reset.
+ */
+@Composable
+private fun DatabaseRecoveryScreen(
+    failure: DatabaseRecoveryRequired,
+    onRetry: () -> Unit,
+    onReset: suspend () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var resetting by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val canReset = DbRecovery.isUsableBackup(failure.backupPath, failure.dbName)
+    Column(
+        Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text("Saved data needs recovery", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            if (canReset) {
+                "Crocodyl could not open the saved database after an update. It has not been " +
+                    "deleted. A verified copy is preserved on this device."
+            } else {
+                "Crocodyl could not open the saved database after an update, and it could not " +
+                    "verify a recovery copy. Nothing has been deleted."
+            }
+        )
+        failure.backupPath?.let { path ->
+            Text("Recovery copy:\n$path", color = Hyle.OnSurfaceDim)
+        }
+        Text(
+            "Resetting creates a fresh database and returns you to onboarding. The preserved copy " +
+                "is not removed by that action.",
+            color = Hyle.OnSurfaceDim,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onRetry, enabled = !resetting) { Text("Try again") }
+            Button(
+                onClick = {
+                    resetting = true
+                    error = null
+                    scope.launch {
+                        try {
+                            onReset()
+                        } catch (t: Throwable) {
+                            if (t is kotlinx.coroutines.CancellationException) throw t
+                            error = t.message ?: "The database could not be reset."
+                            resetting = false
+                        }
+                    }
+                },
+                enabled = canReset && !resetting,
+            ) {
+                Text(if (resetting) "Resetting…" else "Reset after backup")
+            }
+        }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }
 }
 
 @Composable
 /**
- * One-time, honest disclosure for [xyz.mdhv.formanalyser.app.data.DbRecovery]: if [AppDatabase.get]
- * had to back up and reset the database on this launch, say so — rather than the silent recovery
- * this replaced. Dismissing clears the flag so it doesn't reappear.
+ * One-time, honest disclosure for [DbRecovery]: if the athlete explicitly approved a reset after a
+ * failed migration, say so and retain the recovery path rather than hiding the data-loss boundary.
+ * Dismissing clears the flag so it doesn't reappear.
  */
 private fun DbRecoveryNotice() {
     val c = LocalContext.current
@@ -105,11 +225,11 @@ private fun DbRecoveryNotice() {
         text = {
             Text(
                 event.backupPath?.let {
-                    "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
-                        "created. Your previous data was backed up on this device at:\n\n$it"
+                    "Crocodyl couldn't open your saved data after an update. After your confirmation, " +
+                        "a fresh database was created. Your previous data was preserved on this device at:\n\n$it"
                 }
-                    ?: "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
-                        "created. A backup of the previous data could not be made."
+                    ?: "Crocodyl couldn't open your saved data after an update. After your confirmation, " +
+                        "a fresh database was created, but a recovery copy could not be located."
             )
         },
         confirmButton = {
@@ -327,7 +447,7 @@ private fun BottomBar(current: String?, badge: Boolean, onSelect: (String) -> Un
         listOf(
             Routes.HOME to (Icons.Filled.Home to "Home"),
             Routes.TRAIN to (Icons.Filled.CameraAlt to "Train"),
-            Routes.PROGRESS to (Icons.Filled.ShowChart to "Progress"),
+            Routes.PROGRESS to (Icons.Filled.Timeline to "Progress"),
             Routes.BODY to (Icons.Filled.Accessibility to "Body"),
             Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
         )

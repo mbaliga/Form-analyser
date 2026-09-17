@@ -1,5 +1,8 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +35,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import java.io.File
 import kotlinx.coroutines.launch
 import xyz.mdhv.formanalyser.app.domain.BodyViewModel
@@ -107,7 +113,7 @@ fun InjuryEditScreen(
 
     var regions by
         remember(existing?.id) { mutableStateOf(JsonLists.decode(existing?.regionsJson).toSet()) }
-    var severity by rememberSaveable(existing?.id) { mutableStateOf(existing?.severity ?: 1) }
+    var severity by rememberSaveable(existing?.id) { mutableIntStateOf(existing?.severity ?: 1) }
     var mechanism by
         rememberSaveable(existing?.id) { mutableStateOf(existing?.mechanism ?: "OVERUSE") }
     var status by rememberSaveable(existing?.id) { mutableStateOf(existing?.status ?: "ACTIVE") }
@@ -122,6 +128,9 @@ fun InjuryEditScreen(
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
+    var pendingCaptureUri by remember { mutableStateOf<Uri?>(null) }
+    var pendingCaptureFile by remember { mutableStateOf<File?>(null) }
+    var cameraError by rememberSaveable { mutableStateOf<String?>(null) }
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null && existing != null) {
@@ -134,6 +143,54 @@ fun InjuryEditScreen(
                 )
             }
         }
+    val camera =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { captured ->
+            val uri = pendingCaptureUri
+            val file = pendingCaptureFile
+            pendingCaptureUri = null
+            pendingCaptureFile = null
+            if (captured && uri != null && file != null && existing != null) {
+                vm.importDocument(
+                    uri,
+                    title = "Photo ${documents.size + 1}",
+                    mime = "image/jpeg",
+                    injuryId = existing.id,
+                    sourceFileToDelete = file,
+                )
+            } else {
+                file?.let { runCatching { it.delete() } }
+            }
+        }
+    fun startCameraCapture() {
+        cameraError = null
+        runCatching {
+            val dir = File(context.cacheDir, "camera").apply { mkdirs() }
+            val file = File.createTempFile("crocodyl-document-", ".jpg", dir)
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            pendingCaptureFile = file
+            pendingCaptureUri = uri
+            camera.launch(uri)
+        }.onFailure {
+            pendingCaptureUri = null
+            pendingCaptureFile?.let { pending -> runCatching { pending.delete() } }
+            pendingCaptureFile = null
+            cameraError = it.message ?: "Camera could not be opened."
+        }
+    }
+    val requestCameraPermission =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) startCameraCapture()
+            else cameraError = "Camera permission is needed to capture a document photo."
+        }
+    fun captureDocument() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            startCameraCapture()
+        } else {
+            requestCameraPermission.launch(Manifest.permission.CAMERA)
+        }
+    }
 
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
@@ -188,6 +245,10 @@ fun InjuryEditScreen(
             ) {
                 Text("Attach document (PDF / image)")
             }
+            OutlinedButton(onClick = ::captureDocument, modifier = Modifier.fillMaxWidth()) {
+                Text("Take document photo")
+            }
+            cameraError?.let { Text(it, color = Hyle.Danger) }
         }
 
         // Save is gated on a region, and used to be the ONLY control here — so an athlete who

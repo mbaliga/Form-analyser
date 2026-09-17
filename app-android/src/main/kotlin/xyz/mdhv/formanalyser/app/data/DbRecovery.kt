@@ -4,11 +4,10 @@ import android.content.Context
 import java.io.File
 
 /**
- * Records the "we had to reset your database" event so the UI can disclose it to the athlete,
- * instead of the recovery in [AppDatabase.openResilient] happening silently. Deliberately plain
- * [android.content.SharedPreferences] rather than the app's usual DataStore ([AppPrefs]): this runs
- * synchronously from a non-suspend context, before any Activity/Compose tree exists, so a
- * coroutine-based store isn't available (or appropriate) here.
+ * Records the "we reset your database after your confirmation" event so the UI can disclose it to
+ * the athlete. Deliberately plain
+ * [android.content.SharedPreferences] rather than the app's usual DataStore ([AppPrefs]): this
+ * boundary must remain synchronous and usable while the normal database/app state is unavailable.
  */
 object DbRecovery {
     private const val PREFS_NAME = "crocodyl_db_recovery"
@@ -16,28 +15,45 @@ object DbRecovery {
     private const val KEY_BACKUP_PATH = "lastDbResetBackupPath"
 
     /**
-     * Best-effort copy of the database file (and its `-wal`/`-shm` siblings, if present) into a
-     * timestamped folder under [recoveryDir], so the bytes survive even though the live database is
-     * about to be deleted and rebuilt. Never throws — a failed backup must not block recovery from
-     * proceeding; it just means nothing was preserved this time.
+     * Copy the database file (and its `-wal`/`-shm` siblings, if present) into a timestamped folder
+     * under [recoveryDir]. The copy is first written to a hidden staging folder and published only
+     * after at least the main database file has been copied. A failed backup returns null; callers
+     * must refuse to delete or reset the live database in that case.
      *
-     * @return the backup directory's absolute path, or null if nothing could be backed up.
+     * @return the complete backup directory's absolute path, or null if it could not be preserved.
      */
     fun backUpBeforeReset(context: Context, dbName: String): String? = runCatching {
         val live = context.getDatabasePath(dbName)
-        if (!live.exists()) return@runCatching null
+        if (!live.isFile || live.length() == 0L) return@runCatching null
 
-        val dest = File(recoveryDir(context), System.currentTimeMillis().toString()).apply { mkdirs() }
-        var copiedAny = false
+        val stamp = "${System.currentTimeMillis()}-${java.util.UUID.randomUUID()}"
+        val staging = File(recoveryDir(context), ".$stamp.partial").apply { mkdirs() }
+        var copiedMain = false
         for (suffix in listOf("", "-wal", "-shm")) {
             val src = File(live.parentFile, dbName + suffix)
             if (src.exists()) {
-                src.copyTo(File(dest, dbName + suffix), overwrite = true)
-                copiedAny = true
+                src.copyTo(File(staging, dbName + suffix), overwrite = true)
+                if (suffix.isEmpty()) copiedMain = true
             }
         }
-        if (copiedAny) dest.absolutePath else null
+        if (!copiedMain) {
+            staging.deleteRecursively()
+            return@runCatching null
+        }
+        val dest = File(recoveryDir(context), stamp)
+        if (!staging.renameTo(dest)) {
+            staging.deleteRecursively()
+            return@runCatching null
+        }
+        dest.absolutePath
     }.getOrNull()
+
+    /** A reset is allowed only when the original database bytes are actually preserved. */
+    fun isUsableBackup(path: String?, dbName: String): Boolean {
+        val dir = path?.takeIf { it.isNotBlank() }?.let(::File) ?: return false
+        val db = File(dir, dbName)
+        return dir.isDirectory && db.isFile && db.length() > 0L
+    }
 
     private fun recoveryDir(context: Context): File =
         File(context.filesDir, "db-recovery").apply { mkdirs() }

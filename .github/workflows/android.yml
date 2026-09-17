@@ -5,6 +5,10 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "core-*/**"
+      - "gradle/**"
+      - "gradle.properties"
+      - "settings.gradle.kts"
       - "app-android/**"
       - "*.gradle.kts"
       - ".github/workflows/android.yml"
@@ -12,6 +16,10 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "core-*/**"
+      - "gradle/**"
+      - "gradle.properties"
+      - "settings.gradle.kts"
       - "app-android/**"
       - "*.gradle.kts"
       - ".github/workflows/android.yml"
@@ -29,8 +37,21 @@ jobs:
       # so AGP can fetch any missing platform/build-tools.
       - uses: android-actions/setup-android@v3
       # -PwithAndroid opts :app-android into the build (see settings.gradle.kts).
+      - name: Run JVM unit tests
+        run: ./gradlew test --no-daemon
+      - name: Run Android unit tests
+        run: ./gradlew :app-android:testDebugUnitTest :app-android:testReleaseUnitTest -PwithAndroid --no-daemon
+      - name: Run Android lint
+        run: ./gradlew :app-android:lintRelease -PwithAndroid --no-daemon
       - name: Assemble debug APK
         run: ./gradlew :app-android:assembleDebug -PwithAndroid --no-daemon
+      - name: Upload Android test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: form-analyser-android-test-results
+          path: app-android/build/test-results/testDebugUnitTest/**
+          if-no-files-found: ignore
       - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v4

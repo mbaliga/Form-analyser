@@ -1,0 +1,6 @@
+# Copy to release-signing.properties for a local release build, or provide the equivalent
+# CROCODYL_RELEASE_* environment variables in CI. Never commit the copied file or the keystore.
+storeFile=app-android/release.keystore
+storePassword=replace-me
+keyAlias=replace-me
+keyPassword=replace-me

@@ -15,6 +15,9 @@ import xyz.mdhv.formanalyser.coach.LlmErrorKind
 import xyz.mdhv.formanalyser.coach.MessageRole
 import xyz.mdhv.formanalyser.coach.ModelKind
 import java.io.File
+import java.io.IOException
+import java.security.MessageDigest
+import java.util.UUID
 
 /**
  * On-device [LlmClient] backed by MediaPipe LLM Inference (`tasks-genai`). Serves the ON_DEVICE
@@ -140,28 +143,68 @@ object ModelInstall {
 
     private const val DIR = "on-device-models"
     private val ALLOWED_EXT = setOf("task", "bin")
+    const val MIN_MODEL_BYTES = 1L * 1024 * 1024
+    const val MAX_MODEL_BYTES = 4L * 1024 * 1024 * 1024
 
     /**
      * Copy the model at [source] into private storage and return its absolute path. [displayName]
-     * overrides the derived file name (otherwise the Uri's display name, else a default) so the
-     * installed file keeps a sensible, sanitized name with an allowed extension.
+     * overrides the derived file name (otherwise the Uri's display name, else a default). The
+     * source must be a non-empty `.task`/`.bin` file within the supported size envelope. The copy
+     * is streamed through a private staging file, hashed, and atomically published under a digest
+     * suffix so a truncated import can never look installed and a failed replacement cannot
+     * destroy the previously selected model.
      */
     fun install(context: Context, source: Uri, displayName: String? = null): String {
-        val name = sanitize(displayName ?: queryDisplayName(context, source) ?: "model.task")
+        val sourceName =
+            displayName ?: queryDisplayName(context, source) ?: source.lastPathSegment ?: "model.task"
+        val (stem, extension) = sanitize(sourceName)
         val dir = File(context.filesDir, DIR).apply { mkdirs() }
-        val out = File(dir, name)
-        context.contentResolver.openInputStream(source).use { input ->
-            requireNotNull(input) { "cannot open model source" }
-            out.outputStream().use { input.copyTo(it, bufferSize = 256 * 1024) }
+        querySize(context, source)?.let { declared ->
+            require(declared in MIN_MODEL_BYTES..MAX_MODEL_BYTES) {
+                "Model size must be between 1 MB and 4 GB"
+            }
         }
-        return out.absolutePath
+        val staging = File(dir, ".${UUID.randomUUID()}.partial")
+        val digest = MessageDigest.getInstance("SHA-256")
+        var total = 0L
+        try {
+            context.contentResolver.openInputStream(source).use { input ->
+                requireNotNull(input) { "cannot open model source" }
+                staging.outputStream().use { output ->
+                    val buffer = ByteArray(256 * 1024)
+                    while (true) {
+                        val n = input.read(buffer)
+                        if (n <= 0) break
+                        total += n
+                        require(total <= MAX_MODEL_BYTES) { "Model is larger than 4 GB" }
+                        digest.update(buffer, 0, n)
+                        output.write(buffer, 0, n)
+                    }
+                }
+            }
+            require(total >= MIN_MODEL_BYTES) { "Model file is empty or too small" }
+            val digestHex = digest.digest().joinToString("") { "%02x".format(it) }
+            val out = File(dir, "$stem-${digestHex.take(12)}.$extension")
+            if (out.exists()) {
+                staging.delete()
+                require(isInstalled(out.absolutePath)) { "Existing model copy is not usable" }
+                return out.absolutePath
+            }
+            if (!staging.renameTo(out)) throw IOException("Could not publish model import")
+            return out.absolutePath
+        } catch (t: Throwable) {
+            runCatching { staging.delete() }
+            throw t
+        }
     }
 
-    /** True iff [path] points at a non-empty, readable file. Null/blank/absent all return false. */
+    /** True iff [path] points at a readable model-sized file. */
     fun isInstalled(path: String?): Boolean {
         val p = path?.takeIf { it.isNotBlank() } ?: return false
         val f = File(p)
-        return f.exists() && f.isFile && f.canRead() && f.length() > 0
+        return f.exists() && f.isFile && f.canRead() &&
+            f.extension.lowercase() in ALLOWED_EXT &&
+            f.length() in MIN_MODEL_BYTES..MAX_MODEL_BYTES
     }
 
     /** Absolute paths of every installed model file, newest not guaranteed — for a picker/cleanup. */
@@ -169,16 +212,26 @@ object ModelInstall {
         val dir = File(context.filesDir, DIR)
         if (!dir.isDirectory) return emptyList()
         return dir.listFiles()
-            ?.filter { it.isFile && it.length() > 0 }
+            ?.filter {
+                !it.name.startsWith(".") && it.extension.lowercase() in ALLOWED_EXT &&
+                    isInstalled(it.absolutePath)
+            }
             ?.map { it.absolutePath }
             ?: emptyList()
     }
 
-    /** Delete an installed model file. Returns true if a file was removed. No-op on null/blank. */
-    fun remove(path: String?): Boolean {
+    /** Delete an installed model file under this app's private model directory. */
+    fun remove(context: Context, path: String?): Boolean {
         val p = path?.takeIf { it.isNotBlank() } ?: return false
-        val f = File(p)
-        return runCatching { f.exists() && f.delete() }.getOrDefault(false)
+        return runCatching {
+            val modelDir = File(context.filesDir, DIR).canonicalFile
+            val f = File(p).canonicalFile
+            if (f.parentFile != modelDir || f.extension.lowercase() !in ALLOWED_EXT) {
+                false
+            } else {
+                f.isFile && f.delete()
+            }
+        }.getOrDefault(false)
     }
 
     private fun queryDisplayName(context: Context, uri: Uri): String? = runCatching {
@@ -191,12 +244,25 @@ object ModelInstall {
             }
     }.getOrNull()
 
-    /** Strip path separators, keep a basename, and force an allowed model extension. */
-    private fun sanitize(raw: String): String {
+    /** Strip path separators, keep a basename, and reject non-model extensions. */
+    private fun sanitize(raw: String): Pair<String, String> {
         val base = raw.substringAfterLast('/').substringAfterLast('\\')
             .replace(Regex("[^A-Za-z0-9._-]"), "_")
             .ifBlank { "model.task" }
-        val ext = base.substringAfterLast('.', "")
-        return if (ext.lowercase() in ALLOWED_EXT) base else "$base.task"
+        val dot = base.lastIndexOf('.')
+        val ext = if (dot >= 0) base.substring(dot + 1).lowercase() else ""
+        require(ext in ALLOWED_EXT) { "Choose a MediaPipe .task or .bin model file" }
+        val stem = base.substring(0, dot).ifBlank { "model" }
+        return stem to ext
     }
+
+    private fun querySize(context: Context, uri: Uri): Long? = runCatching {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)
+            ?.use { c ->
+                if (c.moveToFirst()) {
+                    val idx = c.getColumnIndex(OpenableColumns.SIZE)
+                    if (idx >= 0 && !c.isNull(idx)) c.getLong(idx).takeIf { it >= 0 } else null
+                } else null
+            }
+    }.getOrNull()
 }

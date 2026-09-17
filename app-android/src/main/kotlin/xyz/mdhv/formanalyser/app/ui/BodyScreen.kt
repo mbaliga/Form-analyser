@@ -111,7 +111,7 @@ fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (
                 injuries.forEach { inj ->
                     HyleListRow(
                         "${inj.status} · severity ${inj.severity}",
-                        JsonLists.decode(inj.regionsJson).joinToString() +
+                        subtitle = JsonLists.decode(inj.regionsJson).joinToString() +
                             (inj.resolvedDate?.let { " · resolved $it" } ?: ""),
                         onClick = { onEditInjury(inj.id) },
                     )
@@ -125,7 +125,7 @@ fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (
                 plans.forEach { p ->
                     HyleListRow(
                         p.title,
-                        "${planExercises[p.id]?.size?:0} exercises · ${JsonLists.decode(p.scheduleJson).joinToString()}",
+                        subtitle = "${planExercises[p.id]?.size?:0} exercises · ${JsonLists.decode(p.scheduleJson).joinToString()}",
                         onClick = { onEditPlan(p.id) },
                         trailing = {
                             OutlinedButton(onClick = { logPhysioPlan = p.id }) { Text("Log") }
@@ -212,7 +212,7 @@ fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (
 
 @Composable
 private fun PainDial(region: String, onSave: (Int, List<String>) -> Unit, onDismiss: () -> Unit) {
-    var intensity by rememberSaveable { mutableStateOf(5) }
+    var intensity by rememberSaveable { mutableIntStateOf(5) }
     var tags by remember { mutableStateOf(setOf<String>()) }
     AlertDialog(
         onDismissRequest = onDismiss,
