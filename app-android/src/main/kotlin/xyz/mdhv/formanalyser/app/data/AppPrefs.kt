@@ -20,6 +20,7 @@ class AppPrefs(private val context: Context) {
         val HAPTIC_STRENGTH = stringPreferencesKey("haptic_strength")
         val GLOW_INTENSITY = intPreferencesKey("glow_intensity")
         val KEEP_RAW_VIDEO = booleanPreferencesKey("keep_raw_video")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
         val PLANNED_REST_DAYS = stringPreferencesKey("planned_rest_days") // CSV: "MO,TH"
         val CYCLE_ENABLED = booleanPreferencesKey("cycle_enabled")
         val SORENESS_CHIPS = booleanPreferencesKey("soreness_chips")      // true = chips fallback, false = mini-atlas
@@ -31,6 +32,7 @@ class AppPrefs(private val context: Context) {
     val hapticStrength: Flow<String> = context.dataStore.data.map { it[Keys.HAPTIC_STRENGTH] ?: "MED" }
     val glowIntensity: Flow<Int> = context.dataStore.data.map { it[Keys.GLOW_INTENSITY] ?: 100 }
     val keepRawVideo: Flow<Boolean> = context.dataStore.data.map { it[Keys.KEEP_RAW_VIDEO] ?: false }
+    val themeMode: Flow<String> = context.dataStore.data.map { it[Keys.THEME_MODE] ?: "SYSTEM" }
 
     suspend fun setRole(v: String) = context.dataStore.edit { it[Keys.ROLE] = v }
     suspend fun setOnboarded(v: Boolean) = context.dataStore.edit { it[Keys.ONBOARDED] = v }
@@ -38,6 +40,7 @@ class AppPrefs(private val context: Context) {
     suspend fun setHapticStrength(v: String) = context.dataStore.edit { it[Keys.HAPTIC_STRENGTH] = v }
     suspend fun setGlowIntensity(v: Int) = context.dataStore.edit { it[Keys.GLOW_INTENSITY] = v }
     suspend fun setKeepRawVideo(v: Boolean) = context.dataStore.edit { it[Keys.KEEP_RAW_VIDEO] = v }
+    suspend fun setThemeMode(v: String) = context.dataStore.edit { it[Keys.THEME_MODE] = v }
 
     val plannedRestDays: Flow<String> = context.dataStore.data.map { it[Keys.PLANNED_REST_DAYS] ?: "" }
     val cycleEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.CYCLE_ENABLED] ?: false }
