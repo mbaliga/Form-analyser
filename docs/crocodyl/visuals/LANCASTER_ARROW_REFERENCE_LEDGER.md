@@ -42,6 +42,9 @@ The library keeps **shape**, **attachment**, **weight-adjustment construction**,
 | Screw-in bullet | NAP Bullet Practice Point / Saunders Bullet | Machined steel; standard 8-32 thread; common 5/16, 9/32, 11/32 diameters; common 100/125 gr examples |
 | Screw-in field / narrow tip | Lancaster target-point guide + CMI/X-Spot field points | Field/narrow-tipped family distinct from bullet profile; screw-in insert attachment |
 | Glue-in chisel target | PDP Glue-In Target Point | Steel; glue-in; chisel-style point |
+| One-piece 416 stainless glue-in target | Altra 166 Glue-In Target Points | Hardened 416 stainless; glue-in; fitment is explicitly Altra 166; listed 80, 100 and 120 gr options |
+| Adjustable glue-in bullet | Easton Adjustable Glue-In Bullet Point | Glue-in bullet family; Lancaster lists SuperDrive 19, 23, 25 and 27 shaft compatibility; do not generalise that fitment |
+| Removable bullet weight modules | Easton Weight Modules (Adjustable Bullet Points) | Separate 10, 20 and 50 gr options; module geometry and stacking dimensions are not published here |
 
 References:
 - https://lancasterarchery.com/products/easton-aluminum-glue-in-bullet-point
@@ -52,6 +55,9 @@ References:
 - https://lancasterarchery.com/products/nap-bullet-screw-in-practice-points
 - https://lancasterarchery.com/products/cmi-stainless-steel-field-points
 - https://lancasterarchery.com/products/pdp-glue-in-target-point
+- https://lancasterarchery.com/products/altra-166-stainless-glue-in-target-point
+- https://lancasterarchery.com/products/easton-adjustable-glue-in-bullet-point
+- https://lancasterarchery.com/products/easton-weight-modules-adjustable-bullet-points
 - https://lancasterarchery.com/blogs/guides-and-information/basic-guide-to-target-archery-arrow-points
 
 ## Nock families and rear-end interfaces

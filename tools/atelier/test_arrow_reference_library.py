@@ -46,7 +46,7 @@ class ArrowReferenceContracts(unittest.TestCase):
         expected={
           'shaft_profiles':{'parallel','barrelled','front_taper','rear_taper'},
           'shaft_constructions':{'aluminium','all_carbon','carbon_over_aluminium','aluminium_over_carbon'},
-          'points':{'breakoff_stainless','breakoff_tungsten','gluein_aluminium_bullet','nibb','screw_bullet_8_32','screw_field_8_32','gluein_chisel'},
+          'points':{'breakoff_stainless','breakoff_tungsten','gluein_aluminium_bullet','nibb','screw_bullet_8_32','screw_field_8_32','gluein_chisel','gluein_416_stainless','adjustable_gluein_bullet','adjustable_weight_10gr','adjustable_weight_20gr','adjustable_weight_50gr'},
           'nock_systems':{'direct_insert_166','pin_small','pin_large','pin_out','bushing_insert','swaged_conventional','rear_impact_collar'},
         }
         for model,parts in expected.items():
@@ -62,5 +62,20 @@ class ArrowReferenceContracts(unittest.TestCase):
         # X10 Parallel Pro 600 example from Lancaster: .194 in OD, 32 in length.
         self.assertAlmostEqual(.194*.0254/2,.0024638,places=7)
         self.assertAlmostEqual(32*.0254/2,.4064,places=7)
+
+    def test_remaining_point_families_keep_material_and_weight_axes_explicit(self):
+        doc=read_glb(self.out/'points.glb')
+        parts={n['name']:n['extras'] for n in doc['nodes']}
+        self.assertIn('416 stainless',parts['gluein_416_stainless']['description'])
+        self.assertIn('Altra 166',parts['gluein_416_stainless']['description'])
+        self.assertIn('removable forward-weight modules',parts['adjustable_gluein_bullet']['description'])
+        for grain in ('10','20','50'):
+            key=f'adjustable_weight_{grain}gr'
+            self.assertIn(key,parts)
+            self.assertIn(f'{grain}-grain',parts[key]['title'])
+            self.assertIn('published',parts[key]['description'])
+        self.assertIn('altra_166_416',lib.SOURCES)
+        self.assertIn('adjustable_bullet',lib.SOURCES)
+        self.assertIn('weight_modules',lib.SOURCES)
 
 if __name__=='__main__':unittest.main(verbosity=2)

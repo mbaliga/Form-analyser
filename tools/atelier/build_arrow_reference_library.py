@@ -18,6 +18,8 @@ ALUMINUM = len(base.MATS); base.MATS.append(base.mat('Satin aluminium', (.64,.67
 TUNGSTEN = len(base.MATS); base.MATS.append(base.mat('Tungsten alloy', (.43,.45,.46), .98, .19))
 BLACK_NICKEL = len(base.MATS); base.MATS.append(base.mat('Black nickel stainless', (.16,.17,.18), .90, .24))
 POLYMER = len(base.MATS); base.MATS.append(base.mat('Translucent nock polymer', (.58,.82,.72), .05, .24))
+STAINLESS_416 = len(base.MATS); base.MATS.append(base.mat('Hardened 416 stainless', (.70,.73,.75), .98, .21))
+WEIGHT_MODULE = len(base.MATS); base.MATS.append(base.mat('Weight module / neutral metal', (.52,.54,.56), .94, .28))
 DARK_CARBON = 1
 STEEL = 2
 
@@ -37,6 +39,9 @@ SOURCES = {
  'screw_bullet': 'https://lancasterarchery.com/products/nap-bullet-screw-in-practice-points',
  'field_point': 'https://lancasterarchery.com/blogs/guides-and-information/basic-guide-to-target-archery-arrow-points',
  'chisel': 'https://lancasterarchery.com/products/pdp-glue-in-target-point',
+ 'altra_166_416': 'https://lancasterarchery.com/products/altra-166-stainless-glue-in-target-point',
+ 'adjustable_bullet': 'https://lancasterarchery.com/products/easton-adjustable-glue-in-bullet-point',
+ 'weight_modules': 'https://lancasterarchery.com/products/easton-weight-modules-adjustable-bullet-points',
  'nock_guide': 'https://lancasterarchery.com/blogs/guides-and-information/nocks-everything-you-need-to-know',
  'beiter_pin': 'https://lancasterarchery.com/products/beiter-pin-nock',
  'beiter_pin_out': 'https://lancasterarchery.com/products/beiter-pin-out-nock',
@@ -100,7 +105,7 @@ def _stepped_tail(start=-.050, end=-.006, r=.00125, steps=5):
 
 def points():
     m=base.Model('Crocodyl / target point taxonomy')
-    ys=[-.18,-.12,-.06,0,.06,.12,.18]
+    ys=[-.24,-.18,-.12,-.06,0,.06,.12,.18,.24]
     entries=[
       ('breakoff_stainless','Stainless break-off target point','Glue-in stainless target point with break-off weight-adjustment steps. Lancaster documents Easton 4 mm HL as 130 to 80 gr in 10 gr increments and black-nickel stainless.',ys[0]),
       ('breakoff_tungsten','Tungsten break-off target point','Dense tungsten-alloy break-off family. Lancaster lists X10 Ballistic Tungsten at 100-120 gr; geometry here is generic, not an Easton replica.',ys[1]),
@@ -109,6 +114,8 @@ def points():
       ('screw_bullet_8_32','8-32 screw-in bullet','Machined steel bullet point with standard 8-32 threaded attachment. Head uses a representative 9/32 in class.',ys[4]),
       ('screw_field_8_32','8-32 screw-in field point','Narrow field-profile screw-in point, distinct from bullet shape; standard insert-thread concept.',ys[5]),
       ('gluein_chisel','Glue-in chisel target point','Steel glue-in chisel-style target point family. Generic educational silhouette.',ys[6]),
+      ('gluein_416_stainless','One-piece 416 stainless glue-in point','One-piece hardened 416 stainless glue-in target-point family, based on the Altra 166 listing. Lancaster specifies fitment to Altra 166 shafts and 80, 100 and 120 gr options; silhouette and hidden interface here remain generic.',ys[7]),
+      ('adjustable_gluein_bullet','Adjustable glue-in bullet','Glue-in bullet family with removable forward-weight modules. Lancaster lists Easton compatibility with SuperDrive 19, 23, 25 and 27 shafts; this generic study does not imply compatibility with any other shaft.',ys[8]),
     ]
     for pid,title,desc,y in entries:add_part(m,pid,title,desc,y)
     # Stainless break-off, five removable 10-gr steps represented schematically.
@@ -130,6 +137,16 @@ def points():
     for x in [-.016,-.0135,-.011,-.0085,-.006,-.0035]:m.ring('screw_field_8_32',BLACK_NICKEL,(x,ys[5],0),(1,0,0),stem_r,.00012,20,5)
     # Rotationally symmetric approximation of the chisel family; metadata is explicit about generic silhouette.
     m.lathe('gluein_chisel',STEEL,(0,ys[6],0),(1,0,0),[(0,-.035),(.0018,-.035),(.0018,-.003),(.0032,0),(.0030,.007),(.0013,.020),(0,.024)],24)
+    # One-piece 416 stainless glue-in point. The Altra 166 fitment and weights are source-backed;
+    # proportions, internal fit and nose profile are intentionally generic topology.
+    m.lathe('gluein_416_stainless',STAINLESS_416,(0,ys[7],0),(1,0,0),[(0,-.040),(.00175,-.040),(.00175,-.004),(.0030,-.001),(.00335,.006),(.00305,.015),(.0020,.025),(.0008,.032),(0,.036)],32)
+    # Adjustable bullet body plus three separately selectable weight-module studies. Modules are
+    # displayed as removable neutral-metal cylinders; dimensions and resulting mass are not implied.
+    m.lathe('adjustable_gluein_bullet',STAINLESS_416,(0,ys[8],0),(1,0,0),[(0,-.040),(.00165,-.040),(.00165,-.004),(.00315,-.001),(.00365,.005),(.00355,.012),(.00265,.022),(.0012,.030),(0,.034)],32)
+    module_specs=[('adjustable_weight_10gr','10-grain removable module',.29,.012,.0020),('adjustable_weight_20gr','20-grain removable module',.35,.017,.00215),('adjustable_weight_50gr','50-grain removable module',.41,.026,.00235)]
+    for pid,title,y,length,r in module_specs:
+        m.part(pid,title,f'Removable weight option listed for Easton Adjustable Bullet Points. The 10, 20 or 50 gr value is published; module dimensions, stacking detail and any resulting F.O.C. are schematic and not tuning advice.',(0,y,0),(0,.035,0))
+        m.lathe(pid,WEIGHT_MODULE,(0,y,0),(1,0,0),[(0,-length/2),(r,-length/2),(r*.94,-length*.18),(r,-length*.08),(r,length/2),(0,length/2)],20)
     return m
 
 

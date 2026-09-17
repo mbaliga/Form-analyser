@@ -19,6 +19,9 @@
     "screw_bullet": "https://lancasterarchery.com/products/nap-bullet-screw-in-practice-points",
     "field_point": "https://lancasterarchery.com/blogs/guides-and-information/basic-guide-to-target-archery-arrow-points",
     "chisel": "https://lancasterarchery.com/products/pdp-glue-in-target-point",
+    "altra_166_416": "https://lancasterarchery.com/products/altra-166-stainless-glue-in-target-point",
+    "adjustable_bullet": "https://lancasterarchery.com/products/easton-adjustable-glue-in-bullet-point",
+    "weight_modules": "https://lancasterarchery.com/products/easton-weight-modules-adjustable-bullet-points",
     "nock_guide": "https://lancasterarchery.com/blogs/guides-and-information/nocks-everything-you-need-to-know",
     "beiter_pin": "https://lancasterarchery.com/products/beiter-pin-nock",
     "beiter_pin_out": "https://lancasterarchery.com/products/beiter-pin-out-nock",
@@ -167,10 +170,10 @@
     },
     "points": {
       "file": "points.glb",
-      "bytes": 233520,
-      "sha256": "823c8b731dc353a3b0736b5905664fa6dbe0799960e338dc37bac3ecf5a708da",
-      "triangles": 6608,
-      "vertices": 4469,
+      "bytes": 287540,
+      "sha256": "a314cac15ba2104a7fb13b4814767b0b081fb0080a31edd74b101ff13c7ea9b5",
+      "triangles": 7984,
+      "vertices": 5441,
       "parts": [
         {
           "id": "breakoff_stainless",
@@ -178,7 +181,7 @@
           "description": "Glue-in stainless target point with break-off weight-adjustment steps. Lancaster documents Easton 4 mm HL as 130 to 80 gr in 10 gr increments and black-nickel stainless.",
           "hotspot": [
             0,
-            -0.18,
+            -0.24,
             0
           ],
           "explode": [
@@ -193,7 +196,7 @@
           "description": "Dense tungsten-alloy break-off family. Lancaster lists X10 Ballistic Tungsten at 100-120 gr; geometry here is generic, not an Easton replica.",
           "hotspot": [
             0,
-            -0.12,
+            -0.18,
             0
           ],
           "explode": [
@@ -208,7 +211,7 @@
           "description": "Rounded bullet-profile glue-in point for aluminium shafts; Lancaster lists 50-100 gr variants depending on shaft size.",
           "hotspot": [
             0,
-            -0.06,
+            -0.12,
             0
           ],
           "explode": [
@@ -223,7 +226,7 @@
           "description": "Hardened steel point with an extra-long aluminium shank, matching Lancaster construction description.",
           "hotspot": [
             0,
-            0,
+            -0.06,
             0
           ],
           "explode": [
@@ -238,7 +241,7 @@
           "description": "Machined steel bullet point with standard 8-32 threaded attachment. Head uses a representative 9/32 in class.",
           "hotspot": [
             0,
-            0.06,
+            0,
             0
           ],
           "explode": [
@@ -253,7 +256,7 @@
           "description": "Narrow field-profile screw-in point, distinct from bullet shape; standard insert-thread concept.",
           "hotspot": [
             0,
-            0.12,
+            0.06,
             0
           ],
           "explode": [
@@ -268,7 +271,82 @@
           "description": "Steel glue-in chisel-style target point family. Generic educational silhouette.",
           "hotspot": [
             0,
+            0.12,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "gluein_416_stainless",
+          "title": "One-piece 416 stainless glue-in point",
+          "description": "One-piece hardened 416 stainless glue-in target-point family, based on the Altra 166 listing. Lancaster specifies fitment to Altra 166 shafts and 80, 100 and 120 gr options; silhouette and hidden interface here remain generic.",
+          "hotspot": [
+            0,
             0.18,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "adjustable_gluein_bullet",
+          "title": "Adjustable glue-in bullet",
+          "description": "Glue-in bullet family with removable forward-weight modules. Lancaster lists Easton compatibility with SuperDrive 19, 23, 25 and 27 shafts; this generic study does not imply compatibility with any other shaft.",
+          "hotspot": [
+            0,
+            0.24,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "adjustable_weight_10gr",
+          "title": "10-grain removable module",
+          "description": "Removable weight option listed for Easton Adjustable Bullet Points. The 10, 20 or 50 gr value is published; module dimensions, stacking detail and any resulting F.O.C. are schematic and not tuning advice.",
+          "hotspot": [
+            0,
+            0.29,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "adjustable_weight_20gr",
+          "title": "20-grain removable module",
+          "description": "Removable weight option listed for Easton Adjustable Bullet Points. The 10, 20 or 50 gr value is published; module dimensions, stacking detail and any resulting F.O.C. are schematic and not tuning advice.",
+          "hotspot": [
+            0,
+            0.35,
+            0
+          ],
+          "explode": [
+            0,
+            0.035,
+            0
+          ]
+        },
+        {
+          "id": "adjustable_weight_50gr",
+          "title": "50-grain removable module",
+          "description": "Removable weight option listed for Easton Adjustable Bullet Points. The 10, 20 or 50 gr value is published; module dimensions, stacking detail and any resulting F.O.C. are schematic and not tuning advice.",
+          "hotspot": [
+            0,
+            0.41,
             0
           ],
           "explode": [

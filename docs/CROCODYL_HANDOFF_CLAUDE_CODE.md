@@ -32,16 +32,15 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 The local release artifacts are QA-signed only. A production release still requires the real production keystore/CI identity, final versioning, owner approval, physical-device/accessibility/thermal/battery checks, and range acceptance. Do not distribute the QA-signed artifacts.
 
-The exact owner-arrow catalog is intentionally not complete. The existing visual handoff documents the next in-scope asset work: add the one-piece hardened 416 stainless glue-in point and adjustable glue-in bullet weight modules, then add the independent fletching taxonomy, then intake and approve one exact owner arrow. Do not expand the recurve collection or infer component compatibility while doing so.
+The exact owner-arrow catalog is intentionally not complete. The one-piece hardened 416 stainless glue-in point and adjustable glue-in bullet weight modules are now represented as separately named generic taxonomy components, with source/provenance and deterministic contract coverage. The next in-scope asset work is the independent fletching taxonomy, then intake and approve one exact owner arrow. Do not expand the recurve collection or infer component compatibility while doing so.
 
 ## Recommended continuation order
 
 1. Read `docs/crocodyl/atelier/CODEX_HANDOFF.md`, `docs/crocodyl/visuals/ARROW_FIRST_ART_DIRECTION.md`, `docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md`, and `docs/RELEASE_ACCEPTANCE_CHECKLIST.md`.
 2. Run the asset and repository gates documented in `CROCODYL_BUILD_NOTES.md` and this handoff.
-3. Add the two remaining point families with provenance, semantic IDs, deterministic generator output, contract tests and real-Chromium evidence.
-4. Add fletching as independent taxonomy axes, preserving uncertainty and compatibility boundaries.
-5. Stop for owner-arrow reference intake and approval before modelling an exact configured arrow.
-6. For release, replace the QA signing inputs with the production signing identity and complete the physical-device/range acceptance checklist.
+3. Add fletching as independent taxonomy axes, preserving uncertainty and compatibility boundaries.
+4. Stop for owner-arrow reference intake and approval before modelling an exact configured arrow.
+5. For release, replace the QA signing inputs with the production signing identity and complete the physical-device/range acceptance checklist.
 
 ## Key commits from this pass
 
@@ -54,4 +53,3 @@ The exact owner-arrow catalog is intentionally not complete. The existing visual
 - `7009f18` — refresh canonical artifact evidence.
 - `6878605` — enforce APK alignment in release CI.
 - `b74392c` — align the acceptance checklist with the alignment gate.
-

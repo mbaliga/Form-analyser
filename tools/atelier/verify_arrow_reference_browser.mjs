@@ -44,6 +44,7 @@ try{
  const target=await send('Target.createTarget',{url:'about:blank'});sessionId=(await send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
  await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
  const families=['shaft_profiles','shaft_constructions','points','nock_systems'];
+ const requiredParts={points:['gluein_416_stainless','adjustable_gluein_bullet','adjustable_weight_10gr','adjustable_weight_20gr','adjustable_weight_50gr']};
  for(const key of families){
   await send('Emulation.setDeviceMetricsOverride',{width:1280,height:820,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:`${origin}/atelier/index.html?arrow-reference=${key}#model=${key}&theme=dark`});
@@ -52,6 +53,10 @@ try{
   check(await evaluate('window.CrocodylAtelier.getStatus().drawCalls>0'),`${key}: GLB uploaded and drawn`);
   check(await evaluate("document.querySelector('canvas').getContext('webgl2').getError()===0"),`${key}: no WebGL error`);
   const firstPart=await evaluate("document.querySelector('[data-part]')?.dataset.part || ''");check(Boolean(firstPart),`${key}: component controls created`);
+  if(requiredParts[key]){
+   const partIds=await evaluate("[...document.querySelectorAll('[data-part]')].map(b=>b.dataset.part)");
+   for(const id of requiredParts[key])check(partIds.includes(id),`${key}: required component ${id} is selectable`);
+  }
   await evaluate("document.querySelector('[data-part]').click()");await wait(()=>evaluate('Boolean(window.CrocodylAtelier.getStatus().selected)'),`${key} selection`);
   check(await evaluate('Boolean(window.CrocodylAtelier.getStatus().selected)'),`${key}: component focus`);
   await screenshot(path.join(out,`${key}-desktop.jpg`));
