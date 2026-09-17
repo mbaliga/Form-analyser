@@ -83,7 +83,7 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [ ] `:app-android:lintRelease` has zero errors and zero warnings.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
-      resources, and absence of staging files.
+      resources, APK ZIP alignment, and absence of staging files.
 - [ ] APK is installed over the previous production build and launches on the acceptance matrix.
 - [ ] Owner approves the release notes and selected distribution channel.
 
