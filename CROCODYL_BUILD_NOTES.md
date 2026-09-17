@@ -76,7 +76,7 @@ and the blueprint’s later phases
   path, not the identity of the production key. Release CI now enforces the same alignment check.
 - An equipment continuity audit confirmed that the existing arrow tuning model/editor and FOC/GPP
   analysis remain present. The validated `feat/immersive-visuals` handoff is now integrated as a
-  separate generic arrow-reference studio with four modular GLB families, seven selectors, local-only
+  separate generic arrow-reference studio with five modular GLB families, eight selectors, local-only
   WebGL2 controls, semantic part IDs, provenance metadata, deterministic generator/contract tests and
   committed Chromium evidence. It is not an owner-approved arrow, compatibility claim or full catalog.
 - The rebuilt debug APK was installed on the API-35 ARM64 emulator and exercised through Home → the
@@ -90,7 +90,11 @@ and the blueprint’s later phases
 - The remaining generic point families are now present as separate semantic components: hardened
   416 stainless glue-in, adjustable glue-in bullet, and removable 10/20/50-grain module studies.
   The Lancaster ledger and browser contract preserve their explicit product-family boundaries; the
-  next visual taxonomy item is fletching, followed by owner-arrow reference intake and approval.
+  next visual dependency is the owner-arrow reference, followed by owner approval.
+- Fletching taxonomy is now present as a separate fifth GLB and eighth studio selector. It keeps
+  material/type, mounting, vane count/clocking, wrap presence and nock-relative orientation as
+  independent generic studies, with Lancaster source references and contract coverage. The next
+  asset dependency is the owner-selected arrow reference, not further speculative equipment.
 
 ## Historical recon findings
 

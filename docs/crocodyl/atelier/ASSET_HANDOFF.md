@@ -90,7 +90,7 @@ Representative groove values from Lancaster/Beiter/Easton references are example
 
 ## What is wired into Crocodyl
 
-The equipment studio now exposes seven selectable families:
+The equipment studio now exposes eight selectable families:
 
 1. Recurve study
 2. Complete generic arrow study
@@ -99,8 +99,9 @@ The equipment studio now exposes seven selectable families:
 5. Shaft constructions
 6. Point families
 7. Nock/rear-interface families
+8. Fletching families
 
-All four new arrow taxonomy GLBs load through the same local WebGL2 renderer as the original studies. Orbit, zoom, component focus, separation/reassembly, light/dark presentation, reduced motion and lifecycle suspension are retained. Mobile navigation is a contained horizontally scrollable strip rather than widening the document.
+All five new arrow taxonomy GLBs load through the same local WebGL2 renderer as the original studies. Orbit, zoom, component focus, separation/reassembly, light/dark presentation, reduced motion and lifecycle suspension are retained. Mobile navigation is a contained horizontally scrollable strip rather than widening the document.
 
 The Android entry still uses a static poster until the user deliberately opens the studio; the renderer does not run continuously in the Home feed. The WebView remains local-assets-only with no CDN, retailer image requests, athlete-data bridge, file access or content access.
 
@@ -142,9 +143,8 @@ xvfb-run -a node tools/atelier/verify_arrow_reference_browser.mjs
 
 1. Use the modular reference families to describe or configure a real arrow without inventing incompatible combinations.
 2. When the owner supplies a specific arrow, record each dimension as measured, manufacturer-published, visually estimated or unknown; then compose/replace only the relevant generic parts.
-3. For additional point coverage, model the one-piece 416 stainless glue-in family and adjustable bullet + removable weight-module family as new, separate components rather than relabelling existing break-off/bullet meshes.
-4. Add fletching taxonomy only when requested: vane/feather/spin-wing type, count, offset/helical mounting, wrap and nock clocking are another independent layer.
-5. For instructional movement, use an approved real-archer photo/video sequence and preserve observable contact relationships. Do not invent ideal joint angles, muscle activation, forces or hidden anatomy.
-6. Complete physical Android/device verification separately.
+3. The generic point and fletching taxonomies are present. Use them only to describe or configure a real arrow after recording explicit product-family compatibility.
+4. For instructional movement, use an approved real-archer photo/video sequence and preserve observable contact relationships. Do not invent ideal joint angles, muscle activation, forces or hidden anatomy.
+5. Complete physical Android/device verification separately.
 
 Do not merge PR #10 or `main`, change scoring mathematics, or alter athlete history as part of this asset handoff. Concurrent branch changes were preserved; no force push was used.

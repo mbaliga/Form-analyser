@@ -169,7 +169,7 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   work remains intact in `RigTuning`/`ArrowDto` and the advanced rig editor: arrow spine, length, point
   mass, total mass, balance point, vane count, FOC/GPP derivation and tuning warnings are represented
   and tested. The validated `feat/immersive-visuals` handoff is now carried into this checkout as the
-  separate generic arrow-reference studio: four modular GLB families, seven selectors, named-part
+  separate generic arrow-reference studio: five modular GLB families, eight selectors, named-part
   focus/separation, local-only WebGL2 loading, semantic IDs, provenance metadata, deterministic
   generator/contract tests and committed Chromium evidence. It remains generic reference material,
   not an owner-approved arrow or a compatibility/catalog claim.
@@ -184,13 +184,19 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   the local WebView resumed, and the isolated log showed no app fatal or WebGL texture warnings.
 - **Asset reproducibility gate (2026-09-18):** the Atelier exporter now canonicalizes float
   attributes and accessor bounds before GLB serialization. Regenerating both the original study
-  models and all four arrow-reference families produces a clean worktree; CI and the release job
+  models and all five arrow-reference families produces a clean worktree; CI and the release job
   fail if checked-in generated assets drift from their generators.
 - **Point taxonomy completion (2026-09-18):** the active points family now includes a separately
   named one-piece hardened 416 stainless glue-in study plus an adjustable glue-in bullet and
   individually selectable 10-, 20- and 50-grain removable module studies. Lancaster source URLs,
   explicit Altra/Easton fitment boundaries, generic-topology wording, deterministic output tests,
   and browser-contract requirements are recorded; no compatibility or tuning claim is implied.
+- **Fletching taxonomy (2026-09-18):** the active studio now includes a fifth generic family covering
+  Mylar/spin-wing, low-profile polymer, shield-cut plastic and turkey feather studies; straight,
+  left/right offset and left/right helical mounting; three/four-fletch clocking; wrap presence; and
+  a nock-relative reference. Source URLs, independent semantic IDs, deterministic contracts and
+  future Chromium checks are recorded. The exact owner arrow still requires reference intake and
+  approval.
 
 ### 3.5 Releases
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`

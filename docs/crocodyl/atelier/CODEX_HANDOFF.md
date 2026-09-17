@@ -27,7 +27,7 @@ Use these files as the sources of truth. If an older document or generated asset
 | Committed browser evidence | `docs/crocodyl/arrow-reference-previews/verification.json` |
 | General original-equipment handoff | [`ASSET_HANDOFF.md`](ASSET_HANDOFF.md) |
 
-The older `tools/atelier/arrow_library.py` and `app-android/src/main/assets/atelier/arrow-library/` are the earlier v1 taxonomy experiment. They include a square target-face study, but are not the active Lancaster reference-library generator or the four-family studio surface. Do not extend that older path when continuing the arrow pass.
+The older `tools/atelier/arrow_library.py` and `app-android/src/main/assets/atelier/arrow-library/` are the earlier v1 taxonomy experiment. They include a square target-face study, but are not the active Lancaster reference-library generator or the five-family studio surface. Do not extend that older path when continuing the arrow pass.
 
 The generated files and manifests are outputs, not permission to invent hidden dimensions. The generator, ledger and tests must be changed together when a new taxonomy family is added.
 
@@ -52,8 +52,9 @@ The active library keeps these axes independent. A later configured arrow must s
 | Point attachment | glue-in or 8-32 screw-in; break-off is a separate weight-adjustment construction, not an attachment label |
 | Point weight adjustment | break-off sections and removable 10/20/50-grain adjustable-bullet modules are represented separately from nose shape, material and attachment |
 | Nock/rear interface | direct-fit insert, pin-small groove, pin-large groove, pin-out/over-shaft, bushing-backed insert, conventional swaged rear, separate rear impact collar |
+| Fletching | Mylar/spin-wing, low-profile polymer, shield-cut plastic, turkey feather; straight/offset/helical mounting; three/four-fletch clocking; wrap and nock-relative reference |
 
-The current seven studio selections are: Recurve, complete generic Arrow, Target, Shaft profiles, Shaft construction, Points and Nocks. The four active taxonomy GLBs are:
+The current eight studio selections are: Recurve, complete generic Arrow, Target, Shaft profiles, Shaft construction, Points, Nocks and Fletching. The five active taxonomy GLBs are:
 
 ```text
 app-android/src/main/assets/atelier/arrow-reference-library/
@@ -61,6 +62,7 @@ app-android/src/main/assets/atelier/arrow-reference-library/
 ├── shaft_constructions.glb
 ├── points.glb
 ├── nock_systems.glb
+├── fletching.glb
 └── manifest.json
 ```
 
@@ -68,7 +70,7 @@ The GLBs are generic educational studies, standard self-contained glTF 2.0 asset
 
 ### Studio and app integration
 
-The active four-family assets load through the same local WebGL2 studio as the original studies. The implemented surface includes orbit, zoom, named component focus, separation/reassembly, dark/light presentation, reduced-motion handling, idle/lifecycle suspension and a contained horizontally scrolling mobile selector. The Android Home entry remains a static poster; the renderer opens only when the user deliberately enters the studio.
+The active five-family assets load through the same local WebGL2 studio as the original studies. The implemented surface includes orbit, zoom, named component focus, separation/reassembly, dark/light presentation, reduced-motion handling, idle/lifecycle suspension and a contained horizontally scrolling mobile selector. The Android Home entry remains a static poster; the renderer opens only when the user deliberately enters the studio.
 
 The WebView is local-assets-only. Preserve the current absence of CDN requests, retailer-image requests, athlete-data bridges, file access and content access.
 
@@ -76,7 +78,7 @@ The original recurve, complete-arrow and target models remain generic studies. T
 
 ## What is verified
 
-The committed evidence in `docs/crocodyl/arrow-reference-previews/verification.json` records the successful real-Chromium pass for all four active families:
+The committed evidence in `docs/crocodyl/arrow-reference-previews/verification.json` records the successful real-Chromium pass for the active reference families:
 
 - each GLB uploaded and drew;
 - WebGL reported no error;
@@ -84,7 +86,7 @@ The committed evidence in `docs/crocodyl/arrow-reference-previews/verification.j
 - component selection/focus worked;
 - mobile had no horizontal overflow;
 - zero JavaScript exceptions;
-- all requests remained local.
+- all requests remained local. The browser harness now explicitly requires the 416 stainless and adjustable-point controls plus the full fletching taxonomy control set on future runs.
 
 The active contract test also regenerates the library in a temporary directory and checks deterministic structure, glTF 2.0 validity, finite geometry, semantic part IDs, source policy, embedded/self-contained assets, mobile-size limits and the published parallel-shaft conversion.
 
@@ -99,7 +101,7 @@ These checks do not establish:
 - arrow fitment, spine, length, point mass, FOC or tuning advice;
 - compatibility between components;
 - owner approval of any geometry;
-- a completed fletching taxonomy or an exact configured owner arrow.
+- fresh browser evidence for the newly added fletching family or an exact configured owner arrow.
 
 ## Non-negotiable constraints
 
@@ -114,13 +116,9 @@ These checks do not establish:
 
 Work in this order; do not skip ahead to an exact arrow composition.
 
-### 1. Add fletching taxonomy
+### 1. Compose the exact owner equipment
 
-Only after the point-family work is complete, add fletching as another independent layer. Cover the source-backed family/type axis (for example stick-on Mylar/spin-wing, low-profile plastic, shield-cut plastic and feathers) separately from mounting (straight, left/right offset, left/right helical), vane count/clocking, wrap presence and orientation relative to the nock. Add provenance and tests before presenting the models. Do not silently choose fletching for the owner’s arrow.
-
-### 2. Compose the exact owner equipment
-
-Only after the generic point and fletching taxonomy is finished, intake one coherent owner-selected arrow configuration:
+The generic point and fletching taxonomies are now present. Intake one coherent owner-selected arrow configuration:
 
 - full-length side-on reference;
 - point, nock and fletching close-ups;
@@ -132,7 +130,7 @@ Record every dimension with units and a status of measured, manufacturer-publish
 
 ## QA commands
 
-Run from the repository root. The first four commands are the active arrow-library gate:
+Run from the repository root. These commands are the active arrow-library gate:
 
 ```sh
 python3 tools/atelier/build_arrow_reference_library.py

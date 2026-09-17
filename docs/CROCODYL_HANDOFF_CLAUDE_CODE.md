@@ -8,7 +8,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `a8c32e8 feat(atelier): add remaining point taxonomy families`
+Latest implementation commit: `2663615 feat(atelier): add fletching reference taxonomy`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -32,15 +32,14 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 The local release artifacts are QA-signed only. A production release still requires the real production keystore/CI identity, final versioning, owner approval, physical-device/accessibility/thermal/battery checks, and range acceptance. Do not distribute the QA-signed artifacts.
 
-The exact owner-arrow catalog is intentionally not complete. The one-piece hardened 416 stainless glue-in point and adjustable glue-in bullet weight modules are now represented as separately named generic taxonomy components, with source/provenance and deterministic contract coverage. The next in-scope asset work is the independent fletching taxonomy, then intake and approve one exact owner arrow. Do not expand the recurve collection or infer component compatibility while doing so.
+The exact owner-arrow catalog is intentionally not complete. The one-piece hardened 416 stainless glue-in point, adjustable glue-in bullet weight modules, and independent fletching taxonomy are now represented as separately named generic taxonomy components, with source/provenance and deterministic contract coverage. The next in-scope work is intake and approval of one exact owner arrow. Do not expand the recurve collection or infer component compatibility while doing so.
 
 ## Recommended continuation order
 
-1. Read `docs/crocodyl/atelier/CODEX_HANDOFF.md`, `docs/crocodyl/visuals/ARROW_FIRST_ART_DIRECTION.md`, `docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md`, and `docs/RELEASE_ACCEPTANCE_CHECKLIST.md`.
+1. Read `docs/crocodyl/atelier/CODEX_HANDOFF.md`, `docs/crocodyl/visuals/ARROW_FIRST_ART_DIRECTION.md`, `docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md`, and `docs/crocodyl/RELEASE_ACCEPTANCE_CHECKLIST.md`.
 2. Run the asset and repository gates documented in `CROCODYL_BUILD_NOTES.md` and this handoff.
-3. Add fletching as independent taxonomy axes, preserving uncertainty and compatibility boundaries.
-4. Stop for owner-arrow reference intake and approval before modelling an exact configured arrow.
-5. For release, replace the QA signing inputs with the production signing identity and complete the physical-device/range acceptance checklist.
+3. Stop for owner-arrow reference intake and approval before modelling an exact configured arrow.
+4. For release, replace the QA signing inputs with the production signing identity and complete the physical-device/range acceptance checklist.
 
 ## Key commits from this pass
 
@@ -54,3 +53,4 @@ The exact owner-arrow catalog is intentionally not complete. The one-piece harde
 - `6878605` — enforce APK alignment in release CI.
 - `b74392c` — align the acceptance checklist with the alignment gate.
 - `a8c32e8` — add the remaining 416 stainless and adjustable-module point families with contracts.
+- `2663615` — add the fletching reference taxonomy and eighth studio selector.
