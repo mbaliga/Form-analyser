@@ -28,7 +28,7 @@ fun EquipmentAtelierCard() {
     val context = LocalContext.current
     val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val poster by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, dark) {
-        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val loadedPoster = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             val theme = if (dark) "dark" else "light"
             // Prefer the art-only GLB render, never a diagnostic screenshot containing UI.
             // Keep the earlier poster path as a fallback for source-only development builds.
@@ -41,6 +41,7 @@ fun EquipmentAtelierCard() {
                 }.getOrNull()
             }
         }
+        value = loadedPoster
     }
     val bg = if (dark) Color(0xff102119) else Color(0xffe0e5d9)
     val fg = if (dark) Color(0xfff3eddf) else Color(0xff253a30)
