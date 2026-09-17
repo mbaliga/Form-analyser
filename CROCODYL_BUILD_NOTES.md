@@ -3,7 +3,84 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
-## Recon findings
+## Current addendum — 2026-09-16
+
+The notes below are the historical implementation log and contain superseded “pending” entries from
+before the Android layers landed. The authoritative current snapshot is [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md).
+
+Current work is on `codex/production-hardening`, based on `4c15c72`, with an unreleased
+`0.6.0-spec-dev` build. Since the historical entries below:
+
+- the manual Recurve scoring wedge is implemented (numeric, plotted and observer input, WA/custom
+  rounds, resume, grouping, PBs and scorecard retraction);
+- DeepSeek is present as a BYOK provider alongside OpenAI, Anthropic and Google;
+- Room recovery is non-destructive: failed opens are preserved and surfaced for explicit reset;
+- Room schema export is enabled and release builds now require explicit release signing;
+- Android CI watches core-module and Gradle changes as well as `app-android` changes.
+- The current body layer now supports in-app document-photo capture alongside SAF import; camera
+  staging is scoped through FileProvider and deleted after atomic vault encryption.
+- The bundled BlazePose asset is content-pinned: clean builds verify the SHA-256 of the downloaded
+  model and publish it atomically, and Android CI runs both the root JVM tests and full release lint.
+- The current verification pass reports 178 primary JVM/Android test cases with zero failures or
+  errors; release lint has zero errors, warnings, or informational notices, and the QA-key APK and
+  AAB pass signature verification.
+- App networking is explicitly cleartext-disabled in the manifest, and CI now triggers when the Gradle settings
+  file changes so module inclusion cannot drift without an Android build.
+- The final manifest-only hardening was rebuilt and inspected in the current debug APK and in a
+  corrected minified QA-key APK/AAB. The R8 configuration retains shrinking, obfuscation, and
+  resource shrinking while disabling aggressive optimization, bringing the release APK build down
+  to 1m27s and the AAB build to 12s. CI must still rebuild with the real production key before
+  distribution.
+- The release workflow now inspects the packaged APK manifest and AAB contents, failing on a
+  cleartext-enabled or backup-enabled manifest, a missing or tampered BlazePose asset/backup
+  resource, or leaked staging files.
+- An API-35 ARM64 emulator smoke pass installed the minified QA APK, completed onboarding, rendered
+  Progress/Train/Body/Calendar/Settings, verified force-stop/relaunch profile persistence, initialized
+  the bundled pose model, and toggled Start recording → Stop & analyze against an empty camera frame
+  without an app fatal exception. Full physical-device, camera/range, and 30-session acceptance remains.
+- The first minified capture run exposed MediaPipe protobuf reflection breakage from R8 field
+  obfuscation (`typeUrl_`); retaining `com.google.protobuf.**` in the release rules fixed it and was
+  reverified on the same emulator path.
+- SAF export now advertises Crocodyl's vendor MIME type so DocumentsUI preserves the requested
+  `.crocbak` extension; the final emulator export opened successfully and excluded private tables.
+- The shared segmented control now uses responsive equal-width, single-line labels; the final
+  emulator screenshot confirms all five Body views are legible instead of wrapping `Physio` into a
+  vertical column.
+
+The remaining production gate is evidence, not another blind feature pass: Android device/range QA,
+camera/permission/interruption behavior, release artifact verification with the real production key,
+and the blueprint’s later phases
+(validated form calibration, End Scan, signed `.croc`, Coach workspace and web viewer).
+
+## Hardening addendum — 2026-09-18
+
+- Closed the current-scope scoring context gap: sight mark, venue, conditions and training intent are
+  now editable from the scorecard and retained in the existing Room fields. Narrow-screen scoring
+  mode labels scroll safely.
+- Scorecard linking now enforces same-athlete ownership and rejects retracted training sessions.
+  End Scan candidate proposals validate scores/plots/confidence, cap to the remaining arrows, and
+  replace only unresolved proposals; confirmed/rejected provenance is retained. ViewModel actions
+  preserve coroutine cancellation instead of converting it into a user-facing failure.
+- Document vault views now decrypt to a unique private staging file and publish atomically only after
+  full authenticated completion. Viewer path components are constrained, preventing partial plaintext
+  from being treated as a valid view. On-device model removal is canonical-path scoped to the private
+  model directory, with a regression test for outside-path deletion.
+- Latest verification: Android debug/release unit-test variants and `lintRelease` pass with zero
+  failures/errors and no lint findings; a rebuilt debug APK passes `apksigner verify`. Including the
+  root JVM run and the added model-path regression, the current root-plus-two-Android-variants
+  matrix totals 180 test cases, all passing. The release
+  APK/AAB still cannot be generated locally without the real production signing inputs; the
+  fail-closed `verifyReleaseSigning` guard is working as intended.
+- An equipment continuity audit confirmed that the existing arrow tuning model/editor and FOC/GPP
+  analysis remain present. The validated `feat/immersive-visuals` handoff is now integrated as a
+  separate generic arrow-reference studio with four modular GLB families, seven selectors, local-only
+  WebGL2 controls, semantic part IDs, provenance metadata, deterministic generator/contract tests and
+  committed Chromium evidence. It is not an owner-approved arrow, compatibility claim or full catalog.
+
+## Historical recon findings
+
+These notes capture the initial blind-build investigation. They are retained for provenance; the
+2026-09-15 addendum above supersedes any later “pending” or “deferred” claim that it contradicts.
 
 - **Repo/branch:** app lives on `claude/form-analyser-baseline-split-e9s6lr` (PR #1, draft). Building
   continues on that branch (not per-phase branches) so progress is continuous without merge gates.
@@ -125,12 +202,12 @@ Body-tab injury badge; vault meter in Settings → Data.
 - Streak week-strip is a text summary line, not 7 glyph dots (visual polish deferred).
 - srpe lane is computed but the Load view shows shot-load bars only (secondary lane deferred).
 - Physio session logging lives on the Body tab (plan row → Log), not in "+ Log" (fewer nav seams).
-- Document import is SAF-only for now (no in-app camera capture — TakePicture/FileProvider plumbing
-  deferred); mime from ContentResolver.
+- At the initial blind pass, document import was SAF-only; the current branch adds in-app camera
+  capture through a scoped FileProvider path and retains the ContentResolver MIME path for SAF.
 - Robolectric tests (migrations, registry reflection, VM suites) still deferred to a verified pass —
   no local Android SDK; pure-JVM suites cover the math.
 
-## Pending — the later Android app layers (CI-verified, next tranche)
+## Historical pending list (superseded)
 
 Not yet built (require the Android SDK / only compile in CI):
 - **Phase 1 app:** Hilt DI, Room migration (rig table + athlete columns + backfill), onboarding flow,

@@ -1,0 +1,41 @@
+{
+  "verifiedAt": "2026-09-16T22:50:33.451Z",
+  "browser": "Chrome/152.0.7977.82",
+  "families": [
+    "shaft_profiles",
+    "shaft_constructions",
+    "points",
+    "nock_systems"
+  ],
+  "checks": [
+    "shaft_profiles: GLB uploaded and drawn",
+    "shaft_profiles: no WebGL error",
+    "shaft_profiles: component controls created",
+    "shaft_profiles: component focus",
+    "shaft_profiles: no mobile horizontal overflow",
+    "shaft_constructions: GLB uploaded and drawn",
+    "shaft_constructions: no WebGL error",
+    "shaft_constructions: component controls created",
+    "shaft_constructions: component focus",
+    "shaft_constructions: no mobile horizontal overflow",
+    "points: GLB uploaded and drawn",
+    "points: no WebGL error",
+    "points: component controls created",
+    "points: component focus",
+    "points: no mobile horizontal overflow",
+    "nock_systems: GLB uploaded and drawn",
+    "nock_systems: no WebGL error",
+    "nock_systems: component controls created",
+    "nock_systems: component focus",
+    "nock_systems: no mobile horizontal overflow",
+    "no JavaScript exceptions",
+    "all requests remain local"
+  ],
+  "exceptions": 0,
+  "externalRequests": [],
+  "notVerified": [
+    "physical Android device",
+    "manufacturer replica accuracy beyond published dimensions",
+    "equipment compatibility or fitting advice"
+  ]
+}

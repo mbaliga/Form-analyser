@@ -1,0 +1,357 @@
+{
+  "renderer": "VTK 9.6.2 / EGL / PBR",
+  "images": [
+    {
+      "file": "recurve-dark.jpg",
+      "bytes": 67037,
+      "sha256": "5014731b73cfcf2f4f93ce86c94ff973714b20560807cd0c691fefca32139b21",
+      "source": "recurve.glb",
+      "sourceSha256": "a6ffea61979f8b9d03c2f2fcc628a21c1a9f8cc8cd95794407ac9b47c7449ee8",
+      "camera": {
+        "focus": [
+          -0.2,
+          0.075,
+          0
+        ],
+        "eyeOffset": [
+          0.9,
+          0.32,
+          3
+        ],
+        "parallelScale": 0.35,
+        "rollDegrees": -10
+      },
+      "dimensions": [
+        1600,
+        760
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    },
+    {
+      "file": "recurve-full-dark.jpg",
+      "bytes": 61980,
+      "sha256": "e062a0e75c04f5fc58b7a4a281df2614b70c98a42273c828abf36270bb5a0655",
+      "source": "recurve.glb",
+      "sourceSha256": "a6ffea61979f8b9d03c2f2fcc628a21c1a9f8cc8cd95794407ac9b47c7449ee8",
+      "camera": {
+        "focus": [
+          0.13,
+          0,
+          0
+        ],
+        "eyeOffset": [
+          0.95,
+          0.22,
+          3
+        ],
+        "parallelScale": 0.95,
+        "rollDegrees": 0
+      },
+      "dimensions": [
+        1200,
+        1400
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    },
+    {
+      "file": "arrow-dark.jpg",
+      "bytes": 32218,
+      "sha256": "bbff6c2aa6233a1a31e0a5dbf7450a68223e7651e23b541a2fce34f3882b6b0c",
+      "source": "arrow.glb",
+      "sourceSha256": "24b9cf5eccf010f2e0fda9d439eb13f0adc6e6686c69aefeab89ccd361142d60",
+      "camera": {
+        "focus": [
+          0,
+          0,
+          0
+        ],
+        "eyeOffset": [
+          0.35,
+          0.42,
+          3
+        ],
+        "parallelScale": 0.22,
+        "rollDegrees": -12
+      },
+      "dimensions": [
+        1600,
+        760
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    },
+    {
+      "file": "target-dark.jpg",
+      "bytes": 173849,
+      "sha256": "2a52b3b161d8c442dcd852aacc8cc082a51f66a3dbdbc02fe3809eda976de1bc",
+      "source": "target.glb",
+      "sourceSha256": "45293e63aa9d9c7a3d9377e09490402d6e94c76566c5f2367e5675a80bbfaff2",
+      "camera": {
+        "focus": [
+          -0.19,
+          0.66,
+          0
+        ],
+        "eyeOffset": [
+          0.85,
+          0.42,
+          3
+        ],
+        "parallelScale": 0.76,
+        "rollDegrees": 0
+      },
+      "dimensions": [
+        1440,
+        1000
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    },
+    {
+      "file": "recurve-light.jpg",
+      "bytes": 71072,
+      "sha256": "98db414d0f4475fe347a1fc48fc15fbaa616872df0143dd48e774a8aac073f1b",
+      "source": "recurve.glb",
+      "sourceSha256": "a6ffea61979f8b9d03c2f2fcc628a21c1a9f8cc8cd95794407ac9b47c7449ee8",
+      "camera": {
+        "focus": [
+          -0.2,
+          0.075,
+          0
+        ],
+        "eyeOffset": [
+          0.9,
+          0.32,
+          3
+        ],
+        "parallelScale": 0.35,
+        "rollDegrees": -10
+      },
+      "dimensions": [
+        1600,
+        760
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "light"
+    },
+    {
+      "file": "recurve-full-light.jpg",
+      "bytes": 66990,
+      "sha256": "220efbff108cfa9a445de43e19b06eda079ad798a1453cad77df7a41a7831007",
+      "source": "recurve.glb",
+      "sourceSha256": "a6ffea61979f8b9d03c2f2fcc628a21c1a9f8cc8cd95794407ac9b47c7449ee8",
+      "camera": {
+        "focus": [
+          0.13,
+          0,
+          0
+        ],
+        "eyeOffset": [
+          0.95,
+          0.22,
+          3
+        ],
+        "parallelScale": 0.95,
+        "rollDegrees": 0
+      },
+      "dimensions": [
+        1200,
+        1400
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "light"
+    },
+    {
+      "file": "arrow-light.jpg",
+      "bytes": 36701,
+      "sha256": "4007aeee30c3cafba5e2ab12f3511a14ae8e4cd82bec1fb29680ae76a23a48e4",
+      "source": "arrow.glb",
+      "sourceSha256": "24b9cf5eccf010f2e0fda9d439eb13f0adc6e6686c69aefeab89ccd361142d60",
+      "camera": {
+        "focus": [
+          0,
+          0,
+          0
+        ],
+        "eyeOffset": [
+          0.35,
+          0.42,
+          3
+        ],
+        "parallelScale": 0.22,
+        "rollDegrees": -12
+      },
+      "dimensions": [
+        1600,
+        760
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "light"
+    },
+    {
+      "file": "target-light.jpg",
+      "bytes": 179755,
+      "sha256": "4887295042174dd9b7f982db60440a2e258fd0aba560491bf224fce632bad8c2",
+      "source": "target.glb",
+      "sourceSha256": "45293e63aa9d9c7a3d9377e09490402d6e94c76566c5f2367e5675a80bbfaff2",
+      "camera": {
+        "focus": [
+          -0.19,
+          0.66,
+          0
+        ],
+        "eyeOffset": [
+          0.85,
+          0.42,
+          3
+        ],
+        "parallelScale": 0.76,
+        "rollDegrees": 0
+      },
+      "dimensions": [
+        1440,
+        1000
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "light"
+    },
+    {
+      "file": "recurve-riser-detail.jpg",
+      "bytes": 89730,
+      "sha256": "66cd021e83914e0e876bbdaf2f2ada729053ae8710bdae424a233a9cdc6e1cec",
+      "source": "recurve.glb",
+      "sourceSha256": "a6ffea61979f8b9d03c2f2fcc628a21c1a9f8cc8cd95794407ac9b47c7449ee8",
+      "camera": {
+        "focus": [
+          -0.01,
+          0.16,
+          0
+        ],
+        "eyeOffset": [
+          0.6,
+          0.12,
+          2
+        ],
+        "parallelScale": 0.24,
+        "rollDegrees": -12
+      },
+      "dimensions": [
+        1100,
+        1100
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    },
+    {
+      "file": "recurve-grip-detail.jpg",
+      "bytes": 97992,
+      "sha256": "b58b50715f3afc1112850d30fcb007360480e93a9424caa138995212cb5f1065",
+      "source": "recurve.glb",
+      "sourceSha256": "a6ffea61979f8b9d03c2f2fcc628a21c1a9f8cc8cd95794407ac9b47c7449ee8",
+      "camera": {
+        "focus": [
+          -0.01,
+          -0.022,
+          0
+        ],
+        "eyeOffset": [
+          -0.85,
+          0.12,
+          2
+        ],
+        "parallelScale": 0.084,
+        "rollDegrees": -12
+      },
+      "dimensions": [
+        1100,
+        1100
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    },
+    {
+      "file": "recurve-sight-detail.jpg",
+      "bytes": 74797,
+      "sha256": "1a292c0cab4577ab9a578d9aa3c5f698a7d3591021717d734bbc5c7252d92e19",
+      "source": "recurve.glb",
+      "sourceSha256": "a6ffea61979f8b9d03c2f2fcc628a21c1a9f8cc8cd95794407ac9b47c7449ee8",
+      "camera": {
+        "focus": [
+          0.18,
+          0.17,
+          -0.06
+        ],
+        "eyeOffset": [
+          1.0,
+          0.3,
+          2
+        ],
+        "parallelScale": 0.14,
+        "rollDegrees": 0
+      },
+      "dimensions": [
+        1440,
+        960
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    },
+    {
+      "file": "arrow-vanes-detail.jpg",
+      "bytes": 69858,
+      "sha256": "8efbd622b09d3daf6483cd94a3da585a81b86c2cc855f7f1e5d5ce140a2805ac",
+      "source": "arrow.glb",
+      "sourceSha256": "24b9cf5eccf010f2e0fda9d439eb13f0adc6e6686c69aefeab89ccd361142d60",
+      "camera": {
+        "focus": [
+          -0.315,
+          0,
+          0
+        ],
+        "eyeOffset": [
+          0.1,
+          0.6,
+          2
+        ],
+        "parallelScale": 0.041,
+        "rollDegrees": -16
+      },
+      "dimensions": [
+        1440,
+        960
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    },
+    {
+      "file": "arrow-nock-detail.jpg",
+      "bytes": 43717,
+      "sha256": "3a5833560df4a20d8c1db91bde3e9b6f60c46525ee3e084d8ec090c02cbe0c78",
+      "source": "arrow.glb",
+      "sourceSha256": "24b9cf5eccf010f2e0fda9d439eb13f0adc6e6686c69aefeab89ccd361142d60",
+      "camera": {
+        "focus": [
+          -0.38,
+          0,
+          0
+        ],
+        "eyeOffset": [
+          -1,
+          0.25,
+          2
+        ],
+        "parallelScale": 0.022,
+        "rollDegrees": -12
+      },
+      "dimensions": [
+        1100,
+        1100
+      ],
+      "kind": "render of original committed geometry",
+      "theme": "dark"
+    }
+  ],
+  "noGeneratedAnatomyClaims": true
+}

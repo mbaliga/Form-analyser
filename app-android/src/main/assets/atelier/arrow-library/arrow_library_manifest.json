@@ -1,0 +1,547 @@
+{
+  "version": 1,
+  "scope": "generic target-arrow taxonomy",
+  "notBrandReplicas": true,
+  "notFittingAdvice": true,
+  "dimensionPolicy": "Illustrative educational geometry only. No spine, arrow length, point mass, nock groove or component compatibility is prescribed.",
+  "taxonomy": {
+    "shaftProfiles": [
+      "parallel",
+      "barrelled",
+      "single-taper"
+    ],
+    "shaftConstructions": [
+      "aluminium",
+      "all-carbon",
+      "aluminium-core/carbon-shell"
+    ],
+    "pointFamilies": [
+      "bullet",
+      "zinc glue-in",
+      "stainless break-off",
+      "tungsten-alloy",
+      "screw-in field/target"
+    ],
+    "nockSystems": [
+      "direct-fit/insert",
+      "pin nock",
+      "overnock/out-nock",
+      "bushing-mounted insert"
+    ],
+    "target": "square substrate with concentric scoring rings"
+  },
+  "sources": {
+    "easton_shaft_design": {
+      "title": "Arrow Shaft Design and Performance",
+      "publisher": "Easton Archery",
+      "url": "https://eastonarchery.com/2018/12/arrow-shaft-design-and-performance/",
+      "supports": [
+        "parallel, tapered and barrelled are major target-shaft design families"
+      ]
+    },
+    "easton_2026": {
+      "title": "Easton Target 2026 product guide",
+      "publisher": "Easton Archery",
+      "url": "https://eastonarchery.com/wp-content/uploads/2026/03/Easton-2026.pdf",
+      "supports": [
+        "current barrelled and single-taper aluminium-carbon shafts, aluminium target shafts, bullet points and nock component families"
+      ]
+    },
+    "easton_ac": {
+      "title": "A/C Arrow Construction - How A/C Arrows are Made",
+      "publisher": "Easton Archery",
+      "url": "https://eastonarchery.com/2022/05/a-c-arrow-construction-how-a-c-arrows-are-made/",
+      "supports": [
+        "aluminium core combined with bonded external carbon fibre"
+      ]
+    },
+    "easton_superdrive": {
+      "title": "Superdrive Micro",
+      "publisher": "Easton Archery",
+      "url": "https://eastonarchery.com/arrows_/superdrive-micro/",
+      "supports": [
+        "multi-layer all-carbon parallel shaft; pin and direct-fit nock options"
+      ]
+    },
+    "easton_nocks": {
+      "title": "Nocks - The Vital Connection",
+      "publisher": "Easton Archery",
+      "url": "https://eastonarchery.com/2014/01/nocks-the-vital-connection/",
+      "supports": [
+        "direct-fit/insert, overnock/out-nock and pin-nock systems"
+      ]
+    },
+    "easton_components": {
+      "title": "Components Guide",
+      "publisher": "Easton Archery",
+      "url": "https://eastonarchery.com/components-guide/",
+      "supports": [
+        "field-point and target-point component families"
+      ]
+    },
+    "easton_hl": {
+      "title": "4MM HL Stainless Steel Break-off Point",
+      "publisher": "Easton Archery",
+      "url": "https://eastonarchery.com/shop/components/points/4mm-hl-stainless-steel-break-off-point/",
+      "supports": [
+        "stainless glue-in break-off target point"
+      ]
+    },
+    "easton_x10": {
+      "title": "X10 components",
+      "publisher": "Easton Archery",
+      "url": "https://eastonarchery.com/product-tag/x10/",
+      "supports": [
+        "tungsten and stainless target points; pin and overnock components"
+      ]
+    },
+    "world_archery": {
+      "title": "World Archery Rulebook Book 2 (2026)",
+      "publisher": "World Archery",
+      "url": "https://extranet.worldarchery.sport/documents/index.php/Rules/Rule_Book_versions/2026-01-27/EN-Book_2_-_2026-01-27_Version.pdf",
+      "supports": [
+        "122 cm face: ten scoring zones, 6.1 cm radial width; inner-X 6.1 cm diameter"
+      ]
+    },
+    "owner_square_sheet": {
+      "title": "Owner correction, 2026-09-17",
+      "publisher": "Crocodyl product direction",
+      "url": "docs/crocodyl/visuals/ARROW_FIRST_ART_DIRECTION.md",
+      "supports": [
+        "target sheet is square while scoring area remains concentric circles"
+      ]
+    }
+  },
+  "models": {
+    "shaft_profiles": {
+      "file": "shaft_profiles.glb",
+      "bytes": 43592,
+      "sha256": "02e4a3a1cb318a8cba9d63ec044d82811eea60492b3af9f414852a13f426a8f3",
+      "triangles": 1056,
+      "vertices": 833,
+      "parts": [
+        {
+          "id": "parallel",
+          "title": "Parallel shaft",
+          "description": "Constant outside diameter over the working length.",
+          "hotspot": [
+            0,
+            -0.055,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Arrow shaft profiles",
+          "subtype": "parallel",
+          "sourceRefs": [
+            "easton_shaft_design",
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Diameter differences are mildly exaggerated for phone-scale legibility."
+        },
+        {
+          "id": "barrelled",
+          "title": "Barrelled shaft",
+          "description": "Largest outside diameter near the middle, reducing toward both ends.",
+          "hotspot": [
+            0,
+            0,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Arrow shaft profiles",
+          "subtype": "barrelled",
+          "sourceRefs": [
+            "easton_shaft_design",
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Diameter differences are mildly exaggerated for phone-scale legibility."
+        },
+        {
+          "id": "single_taper",
+          "title": "Single-taper shaft",
+          "description": "Outside diameter progressively reduces toward one end.",
+          "hotspot": [
+            0,
+            0.055,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Arrow shaft profiles",
+          "subtype": "single_taper",
+          "sourceRefs": [
+            "easton_shaft_design",
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Diameter differences are mildly exaggerated for phone-scale legibility."
+        }
+      ]
+    },
+    "shaft_constructions": {
+      "file": "shaft_constructions.glb",
+      "bytes": 43556,
+      "sha256": "8f17a9d0c5608a03bf3ed16d531c70f8d957057bf06d45d139c6a56f51dbc774",
+      "triangles": 640,
+      "vertices": 656,
+      "parts": [
+        {
+          "id": "aluminium",
+          "title": "Aluminium alloy tube",
+          "description": "Drawn aluminium-alloy target-shaft construction.",
+          "hotspot": [
+            0,
+            -0.06,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Arrow shaft constructions",
+          "subtype": "aluminium",
+          "sourceRefs": [
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Layer thicknesses and diameters are schematic, not proprietary specifications."
+        },
+        {
+          "id": "carbon",
+          "title": "All-carbon composite",
+          "description": "Multi-layer all-carbon shaft construction; exact layup is product-specific.",
+          "hotspot": [
+            0,
+            0,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Arrow shaft constructions",
+          "subtype": "carbon",
+          "sourceRefs": [
+            "easton_superdrive"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Layer thicknesses and diameters are schematic, not proprietary specifications."
+        },
+        {
+          "id": "aluminium_carbon",
+          "title": "Aluminium-core / carbon-shell",
+          "description": "Aluminium core tube with externally bonded carbon fibre.",
+          "hotspot": [
+            0,
+            0.06,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Arrow shaft constructions",
+          "subtype": "aluminium_carbon",
+          "sourceRefs": [
+            "easton_ac",
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Layer thicknesses and diameters are schematic, not proprietary specifications."
+        }
+      ]
+    },
+    "points": {
+      "file": "points.glb",
+      "bytes": 129752,
+      "sha256": "85f4aa30600bed2354ef01f8ff11d146c41734981f591275ae3364776efd8b9f",
+      "triangles": 3456,
+      "vertices": 2434,
+      "parts": [
+        {
+          "id": "bullet",
+          "title": "One-piece bullet point",
+          "description": "Rounded one-piece target point profile. Material intentionally neutral: bullet describes shape/family, not one universal alloy.",
+          "hotspot": [
+            0,
+            -0.1,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target point families and materials",
+          "subtype": "one-piece bullet",
+          "sourceRefs": [
+            "easton_2026",
+            "easton_components"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic silhouette; not a branded dimensional copy."
+        },
+        {
+          "id": "zinc_glue_in",
+          "title": "Zinc glue-in target point",
+          "description": "Generic zinc glue-in target-point study.",
+          "hotspot": [
+            0,
+            -0.05,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target point families and materials",
+          "subtype": "zinc glue-in",
+          "sourceRefs": [
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic silhouette; not a branded dimensional copy."
+        },
+        {
+          "id": "stainless_breakoff",
+          "title": "Stainless break-off point",
+          "description": "Glue-in stainless target point with scored removable weight sections.",
+          "hotspot": [
+            0,
+            0,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target point families and materials",
+          "subtype": "stainless break-off",
+          "sourceRefs": [
+            "easton_hl",
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic silhouette; not a branded dimensional copy."
+        },
+        {
+          "id": "tungsten_breakoff",
+          "title": "Tungsten-alloy point",
+          "description": "Compact heavy target-point family represented with a tungsten-alloy material study.",
+          "hotspot": [
+            0,
+            0.05,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target point families and materials",
+          "subtype": "tungsten target point",
+          "sourceRefs": [
+            "easton_x10",
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic silhouette; not a branded dimensional copy."
+        },
+        {
+          "id": "screw_in_field",
+          "title": "Screw-in field/target point",
+          "description": "Threaded point used with an insert; attachment differs from glue-in target points.",
+          "hotspot": [
+            0,
+            0.1,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target point families and materials",
+          "subtype": "screw-in field/target",
+          "sourceRefs": [
+            "easton_components"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic silhouette; not a branded dimensional copy."
+        }
+      ]
+    },
+    "nock_systems": {
+      "file": "nock_systems.glb",
+      "bytes": 151556,
+      "sha256": "ac2611c39cc176fab8e4481d57ccbe5d24ecdff39ed27a9ac9a9ca45971f3181",
+      "triangles": 3232,
+      "vertices": 2886,
+      "parts": [
+        {
+          "id": "direct_fit",
+          "title": "Direct-fit / insert nock",
+          "description": "Nock stem presses directly into the shaft bore.",
+          "hotspot": [
+            -0.03,
+            -0.105,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target nock attachment systems",
+          "subtype": "direct-fit insert",
+          "sourceRefs": [
+            "easton_2026",
+            "easton_nocks"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic interface study; groove fit and compatibility are setup-specific."
+        },
+        {
+          "id": "pin_nock",
+          "title": "Pin nock system",
+          "description": "Metal pin adapter fits the shaft; polymer nock presses onto the external pin.",
+          "hotspot": [
+            -0.03,
+            -0.035,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target nock attachment systems",
+          "subtype": "pin nock",
+          "sourceRefs": [
+            "easton_nocks",
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic interface study; groove fit and compatibility are setup-specific."
+        },
+        {
+          "id": "overnock",
+          "title": "Overnock / out-nock",
+          "description": "Nock body fits around the outside of the rear shaft.",
+          "hotspot": [
+            -0.03,
+            0.035,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target nock attachment systems",
+          "subtype": "overnock/out-nock",
+          "sourceRefs": [
+            "easton_nocks",
+            "easton_x10"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic interface study; groove fit and compatibility are setup-specific."
+        },
+        {
+          "id": "bushing_insert",
+          "title": "Bushing + insert nock",
+          "description": "Metal rear bushing presents a socket for a separate insert nock.",
+          "hotspot": [
+            -0.03,
+            0.105,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Target nock attachment systems",
+          "subtype": "bushing-mounted insert",
+          "sourceRefs": [
+            "easton_2026"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Generic interface study; groove fit and compatibility are setup-specific."
+        }
+      ]
+    },
+    "target_face_square": {
+      "file": "target_face_square.glb",
+      "bytes": 145612,
+      "sha256": "5698f3f9818f12378572cc43eebfdea9da09939df79f37380485b5a630f0e0cc",
+      "triangles": 3260,
+      "vertices": 3105,
+      "parts": [
+        {
+          "id": "face",
+          "title": "Square 122 cm target face",
+          "description": "Square paper sheet carrying ten concentric scoring rings.",
+          "hotspot": [
+            0,
+            0,
+            0
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Square 122 cm target-face study",
+          "subtype": "122 cm ten-ring face",
+          "sourceRefs": [
+            "world_archery",
+            "owner_square_sheet"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Face study only; paper stock, print tolerances and manufacturer margins are not claimed."
+        },
+        {
+          "id": "retainers",
+          "title": "Paper face retainers",
+          "description": "Four generic retainers shown near the corners.",
+          "hotspot": [
+            0.56,
+            0.56,
+            0.008
+          ],
+          "explode": [
+            0,
+            0,
+            0
+          ],
+          "category": "Square 122 cm target-face study",
+          "subtype": "retainers",
+          "sourceRefs": [
+            "owner_square_sheet"
+          ],
+          "dimensionsStatus": "illustrative taxonomy geometry",
+          "notes": "Placement is illustrative, not a competition specification."
+        }
+      ]
+    }
+  }
+}

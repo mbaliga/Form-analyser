@@ -1,0 +1,42 @@
+name: Equipment studio visual QA
+
+on:
+  push:
+    branches: [feat/immersive-visuals]
+    paths:
+      - tools/atelier/render_qa.py
+      - .github/workflows/atelier-quality.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atelier-visual-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install render harness only
+        run: python3 -m pip install playwright==1.56.0 Pillow==11.3.0
+      - name: Bake and test geometry
+        run: |
+          python3 tools/atelier/build_assets.py
+          python3 tools/atelier/test_assets.py
+      - name: Render real models and test viewer
+        run: python3 tools/atelier/render_qa.py
+      - name: Upload inspectable source, GLBs, posters and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crocodyl-atelier-review
+          retention-days: 3
+          path: |
+            tools/atelier
+            app-android/src/main/assets/atelier
+            docs/crocodyl/atelier/qa
+          if-no-files-found: error

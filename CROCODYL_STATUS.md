@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last updated: 2026-08-12 · current build: **v0.5.1** (versionCode 4)_
+_Last updated: 2026-09-18 · current branch: **codex/production-hardening** (based on `4c15c72`) · build: **v0.6.0-spec-dev** (versionCode 6)_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -75,32 +75,31 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   Room 2.6.1 + KSP, DataStore, kotlinx.serialization, CameraX 1.4.1, MediaPipe tasks-vision +
   tasks-genai, Tink 1.15.0.
 - **DI:** manual (Hilt deferred). **ViewModels:** `AndroidViewModel` + manual `load()`.
-- **CI:** `ci.yml` runs `./gradlew test` (pure-JVM cores); `android.yml` builds `assembleDebug`;
-  `release.yml` builds + attaches an APK to a GitHub Release when a `release/<version>` branch is pushed.
-- **Signing/versioning:** a committed debug keystore signs every build identically so updates install
-  in place; versionCode is bumped per release.
+- **CI:** `ci.yml` runs `./gradlew test` (pure-JVM cores); `android.yml` runs Android unit tests and
+  builds `assembleDebug`; `release.yml` builds + attaches signed APK/AAB artifacts to a GitHub Release
+  when a `release/<version>` branch is pushed.
+- **Signing/versioning:** debug builds use a committed debug keystore for repeatable internal updates;
+  release builds require a separate uncommitted keystore and fail closed when it is not configured.
 
 ---
 
 ## 3. Done
 
 ### 3.1 Stability (shipped & install-verified path)
-- **Onboarding DB crash** → self-healing DB open: if a legacy schema can't migrate, the DB is rebuilt
-  instead of crashing. `allowBackup=false` so stale DBs can't be restored onto a fresh install.
+- **Onboarding DB crash** → resilient DB open: if a legacy schema can't migrate, the app blocks at a
+  recovery screen instead of crashing or starting over. `allowBackup=false` so stale DBs can't be
+  restored onto a fresh install.
 - **`MainShell` `NoSuchFieldError`** → the nav object `R` collided with the generated resources `R`;
   renamed to `Routes`.
 - **"App not installed"** → committed debug keystore (stable signature) + versionCode bumping.
-- **DB-recovery safety (2026-08-12):** the Phased Implementation Plan flagged the self-healing rebuild
-  above as unsafe for production ("must never silently delete athlete history"). Hardened:
-  `fallbackToDestructiveMigration()` removed (Room now throws instead of silently wiping on a missing
-  migration path, surfacing the failure to the same catch below rather than hiding it two ways); on a
-  genuine open/migration failure the raw `.db` file is best-effort backed up to `filesDir/db-recovery/`
-  *before* any reset, and a `lastDbResetAtMs` flag is recorded so the UI can tell the athlete, after
-  the fact, that a reset happened and a backup was kept. A blocking pre-open confirmation isn't
-  possible (Room's open is synchronous, before any Activity/Compose context exists), so "back up the
-  bytes, then tell the user" is the practical version of "never silently delete" on Android. The full
-  Phase-0/1 contract system from the blueprint (stable IDs, the observation-resolution model) is *not*
-  retrofitted here — see §4.6.
+- **DB-recovery safety (2026-09-15):** the Phased Implementation Plan flagged the former
+  self-healing rebuild as unsafe for production ("must never silently delete athlete history").
+  `fallbackToDestructiveMigration()` is removed; a genuine open/migration failure is copied to a
+  timestamped private recovery directory before the app shows a blocking recovery screen. The app
+  never deletes or replaces the live database automatically. Reset is available only after a verified
+  backup and an explicit athlete confirmation; the preserved backup remains on-device and the reset is
+  disclosed once on the next usable launch. The full Phase-0/1 contract system from the blueprint
+  (stable IDs, the observation-resolution model) is *not* retrofitted here — see §4.6.
 
 ### 3.2 Phases 1–3 — the core app (code-complete, CI-green)
 - **Phase 1:** onboarding flow, profile/identity, rigs + poundage estimator, Home, Train setup,
@@ -108,7 +107,8 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 - **Phase 2:** wellness + life layer (check-ins, mood, life events, cycle, medication, events),
   load/ACWR/streak/readiness, Calendar tab, the "+ Log" surface, pre/post-session check-ins.
 - **Phase 3:** 52-region body atlas, pain logging, injuries (CRUD, auto-link), physio plans/sessions,
-  the Tink streaming-AEAD **document vault** (encrypted at rest), readiness v3 (injuries).
+  the Tink streaming-AEAD **document vault** (encrypted at rest, with SAF and in-app camera import),
+  readiness v3 (injuries).
 
 ### 3.3 Wave 1 — new pure-JVM cores (unit-tested, adversarially reviewed)
 - **`core-coach`** — model registry (Anthropic/OpenAI/Google cloud + on-device Gemma; **every cloud
@@ -123,9 +123,12 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   export, and MEDICAL is grant-gated.
 
 ### 3.4 Wave 2 — Android layers over the cores (CI-compiled & packaged)
+- **Manual Recurve scoring wedge:** Quick Score, WA round packs, custom practice, numeric keypad,
+  synchronized target plotting, totals/set points/PBs, basic grouping, observer input, interruption-safe
+  resume, scorecard correction/retraction, and form-session linking.
 - **AI coach:** BYOK key vault (Tink Aead + Keystore); `AiSettings` (model choice, medical-grant &
   keep-private toggles, on-device model path); cloud clients (Anthropic Messages / OpenAI chat /
-  Gemini generateContent); on-device client via MediaPipe LLM Inference; `CoachViewModel` +
+  Gemini generateContent / DeepSeek); on-device client via MediaPipe LLM Inference; `CoachViewModel` +
   `CoachScreen` (offline insights always; grounded "Ask"; provenance-coloured model picker; a
   "what wasn't sent" report).
 - **Phase 5 export:** `AndroidKeyProvider` (Keystore identity), `ExportViewModel` (builds the
@@ -133,11 +136,50 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 - **Phase 4 tuning UI:** `AdvancedTuningSection` wired into the rig editor — brace/tiller/plunger/
   stabilizer/arrow, with live FOC/GPP and validation warnings.
 - Wiring: nav routes, Home "Coach" card, Settings rows, INTERNET permission (BYOK cloud calls only).
+- **Android verification:** Robolectric covers the complete V1→V8 migration DDL and recovery backup
+  preservation; local debug and minified signed release APK/AAB builds pass.
+- **Release-candidate verification (2026-09-15):** the root JVM suite plus Android debug/release
+  reports contain 178 primary test cases with zero failures/errors; `lintRelease` has zero errors
+  and zero warnings or informational notices; the QA-key APK
+  passes APK Signature Scheme v2 verification, the AAB passes `jarsigner`, and the package metadata
+  is `targetSdk 35` / `minSdk 26`. The bundled
+  BlazePose asset is SHA-256 pinned and verified before packaging. These are artifact gates, not a
+  substitute for physical-device or range acceptance.
+- **Current-checkout refresh (2026-09-16):** the root suite and Android debug/release unit-test
+  variants pass with 178 tests and zero failures/errors. A rebuilt debug APK confirms the final
+  manifest hardening (`allowBackup=false`, cleartext disabled, explicit backup rules, and restricted
+  FileProvider). The corrected minified QA APK/AAB now also build reproducibly and pass APK v2/
+  `jarsigner` verification; the release workflow must still rebuild them with the real production
+  key before publishing.
+- **API-35 ARM64 smoke (2026-09-16):** the current minified QA APK installed and launched on an
+  API-35 ARM64 emulator. Onboarding completed to Home; Progress, Train, Body, Calendar, and Settings
+  rendered; force-stop/relaunch returned to Home with the profile retained; the bundled pose model
+  initialized; and Start recording → Stop & analyze handled an empty camera frame without a crash.
+  This is a wiring smoke test, not a substitute for the physical-device, camera, range, interruption,
+  and 30-session acceptance matrix.
+- **Hardening continuation (2026-09-18):** scoring now exposes the persisted session context fields
+  (sight mark, venue, conditions and training intent), keeps its mode strip usable on narrow screens,
+  validates scorecard links against athlete ownership/deleted sessions, and validates/caps/replaces
+  only unresolved End Scan proposals. Lifecycle cancellation is no longer surfaced as an app error.
+  Vault viewer decryption is staged and atomically published, and model removal is constrained to the
+  app-private model directory. Android debug/release unit tests and `lintRelease` pass; the rebuilt
+  debug APK is APK-signature verified. The added model-path regression is included in the current
+  matrix, bringing the root-plus-two-Android-variants total to 180 test cases, all passing.
+- **Equipment continuity audit and handoff integration (2026-09-18):** the existing Recurve equipment
+  work remains intact in `RigTuning`/`ArrowDto` and the advanced rig editor: arrow spine, length, point
+  mass, total mass, balance point, vane count, FOC/GPP derivation and tuning warnings are represented
+  and tested. The validated `feat/immersive-visuals` handoff is now carried into this checkout as the
+  separate generic arrow-reference studio: four modular GLB families, seven selectors, named-part
+  focus/separation, local-only WebGL2 loading, semantic IDs, provenance metadata, deterministic
+  generator/contract tests and committed Chromium evidence. It remains generic reference material,
+  not an owner-approved arrow or a compatibility/catalog claim.
 
 ### 3.5 Releases
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`
-(all of the above in one APK) · **`v0.5.1`** (reconciled onto `main`'s `crocodyl.engine` package
-rename; current).
+(all of the above in one APK) · `v0.5.1` (reconciled onto `main`'s `crocodyl.engine` package rename).
+The current hardening branch is an unreleased **`0.6.0-spec-dev`** build: the manual scoring wedge is
+implemented, release signing is fail-closed, Room schemas are exportable, and the recovery flow is
+explicit — but full device/range acceptance still needs verification before publishing it.
 
 Going forward, releases track the Phased Implementation Plan's ladder (§5.1 of that doc): `0.6.0`
 manual-scoring wedge → `0.7.x` form/End-Scan/Live-Observer → `0.8.0` exchange → `0.9.0` Coach →
@@ -148,14 +190,21 @@ than continuing ad hoc `0.4.x`/`0.5.x` numbering in isolation.
 
 ## 4. Pending
 
-### 4.1 Verification (the honest gap)
+### 4.1 Verification (the remaining device/range gate)
+The manual scoring wedge is implemented in the current branch, and its persistence/migration paths
+are covered by Robolectric. It has not yet passed the physical-device and range acceptance pass.
 CI proves the Android app **compiles and packages** — not that it **behaves**. The pure-JVM cores are
-unit-tested; the Android UI/wiring has **not been exercised on a device yet**. First real-run pass is
-the immediate next step (onboarding → Home → all tabs → Body atlas → coach → export → tuning).
+unit-tested; an API-35 ARM64 emulator smoke pass now covers onboarding → Home → all main tabs and
+relaunch persistence. Full acceptance remains open for physical devices, camera/permissions,
+interruption behavior, and the complete Body atlas → coach → export → tuning paths.
+Range ergonomics and the executable [release acceptance checklist](docs/crocodyl/RELEASE_ACCEPTANCE_CHECKLIST.md)
+remain open; the checklist records the device matrix, resilience cases, 30-session volume, and
+sign-off criteria.
 
 ### 4.2 AI coach polish
-- **On-device model UX:** today the user must supply a Gemma `.task`/`.bin` model file; add a guided
-  download/import flow (and consider bundling a small default).
+- **On-device model UX:** today the user must supply a Gemma `.task`/`.bin` model file through the
+  system picker; import now validates extension/size, hashes and atomically publishes a private
+  copy, but a guided licensed download/import flow (and possibly bundling a small default) remains.
 - Streaming responses, token/cost display, per-provider model-list refresh.
 
 ### 4.3 Design system
@@ -165,13 +214,15 @@ the immediate next step (onboarding → Home → all tabs → Body atlas → coa
 
 ### 4.4 Deferred within Phases 1–3 (logged)
 - Hilt DI (kept manual to de-risk blind compilation).
-- Robolectric tests (migrations, PrivacyRegistry reflection, VM suites) — need the Android SDK.
-- Streak week-strip glyphs, sRPE secondary load lane, in-app document camera capture.
+- Broader ViewModel/UI suites remain open; the generated Room-schema/privacy boundary is now covered
+  by `PrivacyRegistrySchemaTest`, and migration/recovery by `AppDatabaseMigrationTest`.
+- Accessibility and visual polish beyond the current streak glyph strip and sRPE secondary load lane.
 
 ### 4.5 Future phases (roadmap, not yet built)
-The full spec runs to ~Phase 12. Notable future work: deeper tuning history, richer export/import &
-coach↔athlete sharing (Phase 5 continuation), a Progress/stability-trends surface, and a Wear OS
-companion (Phase 12). These were always beyond the 1–3 + AI-coach + Phase-4/5 scope built so far.
+The full spec runs to ~Phase 12. Notable future work: validated form capture, End Scan, richer tuning
+history, richer export/import & coach↔athlete sharing (Phase 5 continuation), the full Progress/
+stability-trends surface, and a Wear OS companion (Phase 12). These are beyond the current manual
+scoring + AI-coach + Phase-4/5 foundation.
 
 ### 4.6 Delta vs. the new blueprint (2026-08-12)
 
@@ -181,32 +232,28 @@ into PR #4). It's a genuine strategic document, not mechanical — it reposition
 "sovereign athlete performance system" (Olympic Recurve first, more sports later) and specifies a much
 larger surface than what's built so far. Concretely, **not yet built**, per that blueprint:
 
-- **Manual/plotted scoring** — WA Recurve round packs, cold-thumb numeric scoring, target-face
-  plotting, totals/set points/PBs. (Today's app has no manual scoring surface at all.)
 - **End Scan** — editable automatic post-end target-photo scoring.
 - **Live Observer** — tap/constrained-voice scoring during form capture; **Paired Target Cam** later.
 - **Coach workspace** — a paid, multi-athlete surface (roster, report review, notes, assignments).
 - **Static local-only web viewer** for exported files.
 - **Signed `.croc` exchange** — a person-to-person envelope, distinct from the device-backup
   `.crocbak` this repo already has (Phase 5 built the backup half only).
-- **DeepSeek** as a BYOK provider (not in `core-coach`'s `ModelRegistry` yet).
 - **Equipment catalog/commerce** — provenance-rich catalog, wear forecasts, upgrade evidence,
   affiliate-link laws (commerce must never steer evidence/ranking).
-- **Fuller training/recovery system** — plans, goals, habits, injury-risk context, conservative
-  recovery guidance, alongside the existing wellness/body layers.
+- **Fuller training/recovery system** — richer plans, goals, habits, injury-risk context, and
+  conservative recovery guidance beyond the current foundation.
 - **A formal longitudinal observation-resolution contract**
   (`SHOT_CONFIRMED`/`SHOT_INFERRED`/`END_ONLY`/`SESSION_ONLY`/`DAY_WINDOW`/`PERIOD_WINDOW`) — stricter
   than what the current wellness/coach cores implicitly assume. A design constraint for future work,
   not retrofitted onto Phases 1–3 now.
 
-None of the above required changing any existing code — the blueprint is purely additive documentation
-and merges clean on top of `v0.5.1`.
+The remaining blueprint items are still additive roadmap work on top of the current scoring and
+recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 
 ### 4.7 Owner to-dos (Madhav)
-- Review/merge **PR #4** (`claude/form-analyser-baseline-split-e9s6lr → main`) — the reconciled,
-  CI-green `v0.5.1` build, now including the Blueprint v2.1 docs. **PR #5** (the ChatGPT-agent branch
-  merged into #4) can be closed as superseded. **PR #3** (a stale ~v0.4.2 snapshot) remains superseded
-  from the earlier reconciliation pass and can also be closed.
+- Review the `codex/production-hardening` changes after Android CI/device QA, then merge them into the
+  chosen default branch. The source branch remains `claude/form-analyser-baseline-split-e9s6lr`; the
+  older PR #3/#5 snapshots are historical and should remain closed/superseded.
 - Approve/edit the blueprint's "governing decisions" (§4.6 above; full list in
   `docs/crocodyl/blueprint/01-product-direction.md`) — the blueprint itself calls these "proposed,"
   governing only after owner approval.
@@ -218,19 +265,28 @@ and merges clean on top of `v0.5.1`.
 
 ## 5. Known caveats
 - **Blind-compiled Android layer:** authored against verified core APIs and green in CI, but this is
-  its first packaging — treat v0.5.1 as a thorough first-pass test build, not a shipped release.
+  its first packaging — treat `0.6.0-spec-dev` as a thorough first-pass test build, not a shipped
+  release.
+- **Dependency pins:** the Android/MediaPipe stack is intentionally held for this release; upgrade
+  it as a compatibility-tested maintenance change, not opportunistically during release hardening.
 - **BYOK required for cloud "Ask":** the offline rule-coach needs nothing; cloud insights need a key,
   on-device insights need an installed model.
-- **No local Android SDK** in the build environment — the app is only ever verified in CI, so the
-  round-trip for Android fixes is CI-bound.
+- **No full device/range acceptance yet:** the API-35 ARM64 emulator smoke pass is clean, while
+  camera, permissions, interruption behavior, and range ergonomics still need evidence across the
+  supported device floor and the 30-session acceptance volume.
+- **R8 optimization is intentionally disabled:** release shrinking, obfuscation, and resource
+  shrinking remain enabled, but aggressive code optimization is disabled because the current
+  MediaPipe/Compose graph exceeded a practical local build bound. Re-enable it only as a measured,
+  compatibility-tested R8/AGP maintenance change.
 
 ---
 
 ## 6. TL;DR
-Phases 1–3 + the AI coach + Phase-4 tuning + Phase-5 export are **built and compiling green**, packaged
-in **v0.5.1**, reconciled onto `main`'s `crocodyl.engine` rename in PR #4. What remains before calling
-it done is **on-device behavioural verification**, on-device-model UX, the real Hyle dependency, and
-the deferred/future-phase work above. The paid Baseline channels (EEG, bow-IMU, advanced analytics)
+Phases 1–3 + the AI coach + Phase-4 tuning + Phase-5 export + the manual scoring wedge are **built and
+pure-JVM green**, with Android packaging configured for **0.6.0-spec-dev**. What remains before
+calling the current scope production-grade is **on-device behavioural verification**, release QA and
+signing validation, on-device-model UX, the real Hyle dependency, and the deferred/future-phase work
+above. The paid Baseline channels (EEG, bow-IMU, advanced analytics)
 stay out of Crocodyl's git history — that separation is unchanged — though Baseline itself is now
 understood to be open-source, gated by entitlement rather than by a closed repo (§1).
 
