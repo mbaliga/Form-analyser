@@ -99,7 +99,7 @@
     "shaft_constructions": {
       "file": "shaft_constructions.glb",
       "bytes": 46512,
-      "sha256": "2e1edf3313d9e4e2da41ab70f24b7ccfd29d18591ed732930153fc579c1d6f1a",
+      "sha256": "9e74be949d593883603df93e2a972d1242f574afe8db4a51f387dc76aa48267b",
       "triangles": 672,
       "vertices": 696,
       "parts": [
@@ -167,8 +167,8 @@
     },
     "points": {
       "file": "points.glb",
-      "bytes": 233784,
-      "sha256": "f63663eb6751c81af657d7aca67be40b1f1d108cd748555fca1ba53a8bc81342",
+      "bytes": 233812,
+      "sha256": "c2b42b84d918ea0a27497397770407e1ea09b498abd6d9cbc55db38ea9f26dd8",
       "triangles": 6608,
       "vertices": 4469,
       "parts": [
@@ -281,8 +281,8 @@
     },
     "nock_systems": {
       "file": "nock_systems.glb",
-      "bytes": 128480,
-      "sha256": "300fddab185c8316d78bde51c6f410c3e0e15ee0dad16920917be17dba32df34",
+      "bytes": 128452,
+      "sha256": "a600f96cfe5db4991b296b25393931031224c8c3d656101146e279b10f31895c",
       "triangles": 2984,
       "vertices": 2501,
       "parts": [

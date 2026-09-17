@@ -2,6 +2,8 @@
 
 Date: 2026-09-17. Working branch: `feat/immersive-visuals` (PR #11).
 
+For the current Codex execution sequence and branch-state index, read [`CODEX_HANDOFF.md`](CODEX_HANDOFF.md) first.
+
 ## Scope and approval
 
 This pass establishes portable original 3D meshes, an offline equipment viewer, reproducible export/render tooling, an environmental image, and a **Lancaster-grounded modular target-arrow reference library**. It does **not** establish faithful replication of a specific commercial product, anatomical accuracy, measured biomechanics, equipment compatibility, or validated instructional motion.
