@@ -96,9 +96,12 @@ jobs:
           test -s "$AAB"
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
           AAPT2="$(find "$ANDROID_HOME/build-tools" -type f -name aapt2 -print | sort -V | tail -n 1)"
+          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -type f -name zipalign -print | sort -V | tail -n 1)"
           test -x "$APKSIGNER"
           test -x "$AAPT2"
+          test -x "$ZIPALIGN"
           "$APKSIGNER" verify --verbose "$APK"
+          "$ZIPALIGN" -c -P 16 4 "$APK"
           jarsigner -verify "$AAB"
           "$AAPT2" dump xmltree "$APK" --file AndroidManifest.xml > release-manifest.txt
           grep -Eq 'usesCleartextTraffic.*=false' release-manifest.txt

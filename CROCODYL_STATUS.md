@@ -176,7 +176,8 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 - **Final integration gate (2026-09-18):** the root JVM suite, Android debug/release unit-test
   variants, and `lintRelease` pass with zero failures/errors and no lint findings. Minified
   `assembleRelease` and `bundleRelease` also pass R8, resource shrinking, signing, and packaging
-  with a temporary QA-only keystore; the production key remains a CI/release-owner input. Final QA
+  with a temporary QA-only keystore, and the APK passes ZIP alignment verification; the production
+  key remains a CI/release-owner input. Final QA
   artifact digests are APK `4dc69752ea3de7365de2b4178c24f9e31f7e8b26ac2e90188ab78708508b988c` and
   AAB `90cf2041a54dcfecad48f17f2cf8e96a249d34638d33d2b540346adb0e2b8eda`. On the API-35 ARM64
   emulator, the rebuilt debug APK installed, Home opened the Atelier through its intended card,

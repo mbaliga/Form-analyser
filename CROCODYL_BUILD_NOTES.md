@@ -72,7 +72,8 @@ and the blueprint’s later phases
   the real production signing inputs; the `verifyReleaseSigning` guard is working as intended. For
   final local validation on 2026-09-18, a throwaway QA-only keystore was supplied outside the
   repository; the minified APK/AAB then passed R8, resource shrinking, APK v2 verification, and AAB
-  `jarsigner` verification. This proves the release path, not the identity of the production key.
+  `jarsigner` verification; the APK also passed ZIP alignment verification. This proves the release
+  path, not the identity of the production key. Release CI now enforces the same alignment check.
 - An equipment continuity audit confirmed that the existing arrow tuning model/editor and FOC/GPP
   analysis remain present. The validated `feat/immersive-visuals` handoff is now integrated as a
   separate generic arrow-reference studio with four modular GLB families, seven selectors, local-only
