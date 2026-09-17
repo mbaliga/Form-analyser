@@ -6,7 +6,7 @@ explicitly marked as published in the generated manifest. Uses the existing depe
 GLB exporter so the output remains portable and deterministic.
 """
 from __future__ import annotations
-import json
+import json, math
 from pathlib import Path
 import build_assets as base
 
@@ -20,6 +20,9 @@ BLACK_NICKEL = len(base.MATS); base.MATS.append(base.mat('Black nickel stainless
 POLYMER = len(base.MATS); base.MATS.append(base.mat('Translucent nock polymer', (.58,.82,.72), .05, .24))
 STAINLESS_416 = len(base.MATS); base.MATS.append(base.mat('Hardened 416 stainless', (.70,.73,.75), .98, .21))
 WEIGHT_MODULE = len(base.MATS); base.MATS.append(base.mat('Weight module / neutral metal', (.52,.54,.56), .94, .28))
+MYLAR = len(base.MATS); base.MATS.append(base.mat('Mylar / neutral translucent', (.34,.56,.62), .05, .30))
+VANE_POLYMER = len(base.MATS); base.MATS.append(base.mat('Vane polymer / neutral', (.22,.68,.47), .08, .36))
+FEATHER = len(base.MATS); base.MATS.append(base.mat('Turkey feather / neutral', (.74,.56,.31), 0, .78))
 DARK_CARBON = 1
 STEEL = 2
 
@@ -42,6 +45,12 @@ SOURCES = {
  'altra_166_416': 'https://lancasterarchery.com/products/altra-166-stainless-glue-in-target-point',
  'adjustable_bullet': 'https://lancasterarchery.com/products/easton-adjustable-glue-in-bullet-point',
  'weight_modules': 'https://lancasterarchery.com/products/easton-weight-modules-adjustable-bullet-points',
+ 'spin_wing': 'https://lancasterarchery.com/products/range-o-matic-spin-wing-vanes',
+ 'low_profile_polymer': 'https://lancasterarchery.com/products/tac-driver-vane-2-4480042',
+ 'shield_cut_plastic': 'https://lancasterarchery.com/products/q2i-fusion-x-ii-sl-1-75-vanes',
+ 'feather': 'https://lancasterarchery.com/products/trueflight-2-5-rw-round-back-feather',
+ 'fletching_jig': 'https://lancasterarchery.com/blogs/guides-and-information/buying-guide-to-fletching-jigs',
+ 'fletching_clamp': 'https://lancasterarchery.com/products/omp-phoenix-fletching-clamp',
  'nock_guide': 'https://lancasterarchery.com/blogs/guides-and-information/nocks-everything-you-need-to-know',
  'beiter_pin': 'https://lancasterarchery.com/products/beiter-pin-nock',
  'beiter_pin_out': 'https://lancasterarchery.com/products/beiter-pin-out-nock',
@@ -188,9 +197,84 @@ def nocks():
     return m
 
 
+def _fletch_sheet(m,pid,material,y,angle=0,twist=0,height=.014,length=.060,feather=False):
+    """Create one thin, radial fletching study with explicit, generic proportions."""
+    x0=-.030-length/2; x1=-.030+length/2; steps=18; r0=.00325; thickness=.00016
+    verts=[];faces=[];uv=[]
+    for side in (-1,1):
+        for i in range(steps+1):
+            t=i/steps;x=x0+(x1-x0)*t
+            if feather:
+                # Soft feather-like profile: fuller toward the rear, tapered at both ends.
+                h=height*(math.sin(math.pi*t)**.52)*(.86+.14*(1-t))
+            else:
+                # Generic vane profiles: a rounded leading/trailing outline, not a product trace.
+                h=height*(math.sin(math.pi*t)**.70)*(.92+.08*(1-t))
+            a=angle+twist*t
+            for q in (0,1):
+                r=r0+h*q; tang=(math.cos(a+math.pi/2),math.sin(a+math.pi/2))
+                verts.append((x,y+r*math.cos(a)+side*thickness*tang[0],r*math.sin(a)+side*thickness*tang[1]))
+                uv.append((t,q))
+    layer=(steps+1)*2
+    for side in range(2):
+        for i in range(steps):
+            a=side*layer+i*2;b=a+2
+            tri=[(a,b,a+1),(a+1,b,b+1)]
+            faces.extend(tri if side==1 else [(x,z,y) for x,y,z in tri])
+    # Close leading/trailing radial edges so the study remains visible with back-face culling.
+    for i in (0,steps):
+        a=i*2;b=a+layer;faces.extend([(a,a+1,b),(a+1,b+1,b)])
+    m.mesh(pid,material,verts,faces,uv)
+
+
+def _fletch_set(m,pid,y,material=VANE_POLYMER,twist=0,count=3,clock=0,height=.014,feather=False):
+    for j in range(count):
+        _fletch_sheet(m,pid,material,y,clock+base.TAU*j/count,twist,height,.060,feather)
+
+
+def fletching():
+    m=base.Model('Crocodyl / fletching taxonomy')
+    rows=[
+      (-.24,'mylar_spinwing','Stick-on Mylar / spin-wing','Range-O-Matic documents lightweight Mylar, curved pocket geometry and double-sided tape installation. Hand, length and curvature remain generic in this study.'),
+      (-.14,'low_profile_polymer','Low-profile polymer vane','TAC documents a low-profile polymer target vane. Its published example is 2 in by .390 in; this model uses generic proportions and makes no flight claim.'),
+      (-.04,'shield_cut_plastic','Shield-cut plastic vane','Q2i documents an ultra-low-profile shield-cut duo-polymer vane. This is a generic shield silhouette, not a traced product or a universal shaft fit.'),
+      (.06,'turkey_feather','Turkey feather','Lancaster lists right-wing turkey-feather examples. Feather barbs, wing handedness and exact cut are not recoverable from a generic taxonomy study.'),
+      (.16,'mount_straight','Straight mounting','Straight means the fletching follows the shaft without offset or helical curvature. This is a mounting axis, not a recommendation.'),
+      (.26,'mount_left_offset','Left offset mounting','Left/right offset is recorded relative to the nock end; the point end is shifted left or right while the fletching remains straight on the shaft. Angle is schematic.'),
+      (.36,'mount_right_offset','Right offset mounting','Right offset is a separate mounting state from left offset. Exact offset angle is unknown unless measured from the configured arrow.'),
+      (.46,'mount_left_helical','Left helical mounting','Left helical curves around the shaft in the left-hand direction. Lancaster documents left/right helical clamp choices; this curve is a generic visual study.'),
+      (.56,'mount_right_helical','Right helical mounting','Right helical curves around the shaft in the right-hand direction. No spin-rate or performance claim is implied.'),
+      (.66,'three_fletch_clocking','Three-fletch clocking','A three-fletch arrangement is evenly indexed at 120 degrees in this study. Clocking is shown relative to a nock reference, not selected for an owner arrow.'),
+      (.76,'four_fletch_clocking','Four-fletch clocking','A four-fletch arrangement is evenly indexed at 90 degrees in this study. Lancaster documents three- and four-fletch jig configurations; exact owner setup remains unknown.'),
+      (.86,'wrap_absent','No wrap / direct shaft','A direct shaft surface is shown beneath the fletching area. Absence of a wrap must be verified on the actual arrow.'),
+      (.96,'wrap_present','Wrap present','A thin identification/adhesive wrap is shown as a separate layer. Pattern, length and presence are not inferred for the owner arrow.'),
+      (1.06,'nock_clock_reference','Nock-relative clock reference','A rear nock marker establishes the reference direction for vane count, clocking and left/right orientation. It does not assert a specific nock or fletching system.'),
+    ]
+    for y,pid,title,desc in rows:m.part(pid,title,desc,(0,y,0),(0,.028,0))
+    _fletch_set(m,'mylar_spinwing',-.24,MYLAR,twist=.32,height=.011)
+    _fletch_set(m,'low_profile_polymer',-.14,VANE_POLYMER,twist=.08,height=.013)
+    _fletch_set(m,'shield_cut_plastic',-.04,VANE_POLYMER,twist=.02,height=.017)
+    _fletch_set(m,'turkey_feather',.06,FEATHER,twist=.20,height=.020,feather=True)
+    _fletch_set(m,'mount_straight',.16,VANE_POLYMER,twist=0,height=.014)
+    _fletch_set(m,'mount_left_offset',.26,VANE_POLYMER,twist=-.13,height=.014)
+    _fletch_set(m,'mount_right_offset',.36,VANE_POLYMER,twist=.13,height=.014)
+    _fletch_set(m,'mount_left_helical',.46,VANE_POLYMER,twist=-.62,height=.014)
+    _fletch_set(m,'mount_right_helical',.56,VANE_POLYMER,twist=.62,height=.014)
+    _fletch_set(m,'three_fletch_clocking',.66,VANE_POLYMER,twist=.06,count=3,height=.014)
+    _fletch_set(m,'four_fletch_clocking',.76,VANE_POLYMER,twist=.06,count=4,height=.014)
+    m.lathe('wrap_absent',DARK_CARBON,(0,.86,0),(1,0,0),[(0,-.038),(.0032,-.038),(.0032,.038),(0,.038)],24)
+    m.lathe('wrap_present',7,(0,.96,0),(1,0,0),[(0,-.038),(.0034,-.038),(.0034,.038),(0,.038)],24)
+    m.lathe('wrap_present',14,(0,.96,0),(1,0,0),[(0,-.038),(.00355,-.038),(.00355,-.034),(0,-.034),(0,.034),(.00355,.034),(.00355,.038),(0,.038)],24)
+    # The rear marker is intentionally schematic: a plain shaft, nock throat and one indexed vane.
+    m.lathe('nock_clock_reference',POLYMER,(-.070,1.06,0),(-1,0,0),[(0,0),(.0030,0),(.0038,.010),(.0036,.016),(0,.016)],24)
+    _fletch_sheet(m,'nock_clock_reference',VANE_POLYMER,1.06,0,0,height=.014,length=.060)
+    m.ring('nock_clock_reference',POLYMER,(-.070,1.06,0),(1,0,0),.0039,.00020,24,6)
+    return m
+
+
 def main():
     OUT.mkdir(parents=True,exist_ok=True)
-    models=[('shaft_profiles',shaft_profiles()),('shaft_constructions',shaft_constructions()),('points',points()),('nock_systems',nocks())]
+    models=[('shaft_profiles',shaft_profiles()),('shaft_constructions',shaft_constructions()),('points',points()),('nock_systems',nocks()),('fletching',fletching())]
     manifest={'schemaVersion':1,'generatedBy':'tools/atelier/build_arrow_reference_library.py','scope':'generic educational target-arrow taxonomy; not brand replicas','imagePolicy':'Lancaster product photography used as remote visual reference only; no source images embedded','sources':SOURCES,'models':{}}
     for key,model in models:
         info=base.export_glb(model,OUT/(key+'.glb'))

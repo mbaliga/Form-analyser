@@ -43,8 +43,8 @@ try{
  const version=await send('Browser.getVersion');
  const target=await send('Target.createTarget',{url:'about:blank'});sessionId=(await send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
  await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
- const families=['shaft_profiles','shaft_constructions','points','nock_systems'];
- const requiredParts={points:['gluein_416_stainless','adjustable_gluein_bullet','adjustable_weight_10gr','adjustable_weight_20gr','adjustable_weight_50gr']};
+ const families=['shaft_profiles','shaft_constructions','points','nock_systems','fletching'];
+ const requiredParts={points:['gluein_416_stainless','adjustable_gluein_bullet','adjustable_weight_10gr','adjustable_weight_20gr','adjustable_weight_50gr'],fletching:['mylar_spinwing','low_profile_polymer','shield_cut_plastic','turkey_feather','mount_straight','mount_left_offset','mount_right_offset','mount_left_helical','mount_right_helical','three_fletch_clocking','four_fletch_clocking','wrap_absent','wrap_present','nock_clock_reference']};
  for(const key of families){
   await send('Emulation.setDeviceMetricsOverride',{width:1280,height:820,deviceScaleFactor:1,mobile:false});
   await send('Page.navigate',{url:`${origin}/atelier/index.html?arrow-reference=${key}#model=${key}&theme=dark`});
