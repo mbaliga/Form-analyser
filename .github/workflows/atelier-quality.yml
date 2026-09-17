@@ -2,9 +2,20 @@ name: Equipment studio visual QA
 
 on:
   push:
-    branches: [feat/immersive-visuals]
     paths:
-      - tools/atelier/render_qa.py
+      - tools/atelier/**
+      - app-android/src/main/assets/atelier/**
+      - docs/crocodyl/atelier/**
+      - docs/crocodyl/arrow-reference-previews/**
+      - docs/crocodyl/visuals/**
+      - .github/workflows/atelier-quality.yml
+  pull_request:
+    paths:
+      - tools/atelier/**
+      - app-android/src/main/assets/atelier/**
+      - docs/crocodyl/atelier/**
+      - docs/crocodyl/arrow-reference-previews/**
+      - docs/crocodyl/visuals/**
       - .github/workflows/atelier-quality.yml
   workflow_dispatch:
 
@@ -21,14 +32,21 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Install render harness only
         run: python3 -m pip install playwright==1.56.0 Pillow==11.3.0
-      - name: Bake and test geometry
+      - name: Bake and test geometry contracts
         run: |
           python3 tools/atelier/build_assets.py
           python3 tools/atelier/test_assets.py
+          python3 tools/atelier/test_arrow_library.py
+          python3 tools/atelier/test_arrow_reference_library.py
       - name: Render real models and test viewer
         run: python3 tools/atelier/render_qa.py
+      - name: Exercise arrow-reference families in Chromium/WebGL
+        run: node tools/atelier/verify_arrow_reference_browser.mjs
       - name: Upload inspectable source, GLBs, posters and results
         if: always()
         uses: actions/upload-artifact@v4
@@ -39,4 +57,5 @@ jobs:
             tools/atelier
             app-android/src/main/assets/atelier
             docs/crocodyl/atelier/qa
+            docs/crocodyl/arrow-reference-previews
           if-no-files-found: error
