@@ -18,7 +18,7 @@ const defs={
  nock_systems:{src:'arrow-reference-library/nock_systems.glb',title:'The rear interface is a system.',type:'TARGET ARROW / NOCK & REAR INTERFACES',material:'Direct-fit · pin · pin-out · bushing · swage',center:[0,.04,0],radius:.30,yaw:.28,pitch:.18,description:'Compare direct insert, pin, pin-out, bushing-backed and conventional swaged rear interfaces, plus a separate rear impact collar. Representative groove dimensions are labelled as examples, not universal fit values.'}
 };
 const state={model:'recurve',parts:[],draws:[],selected:null,explode:0,exploded:false,spin:false,paused:document.hidden,theme:'dark',yaw:.46,pitch:.12,radius:1.02,center:[.2,0,0],target:null,frame:0,last:0,loadToken:0,textures:[],ready:false,restored:false};
-let gl,program,uniforms,resizeObserver,disposed=false;
+let gl,program,uniforms,resizeObserver,fallbackTexture,disposed=false;
 const vsub=(a,b)=>a.map((x,i)=>x-b[i]),vadd=(a,b)=>a.map((x,i)=>x+b[i]),vmul=(a,s)=>a.map(x=>x*s),dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],normal=a=>vmul(a,1/(Math.hypot(...a)||1));
 function lookAt(eye,center){const z=normal(vsub(eye,center)),x=normal(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1]);}
 function multiply(a,b){const r=new Float32Array(16);for(let j=0;j<4;j++)for(let i=0;i<4;i++)for(let k=0;k<4;k++)r[j*4+i]+=a[k*4+i]*b[j*4+k];return r;}
@@ -45,6 +45,7 @@ function init(){
  gl=canvas.getContext('webgl2',{alpha:true,antialias:true,powerPreference:'low-power',preserveDrawingBuffer:false});if(!gl)throw Error('WebGL2 unavailable');
  const vs=compile(gl.VERTEX_SHADER,VS),fs=compile(gl.FRAGMENT_SHADER,FS);program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);gl.deleteShader(vs);gl.deleteShader(fs);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Renderer link failed');
  uniforms=Object.fromEntries(['vp','offset','eye','base','metal','rough','selected','lightTheme','textured','colorMap'].map(k=>[k,gl.getUniformLocation(program,k)]));
+ fallbackTexture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,fallbackTexture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
  gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.clearColor(0,0,0,0);resizeObserver=new ResizeObserver(()=>request());resizeObserver.observe(canvas);
 }
 function parseGLB(buffer){
@@ -95,7 +96,7 @@ function render(time){
  const aspect=w/h;let radius=state.radius*aspect;if(state.model==='arrow'||state.model==='shaft_profiles')radius=state.radius*1.03;
  const eye=vadd(state.center,[Math.sin(state.yaw)*Math.cos(state.pitch)*5,Math.sin(state.pitch)*5,Math.cos(state.yaw)*Math.cos(state.pitch)*5]);const vp=multiply(projection(radius,aspect),lookAt(eye,state.center));
  gl.useProgram(program);gl.uniformMatrix4fv(uniforms.vp,false,vp);gl.uniform3fv(uniforms.eye,eye);gl.uniform1f(uniforms.lightTheme,state.theme==='light'?1:0);gl.uniform1i(uniforms.colorMap,0);
- for(const d of state.draws){gl.bindVertexArray(d.vao);gl.uniform3fv(uniforms.offset,vmul(d.part.explode,state.explode));gl.uniform3fv(uniforms.base,d.mat.baseColorFactor.slice(0,3));gl.uniform1f(uniforms.metal,d.mat.metallicFactor);gl.uniform1f(uniforms.rough,d.mat.roughnessFactor);gl.uniform1f(uniforms.selected,state.selected===d.part.id?1:0);gl.uniform1f(uniforms.textured,d.tex?1:0);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,d.tex||null);gl.drawElements(gl.TRIANGLES,d.count,d.indexType,d.indexOffset);}
+ for(const d of state.draws){gl.bindVertexArray(d.vao);gl.uniform3fv(uniforms.offset,vmul(d.part.explode,state.explode));gl.uniform3fv(uniforms.base,d.mat.baseColorFactor.slice(0,3));gl.uniform1f(uniforms.metal,d.mat.metallicFactor);gl.uniform1f(uniforms.rough,d.mat.roughnessFactor);gl.uniform1f(uniforms.selected,state.selected===d.part.id?1:0);gl.uniform1f(uniforms.textured,d.tex?1:0);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,d.tex||fallbackTexture);gl.drawElements(gl.TRIANGLES,d.count,d.indexType,d.indexOffset);}
  gl.bindVertexArray(null);
  const marker=$('marker'),p=state.parts.find(p=>p.id===state.selected);if(p){const pos=vadd(p.hotspot,vmul(p.explode,state.explode)),c=[...pos,1];const clip=[0,0,0,0].map((_,i)=>c.reduce((sum,a,j)=>sum+vp[j*4+i]*a,0));const x=(clip[0]/clip[3]*.5+.5)*w,y=(.5-clip[1]/clip[3]*.5)*h;marker.style.display=x>15&&x<w-80&&y>15&&y<h-75?'block':'none';marker.style.left=x+'px';marker.style.top=y+'px';marker.querySelector('small').textContent=p.title;}else marker.style.display='none';
  if(moving)request();else save();
@@ -117,6 +118,6 @@ function resume(){state.paused=document.hidden;state.last=0;request();}
 document.addEventListener('visibilitychange',()=>document.hidden?pause():resume());
 canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();pause();state.ready=false;$('fallback').hidden=false;$('fallback').querySelector('p').textContent='The graphics context was interrupted. Reopen this screen to reload the studio. Equipment descriptions remain available.';});
 window.addEventListener('pagehide',pause);window.addEventListener('pageshow',resume);
-window.CrocodylAtelier={pause,resume,setTheme,dispose(){disposed=true;pause();resizeObserver?.disconnect();if(gl){disposeModel();if(program)gl.deleteProgram(program);}},getStatus(){return{ready:state.ready,model:state.model,drawCalls:state.draws.length,renderPending:!!state.frame,paused:state.paused,selected:state.selected,theme:state.theme};}};
+window.CrocodylAtelier={pause,resume,setTheme,dispose(){disposed=true;pause();resizeObserver?.disconnect();if(gl){disposeModel();if(fallbackTexture)gl.deleteTexture(fallbackTexture);if(program)gl.deleteProgram(program);}},getStatus(){return{ready:state.ready,model:state.model,drawCalls:state.draws.length,renderPending:!!state.frame,paused:state.paused,selected:state.selected,theme:state.theme};}};
 try{init();setTheme(initial.get('theme')||'dark');load(Object.keys(defs).includes(initial.get('model'))?initial.get('model'):'recurve');}catch(e){console.error(e);$('loading').hidden=true;$('fallback').hidden=false;metadataOnly(Object.keys(defs).includes(initial.get('model'))?initial.get('model'):'recurve');}
 })();
