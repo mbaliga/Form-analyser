@@ -47,10 +47,10 @@ The active library keeps these axes independent. A later configured arrow must s
 | --- | --- |
 | Shaft external profile | `parallel`, `barrelled`, `front_taper`, `rear_taper` (front-parallel / rear-taper) |
 | Shaft construction | `aluminium`, `all_carbon`, `carbon_over_aluminium`, `aluminium_over_carbon` |
-| Point profile/family | stainless break-off target, tungsten break-off target, aluminium glue-in bullet, NIBB/long-shank, 8-32 screw-in bullet, 8-32 screw-in field, glue-in chisel |
+| Point profile/family | stainless break-off target, tungsten break-off target, aluminium glue-in bullet, NIBB/long-shank, 8-32 screw-in bullet, 8-32 screw-in field, glue-in chisel, one-piece 416 stainless glue-in, adjustable glue-in bullet |
 | Point material | stainless steel, tungsten alloy, aluminium, steel, or material-neutral where the profile is the subject |
 | Point attachment | glue-in or 8-32 screw-in; break-off is a separate weight-adjustment construction, not an attachment label |
-| Point weight adjustment | break-off sections are represented separately from nose shape, material and attachment |
+| Point weight adjustment | break-off sections and removable 10/20/50-grain adjustable-bullet modules are represented separately from nose shape, material and attachment |
 | Nock/rear interface | direct-fit insert, pin-small groove, pin-large groove, pin-out/over-shaft, bushing-backed insert, conventional swaged rear, separate rear impact collar |
 
 The current seven studio selections are: Recurve, complete generic Arrow, Target, Shaft profiles, Shaft construction, Points and Nocks. The four active taxonomy GLBs are:
@@ -90,7 +90,7 @@ The active contract test also regenerates the library in a temporary directory a
 
 The original equipment pipeline has its own generator, GLB contract tests and browser evidence. Treat `docs/crocodyl/atelier-previews/verification.json` and `CINEMATIC_VERIFICATION_2026-09-17.md` as evidence for that separate original-study pack, not as evidence that the owner’s arrow has been modelled.
 
-For this handoff, the active and original Python contract suites plus `git diff --check` passed locally. A fresh active bake was retained with the handoff so the tracked GLBs match the current exporter. No new browser or JVM result was produced in this checkout because Node/Chromium tooling (`node`, `xvfb-run`) and a JDK are not installed here; the committed JSON report remains the existing real-Chromium evidence, and the QA commands below are the required rerun when those tools are available.
+For this handoff, the active and original Python contract suites plus `git diff --check` passed locally. The active library was regenerated twice with identical output after adding the 416 stainless and adjustable-module components. The browser smoke harness now explicitly checks those five new point controls. No fresh browser or JVM result was produced in this checkout because Node/Chromium tooling (`node`, `xvfb-run`) and a JDK are not installed here; the committed JSON report remains the existing real-Chromium evidence, and the QA commands below are the required rerun when those tools are available.
 
 These checks do not establish:
 
@@ -114,20 +114,11 @@ These checks do not establish:
 
 Work in this order; do not skip ahead to an exact arrow composition.
 
-### 1. Finish the remaining point families
-
-Add these as new, separately named taxonomy components:
-
-- one-piece hardened 416 stainless glue-in point;
-- adjustable glue-in bullet with removable 10-, 20- and 50-grain weight modules.
-
-Add the Lancaster ledger entries and source-status notes, generator output, semantic IDs, deterministic contract coverage, GLB manifest metadata and browser checks. Keep one-piece glue-in, break-off and adjustable modular-weight constructions distinct. Do not reinterpret the current stainless break-off or aluminium bullet meshes as either new family.
-
-### 2. Add fletching taxonomy
+### 1. Add fletching taxonomy
 
 Only after the point-family work is complete, add fletching as another independent layer. Cover the source-backed family/type axis (for example stick-on Mylar/spin-wing, low-profile plastic, shield-cut plastic and feathers) separately from mounting (straight, left/right offset, left/right helical), vane count/clocking, wrap presence and orientation relative to the nock. Add provenance and tests before presenting the models. Do not silently choose fletching for the owner’s arrow.
 
-### 3. Compose the exact owner equipment
+### 2. Compose the exact owner equipment
 
 Only after the generic point and fletching taxonomy is finished, intake one coherent owner-selected arrow configuration:
 

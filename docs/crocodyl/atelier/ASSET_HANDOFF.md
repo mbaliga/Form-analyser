@@ -68,10 +68,13 @@ Examples: the parallel-shaft study uses the published X10 Parallel Pro 600 dimen
 - 8-32 screw-in bullet
 - 8-32 screw-in field point
 - Glue-in chisel target point
+- One-piece hardened 416 stainless glue-in target point
+- Adjustable glue-in bullet body
+- Removable 10-, 20- and 50-grain adjustable-bullet module studies
 
 Point **shape**, **material**, **attachment method**, and **weight-adjustment construction** remain separate concepts. Do not collapse “bullet”, “tungsten”, “break-off”, and “glue-in” into one mutually exclusive field.
 
-Lancaster also documents one-piece hardened 416 stainless glue-in points and adjustable glue-in bullet systems with separate weight modules. Those are valid future taxonomy additions if the equipment UI needs that level of completeness; do not silently reinterpret an existing mesh as one of those systems.
+Lancaster documents the 416 stainless and adjustable-bullet families. The current library now represents them as distinct generic topology with explicit source-backed fitment and weight metadata; it does not claim a commercial replica, universal compatibility, module dimensions or tuning outcome.
 
 ### Nock and rear-end systems
 

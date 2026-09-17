@@ -87,6 +87,10 @@ and the blueprint’s later phases
   successfully with no resulting worktree drift. `atelier-quality.yml` and `release.yml` compare
   regenerated models against the checked-in outputs, closing the stale-generated-asset gap found in
   the final production audit.
+- The remaining generic point families are now present as separate semantic components: hardened
+  416 stainless glue-in, adjustable glue-in bullet, and removable 10/20/50-grain module studies.
+  The Lancaster ledger and browser contract preserve their explicit product-family boundaries; the
+  next visual taxonomy item is fletching, followed by owner-arrow reference intake and approval.
 
 ## Historical recon findings
 

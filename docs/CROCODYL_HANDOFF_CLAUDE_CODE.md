@@ -1,6 +1,6 @@
 # Crocodyl handoff to Claude Code
 
-Status: paused at the user's request on 2026-09-18 (Asia/Kolkata)
+Status: current snapshot, 2026-09-18 (Asia/Kolkata)
 
 Repository: `mbaliga/Form-analyser`
 
@@ -8,7 +8,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest commit: `b74392c docs(release): include APK alignment gate`
+Latest implementation commit: `a8c32e8 feat(atelier): add remaining point taxonomy families`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -53,3 +53,4 @@ The exact owner-arrow catalog is intentionally not complete. The one-piece harde
 - `7009f18` — refresh canonical artifact evidence.
 - `6878605` — enforce APK alignment in release CI.
 - `b74392c` — align the acceptance checklist with the alignment gate.
+- `a8c32e8` — add the remaining 416 stainless and adjustable-module point families with contracts.

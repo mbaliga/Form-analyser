@@ -186,6 +186,11 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   attributes and accessor bounds before GLB serialization. Regenerating both the original study
   models and all four arrow-reference families produces a clean worktree; CI and the release job
   fail if checked-in generated assets drift from their generators.
+- **Point taxonomy completion (2026-09-18):** the active points family now includes a separately
+  named one-piece hardened 416 stainless glue-in study plus an adjustable glue-in bullet and
+  individually selectable 10-, 20- and 50-grain removable module studies. Lancaster source URLs,
+  explicit Altra/Easton fitment boundaries, generic-topology wording, deterministic output tests,
+  and browser-contract requirements are recorded; no compatibility or tuning claim is implied.
 
 ### 3.5 Releases
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`
