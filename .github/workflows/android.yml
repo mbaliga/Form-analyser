@@ -2,6 +2,7 @@ name: android
 
 on:
   push:
+    branches: [main]
     paths:
       - "engine/**"
       - "archery-module/**"
@@ -43,6 +44,11 @@ jobs:
       # ubuntu-latest ships an Android SDK; this ensures cmdline-tools + accepted licenses
       # so AGP can fetch any missing platform/build-tools.
       - uses: android-actions/setup-android@v3
+        with:
+          # setup-android's default package set also requests the obsolete 'tools' package, which
+          # is no longer in the SDK repository — sdkmanager exits 1 and the job dies before any
+          # compilation. Ported from feat/immersive-visuals 0d7eefa, where CI is green with it.
+          packages: platform-tools
       # -PwithAndroid opts :app-android into the build (see settings.gradle.kts).
       - name: Assemble debug APK
         run: ./gradlew :app-android:assembleDebug -PwithAndroid --no-daemon
