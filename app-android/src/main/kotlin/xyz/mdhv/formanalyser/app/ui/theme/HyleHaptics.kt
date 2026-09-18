@@ -43,6 +43,12 @@ enum class HapticCue(val millis: Long) {
     UNDO(28),
     /** An end or a round closed out. */
     COMPLETE(45),
+    /**
+     * A spoken score could not be understood and nothing was written (Live Observer voice input).
+     * Longest of the four so it reads as "no" rather than "recorded" on a shooting line where the
+     * phone is often not being looked at — [ARROW] and this must never be confusable by feel.
+     */
+    REJECT(70),
 }
 
 /**

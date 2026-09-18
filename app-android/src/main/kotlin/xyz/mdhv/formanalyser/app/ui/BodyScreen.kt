@@ -9,7 +9,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import java.text.DateFormat
 import java.util.Date
 import xyz.mdhv.formanalyser.app.domain.*
@@ -22,7 +22,7 @@ private val PAIN_TAGS = listOf("sharp", "dull", "ache", "tingling", "stiff")
 @Composable
 /** Body tab (Phase 3 §D): Today · History · Injuries · Physio over the 52-region atlas. */
 fun BodyScreen(vm: BodyViewModel, onEditInjury: (String?) -> Unit, onEditPlan: (String?) -> Unit) {
-    val contextVm: BodyContextViewModel = viewModel()
+    val contextVm: BodyContextViewModel = hiltViewModel()
     LaunchedEffect(Unit) {
         vm.load()
         contextVm.load()

@@ -51,4 +51,19 @@ class AcwrTest {
         assertEquals(AcwrZone.CAUTION, Acwr.zoneOf(1.4))
         assertEquals(AcwrZone.SPIKE, Acwr.zoneOf(1.8))
     }
+
+    @Test fun srpeLaneReadsTheOtherFieldEntirely() {
+        // shot_load spikes, srpe_load is flat: the two lanes must disagree, proving computeSrpe
+        // really reads srpeLoad rather than silently falling back to the shot-load default.
+        val loads = listOf(
+            DailyLoad(d0, shotLoad = 100.0, srpeLoad = 50.0, complete = true),
+            DailyLoad(d0.plusDays(1), shotLoad = 500.0, srpeLoad = 50.0, complete = true),
+        )
+        val shot = Acwr.compute(loads, today = d0.plusDays(1))
+        val srpe = Acwr.computeSrpe(loads, today = d0.plusDays(1))
+        assertEquals(50.0, srpe.latest!!.acuteEwma, 1e-9)
+        assertEquals(50.0, srpe.latest!!.chronicEwma, 1e-9)
+        assertEquals(1.0, srpe.latest!!.acwr!!, 1e-9)
+        assertTrue(shot.latest!!.acwr!! > srpe.latest!!.acwr!!)
+    }
 }

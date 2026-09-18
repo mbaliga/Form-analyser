@@ -24,6 +24,13 @@ data class CompletionResponse(
     val stopReason: String? = null,
     val inputTokens: Int? = null,
     val outputTokens: Int? = null,
+    /**
+     * True when [text] is a PARTIAL answer — the athlete stopped the stream ([StreamDirective.CANCEL]
+     * from a [StreamSink]), or the provider cut it short. Defaulted and appended last so existing
+     * positional constructors (e.g. `DeepSeekClient`'s) keep compiling unchanged. The UI must label a
+     * truncated answer: half a sentence must never read as the coach's finished advice.
+     */
+    val truncated: Boolean = false,
 )
 
 /** Categories of failure the Android adapter maps every provider's errors onto. */
@@ -55,4 +62,40 @@ interface LlmClient {
     fun supports(model: CoachModel): Boolean
 
     fun complete(request: CompletionRequest): CompletionResult
+
+    /**
+     * True iff [stream] really streams for [model]. False means [stream] still works — it just
+     * delivers the whole answer as one [StreamEvent.Delta] through the default bridge below. The UI
+     * uses this to decide whether to promise incremental text; it must never fake a typewriter over
+     * an answer that already arrived complete (that would misrepresent latency).
+     */
+    fun supportsStreaming(model: CoachModel): Boolean = false
+
+    /**
+     * Streaming variant of [complete]. The default implementation is a ONE-SHOT BRIDGE over
+     * [complete], so a provider that cannot stream needs no code at all and a caller never needs two
+     * code paths — it always calls [stream] and reads [supportsStreaming] only to decide how to
+     * *render* what comes back. Returns the same [CompletionResult] as [complete] would, with the
+     * full assembled text delivered as a single [StreamEvent.Delta].
+     *
+     * Still coroutine-free and still synchronous by contract, same as [complete]: this is a plain
+     * push-based callback ([StreamSink]), not a `Flow` — this module has no coroutines dependency and
+     * is not going to grow one. The Android adapter drives it from its own IO dispatcher.
+     *
+     * Cancellation is cooperative: when [sink] returns [StreamDirective.CANCEL] a real streaming
+     * override stops reading, releases the connection, and returns `Success` with the partial text
+     * and [CompletionResponse.truncated] = true. A cancel is not an error. The default bridge here
+     * ignores the directive — the (non-streamed) answer has already arrived in full by the time
+     * [sink] sees anything, so there is nothing left to stop.
+     */
+    fun stream(request: CompletionRequest, sink: StreamSink): CompletionResult {
+        val result = complete(request)
+        if (result is CompletionResult.Success) {
+            val r = result.response
+            sink.onEvent(StreamEvent.Started(r.modelId, r.inputTokens))
+            sink.onEvent(StreamEvent.Delta(r.text))
+            sink.onEvent(StreamEvent.UsageUpdate(r.inputTokens, r.outputTokens))
+        }
+        return result
+    }
 }

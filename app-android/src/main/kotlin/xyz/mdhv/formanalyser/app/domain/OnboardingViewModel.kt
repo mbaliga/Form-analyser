@@ -1,8 +1,9 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,9 +39,11 @@ data class OnboardingState(
     }
 }
 
-class OnboardingViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
-    private val prefs = AppPrefs(app)
+@HiltViewModel
+class OnboardingViewModel @Inject constructor(
+    private val repo: Repository,
+    private val prefs: AppPrefs,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardingState())
     val state: StateFlow<OnboardingState> = _state

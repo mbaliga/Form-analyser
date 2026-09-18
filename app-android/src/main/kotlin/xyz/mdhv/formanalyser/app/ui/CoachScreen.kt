@@ -43,8 +43,11 @@ import xyz.mdhv.formanalyser.app.ui.theme.provenanceGlow
 import xyz.mdhv.formanalyser.coach.CoachInsight
 import xyz.mdhv.formanalyser.coach.CoachIntent
 import xyz.mdhv.formanalyser.coach.CoachModel
+import xyz.mdhv.formanalyser.coach.CostEstimate
+import xyz.mdhv.formanalyser.coach.CostEstimator
 import xyz.mdhv.formanalyser.coach.InsightSeverity
 import xyz.mdhv.formanalyser.coach.ModelKind
+import xyz.mdhv.formanalyser.coach.UsageSnapshot
 import xyz.mdhv.formanalyser.coach.WithheldFact
 
 /**
@@ -137,14 +140,20 @@ fun CoachScreen(vm: CoachViewModel, onOpenKeySettings: () -> Unit) {
             Switch(checked = medicalGrant, onCheckedChange = { medicalGrant = it })
         }
 
+        val streamingNow = ask is CoachAskState.Streaming
         Button(
-            onClick = { vm.ask(intent, model, medicalGrant) },
+            onClick = { if (streamingNow) vm.cancelAsk() else vm.ask(intent, model, medicalGrant) },
+            // Loading covers the pre-first-token window (and the whole of a non-streaming ask) — the
+            // button stays disabled rather than offering a "Stop" with nothing yet to stop.
             enabled = ask != CoachAskState.Loading,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                if (model.kind == ModelKind.ON_DEVICE) "Ask on-device"
-                else "Ask ${model.displayName}"
+                when {
+                    streamingNow -> "Stop"
+                    model.kind == ModelKind.ON_DEVICE -> "Ask on-device"
+                    else -> "Ask ${model.displayName}"
+                }
             )
         }
 
@@ -194,12 +203,22 @@ fun CoachScreen(vm: CoachViewModel, onOpenKeySettings: () -> Unit) {
                         Text("Add a key in Settings")
                     }
                 }
+            is CoachAskState.Streaming ->
+                ResponseCard(
+                    provenance = s.model.provenanceColor(),
+                    title = s.model.displayName,
+                    body = s.text.ifEmpty { "…" },
+                    withheld = s.withheld,
+                    footer = "Streaming…",
+                )
             is CoachAskState.Ready ->
                 ResponseCard(
                     provenance = s.model.provenanceColor(),
                     title = s.model.displayName,
                     body = s.text,
                     withheld = s.withheld,
+                    footer = usageFooter(s.model, s.usage),
+                    truncated = s.truncated,
                 )
             is CoachAskState.Error ->
                 Column(
@@ -215,6 +234,14 @@ fun CoachScreen(vm: CoachViewModel, onOpenKeySettings: () -> Unit) {
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(s.message, color = Hyle.OnSurfaceDim)
+                    if (s.partialText.isNotBlank()) {
+                        Text(
+                            "Stopped early — this is what arrived before it broke:",
+                            color = Hyle.OnSurfaceDim,
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                        Text(s.partialText, color = Hyle.OnBackground)
+                    }
                     WithheldSection(s.withheld)
                 }
         }
@@ -256,6 +283,8 @@ private fun ResponseCard(
     title: String,
     body: String,
     withheld: List<WithheldFact>,
+    footer: String? = null,
+    truncated: Boolean = false,
 ) {
     Column(
         Modifier.fillMaxWidth()
@@ -273,8 +302,40 @@ private fun ResponseCard(
             Text(title, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
         }
         Text(body, color = Hyle.OnBackground, style = MaterialTheme.typography.bodyLarge)
+        // A truncated answer must never read as the coach's finished advice — labelled, not implied.
+        if (truncated) {
+            Text(
+                "Stopped early — this answer is incomplete.",
+                color = Hyle.Warning,
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
+        if (footer != null) {
+            Text(footer, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
+        }
         WithheldSection(withheld)
     }
+}
+
+/**
+ * "1,240 in · 380 out · ~$0.004 (est.)" — or the honest equivalent when tokens/price aren't known.
+ * [CostEstimator.format] already renders the on-device/"tokens only" cases; this only adds the raw
+ * token counts in front when they're known, since the estimator's own output is cost-only.
+ */
+private fun usageFooter(model: CoachModel, usage: UsageSnapshot?): String {
+    val u = usage ?: UsageSnapshot()
+    val tokens = when {
+        u.inputTokens != null && u.outputTokens != null -> "${u.inputTokens} in · ${u.outputTokens} out"
+        u.inputTokens != null -> "${u.inputTokens} in"
+        u.outputTokens != null -> "${u.outputTokens} out"
+        else -> null
+    }
+    val estimate = CostEstimator.estimate(model, u)
+    val cost = when (estimate) {
+        is CostEstimate.Usd -> "${CostEstimator.format(estimate)} (est.)"
+        else -> CostEstimator.format(estimate)
+    }
+    return if (tokens != null) "$tokens · $cost" else cost
 }
 
 /** Collapsible "what wasn't sent" audit — the redaction's withheld list, keyed and reasoned. */

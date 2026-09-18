@@ -1,11 +1,12 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +15,8 @@ import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.athlete.RegionSignal
 
-class BodyContextViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
+@HiltViewModel
+class BodyContextViewModel @Inject constructor(private val repo: Repository) : ViewModel() {
 
     data class UiState(
         val signals: Map<String, RegionSignal> = emptyMap(),

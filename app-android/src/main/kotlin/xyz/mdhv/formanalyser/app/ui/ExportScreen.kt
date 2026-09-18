@@ -64,7 +64,16 @@ fun ExportScreen(vm: ExportViewModel) {
         rememberLauncherForActivityResult(
             ActivityResultContracts.CreateDocument(ExportViewModel.MIME_ZIP)
         ) { uri ->
-            if (uri != null) vm.export(uri)
+            if (uri != null) vm.export(uri, ExportViewModel.ExportFormat.CROCBAK)
+        }
+
+    // A second picker rather than a remembered "which format" flag: the format is decided by the
+    // button the athlete pressed, and a flag could go stale between press and callback.
+    val crocPicker =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument(ExportViewModel.MIME_CROC)
+        ) { uri ->
+            if (uri != null) vm.export(uri, ExportViewModel.ExportFormat.CROC)
         }
 
     Column(
@@ -170,14 +179,8 @@ fun ExportScreen(vm: ExportViewModel) {
         // file took a file manager and a second app.
         OutlinedButton(
             onClick = {
-                vm.exportForSharing { uri ->
-                    val send =
-                        Intent(Intent.ACTION_SEND).apply {
-                            type = ExportViewModel.MIME_ZIP
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                    context.startActivity(Intent.createChooser(send, "Share export"))
+                vm.exportForSharing(ExportViewModel.ExportFormat.CROCBAK) { uri ->
+                    context.startActivity(shareChooser(uri))
                 }
             },
             enabled = !busy && leaving.isNotEmpty(),
@@ -190,11 +193,61 @@ fun ExportScreen(vm: ExportViewModel) {
             color = Hyle.OnSurfaceDim,
             style = MaterialTheme.typography.labelMedium,
         )
+
+        // The person-to-person half. Same two lists above decide the contents; what a .croc adds is
+        // a signature by this device's identity key, so the person receiving it can check offline
+        // that it came from this athlete and reached them unaltered. A .crocbak makes no such claim
+        // — it is for handing your own data back to yourself — which is why these are two buttons
+        // and not a format dropdown on one.
+        HyleSectionHeader("Send to a person")
+        Text(
+            "A signed .croc envelope carries the same data plus proof of who sent it. Your coach's " +
+                "app checks the signature against the fingerprint above before showing anything.",
+            color = Hyle.OnSurfaceDim,
+            style = MaterialTheme.typography.labelMedium,
+        )
+        Button(
+            onClick = {
+                vm.exportForSharing(ExportViewModel.ExportFormat.CROC) { uri ->
+                    context.startActivity(shareChooser(uri))
+                }
+            },
+            enabled = !busy && leaving.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(if (busy) "Signing…" else "Share signed .croc")
+        }
+        OutlinedButton(
+            onClick = { crocPicker.launch(ExportViewModel.SUGGESTED_CROC_FILENAME) },
+            enabled = !busy && leaving.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Save signed .croc to this device")
+        }
     }
 }
 
+/**
+ * The share-sheet intent for an already-written export. Both formats are zips handed over the same
+ * FileProvider grant, so there is exactly one place that decides what a share looks like.
+ */
+private fun shareChooser(uri: android.net.Uri): Intent {
+    val send =
+        Intent(Intent.ACTION_SEND).apply {
+            type = ExportViewModel.MIME_ZIP
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    return Intent.createChooser(send, "Share export")
+}
+
+/**
+ * A dotted row carrying the provenance material law. `internal` rather than file-private because the
+ * import preview shows the same law from the other side — data arriving from elsewhere is the same
+ * alien-cyan as data leaving — and two copies of the dot would eventually drift apart.
+ */
 @Composable
-private fun ProvenanceRow(
+internal fun ProvenanceRow(
     title: String,
     subtitle: String?,
     dot: androidx.compose.ui.graphics.Color,

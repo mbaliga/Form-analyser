@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The single directory Crocodyl will ever hand to another app.
+  The only two directories Crocodyl will ever hand to another app.
 
-  Deliberately one cache subdirectory and not cache-path="." or files-path: an exported .crocbak
-  can carry medical rows the athlete granted, and the database, the DataStore preferences and the
-  db-recovery backups all live under paths that a wider rule would expose. Only files this app
-  wrote to cache/share for the express purpose of being shared are reachable through the provider.
+  Deliberately two narrow cache subdirectories and not cache-path="." or files-path: an exported
+  .crocbak or signed .croc can carry medical rows the athlete granted, and the database, the
+  DataStore preferences and the db-recovery backups all live under paths that a wider rule would
+  expose.
+
+  - cache/share: files this app wrote, for the express purpose of being shared out (export).
+  - cache/capture: the reverse direction — an empty slot the system Camera app is granted
+    write access to for one in-app document-vault photo (see BodyViewModel.newCaptureUri). The
+    same narrow-grant reasoning applies either way the data is moving.
 -->
 <paths>
     <cache-path name="share" path="share/" />
+    <cache-path name="capture" path="capture/" />
 </paths>

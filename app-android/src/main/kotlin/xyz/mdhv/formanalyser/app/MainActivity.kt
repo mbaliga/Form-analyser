@@ -1,6 +1,5 @@
 package xyz.mdhv.formanalyser.app
 
-import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
@@ -16,9 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.*
+import dagger.hilt.android.AndroidEntryPoint
 import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.domain.*
 import xyz.mdhv.formanalyser.app.ui.*
@@ -49,6 +49,7 @@ private object Routes {
     const val S_ABOUT = "s_about"
     const val S_AI = "s_ai"
     const val S_EXPORT = "s_export"
+    const val S_IMPORT = "s_import"
     const val S_WELLNESS = "s_wellness"
     const val S_STREAK = "s_streak"
     const val S_CYCLE = "s_cycle"
@@ -60,6 +61,12 @@ private object Routes {
     val TABS = setOf(HOME, TRAIN, SCORE, CALENDAR, PROGRESS)
 }
 
+/**
+ * `@AndroidEntryPoint`: Hilt generates this Activity's own component (hanging off
+ * [CrocodylApp]'s [dagger.hilt.components.SingletonComponent]) so every `hiltViewModel()` call in
+ * the composition below can resolve a `@HiltViewModel`'s `@Inject constructor`.
+ */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,7 +89,7 @@ private fun AppRoot() {
     when (onboarded) {
         null -> Box(Modifier.fillMaxSize())
         false -> {
-            val vm: OnboardingViewModel = viewModel()
+            val vm: OnboardingViewModel = hiltViewModel()
             OnboardingScreen(vm) {}
         }
         else -> MainShell()
@@ -130,13 +137,13 @@ private fun MainShell() {
     val nav = rememberNavController()
     val c = LocalContext.current
     val prefs = remember { AppPrefs(c) }
-    val sessionVm: SessionViewModel = viewModel()
-    val homeVm: HomeViewModel = viewModel()
-    val rigsVm: RigsViewModel = viewModel()
-    val settingsVm: SettingsViewModel = viewModel()
-    val wellnessVm: WellnessViewModel = viewModel()
-    val calendarVm: CalendarViewModel = viewModel()
-    val bodyVm: BodyViewModel = viewModel()
+    val sessionVm: SessionViewModel = hiltViewModel()
+    val homeVm: HomeViewModel = hiltViewModel()
+    val rigsVm: RigsViewModel = hiltViewModel()
+    val settingsVm: SettingsViewModel = hiltViewModel()
+    val wellnessVm: WellnessViewModel = hiltViewModel()
+    val calendarVm: CalendarViewModel = hiltViewModel()
+    val bodyVm: BodyViewModel = hiltViewModel()
     val cycle by prefs.cycleEnabled.collectAsState(initial = false)
     val injuries by homeVm.activeInjuryCount.collectAsState()
     val back by nav.currentBackStackEntryAsState()
@@ -181,8 +188,7 @@ private fun MainShell() {
                 )
             }
             composable(Routes.COACH) {
-                val app = LocalContext.current.applicationContext as Application
-                val vm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
+                val vm: CoachViewModel = hiltViewModel()
                 CoachScreen(vm) { nav.navigate(Routes.S_AI) }
             }
             composable(Routes.TRAIN) {
@@ -196,11 +202,11 @@ private fun MainShell() {
             // A deleted session has nothing left to review, so the screen cannot stay open on it.
             composable(Routes.REVIEW) { ReviewScreen(sessionVm) { nav.popBackStack() } }
             composable(Routes.SCORE) {
-                val vm: ScoringViewModel = viewModel()
+                val vm: ScoringViewModel = hiltViewModel()
                 ScoringScreen(vm)
             }
             composable(Routes.PROGRESS) {
-                val vm: ProgressViewModel = viewModel()
+                val vm: ProgressViewModel = hiltViewModel()
                 ProgressScreen(vm) { nav.navigate(Routes.BODY) }
             }
             composable(Routes.BODY) {
@@ -267,8 +273,12 @@ private fun NavGraphBuilder.settingsGraph(
     }
     composable(Routes.S_AI) { AiSettingsScreen() }
     composable(Routes.S_EXPORT) {
-        val vm: ExportViewModel = viewModel()
+        val vm: ExportViewModel = hiltViewModel()
         ExportScreen(vm)
+    }
+    composable(Routes.S_IMPORT) {
+        val vm: ImportViewModel = hiltViewModel()
+        ImportScreen(vm)
     }
     composable(Routes.S_PROFILE) { SettingsProfileScreen(rigs) }
     composable(Routes.S_RIGS) {
@@ -298,6 +308,7 @@ private fun NavGraphBuilder.settingsGraph(
                 }
             },
             { nav.navigate(Routes.S_EXPORT) },
+            { nav.navigate(Routes.S_IMPORT) },
         )
     }
     composable(Routes.S_ABOUT) { SettingsAboutScreen() }

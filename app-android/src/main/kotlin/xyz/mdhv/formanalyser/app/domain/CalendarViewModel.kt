@@ -1,8 +1,9 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +14,7 @@ import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.wellness.AcwrSeries
 import xyz.mdhv.formanalyser.wellness.DailyLoad
+import xyz.mdhv.formanalyser.wellness.DayFacts
 import xyz.mdhv.formanalyser.wellness.StreakState
 import java.time.Instant
 import java.time.LocalDate
@@ -28,9 +30,11 @@ data class DayMarks(
     val hiatus: Boolean = false,
 )
 
-class CalendarViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
-    private val prefs = AppPrefs(app)
+@HiltViewModel
+class CalendarViewModel @Inject constructor(
+    private val repo: Repository,
+    private val prefs: AppPrefs,
+) : ViewModel() {
     private val assembler = WellnessAssembler(repo)
 
     private val _month = MutableStateFlow(YearMonth.now())
@@ -42,11 +46,19 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
     private val _streak = MutableStateFlow<StreakState?>(null)
     val streak: StateFlow<StreakState?> = _streak
 
+    /** Trailing 7 days, oldest first, for the streak week-strip glyphs next to the streak count. */
+    private val _weekStrip = MutableStateFlow<List<DayFacts>>(emptyList())
+    val weekStrip: StateFlow<List<DayFacts>> = _weekStrip
+
     private val _loads = MutableStateFlow<List<DailyLoad>>(emptyList())
     val loads: StateFlow<List<DailyLoad>> = _loads
 
     private val _acwr = MutableStateFlow<AcwrSeries?>(null)
     val acwr: StateFlow<AcwrSeries?> = _acwr
+
+    /** sRPE secondary load lane (Load view's second chart) — see [WellnessAssembler.srpeAcwr]. */
+    private val _srpeAcwr = MutableStateFlow<AcwrSeries?>(null)
+    val srpeAcwr: StateFlow<AcwrSeries?> = _srpeAcwr
 
     fun setMonth(m: YearMonth) { _month.value = m; load() }
 
@@ -91,6 +103,11 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
             _streak.value = data.second
             _loads.value = data.third
             _acwr.value = withContext(Dispatchers.IO) { assembler.acwr(athlete.id, today) }
+            _srpeAcwr.value = withContext(Dispatchers.IO) { assembler.srpeAcwr(athlete.id, today) }
+            _weekStrip.value =
+                withContext(Dispatchers.IO) {
+                    assembler.weekFacts(athlete.id, prefs.plannedRestDays.first(), today)
+                }
         }
     }
 }

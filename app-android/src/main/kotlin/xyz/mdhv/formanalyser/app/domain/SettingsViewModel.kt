@@ -1,8 +1,11 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,8 +17,13 @@ import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.app.data.ScoringRepository
 
-class SettingsViewModel(app: Application) : AndroidViewModel(app) {
-    private val prefs = AppPrefs(app)
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val prefs: AppPrefs,
+    private val repo: Repository,
+    private val scoring: ScoringRepository,
+) : ViewModel() {
 
     val reduceMotion: Flow<Boolean> = prefs.reduceMotion
     val hapticStrength: Flow<String> = prefs.hapticStrength
@@ -33,7 +41,7 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     /** Wipe everything on device and drop back to onboarding. */
     fun wipe(onDone: () -> Unit) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { AppDatabase.get(getApplication()).clearAllTables() }
+            withContext(Dispatchers.IO) { AppDatabase.get(context).clearAllTables() }
             prefs.setOnboarded(false)
             onDone()
         }
@@ -49,9 +57,6 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
             INJURY,
         }
     }
-
-    private val repo = Repository(app)
-    private val scoring = ScoringRepository(app)
 
     private val _retracted = MutableStateFlow<List<Retracted>>(emptyList())
 

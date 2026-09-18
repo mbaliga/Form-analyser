@@ -15,6 +15,14 @@ engine on-device and shows live + post-session feedback in the Hyle design langu
 > runner that ships the Android SDK. To build locally, add an Android SDK (`local.properties`
 > `sdk.dir=…` or `ANDROID_HOME`) and run the same command.
 
+> **Design tokens: `dev.aarso:hyle` (real dependency).** `git submodule update --init --recursive`
+> first — it brings in `hyle-design-system` (`mbaliga/Hyle-Design-System`, pinned commit),
+> `includeBuild`'d under the same `-PwithAndroid` gate (`../settings.gradle.kts`) so `dev.aarso:hyle`
+> resolves to that submodule's `:hyle` project. An empty/un-initialized submodule directory breaks
+> the `-PwithAndroid` build. See `CROCODYL_BUILD_NOTES.md`'s "Hyle: real tokens → real dependency"
+> for the full wiring (including the deliberate `minSdk` override this needed) and
+> `ui/theme/Theme.kt` for what actually consumes it.
+
 > **BlazePose model: auto-bundled at build time.** The `downloadPoseModel` Gradle task fetches
 > `pose_landmarker_lite.task` into `assets/` before packaging, so the installed APK works with
 > zero setup — no manual file drop, no first-run download, works offline. The binary is
@@ -34,7 +42,7 @@ Still to come (later layers): real-time per-shot detection during capture, pose-
 
 | Concern | Library |
 |---|---|
-| UI | Jetpack Compose (native Kotlin), Hyle design tokens |
+| UI | Jetpack Compose (native Kotlin), `dev.aarso:hyle` design tokens (submodule + `includeBuild`) |
 | Camera | CameraX (core/camera2/lifecycle/view) |
 | Pose | MediaPipe Tasks Vision — Pose Landmarker (BlazePose GHUM) |
 | Storage | Room/SQLite (sessions / shots-as-features) |

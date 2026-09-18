@@ -1,19 +1,17 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.ai.AiSettings
-import xyz.mdhv.formanalyser.app.ai.KeyVault
-import xyz.mdhv.formanalyser.app.ai.OnDeviceLlmClient
-import xyz.mdhv.formanalyser.app.ai.providers.CloudLlmClients
+import xyz.mdhv.formanalyser.app.ai.CoachLlmRouter
 import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.coach.CoachFacts
@@ -23,13 +21,17 @@ import xyz.mdhv.formanalyser.coach.CoachModel
 import xyz.mdhv.formanalyser.coach.CompletionRequest
 import xyz.mdhv.formanalyser.coach.CompletionResult
 import xyz.mdhv.formanalyser.coach.LlmClient
-import xyz.mdhv.formanalyser.coach.ModelKind
+import xyz.mdhv.formanalyser.coach.LlmErrorKind
 import xyz.mdhv.formanalyser.coach.ModelRegistry
 import xyz.mdhv.formanalyser.coach.PromptBuilder
 import xyz.mdhv.formanalyser.coach.Redaction
 import xyz.mdhv.formanalyser.coach.RigSummary
 import xyz.mdhv.formanalyser.coach.RuleCoach
 import xyz.mdhv.formanalyser.coach.ShotLoadSummary
+import xyz.mdhv.formanalyser.coach.StreamDirective
+import xyz.mdhv.formanalyser.coach.StreamEvent
+import xyz.mdhv.formanalyser.coach.StreamSink
+import xyz.mdhv.formanalyser.coach.UsageSnapshot
 import xyz.mdhv.formanalyser.coach.WithheldFact
 import xyz.mdhv.formanalyser.wellness.InjurySummary
 
@@ -43,20 +45,23 @@ import xyz.mdhv.formanalyser.wellness.InjurySummary
  *    and completes it on an [LlmClient] off the main thread — surfacing the response, a typed
  *    error, and the exact "what wasn't sent" list.
  *
- * The LLM plumbing is a seam: [clientResolver] maps a model to a client (a BYOK cloud adapter or the
- * on-device runtime) and [keyPresent] reports whether a required BYOK key is configured. The Integrate
- * layer supplies the real seam from the provider factories + [KeyVault]; [factory] wires a default one.
+ * The LLM plumbing is a seam: [CoachLlmRouter.resolve] maps a model to a client (a BYOK cloud adapter
+ * or the on-device runtime) and [CoachLlmRouter.keyPresent] reports whether a required BYOK key is
+ * configured. [router] is a Hilt-injected singleton built from the provider factories +
+ * [xyz.mdhv.formanalyser.app.ai.KeyVault] — see [xyz.mdhv.formanalyser.app.di.CoachModule] for the one
+ * piece of that graph ([xyz.mdhv.formanalyser.app.ai.OnDeviceLlmClient]) that still needs a `@Provides`
+ * method, and [CoachLlmRouter]'s own KDoc for why this class's old hand-rolled
+ * `ViewModelProvider.Factory` is gone even though the object graph it built is not.
  * This VM never touches an API key and never duplicates wellness math — it reuses [WellnessAssembler].
  */
-class CoachViewModel(
-    app: Application,
-    private val clientResolver: (CoachModel) -> LlmClient?,
-    private val keyPresent: (CoachModel) -> Boolean,
-    private val aiSettings: AiSettings = AiSettings(app),
-) : AndroidViewModel(app) {
+@HiltViewModel
+class CoachViewModel @Inject constructor(
+    private val repo: Repository,
+    private val prefs: AppPrefs,
+    private val router: CoachLlmRouter,
+    private val aiSettings: AiSettings,
+) : ViewModel() {
 
-    private val repo = Repository(app)
-    private val prefs = AppPrefs(app)
     private val assembler = WellnessAssembler(repo)
 
     /** Deterministic offline coach output. Recomputed by [load]; empty until then / with no data. */
@@ -94,7 +99,30 @@ class CoachViewModel(
     }
 
     /** True iff the current model is a BYOK cloud model with no key configured. */
-    fun needsKey(m: CoachModel = _model.value): Boolean = m.requiresByok && !keyPresent(m)
+    fun needsKey(m: CoachModel = _model.value): Boolean = m.requiresByok && !router.keyPresent(m)
+
+    /**
+     * True while the athlete has asked to stop the in-flight streamed ask. Read by [streamToOutcome]'s
+     * [StreamSink] on every event; a real streaming [LlmClient] override honours a returned
+     * [StreamDirective.CANCEL] by stopping its read and returning a truncated `Success` with whatever
+     * text already arrived (see [LlmClient.stream]'s KDoc) — a cancel is not an error.
+     *
+     * Deliberately a plain flag, NOT `viewModelScope`/coroutine `Job` cancellation: cancelling the Job
+     * running [ask] would also kill the code *after* the client call that publishes the partial result
+     * to [_ask] — the classic cancellation trap. [onCleared] sets this too, so a blocking read loop
+     * left running past the ViewModel's own lifetime still unwinds instead of lingering on IO.
+     */
+    @Volatile private var cancelRequested = false
+
+    /** Ask the in-flight streamed completion to stop. See [cancelRequested]. No-op if nothing is running. */
+    fun cancelAsk() {
+        cancelRequested = true
+    }
+
+    override fun onCleared() {
+        cancelRequested = true
+        super.onCleared()
+    }
 
     fun load() {
         viewModelScope.launch {
@@ -112,14 +140,16 @@ class CoachViewModel(
     /**
      * Grounded LLM turn. Guards BYOK first (surfaces [CoachAskState.NeedsKey] instead of calling out),
      * then redacts for the model's destination, builds the prompt from the redacted factsheet, and
-     * completes it on [Dispatchers.IO]. The withheld list is captured pre-call so it is shown on both
-     * success and failure.
+     * streams it on [Dispatchers.IO] via [streamToOutcome]. The withheld list is captured pre-call so
+     * it is shown on every terminal state (streaming, ready, or error) — the redaction audit must
+     * never appear only at the end.
      */
     fun ask(intent: CoachIntent, model: CoachModel, medicalGrant: Boolean) {
-        if (model.requiresByok && !keyPresent(model)) {
+        if (model.requiresByok && !router.keyPresent(model)) {
             _ask.value = CoachAskState.NeedsKey(model)
             return
         }
+        cancelRequested = false
         _ask.value = CoachAskState.Loading
         viewModelScope.launch {
             val outcome = withContext(Dispatchers.IO) {
@@ -127,24 +157,117 @@ class CoachViewModel(
                 if (f == null) return@withContext Outcome.NoData
                 val keepPrivate = aiSettings.keepPrivate.first()
                 val redacted = Redaction.redactFor(f, model, medicalGrant = medicalGrant, keepPrivate = keepPrivate)
-                val client = clientResolver(model)
-                    ?: return@withContext Outcome.Result(null, redacted.withheld, "No client available for ${model.displayName}")
+                val client = router.resolve(model)
+                    ?: return@withContext Outcome.Result(
+                        text = null,
+                        withheld = redacted.withheld,
+                        error = "No client available for ${model.displayName}",
+                        attempted = false,
+                    )
                 val messages = PromptBuilder.build(intent, redacted)
-                when (val r = client.complete(CompletionRequest(model = model, messages = messages))) {
-                    is CompletionResult.Success -> Outcome.Result(r.response.text, redacted.withheld, null)
-                    is CompletionResult.Failure -> Outcome.Result(null, redacted.withheld, r.error.message)
-                }
+                streamToOutcome(model, CompletionRequest(model = model, messages = messages), redacted.withheld, client)
             }
             _ask.value = when (outcome) {
                 Outcome.NoData -> CoachAskState.Error("No data to coach on yet.", emptyList())
                 is Outcome.Result ->
-                    if (outcome.text != null) CoachAskState.Ready(model, outcome.text, outcome.withheld)
-                    else CoachAskState.Error(outcome.error ?: "Coaching failed.", outcome.withheld)
+                    if (outcome.text != null) {
+                        CoachAskState.Ready(model, outcome.text, outcome.withheld, outcome.usage, outcome.truncated)
+                    } else {
+                        CoachAskState.Error(outcome.error ?: "Coaching failed.", outcome.withheld, outcome.partialText)
+                    }
+            }
+            // Recorded only for a call that actually reached a client — the "no client available" and
+            // "no data yet" paths never spent a token and must not inflate the ask counter.
+            if (outcome is Outcome.Result && outcome.attempted) {
+                aiSettings.recordUsage(model.id, outcome.usage ?: UsageSnapshot())
             }
         }
     }
 
     fun clearAsk() { _ask.value = CoachAskState.Idle }
+
+    /**
+     * Drive one completion through [LlmClient.stream], publishing [CoachAskState.Streaming] as text
+     * arrives (throttled to roughly [STREAM_PUBLISH_THROTTLE_MS] so a fast provider doesn't recompose
+     * Compose on every token) when [LlmClient.supportsStreaming] says the model really streams.
+     * A model that doesn't (or the on-device runtime, whose streaming override is not yet built — see
+     * [xyz.mdhv.formanalyser.app.ai.OnDeviceLlmClient]'s KDoc) still goes through [LlmClient.stream]'s
+     * default one-shot bridge, but this never publishes an intermediate [CoachAskState.Streaming] for
+     * it: the bridge's single Delta
+     * arrives after the WHOLE answer already exists, and animating that as if it were live would
+     * misrepresent latency (a synthetic typewriter over a complete answer).
+     *
+     * A provider gated out of streaming (some OpenAI orgs are, and answer 400 naming `"stream"`) gets
+     * exactly one silent non-streaming retry via [LlmClient.complete] — but only when zero deltas were
+     * ever shown, so nothing already on screen is duplicated by trying again.
+     */
+    private fun streamToOutcome(
+        model: CoachModel,
+        request: CompletionRequest,
+        withheld: List<WithheldFact>,
+        client: LlmClient,
+    ): Outcome {
+        val canRenderIncrementally = client.supportsStreaming(model)
+        val buffer = StringBuilder()
+        var usage: UsageSnapshot? = null
+        var deltasDelivered = 0
+        var lastPublishAtMs = 0L
+
+        fun publish(force: Boolean) {
+            if (!canRenderIncrementally) return
+            val now = System.currentTimeMillis()
+            if (force || now - lastPublishAtMs >= STREAM_PUBLISH_THROTTLE_MS) {
+                _ask.value = CoachAskState.Streaming(model, buffer.toString(), withheld, usage)
+                lastPublishAtMs = now
+            }
+        }
+
+        val sink = StreamSink { event ->
+            when (event) {
+                is StreamEvent.Started ->
+                    if (event.inputTokens != null) usage = UsageSnapshot(event.inputTokens, usage?.outputTokens)
+                is StreamEvent.Delta -> {
+                    buffer.append(event.text)
+                    deltasDelivered++
+                    publish(force = false)
+                }
+                // StreamAssembler already folds "last non-null value wins" per field before dispatching
+                // this, so the event's own fields are the current running totals, not raw deltas.
+                is StreamEvent.UsageUpdate -> usage = UsageSnapshot(event.inputTokens, event.outputTokens)
+            }
+            if (cancelRequested) StreamDirective.CANCEL else StreamDirective.CONTINUE
+        }
+
+        var result = client.stream(request, sink)
+        if (result is CompletionResult.Failure &&
+            result.error.kind == LlmErrorKind.INVALID_REQUEST &&
+            deltasDelivered == 0
+        ) {
+            result = client.complete(request)
+        }
+        publish(force = true) // flush the final buffered text before the terminal state replaces it
+
+        return when (result) {
+            is CompletionResult.Success -> {
+                val r = result.response
+                Outcome.Result(
+                    text = r.text,
+                    withheld = withheld,
+                    error = null,
+                    usage = UsageSnapshot(r.inputTokens, r.outputTokens),
+                    truncated = r.truncated,
+                )
+            }
+            is CompletionResult.Failure ->
+                Outcome.Result(
+                    text = null,
+                    withheld = withheld,
+                    error = result.error.message,
+                    usage = usage,
+                    partialText = buffer.toString(),
+                )
+        }
+    }
 
     // ── fact assembly (IO + mapping only; all math lives in core-wellness / core-equipment) ──────
 
@@ -208,48 +331,73 @@ class CoachViewModel(
 
     private sealed interface Outcome {
         data object NoData : Outcome
-        data class Result(val text: String?, val withheld: List<WithheldFact>, val error: String?) : Outcome
+
+        data class Result(
+            val text: String?,
+            val withheld: List<WithheldFact>,
+            val error: String?,
+            val usage: UsageSnapshot? = null,
+            val truncated: Boolean = false,
+            /** What had already streamed in when [error] happened — shown under the error banner. */
+            val partialText: String = "",
+            /** False only for a guard that never actually reached a client (no client resolved for
+             *  the model) — [ask] must not record a token-less "ask" for a call that never happened. */
+            val attempted: Boolean = true,
+        ) : Outcome
     }
 
     companion object {
         /**
-         * A default seam built from the app's own key store + provider factories, so integration is a
-         * one-liner: `viewModel(factory = CoachViewModel.factory(app))`. Cloud models resolve to a BYOK
-         * client that reads the current key lazily; on-device models resolve to the MediaPipe runtime.
+         * How often a streamed ask is allowed to publish to [_ask] while text is still arriving. A
+         * per-token publish would recompose Compose dozens of times a second for no visible benefit;
+         * this is a judgement call that cannot be tuned by feel in an environment with no device.
          */
-        fun factory(app: Application): androidx.lifecycle.ViewModelProvider.Factory =
-            object : androidx.lifecycle.ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                    val keyVault = KeyVault(app)
-                    val aiSettings = AiSettings(app)
-                    val onDevice = OnDeviceLlmClient(app, modelPath = {
-                        runBlocking { aiSettings.onDeviceModelPath.first() }
-                    })
-                    val resolver: (CoachModel) -> LlmClient? = { m ->
-                        when (m.kind) {
-                            ModelKind.CLOUD -> CloudLlmClients.forModel(m) { p -> keyVault.getKey(p) }
-                            ModelKind.ON_DEVICE -> onDevice
-                        }
-                    }
-                    val keyPresent: (CoachModel) -> Boolean = { m ->
-                        when (m.kind) {
-                            ModelKind.CLOUD -> keyVault.hasKey(m.provider)
-                            ModelKind.ON_DEVICE -> true
-                        }
-                    }
-                    return CoachViewModel(app, resolver, keyPresent, aiSettings) as T
-                }
-            }
+        private const val STREAM_PUBLISH_THROTTLE_MS = 50L
     }
 }
 
 /** The ask lifecycle surfaced to the UI. [withheld] is the auditable "what wasn't sent" report. */
 sealed interface CoachAskState {
     data object Idle : CoachAskState
+
+    /** Covers the pre-first-token window, and the entire duration of a non-streaming ask. */
     data object Loading : CoachAskState
+
     /** The chosen model needs a BYOK key that isn't set — send the athlete to Settings, don't call out. */
     data class NeedsKey(val model: CoachModel) : CoachAskState
-    data class Ready(val model: CoachModel, val text: String, val withheld: List<WithheldFact>) : CoachAskState
-    data class Error(val message: String, val withheld: List<WithheldFact>) : CoachAskState
+
+    /**
+     * Text is arriving incrementally. Only published for a model where
+     * [xyz.mdhv.formanalyser.coach.LlmClient.supportsStreaming] is true — see
+     * [CoachViewModel.streamToOutcome]'s KDoc for why a non-streaming model never passes through this
+     * state. [usage] is whatever the provider has revealed so far and may still change before [Ready].
+     */
+    data class Streaming(
+        val model: CoachModel,
+        val text: String,
+        val withheld: List<WithheldFact>,
+        val usage: UsageSnapshot?,
+    ) : CoachAskState
+
+    /**
+     * [usage] is null when the provider never reported token counts (e.g. OpenAI without
+     * `stream_options.include_usage`, or the on-device runtime before token counting is wired up) —
+     * the UI must render that as "tokens unknown," never as zero. [truncated] is true only when the
+     * athlete stopped the stream early (see [CoachViewModel.cancelAsk]); it must be labelled, never
+     * shown as if it were the coach's complete answer.
+     */
+    data class Ready(
+        val model: CoachModel,
+        val text: String,
+        val withheld: List<WithheldFact>,
+        val usage: UsageSnapshot? = null,
+        val truncated: Boolean = false,
+    ) : CoachAskState
+
+    /** [partialText] is whatever had already streamed in before the error — shown under the banner. */
+    data class Error(
+        val message: String,
+        val withheld: List<WithheldFact>,
+        val partialText: String = "",
+    ) : CoachAskState
 }

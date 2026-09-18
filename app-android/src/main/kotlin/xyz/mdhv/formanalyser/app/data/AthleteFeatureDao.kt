@@ -60,6 +60,20 @@ interface AthleteFeatureDao {
     @Query("UPDATE score_candidate SET status = :status, resolvedAtMs = :atMs WHERE id = :id")
     suspend fun resolveCandidate(id: String, status: String, atMs: Long)
 
+    /**
+     * Retire the proposals a previous scan of this end left outstanding.
+     *
+     * Marked, not deleted — the athlete often re-scans *because* the first read looked wrong, and
+     * what the detector thought before they moved the camera is a fact about the scan worth keeping.
+     * Only `PROPOSED` rows are touched: a candidate already confirmed has become an arrow on the
+     * scorecard and a rejected one is a decision the athlete made, and neither is a later scan's to
+     * overwrite.
+     */
+    @Query(
+        "UPDATE score_candidate SET status = 'SUPERSEDED', resolvedAtMs = :atMs WHERE scoreSessionId = :sessionId AND endIndex = :endIndex AND status = 'PROPOSED'"
+    )
+    suspend fun supersedeProposedCandidates(sessionId: String, endIndex: Int, atMs: Long)
+
     @Upsert suspend fun upsertObserverEvent(event: ObserverScoreEventEntity)
 
     @Query("SELECT * FROM observer_score_event WHERE scoreSessionId = :sessionId ORDER BY atMs ASC")
@@ -67,6 +81,24 @@ interface AthleteFeatureDao {
 
     @Query("UPDATE observer_score_event SET status = 'RETRACTED' WHERE id = :id")
     suspend fun retractObserverEvent(id: String)
+
+    /**
+     * Spoken arrows filed by Live Observer voice input that no human has confirmed or rejected yet.
+     * Never includes a tap: [ScoringRepository.recordObserverTap] writes `status = "CONFIRMED"`
+     * straight away because a tap *is* the human act, so only `"VOICE"`-sourced rows ever sit here.
+     */
+    @Query(
+        "SELECT * FROM observer_score_event WHERE scoreSessionId = :sessionId AND status = 'PROPOSED' ORDER BY atMs ASC"
+    )
+    suspend fun pendingObserverEvents(sessionId: String): List<ObserverScoreEventEntity>
+
+    /**
+     * Move a spoken proposal to `"CONFIRMED"` or `"REJECTED"`. Never a DELETE, for the same reason
+     * [retractObserverEvent] above and [resolveCandidate] on `score_candidate` are not: a rejected
+     * transcript is still a fact about what the recogniser heard, worth keeping on the device.
+     */
+    @Query("UPDATE observer_score_event SET status = :status WHERE id = :id")
+    suspend fun resolveObserverEvent(id: String, status: String)
 
     // --- Athlete-initiated deletion (no cascade on these tables; see the repositories) ---
     @Query("DELETE FROM score_candidate WHERE scoreSessionId = :sessionId")

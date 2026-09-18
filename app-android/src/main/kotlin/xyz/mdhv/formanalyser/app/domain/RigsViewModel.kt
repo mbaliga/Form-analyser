@@ -1,8 +1,9 @@
 package xyz.mdhv.formanalyser.app.domain
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,8 +17,8 @@ import xyz.mdhv.formanalyser.model.Handedness
 import java.util.UUID
 
 /** Rigs + athlete-profile editing (Settings). Manual refresh style. */
-class RigsViewModel(app: Application) : AndroidViewModel(app) {
-    private val repo = Repository(app)
+@HiltViewModel
+class RigsViewModel @Inject constructor(private val repo: Repository) : ViewModel() {
 
     private val _athlete = MutableStateFlow<AthleteEntity?>(null)
     val athlete: StateFlow<AthleteEntity?> = _athlete

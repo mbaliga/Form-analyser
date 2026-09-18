@@ -1,6 +1,7 @@
 package xyz.mdhv.formanalyser.app.data
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -42,7 +43,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
             ScoreCandidateEntity::class,
             ObserverScoreEventEntity::class,
         ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -72,6 +73,23 @@ abstract class AppDatabase : RoomDatabase() {
                     instance ?: openResilient(context.applicationContext).also { instance = it }
                 }
 
+        /**
+         * Test-only: drop the cached [instance] so the next [get] opens a fresh database.
+         *
+         * [get] is a process-wide singleton by design — production code never calls this. Without
+         * it, a Robolectric unit test that calls [get] (directly, or via [Repository]/
+         * [ScoringRepository], which both do internally) shares whatever instance the FIRST test in
+         * the same JVM/classloader session already built, pointed at that first test's own
+         * Robolectric-provided `filesDir` — the opposite of the isolation a test needs. Real app
+         * code has no equivalent call because the app process really does want exactly one
+         * [AppDatabase] for its whole lifetime.
+         */
+        @VisibleForTesting
+        fun resetForTests() {
+            instance?.let { runCatching { it.close() } }
+            instance = null
+        }
+
         private fun build(app: Context) =
             Room.databaseBuilder(app, AppDatabase::class.java, DB_NAME)
                 .addMigrations(
@@ -82,6 +100,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_5_6,
                     MIGRATION_6_7,
                     MIGRATION_7_8,
+                    MIGRATION_8_9,
                 )
                 // No fallbackToDestructiveMigration: a missing migration path should surface as a
                 // thrown exception into the catch below (and get backed up + recorded), not vanish
@@ -437,6 +456,33 @@ abstract class AppDatabase : RoomDatabase() {
                     listOf("checkin", "pain_log", "injury").forEach {
                         db.execSQL("ALTER TABLE `$it` ADD COLUMN `deletedAt` INTEGER")
                     }
+                }
+            }
+
+        /**
+         * V8 → V9: provenance for End Scan's first real detector.
+         *
+         * `score_candidate` has existed since v6 but nothing has ever written to it — the human
+         * confirm flow was built first and the detector that feeds it only lands now. The blueprint
+         * requires a machine proposal to record the version of the model that produced it, and the
+         * need is immediate rather than theoretical: every constant in `EndScan` is derived from
+         * target geometry rather than measured against range photographs, so they *will* move once
+         * there are photographs to check them against, and after that nothing else on the row would
+         * distinguish a candidate the old detector proposed from one the new one did.
+         *
+         * No new table, so [PrivacyRegistry] is unchanged: a column inherits its row's class, and
+         * `score_candidate` is already classified SHAREABLE. The nullable, defaultless
+         * `ALTER TABLE ADD COLUMN` is the one shape SQLite performs without rewriting the table, the
+         * same reason MIGRATION_6_7 uses it — this cannot fail part-way through a long history.
+         *
+         * Nothing backfills the existing rows, and nothing should: no candidate has ever been
+         * written, and inventing a version for a row that predates the column would be a claim about
+         * provenance rather than a record of it.
+         */
+        val MIGRATION_8_9 =
+            object : Migration(8, 9) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `score_candidate` ADD COLUMN `detectorVersion` TEXT")
                 }
             }
     }
