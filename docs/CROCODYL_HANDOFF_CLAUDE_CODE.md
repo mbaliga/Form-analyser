@@ -8,7 +8,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `2663615 feat(atelier): add fletching reference taxonomy`
+Latest implementation commit: `44a0bac fix(atelier): scale fletching studies for mobile`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -22,10 +22,10 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 - Root JVM suite: `./gradlew test --offline --no-daemon` — passed.
 - Android debug/release unit tests and `lintRelease` — passed.
-- Atelier asset contracts: `test_assets.py` (8), `test_arrow_library.py` (4), `test_arrow_reference_library.py` (5) — passed.
+- Atelier asset contracts: `test_assets.py` (8), `test_arrow_library.py` (4), `test_arrow_reference_library.py` (7) — passed.
 - Original and arrow-reference generators were rerun twice and produced no tracked drift.
 - QA release APK and AAB built with a throwaway local QA keystore; APK v2 signature, AAB `jarsigner`, manifest/security checks and ZIP alignment passed.
-- Final debug APK was installed on the available emulator and exercised through Home → Equipment Atelier. No fatal exception or renderer warning was observed.
+- Final debug APK (`a25c5ec863be8cbe731c508b94e2c9986c104b3574b849682b37e53729124461`) was installed on the API-35 ARM64 emulator and exercised through Home → Equipment Atelier → Fletching. The corrected scaled family rendered; no fatal exception, uncaught JavaScript error, or WebGL error was observed.
 - Fresh browser verification was not possible in this environment because Node/Chromium are unavailable. The committed real-Chromium report from the visual handoff remains at `docs/crocodyl/arrow-reference-previews/verification.json`.
 
 ## Important release boundary
@@ -54,3 +54,4 @@ The exact owner-arrow catalog is intentionally not complete. The one-piece harde
 - `b74392c` — align the acceptance checklist with the alignment gate.
 - `a8c32e8` — add the remaining 416 stainless and adjustable-module point families with contracts.
 - `2663615` — add the fletching reference taxonomy and eighth studio selector.
+- `44a0bac` — scale fletching studies for mobile and regenerate the canonical GLB.

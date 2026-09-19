@@ -197,6 +197,12 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   a nock-relative reference. Source URLs, independent semantic IDs, deterministic contracts and
   future Chromium checks are recorded. The exact owner arrow still requires reference intake and
   approval.
+- **Fletching Android smoke (2026-09-20):** the rebuilt debug APK (`a25c5ec863be8cbe731c508b94e2c9986c104b3574b849682b37e53729124461`)
+  installed on the API-35 ARM64 emulator, opened Home → Equipment Atelier through the intended
+  card, reached the horizontally scrolled Fletching selector, and rendered the corrected scaled
+  taxonomy. The isolated log showed no fatal exception, uncaught JavaScript error, or WebGL error.
+  This is emulator smoke evidence; physical-device, accessibility, thermal, battery and range QA
+  remain open.
 
 ### 3.5 Releases
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`

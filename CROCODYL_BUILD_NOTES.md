@@ -95,6 +95,10 @@ and the blueprint’s later phases
   material/type, mounting, vane count/clocking, wrap presence and nock-relative orientation as
   independent generic studies, with Lancaster source references and contract coverage. The next
   asset dependency is the owner-selected arrow reference, not further speculative equipment.
+- The corrected fletching build was installed on the API-35 ARM64 emulator on 2026-09-20. Home →
+  Equipment Atelier → horizontal selector → Fletching rendered the five-family taxonomy at mobile
+  scale; the isolated log showed no fatal, uncaught-JavaScript or WebGL error. Debug APK SHA-256:
+  `a25c5ec863be8cbe731c508b94e2c9986c104b3574b849682b37e53729124461`.
 
 ## Historical recon findings
 

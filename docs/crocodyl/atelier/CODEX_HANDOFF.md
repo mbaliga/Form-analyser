@@ -92,7 +92,7 @@ The active contract test also regenerates the library in a temporary directory a
 
 The original equipment pipeline has its own generator, GLB contract tests and browser evidence. Treat `docs/crocodyl/atelier-previews/verification.json` and `CINEMATIC_VERIFICATION_2026-09-17.md` as evidence for that separate original-study pack, not as evidence that the owner’s arrow has been modelled.
 
-For this handoff, the active and original Python contract suites plus `git diff --check` passed locally. The active library was regenerated twice with identical output after adding the 416 stainless and adjustable-module components. The browser smoke harness now explicitly checks those five new point controls. No fresh browser or JVM result was produced in this checkout because Node/Chromium tooling (`node`, `xvfb-run`) and a JDK are not installed here; the committed JSON report remains the existing real-Chromium evidence, and the QA commands below are the required rerun when those tools are available.
+For this handoff, the active and original Python contract suites plus `git diff --check` passed locally. The active library was regenerated twice with identical output after adding the 416 stainless, adjustable-module and scaled-fletching components. The browser smoke harness now explicitly checks the new point and fletching controls. No fresh browser or JVM result was produced in this checkout because Node/Chromium tooling (`node`, `xvfb-run`) and a JDK are not installed here; the committed JSON report remains the existing real-Chromium evidence, while the updated harness is the required rerun when those tools are available. The corrected fletching path was separately exercised through the Android emulator WebView.
 
 These checks do not establish:
 
