@@ -9,7 +9,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 Branch: `codex/production-hardening`
 
 Latest implementation commit: `44a0bac fix(atelier): scale fletching studies for mobile`
-Latest evidence commit: `700d1bd ci(release): verify packaged version metadata`
+Latest evidence commit: `9b1c84a docs(qa): record current-tree emulator replay`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -66,3 +66,4 @@ The exact owner-arrow catalog is intentionally not complete. The one-piece harde
 - `44a9c23` — record final fletching smoke evidence and release status.
 - `c57f1a7` — make arrow-taxonomy validation read-only and reject generated-asset drift.
 - `700d1bd` — verify packaged APK version metadata in the release workflow.
+- `9b1c84a` — record the current-tree emulator navigation and clean-log replay.

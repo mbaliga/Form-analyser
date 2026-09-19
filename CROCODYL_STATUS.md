@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last updated: 2026-09-20 · current branch: **codex/production-hardening** (latest evidence `700d1bd`) · release validation: **v0.6.0-rc.2** (versionCode 602, QA-signed)_
+_Last updated: 2026-09-20 · current branch: **codex/production-hardening** (latest evidence `9b1c84a`) · release validation: **v0.6.0-rc.2** (versionCode 602, QA-signed)_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.

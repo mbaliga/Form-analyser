@@ -7,7 +7,7 @@ Repository: `mbaliga/Form-analyser`
 Branch: `codex/production-hardening`
 
 Pull request: [#11 — Make Crocodyl visually rich and athlete-focused](https://github.com/mbaliga/Form-analyser/pull/11), open into `main`
-The earlier `feat/immersive-visuals` handoff was integrated into this branch; latest release-evidence commit: `700d1bd` (`ci(release): verify packaged version metadata`).
+The earlier `feat/immersive-visuals` handoff was integrated into this branch; latest release-evidence commit: `9b1c84a` (`docs(qa): record current-tree emulator replay`).
 
 This is the execution index for the next Codex pass. It records what is real in the current branch, what the verification evidence proves, and the exact order for continuing the arrow-first work. It does not approve any generic mesh as the owner's equipment.
 
