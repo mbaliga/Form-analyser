@@ -479,9 +479,9 @@
     },
     "fletching": {
       "file": "fletching.glb",
-      "bytes": 174680,
-      "sha256": "177bc8191fd14e3bc5a3e3a2f68f484c54094a033278a226496531f82954a7a4",
-      "triangles": 3196,
+      "bytes": 174772,
+      "sha256": "c92b5816f10d539e2fe37e9c0fe88034973153e93256fe781c6927f375df8a70",
+      "triangles": 3202,
       "vertices": 3360,
       "parts": [
         {
@@ -490,7 +490,7 @@
           "description": "Range-O-Matic documents lightweight Mylar, curved pocket geometry and double-sided tape installation. Hand, length and curvature remain generic in this study.",
           "hotspot": [
             0,
-            -0.24,
+            -0.3,
             0
           ],
           "explode": [
@@ -505,7 +505,7 @@
           "description": "TAC documents a low-profile polymer target vane. Its published example is 2 in by .390 in; this model uses generic proportions and makes no flight claim.",
           "hotspot": [
             0,
-            -0.14,
+            -0.24,
             0
           ],
           "explode": [
@@ -520,7 +520,7 @@
           "description": "Q2i documents an ultra-low-profile shield-cut duo-polymer vane. This is a generic shield silhouette, not a traced product or a universal shaft fit.",
           "hotspot": [
             0,
-            -0.04,
+            -0.18,
             0
           ],
           "explode": [
@@ -535,7 +535,7 @@
           "description": "Lancaster lists right-wing turkey-feather examples. Feather barbs, wing handedness and exact cut are not recoverable from a generic taxonomy study.",
           "hotspot": [
             0,
-            0.06,
+            -0.12,
             0
           ],
           "explode": [
@@ -550,7 +550,7 @@
           "description": "Straight means the fletching follows the shaft without offset or helical curvature. This is a mounting axis, not a recommendation.",
           "hotspot": [
             0,
-            0.16,
+            -0.06,
             0
           ],
           "explode": [
@@ -562,10 +562,10 @@
         {
           "id": "mount_left_offset",
           "title": "Left offset mounting",
-          "description": "Left/right offset is recorded relative to the nock end; the point end is shifted left or right while the fletching remains straight on the shaft. Angle is schematic.",
+          "description": "Left/right offset is recorded relative to the nock end; the point end of the vane is shifted left or right while the fletching remains straight on the shaft. Angle is schematic.",
           "hotspot": [
             0,
-            0.26,
+            0,
             0
           ],
           "explode": [
@@ -580,7 +580,7 @@
           "description": "Right offset is a separate mounting state from left offset. Exact offset angle is unknown unless measured from the configured arrow.",
           "hotspot": [
             0,
-            0.36,
+            0.06,
             0
           ],
           "explode": [
@@ -595,7 +595,7 @@
           "description": "Left helical curves around the shaft in the left-hand direction. Lancaster documents left/right helical clamp choices; this curve is a generic visual study.",
           "hotspot": [
             0,
-            0.46,
+            0.12,
             0
           ],
           "explode": [
@@ -610,7 +610,7 @@
           "description": "Right helical curves around the shaft in the right-hand direction. No spin-rate or performance claim is implied.",
           "hotspot": [
             0,
-            0.56,
+            0.18,
             0
           ],
           "explode": [
@@ -625,7 +625,7 @@
           "description": "A three-fletch arrangement is evenly indexed at 120 degrees in this study. Clocking is shown relative to a nock reference, not selected for an owner arrow.",
           "hotspot": [
             0,
-            0.66,
+            0.26,
             0
           ],
           "explode": [
@@ -640,7 +640,7 @@
           "description": "A four-fletch arrangement is evenly indexed at 90 degrees in this study. Lancaster documents three- and four-fletch jig configurations; exact owner setup remains unknown.",
           "hotspot": [
             0,
-            0.76,
+            0.34,
             0
           ],
           "explode": [
@@ -655,7 +655,7 @@
           "description": "A direct shaft surface is shown beneath the fletching area. Absence of a wrap must be verified on the actual arrow.",
           "hotspot": [
             0,
-            0.86,
+            0.42,
             0
           ],
           "explode": [
@@ -670,7 +670,7 @@
           "description": "A thin identification/adhesive wrap is shown as a separate layer. Pattern, length and presence are not inferred for the owner arrow.",
           "hotspot": [
             0,
-            0.96,
+            0.48,
             0
           ],
           "explode": [
@@ -685,7 +685,7 @@
           "description": "A rear nock marker establishes the reference direction for vane count, clocking and left/right orientation. It does not assert a specific nock or fletching system.",
           "hotspot": [
             0,
-            1.06,
+            0.54,
             0
           ],
           "explode": [
