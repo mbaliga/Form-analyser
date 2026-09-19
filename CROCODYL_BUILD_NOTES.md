@@ -119,6 +119,11 @@ and the blueprint’s later phases
   generated GLB drift before browser QA and cannot auto-commit or push generated assets.
 - The release verifier now also fails if the packaged APK's `versionCode` or `versionName` differs
   from the release branch/input metadata; the local `0.6.0-rc.2` APK passed this check.
+- A current-tree API-35 ARM64 emulator replay installed the debug APK (`0.6.0-fletching`,
+  versionCode 601), exercised Home → Train → Progress → Body → Calendar, opened Home → Equipment
+  Atelier, selected Fletching after horizontal navigation, and observed every fletching component
+  label in the accessibility tree. After clearing logcat, the launch and Atelier path produced no
+  fatal exception, uncaught JavaScript error, WebGL error or Chromium error.
 
 ## Historical recon findings
 

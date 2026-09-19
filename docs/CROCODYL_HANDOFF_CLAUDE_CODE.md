@@ -31,6 +31,9 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   `494b33c802230b0651310592fa8629d63fe0d55cef7a6b36cdbb7c319bbd268d`; AAB SHA-256:
   `8964f27a5d2577a17f5ee65510c958384d02fc3e7e3aaae0f49d99d1e0b3dc45`.
 - Final debug APK (`a25c5ec863be8cbe731c508b94e2c9986c104b3574b849682b37e53729124461`) was installed on the API-35 ARM64 emulator and exercised through Home → Equipment Atelier → Fletching. The corrected scaled family rendered; no fatal exception, uncaught JavaScript error, or WebGL error was observed.
+- A current-tree replay also exercised Home, Train, Progress, Body and Calendar before reopening the
+  Atelier. The accessibility tree exposed all eight selectors and the complete fletching component
+  set; a post-clear isolated log contained no fatal, uncaught-JavaScript, WebGL or Chromium error.
 - Fresh browser verification was not possible in this environment because Node/Chromium are unavailable. The committed real-Chromium report from the visual handoff remains at `docs/crocodyl/arrow-reference-previews/verification.json`.
 
 ## Important release boundary
