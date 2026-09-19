@@ -114,6 +114,9 @@ and the blueprint’s later phases
   owner approval, physical-device/accessibility/thermal/battery checks, real camera/range tests,
   and the required acceptance matrix. The current generic arrow-reference studio is not an exact
   owner-arrow catalog.
+- The legacy arrow-taxonomy baker was converted from a branch-specific write-capable workflow into
+  a read-only validation workflow on pull requests, `main`, and `release/**`. It now rejects
+  generated GLB drift before browser QA and cannot auto-commit or push generated assets.
 
 ## Historical recon findings
 
