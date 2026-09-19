@@ -100,6 +100,21 @@ and the blueprint’s later phases
   scale; the isolated log showed no fatal, uncaught-JavaScript or WebGL error. Debug APK SHA-256:
   `a25c5ec863be8cbe731c508b94e2c9986c104b3574b849682b37e53729124461`.
 
+## Release validation addendum — 2026-09-20
+
+- The QA release candidate `v0.6.0-rc.2` (versionCode 602) was rebuilt with
+  `assembleRelease`, `bundleRelease`, `testReleaseUnitTest` and `lintRelease`. The build passed
+  R8/resource shrinking, release lint, and packaging with the throwaway QA keystore.
+- The resulting APK SHA-256 is
+  `494b33c802230b0651310592fa8629d63fe0d55cef7a6b36cdbb7c319bbd268d`; the AAB SHA-256 is
+  `8964f27a5d2577a17f5ee65510c958384d02fc3e7e3aaae0f49d99d1e0b3dc45`. `apksigner verify`,
+  `zipalign -c -P 16 -v 4`, and `jarsigner -verify` each exited successfully. The signatures are
+  QA-only evidence, not a production signing identity.
+- The remaining release gates are external: production keystore/CI identity and final versioning,
+  owner approval, physical-device/accessibility/thermal/battery checks, real camera/range tests,
+  and the required acceptance matrix. The current generic arrow-reference studio is not an exact
+  owner-arrow catalog.
+
 ## Historical recon findings
 
 These notes capture the initial blind-build investigation. They are retained for provenance; the

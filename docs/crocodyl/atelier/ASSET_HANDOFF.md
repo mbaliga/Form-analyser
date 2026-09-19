@@ -1,6 +1,6 @@
 # Crocodyl 3D and cinematic asset handoff
 
-Date: 2026-09-17. Working branch: `feat/immersive-visuals` (PR #11).
+Date: 2026-09-20. Integrated branch: `codex/production-hardening` (PR #11 context retained).
 
 For the current Codex execution sequence and branch-state index, read [`CODEX_HANDOFF.md`](CODEX_HANDOFF.md) first.
 
@@ -107,7 +107,7 @@ The Android entry still uses a static poster until the user deliberately opens t
 
 ## Verification
 
-The Lancaster taxonomy build validates deterministic GLB output, expected family/part IDs, self-contained assets, mobile-size budgets and source policy. A dedicated real-Chromium smoke test then loads **shaft profiles, shaft constructions, points and nock systems** through the production studio and verifies, for every family:
+The Lancaster taxonomy build validates deterministic GLB output, expected family/part IDs, self-contained assets, mobile-size budgets and source policy. The committed real-Chromium evidence covers **shaft profiles, shaft constructions, points and nock systems**; the browser harness has since been extended to include the fifth **fletching** family and its full component set. When the local Node/Chromium toolchain is available, rerun the harness through the production studio for every family and verify:
 
 - GLB uploaded and drawn;
 - no WebGL error;

@@ -27,15 +27,15 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 - A shareable-only export saved through SAF as `crocodyl-export.crocbak`, opened as a valid archive,
   and contained no mood, life-event, or cycle table entries. This evidence does not cover the
   required physical-device matrix, real subject/range behavior, or 30-session volume.
-- Final integration run: API-35 ARM64 emulator, 2026-09-18, tester: Codex. The rebuilt debug APK
-  (`674eb746fef7867e175ff63bef8efef9efbf0be2c84c17fdee3ebaba312ea2d3`) installed successfully;
-  onboarding reached Home, the Home Atelier card opened the non-exported equipment activity, and
-  its local WebView remained resumed with no app fatal or WebGL texture warnings. The final
-  minified QA artifacts were also produced and verified: APK
-  `4dc69752ea3de7365de2b4178c24f9e31f7e8b26ac2e90188ab78708508b988c`; AAB
-  `90cf2041a54dcfecad48f17f2cf8e96a249d34638d33d2b540346adb0e2b8eda`. These artifacts use a
-  throwaway QA keystore, not the production release identity, and this remains evidence rather
-  than physical-device/range sign-off.
+- Final release-candidate run: API-35 ARM64 emulator, 2026-09-20, tester: Codex. The rebuilt
+  debug APK (`a25c5ec863be8cbe731c508b94e2c9986c104b3574b849682b37e53729124461`) installed
+  successfully; Home → Equipment Atelier → horizontal selector → Fletching rendered the complete
+  scaled taxonomy with no fatal, uncaught-JavaScript or WebGL error in the isolated log. The
+  minified QA release candidate is `0.6.0-rc.2` (versionCode 602): APK
+  `494b33c802230b0651310592fa8629d63fe0d55cef7a6b36cdbb7c319bbd268d`; AAB
+  `8964f27a5d2577a17f5ee65510c958384d02fc3e7e3aaae0f49d99d1e0b3dc45`. APK signature,
+  ZIP alignment and AAB verification passed. These artifacts use a throwaway QA keystore, not the
+  production release identity, and this remains evidence rather than physical-device/range sign-off.
 
 ## 2. P0 functional flows
 

@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last updated: 2026-09-18 · current branch: **codex/production-hardening** (based on `4c15c72`) · build: **v0.6.0-spec-dev** (versionCode 6)_
+_Last updated: 2026-09-20 · current branch: **codex/production-hardening** (latest evidence `44a9c23`) · release validation: **v0.6.0-rc.2** (versionCode 602, QA-signed)_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -173,15 +173,13 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   focus/separation, local-only WebGL2 loading, semantic IDs, provenance metadata, deterministic
   generator/contract tests and committed Chromium evidence. It remains generic reference material,
   not an owner-approved arrow or a compatibility/catalog claim.
-- **Final integration gate (2026-09-18):** the root JVM suite, Android debug/release unit-test
-  variants, and `lintRelease` pass with zero failures/errors and no lint findings. Minified
-  `assembleRelease` and `bundleRelease` also pass R8, resource shrinking, signing, and packaging
-  with a temporary QA-only keystore, and the APK passes ZIP alignment verification; the production
-  key remains a CI/release-owner input. Final QA
-  artifact digests are APK `4dc69752ea3de7365de2b4178c24f9e31f7e8b26ac2e90188ab78708508b988c` and
-  AAB `90cf2041a54dcfecad48f17f2cf8e96a249d34638d33d2b540346adb0e2b8eda`. On the API-35 ARM64
-  emulator, the rebuilt debug APK installed, Home opened the Atelier through its intended card,
-  the local WebView resumed, and the isolated log showed no app fatal or WebGL texture warnings.
+- **Final release-candidate gate (2026-09-20):** `assembleRelease`, `bundleRelease`,
+  `testReleaseUnitTest` and `lintRelease` pass for `v0.6.0-rc.2` with the temporary QA-only
+  keystore; the APK passes APK Signature Scheme v2 and ZIP alignment verification, and the AAB
+  passes `jarsigner`. Final QA artifact digests are APK
+  `494b33c802230b0651310592fa8629d63fe0d55cef7a6b36cdbb7c319bbd268d` and AAB
+  `8964f27a5d2577a17f5ee65510c958384d02fc3e7e3aaae0f49d99d1e0b3dc45`. The production key remains
+  a CI/release-owner input; these artifacts must not be distributed.
 - **Asset reproducibility gate (2026-09-18):** the Atelier exporter now canonicalizes float
   attributes and accessor bounds before GLB serialization. Regenerating both the original study
   models and all five arrow-reference families produces a clean worktree; CI and the release job
