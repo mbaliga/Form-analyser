@@ -205,9 +205,11 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 ### 3.5 Releases
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`
 (all of the above in one APK) · `v0.5.1` (reconciled onto `main`'s `crocodyl.engine` package rename).
-The current hardening branch is an unreleased **`0.6.0-spec-dev`** build: the manual scoring wedge is
-implemented, release signing is fail-closed, Room schemas are exportable, and the recovery flow is
-explicit — but full device/range acceptance still needs verification before publishing it.
+The current hardening branch keeps the development default **`0.6.0-spec-dev`** metadata, with a
+QA-validated release candidate **`0.6.0-rc.2`** (versionCode 602) recorded above. The manual scoring
+wedge is implemented, release signing is fail-closed, Room schemas are exportable, and the recovery
+flow is explicit. Public publishing still requires the production signing identity and full
+device/range acceptance.
 
 Going forward, releases track the Phased Implementation Plan's ladder (§5.1 of that doc): `0.6.0`
 manual-scoring wedge → `0.7.x` form/End-Scan/Live-Observer → `0.8.0` exchange → `0.9.0` Coach →
@@ -229,18 +231,18 @@ Range ergonomics and the executable [release acceptance checklist](docs/crocodyl
 remain open; the checklist records the device matrix, resilience cases, 30-session volume, and
 sign-off criteria.
 
-### 4.2 AI coach polish
+### 4.2 Post-RC roadmap — AI coach polish (out of scope for 0.6 release acceptance)
 - **On-device model UX:** today the user must supply a Gemma `.task`/`.bin` model file through the
   system picker; import now validates extension/size, hashes and atomically publishes a private
   copy, but a guided licensed download/import flow (and possibly bundling a small default) remains.
 - Streaming responses, token/cost display, per-provider model-list refresh.
 
-### 4.3 Design system
+### 4.3 Post-RC roadmap — design system (out of scope for 0.6 release acceptance)
 - Wire **`dev.aarso:hyle`** as a real published dependency instead of ported token constants.
 - Hand-drawn body-atlas SVG art to replace the schematic rounded-rects (the integrity suite is the
   contract; the override seam is ready).
 
-### 4.4 Deferred within Phases 1–3 (logged)
+### 4.4 Deferred within Phases 1–3 (logged; out of scope for 0.6 release acceptance)
 - Hilt DI (kept manual to de-risk blind compilation).
 - Broader ViewModel/UI suites remain open; the generated Room-schema/privacy boundary is now covered
   by `PrivacyRegistrySchemaTest`, and migration/recovery by `AppDatabaseMigrationTest`.
@@ -311,10 +313,11 @@ recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 
 ## 6. TL;DR
 Phases 1–3 + the AI coach + Phase-4 tuning + Phase-5 export + the manual scoring wedge are **built and
-pure-JVM green**, with Android packaging configured for **0.6.0-spec-dev**. What remains before
-calling the current scope production-grade is **on-device behavioural verification**, release QA and
-signing validation, on-device-model UX, the real Hyle dependency, and the deferred/future-phase work
-above. The paid Baseline channels (EEG, bow-IMU, advanced analytics)
+pure-JVM/Android-test green**, with a QA-validated **0.6.0-rc.2** artifact. What remains before public
+release is **production-key signing, physical-device/accessibility/thermal/battery verification,
+camera/interruption/range acceptance, and owner sign-off**. Guided on-device-model distribution, the
+real Hyle dependency, and the deferred/future-phase work above are explicitly post-RC roadmap items,
+not hidden release blockers. The paid Baseline channels (EEG, bow-IMU, advanced analytics)
 stay out of Crocodyl's git history — that separation is unchanged — though Baseline itself is now
 understood to be open-source, gated by entitlement rather than by a closed repo (§1).
 
