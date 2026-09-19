@@ -7,7 +7,7 @@ Repository: `mbaliga/Form-analyser`
 Branch: `codex/production-hardening`
 
 Pull request: [#11 — Make Crocodyl visually rich and athlete-focused](https://github.com/mbaliga/Form-analyser/pull/11), open into `main`
-The earlier `feat/immersive-visuals` handoff was integrated into this branch; latest release-evidence commit: `44a9c23` (`docs(release): record final fletching smoke evidence`).
+The earlier `feat/immersive-visuals` handoff was integrated into this branch; latest release-evidence commit: `700d1bd` (`ci(release): verify packaged version metadata`).
 
 This is the execution index for the next Codex pass. It records what is real in the current branch, what the verification evidence proves, and the exact order for continuing the arrow-first work. It does not approve any generic mesh as the owner's equipment.
 
@@ -93,6 +93,9 @@ The active contract test also regenerates the library in a temporary directory a
 The original equipment pipeline has its own generator, GLB contract tests and browser evidence. Treat `docs/crocodyl/atelier-previews/verification.json` and `CINEMATIC_VERIFICATION_2026-09-17.md` as evidence for that separate original-study pack, not as evidence that the owner’s arrow has been modelled.
 
 For this handoff, the active and original Python contract suites plus `git diff --check` passed locally. The active library was regenerated twice with identical output after adding the 416 stainless, adjustable-module and scaled-fletching components. The browser smoke harness now explicitly checks the new point and fletching controls. No fresh browser result was produced in this checkout because Node/Chromium tooling (`node`, `xvfb-run`) is not installed here; the committed JSON report remains the existing real-Chromium evidence, while the updated harness is the required rerun when those tools are available. The corrected fletching path was separately exercised through the Android emulator WebView, and the Android release-candidate build/test/lint gates passed with the QA-only signing identity.
+
+The release workflows now fail closed on generated-asset drift and packaged version metadata. The
+former branch-specific taxonomy baker is read-only and cannot auto-commit or push generated files.
 
 These checks do not establish:
 

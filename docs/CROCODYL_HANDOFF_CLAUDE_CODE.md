@@ -9,7 +9,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 Branch: `codex/production-hardening`
 
 Latest implementation commit: `44a0bac fix(atelier): scale fletching studies for mobile`
-Latest evidence commit: `44a9c23 docs(release): record final fletching smoke evidence`
+Latest evidence commit: `700d1bd ci(release): verify packaged version metadata`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -61,3 +61,5 @@ The exact owner-arrow catalog is intentionally not complete. The one-piece harde
 - `2663615` — add the fletching reference taxonomy and eighth studio selector.
 - `44a0bac` — scale fletching studies for mobile and regenerate the canonical GLB.
 - `44a9c23` — record final fletching smoke evidence and release status.
+- `c57f1a7` — make arrow-taxonomy validation read-only and reject generated-asset drift.
+- `700d1bd` — verify packaged APK version metadata in the release workflow.
