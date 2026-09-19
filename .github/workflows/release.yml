@@ -104,6 +104,8 @@ jobs:
           "$ZIPALIGN" -c -P 16 4 "$APK"
           jarsigner -verify "$AAB"
           "$AAPT2" dump xmltree "$APK" --file AndroidManifest.xml > release-manifest.txt
+          BADGING="$("$AAPT2" dump badging "$APK")"
+          printf '%s\n' "$BADGING" | grep -F "versionCode='${{ steps.ver.outputs.version_code }}' versionName='${{ steps.ver.outputs.version }}'"
           grep -Eq 'usesCleartextTraffic.*=false' release-manifest.txt
           grep -Eq 'allowBackup.*=false' release-manifest.txt
           grep -A8 -B3 'androidx.core.content.FileProvider' release-manifest.txt | grep -Eq 'exported.*=false'

@@ -117,6 +117,8 @@ and the blueprint’s later phases
 - The legacy arrow-taxonomy baker was converted from a branch-specific write-capable workflow into
   a read-only validation workflow on pull requests, `main`, and `release/**`. It now rejects
   generated GLB drift before browser QA and cannot auto-commit or push generated assets.
+- The release verifier now also fails if the packaged APK's `versionCode` or `versionName` differs
+  from the release branch/input metadata; the local `0.6.0-rc.2` APK passed this check.
 
 ## Historical recon findings
 
