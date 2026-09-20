@@ -167,6 +167,9 @@ release-boundary contract.
 - VaultTest now covers Tink-backed encrypt/decrypt round trips, plaintext exclusion, SHA-256/size
   metadata, associated-data rejection and cleanup of failed decrypted views in both Android
   variants.
+- ModelInstallTest now also verifies that model inventory ignores stale staging and undersized files
+  and that path-like display names are sanitized into the private model directory; both Android
+  variants pass.
 
 ## Historical recon findings
 
