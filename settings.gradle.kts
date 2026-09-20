@@ -8,6 +8,7 @@ pluginManagement {
 rootProject.name = "form-analyser"
 include(":engine")
 include(":archery-module")
+include(":fencing-module")
 include(":core-model")
 include(":core-equipment")
 include(":core-wellness")

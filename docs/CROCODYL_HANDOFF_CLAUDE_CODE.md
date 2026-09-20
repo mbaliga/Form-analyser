@@ -46,6 +46,12 @@ The local release artifacts are QA-signed only. A production release still requi
 
 The exact owner-arrow catalog is intentionally not complete. The one-piece hardened 416 stainless glue-in point, adjustable glue-in bullet weight modules, and independent fletching taxonomy are now represented as separately named generic taxonomy components, with source/provenance and deterministic contract coverage. The next in-scope work is intake and approval of one exact owner arrow. Do not expand the recurve collection or infer component compatibility while doing so.
 
+The next milestone is now scaffolded without disturbing that work: `fencing-module` defines Sabre,
+Foil and Epee plus provisional Prêt/Allez/point-call referee state, and the Android Home surface
+shows Fencing Studies and Community Directory cards. See
+[`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`](crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md)
+and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory/README.md).
+
 ## Recommended continuation order
 
 1. Read `docs/crocodyl/atelier/CODEX_HANDOFF.md`, `docs/crocodyl/visuals/ARROW_FIRST_ART_DIRECTION.md`, `docs/crocodyl/visuals/LANCASTER_ARROW_REFERENCE_LEDGER.md`, and `docs/crocodyl/RELEASE_ACCEPTANCE_CHECKLIST.md`.

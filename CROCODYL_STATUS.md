@@ -5,6 +5,10 @@ _Last updated: 2026-09-20 · current branch: **codex/production-hardening** (lat
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
 
+## Next milestone — Fencing and open ecosystem
+
+The near-term follow-on is scaffolded in [`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`](docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md): Sabre, Foil and Epee, a two-fencer referee mode for **Prêt**, **Allez** and point calls, visible cinematic/equipment cards before live capture, and a provenance-aware directory for coaches, training centres and stores. The sport module and Android entry points are present; referee vision, web ingestion, advanced-search adoption and Nooz news adapters are not live yet.
+
 > **Product direction is now governed by `docs/crocodyl/blueprint/`** (Product Blueprint v2.1: 
 > [`01-product-direction.md`](docs/crocodyl/blueprint/01-product-direction.md),
 > [`02-architecture-requirements-roadmap-ux.md`](docs/crocodyl/blueprint/02-architecture-requirements-roadmap-ux.md))
