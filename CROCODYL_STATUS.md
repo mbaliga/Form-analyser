@@ -175,8 +175,9 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   not an owner-approved arrow or a compatibility/catalog claim.
 - **Final release-candidate gate (2026-09-20):** `assembleRelease`, `bundleRelease`,
   `testReleaseUnitTest` and `lintRelease` pass for `v0.6.0-rc.2` with the temporary QA-only
-  keystore; the APK passes APK Signature Scheme v2 and ZIP alignment verification, and the AAB
-  passes `jarsigner`. Final QA artifact digests are APK
+  keystore. The new real-device instrumentation smoke contract also passes 2/2 on API-35; the APK
+  passes APK Signature Scheme v2 and ZIP alignment verification, and the AAB passes `jarsigner`.
+  Final QA artifact digests are APK
   `494b33c802230b0651310592fa8629d63fe0d55cef7a6b36cdbb7c319bbd268d` and AAB
   `8964f27a5d2577a17f5ee65510c958384d02fc3e7e3aaae0f49d99d1e0b3dc45`. The production key remains
   a CI/release-owner input; these artifacts must not be distributed.

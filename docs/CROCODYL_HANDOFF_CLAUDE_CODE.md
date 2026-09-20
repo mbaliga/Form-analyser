@@ -10,6 +10,7 @@ Branch: `codex/production-hardening`
 
 Latest implementation commit: `44a0bac fix(atelier): scale fletching studies for mobile`
 Latest evidence commit: `9b1c84a docs(qa): record current-tree emulator replay`
+Latest test-hardening commit: `9cd7bdd test(android): add release emulator smoke contract`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -23,6 +24,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 - Root JVM suite: `./gradlew test --offline --no-daemon` — passed.
 - Android debug/release unit tests and `lintRelease` — passed.
+- Android instrumentation smoke contract — 2/2 passed on the API-35 ARM64 emulator; CI and the
+  signed release workflow now run it on a fresh API-35 emulator.
 - Atelier asset contracts: `test_assets.py` (8), `test_arrow_library.py` (4), `test_arrow_reference_library.py` (7) — passed.
 - Original and arrow-reference generators were rerun twice and produced no tracked drift.
 - QA release APK and AAB built with a throwaway local QA keystore; APK v2 signature, AAB `jarsigner`, manifest/security checks and ZIP alignment passed.
@@ -67,3 +70,4 @@ The exact owner-arrow catalog is intentionally not complete. The one-piece harde
 - `c57f1a7` — make arrow-taxonomy validation read-only and reject generated-asset drift.
 - `700d1bd` — verify packaged APK version metadata in the release workflow.
 - `9b1c84a` — record the current-tree emulator navigation and clean-log replay.
+- `9cd7bdd` — add the release emulator smoke contract and wire it into Android/release CI.
