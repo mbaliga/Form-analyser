@@ -70,6 +70,29 @@ class ModelInstallTest {
         }
     }
 
+    @Test
+    fun modelListingIgnoresStagingAndUndersizedFilesAndSanitizesNames() {
+        val bytes = ByteArray(ModelInstall.MIN_MODEL_BYTES.toInt()) { (it % 239).toByte() }
+        val source = tempSource("source.task", bytes)
+        val modelDir = File(context.filesDir, "on-device-models").apply { mkdirs() }
+        val stale = File(modelDir, ".stale.partial").apply { writeBytes(bytes) }
+        val undersized = File(modelDir, "broken.task").apply { writeBytes(ByteArray(4)) }
+        var installed: String? = null
+        try {
+            installed = ModelInstall.install(context, Uri.fromFile(source), "../selected model.task")
+            val installedPath = requireNotNull(installed)
+            assertTrue(File(installedPath).parentFile?.canonicalFile == modelDir.canonicalFile)
+            assertTrue(ModelInstall.installedModels(context).contains(installedPath))
+            assertFalse(ModelInstall.installedModels(context).contains(stale.absolutePath))
+            assertFalse(ModelInstall.installedModels(context).contains(undersized.absolutePath))
+        } finally {
+            installed?.let { ModelInstall.remove(context, it) }
+            stale.delete()
+            undersized.delete()
+            source.delete()
+        }
+    }
+
     private fun tempSource(name: String, bytes: ByteArray): File =
         File(context.cacheDir, "${UUID.randomUUID()}-$name").apply {
             parentFile?.mkdirs()
