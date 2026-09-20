@@ -8,9 +8,9 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `5e29fdc fix(android): harden minified release startup smoke`
-Latest evidence commit: `fc92ab6 docs(release): refresh post-smoke artifact evidence`
-Latest test-hardening commit: `9cd7bdd test(android): add release emulator smoke contract`
+Latest implementation commit: `c97db86 feat(android): expose fencing and community directory shells`
+Latest evidence commit: `b3e39f8 docs(fencing): record release scaffold audit`
+Latest test-hardening commit: `0274c24 test(android): cover fencing and directory shells`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -24,7 +24,7 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 - Root JVM suite: `./gradlew test --offline --no-daemon` — passed.
 - Android debug/release unit tests and `lintRelease` — passed.
-- Android instrumentation smoke contract — 2/2 passed on the API-35 ARM64 emulator; the Android
+- Android instrumentation smoke contract — 3/3 passed on the API-35 ARM64 emulator; the Android
   workflow runs it on a fresh API-35 emulator. The signed release workflow separately installs the
   minified APK and verifies direct launcher startup, process liveness and fatal/class-loading logs.
 - Atelier asset contracts: `test_assets.py` (8), `test_arrow_library.py` (4), `test_arrow_reference_library.py` (7) — passed.
@@ -39,6 +39,10 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   Atelier. The accessibility tree exposed all eight selectors and the complete fletching component
   set; a post-clear isolated log contained no fatal, uncaught-JavaScript, WebGL or Chromium error.
 - Fresh browser verification was not possible in this environment because Node/Chromium are unavailable. The committed real-Chromium report from the visual handoff remains at `docs/crocodyl/arrow-reference-previews/verification.json`.
+- Fencing scaffold audit: the Home card, Community Directory card, Fencing activity, three weapon
+  shells and referee vocabulary are visible and covered by the 3/3 Android smoke suite. QA release
+  build `0.6.0-fencing-scaffold` (versionCode 603) also passed release minification, lint, packaging
+  and direct cold start; see `docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md` for digests and scope.
 
 ## Important release boundary
 
