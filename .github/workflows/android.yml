@@ -26,6 +26,9 @@ on:
       - "*.gradle.kts"
       - ".github/workflows/android.yml"
 
+permissions:
+  contents: read
+
 jobs:
   assemble:
     runs-on: ubuntu-latest
