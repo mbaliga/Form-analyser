@@ -106,8 +106,8 @@ and the blueprint’s later phases
   `assembleRelease`, `bundleRelease`, `testReleaseUnitTest` and `lintRelease`. The build passed
   R8/resource shrinking, release lint, and packaging with the throwaway QA keystore.
 - The resulting APK SHA-256 is
-  `494b33c802230b0651310592fa8629d63fe0d55cef7a6b36cdbb7c319bbd268d`; the AAB SHA-256 is
-  `8964f27a5d2577a17f5ee65510c958384d02fc3e7e3aaae0f49d99d1e0b3dc45`. `apksigner verify`,
+  `1ff643bcc67058f45ec55e04843cd70c2ae6036acb4d4c599704678e2b7bbd43`; the AAB SHA-256 is
+  `3eb3a8e6509a5b5dad3a3bcd587c9525b76d8f483d6e36cf2f944d31ec17b7e7`. `apksigner verify`,
   `zipalign -c -P 16 -v 4`, and `jarsigner -verify` each exited successfully. The signatures are
   QA-only evidence, not a production signing identity.
 - The remaining release gates are external: production keystore/CI identity and final versioning,
