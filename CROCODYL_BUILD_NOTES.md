@@ -154,6 +154,10 @@ tools/release/verify_android_release.sh preflight and called by release.yml, cov
 version metadata, APK/AAB signatures, alignment, cleartext/backup/FileProvider policy, model hash,
 backup-rule resources and staging-file rejection. This keeps local replay and CI on the same
 release-boundary contract.
+- The Android debug and release unit suites passed after adding
+  app-android/src/test/.../ArcheryAnalyzerTest.kt. The tests cover feature JSON persistence through
+  the Android JSON runtime and the app bridge from good-shot samples to a ready baseline and
+  deviation result; the Robolectric runner prevents false failures from the unmocked SDK JSON stub.
 
 ## Historical recon findings
 

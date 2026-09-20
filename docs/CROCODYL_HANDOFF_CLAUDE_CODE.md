@@ -10,7 +10,7 @@ Branch: `codex/production-hardening`
 
 Latest implementation commit: `c97db86 feat(android): expose fencing and community directory shells`
 Latest evidence commit: `f4c0dcb ci(release): centralize Android artifact preflight`
-Latest test-hardening commit: `0274c24 test(android): cover fencing and directory shells`
+Latest test-hardening commit: `8c7271a test(android): cover analyzer persistence bridge`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -46,6 +46,9 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - The reusable `tools/release/verify_android_release.sh` preflight was run against that APK/AAB and
   passed metadata, signing, alignment, manifest privacy, model-hash, backup-resource and staging-file
   checks. The release workflow now calls this same script.
+- Android debug and release unit suites pass with ArcheryAnalyzer persistence/baseline bridge
+  coverage in `ArcheryAnalyzerTest`; the test runs under Robolectric because the bridge uses
+  Android's JSON implementation.
 
 ## Important release boundary
 
@@ -87,3 +90,4 @@ and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory
 - `9cd7bdd` — add the release emulator smoke contract and wire it into Android/release CI.
 - `fc92ab6` — refresh final rc.2 artifact digests and acceptance evidence after the smoke gate.
 - `f4c0dcb` — centralize Android release artifact preflight in CI and local tooling.
+- `8c7271a` — cover persisted analyzer features and baseline scoring at the Android app boundary.
