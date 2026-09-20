@@ -119,37 +119,11 @@ jobs:
               exit 1
             fi
       - name: Verify signed release artifacts
+        env:
+          EXPECTED_VERSION_CODE: ${{ steps.ver.outputs.version_code }}
+          EXPECTED_VERSION_NAME: ${{ steps.ver.outputs.version }}
         run: |
-          APK="$(find app-android/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print -quit)"
-          AAB="$(find app-android/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' -print -quit)"
-          test -s "$APK"
-          test -s "$AAB"
-          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
-          AAPT2="$(find "$ANDROID_HOME/build-tools" -type f -name aapt2 -print | sort -V | tail -n 1)"
-          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -type f -name zipalign -print | sort -V | tail -n 1)"
-          test -x "$APKSIGNER"
-          test -x "$AAPT2"
-          test -x "$ZIPALIGN"
-          "$APKSIGNER" verify --verbose "$APK"
-          "$ZIPALIGN" -c -P 16 4 "$APK"
-          jarsigner -verify "$AAB"
-          "$AAPT2" dump xmltree "$APK" --file AndroidManifest.xml > release-manifest.txt
-          BADGING="$("$AAPT2" dump badging "$APK")"
-          printf '%s\n' "$BADGING" | grep -F "versionCode='${{ steps.ver.outputs.version_code }}' versionName='${{ steps.ver.outputs.version }}'"
-          grep -Eq 'usesCleartextTraffic.*=false' release-manifest.txt
-          grep -Eq 'allowBackup.*=false' release-manifest.txt
-          grep -A8 -B3 'androidx.core.content.FileProvider' release-manifest.txt | grep -Eq 'exported.*=false'
-          unzip -l "$APK" | grep -q 'assets/pose_landmarker_lite.task'
-          unzip -l "$AAB" | grep -q 'base/assets/pose_landmarker_lite.task'
-          POSE_SHA256='59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a'
-          test "$(unzip -p "$APK" assets/pose_landmarker_lite.task | sha256sum | cut -d' ' -f1)" = "$POSE_SHA256"
-          test "$(unzip -p "$AAB" base/assets/pose_landmarker_lite.task | sha256sum | cut -d' ' -f1)" = "$POSE_SHA256"
-          unzip -l "$AAB" | grep -q 'base/res/xml/backup_rules.xml'
-          unzip -l "$AAB" | grep -q 'base/res/xml/data_extraction_rules.xml'
-          if unzip -l "$APK" | grep -Eq '\.partial([[:space:]]|$)' || unzip -l "$AAB" | grep -Eq '\.partial([[:space:]]|$)'; then
-            echo 'Release bundle contains a staging file.' >&2
-            exit 1
-          fi
+          tools/release/verify_android_release.sh "$(find app-android/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print -quit)" "$(find app-android/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' -print -quit)"
       - name: Rename release artifacts
         # Release outputs live under the release variant; keep the public filenames stable.
         run: |

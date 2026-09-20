@@ -149,6 +149,12 @@ and the blueprint’s later phases
   alignment, AAB verification, and direct minified cold-start smoke passed. These are QA-only
   artifacts and do not replace the public `0.6.0-rc.2` release candidate or production-device gates.
 
+The release artifact checks are now maintained in the version-controlled
+tools/release/verify_android_release.sh preflight and called by release.yml, covering expected
+version metadata, APK/AAB signatures, alignment, cleartext/backup/FileProvider policy, model hash,
+backup-rule resources and staging-file rejection. This keeps local replay and CI on the same
+release-boundary contract.
+
 ## Historical recon findings
 
 These notes capture the initial blind-build investigation. They are retained for provenance; the
