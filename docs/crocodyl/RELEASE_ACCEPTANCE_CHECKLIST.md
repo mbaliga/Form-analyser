@@ -45,6 +45,13 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
   release APK returned `Status: ok` from `am start -W`, retained a live process after three seconds,
   and emitted no fatal app-process or class-loading error. The signed release workflow repeats this
   startup smoke on a fresh API-35 emulator.
+- Fencing/ecosystem scaffold audit: QA build `0.6.0-fencing-scaffold` (versionCode 603), 2026-09-20,
+  tester: Codex. Pure-JVM tests, Android unit tests, connected instrumentation and release checks
+  passed; connected instrumentation was 3/3. APK SHA-256:
+  `64cacf12109913f07f9b7db86d134badbfb6d0bdf800b44fb469e9d0af242d8`; AAB SHA-256:
+  `8fc21f816cc9ea38ea6b53c7bd2765e4609b6500aff9cfb0ef7fe3d6ae81a1fd`. This validates only the
+  non-live scaffold and does not count as physical-device, camera, referee-vision, directory, or
+  production-signing acceptance.
 
 ## 2. P0 functional flows
 

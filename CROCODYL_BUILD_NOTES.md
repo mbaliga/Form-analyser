@@ -134,6 +134,21 @@ and the blueprint’s later phases
   Android workflow runs these contracts through a fresh API-35 emulator; the signed-release workflow
   installs the minified artifact and runs the separate direct launch smoke before publishing.
 
+## Fencing and ecosystem scaffold validation addendum — 2026-09-20
+
+- The Sabre/Foil/Epee module, referee-call domain model, Android weapon-card shell, and community
+  directory shell are included without changing the production Recurve capture path. The scaffold
+  is intentionally non-live: referee vision, web scraping, user submissions, advanced-search
+  adoption, Baseline adapters, and Nooz news ingestion remain future work.
+- Pure-JVM tests, Android debug unit tests, connected instrumentation, release unit tests and
+  release lint passed for the scaffold build. Connected smoke passed 3/3 on the API-35 ARM64
+  emulator; the QA audit used `0.6.0-fencing-scaffold` (versionCode 603). APK SHA-256:
+  `64cacf12109913f07f9b7db86d134badbfb6d0bdf800b44fb469e9d0af242d8`.
+- Matching AAB SHA-256:
+  `8fc21f816cc9ea38ea6b53c7bd2765e4609b6500aff9cfb0ef7fe3d6ae81a1fd`. APK v2 signing, zip
+  alignment, AAB verification, and direct minified cold-start smoke passed. These are QA-only
+  artifacts and do not replace the public `0.6.0-rc.2` release candidate or production-device gates.
+
 ## Historical recon findings
 
 These notes capture the initial blind-build investigation. They are retained for provenance; the
