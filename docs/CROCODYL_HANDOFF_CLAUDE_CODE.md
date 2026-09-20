@@ -10,7 +10,7 @@ Branch: `codex/production-hardening`
 
 Latest implementation commit: `c97db86 feat(android): expose fencing and community directory shells`
 Latest evidence commit: `f4c0dcb ci(release): centralize Android artifact preflight`
-Latest test-hardening commit: `06de23b test(android): lock down backup and manifest privacy`
+Latest test-hardening commit: `617771d test(android): cover durable database recovery notice`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -52,6 +52,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - `ManifestSecurityTest` also passes in both variants, covering the committed cleartext/backup/
   FileProvider manifest policy and backup-rule sources; packaged policy remains checked by release
   preflight.
+- `AppDatabaseMigrationTest` now covers durable reset-notice state and explicit dismissal in both
+  variants, in addition to migration and recovery-byte preservation.
 
 ## Important release boundary
 
@@ -95,3 +97,4 @@ and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory
 - `f4c0dcb` — centralize Android release artifact preflight in CI and local tooling.
 - `8c7271a` — cover persisted analyzer features and baseline scoring at the Android app boundary.
 - `06de23b` — lock down backup, cleartext and FileProvider privacy policy in Android tests.
+- `617771d` — cover durable database recovery notices and explicit dismissal.

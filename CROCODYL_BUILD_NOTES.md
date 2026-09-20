@@ -161,6 +161,9 @@ release-boundary contract.
 - The same debug/release suites now include ManifestSecurityTest, which locks the committed
   cleartext/backup/FileProvider policy and both backup-rule XML sources. Packaged manifest and
   resource checks remain enforced independently by the release preflight.
+- AppDatabaseMigrationTest now also verifies that a reset notice and preserved recovery path remain
+  durable across reads until the athlete explicitly dismisses the notice; debug and release suites
+  pass with this recovery contract.
 
 ## Historical recon findings
 
