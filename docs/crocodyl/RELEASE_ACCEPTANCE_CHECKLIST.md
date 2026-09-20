@@ -94,9 +94,9 @@ leaks private data, or leaves the user unable to recover without clearing app st
 
 ## 5. Release sign-off
 
-- [ ] `./gradlew test` passes.
-- [ ] `:app-android:testDebugUnitTest` and `:app-android:testReleaseUnitTest` pass with `-PwithAndroid`.
-- [ ] `:app-android:lintRelease` has zero errors and zero warnings.
+- [x] `./gradlew test` passes (local verification recorded in the handoff/build notes).
+- [x] `:app-android:testDebugUnitTest` and `:app-android:testReleaseUnitTest` pass with `-PwithAndroid` (2026-09-20; includes analyzer persistence/baseline bridge tests).
+- [x] `:app-android:lintRelease` has zero errors and zero warnings (local QA release audit).
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, and absence of staging files.
