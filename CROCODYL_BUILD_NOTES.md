@@ -164,6 +164,9 @@ release-boundary contract.
 - AppDatabaseMigrationTest now also verifies that a reset notice and preserved recovery path remain
   durable across reads until the athlete explicitly dismisses the notice; debug and release suites
   pass with this recovery contract.
+- VaultTest now covers Tink-backed encrypt/decrypt round trips, plaintext exclusion, SHA-256/size
+  metadata, associated-data rejection and cleanup of failed decrypted views in both Android
+  variants.
 
 ## Historical recon findings
 
