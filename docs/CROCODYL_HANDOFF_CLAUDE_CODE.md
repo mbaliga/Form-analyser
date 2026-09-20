@@ -9,7 +9,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 Branch: `codex/production-hardening`
 
 Latest implementation commit: `c97db86 feat(android): expose fencing and community directory shells`
-Latest evidence commit: `b3e39f8 docs(fencing): record release scaffold audit`
+Latest evidence commit: `f4c0dcb ci(release): centralize Android artifact preflight`
 Latest test-hardening commit: `0274c24 test(android): cover fencing and directory shells`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
@@ -43,6 +43,9 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   shells and referee vocabulary are visible and covered by the 3/3 Android smoke suite. QA release
   build `0.6.0-fencing-scaffold` (versionCode 603) also passed release minification, lint, packaging
   and direct cold start; see `docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md` for digests and scope.
+- The reusable `tools/release/verify_android_release.sh` preflight was run against that APK/AAB and
+  passed metadata, signing, alignment, manifest privacy, model-hash, backup-resource and staging-file
+  checks. The release workflow now calls this same script.
 
 ## Important release boundary
 
@@ -83,3 +86,4 @@ and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory
 - `9b1c84a` — record the current-tree emulator navigation and clean-log replay.
 - `9cd7bdd` — add the release emulator smoke contract and wire it into Android/release CI.
 - `fc92ab6` — refresh final rc.2 artifact digests and acceptance evidence after the smoke gate.
+- `f4c0dcb` — centralize Android release artifact preflight in CI and local tooling.
