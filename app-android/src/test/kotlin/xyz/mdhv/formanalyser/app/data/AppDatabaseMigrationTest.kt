@@ -92,6 +92,26 @@ class AppDatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun resetNoticeIsDurableUntilExplicitlyDismissed() {
+        val backupPath = context.filesDir.resolve("db-recovery/test-backup").absolutePath
+        try {
+            DbRecovery.dismissNotice(context)
+            assertTrue(DbRecovery.pendingNotice(context) == null)
+
+            DbRecovery.markReset(context, backupPath)
+            val pending = DbRecovery.pendingNotice(context)
+            assertNotNull(pending)
+            assertTrue(requireNotNull(pending).resetAtMs > 0L)
+            assertEquals(backupPath, pending.backupPath)
+
+            DbRecovery.dismissNotice(context)
+            assertTrue(DbRecovery.pendingNotice(context) == null)
+        } finally {
+            DbRecovery.dismissNotice(context)
+        }
+    }
+
     private fun legacyV1Helper(name: String): SupportSQLiteOpenHelper =
         FrameworkSQLiteOpenHelperFactory().create(
             SupportSQLiteOpenHelper.Configuration.builder(context)
