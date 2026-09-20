@@ -26,6 +26,13 @@ Point — left fencer · Point — right fencer` vocabulary. This is scaffold vi
 The Android instrumentation contract now also launches both the Fencing and Community Directory
 activities so a future UI change cannot silently break either entry point.
 
+Release-variant scaffold audit: QA build `0.6.0-fencing-scaffold` (versionCode 603) passed
+`bundleRelease`, `assembleRelease`, `testReleaseUnitTest` and `lintRelease`, plus APK v2 signature,
+ZIP alignment, AAB verification and direct minified cold start. APK SHA-256:
+`64cacf12109913f07f9b7db86d134badbfb6d0b0df800b44fb469e9d0af242d8`; AAB SHA-256:
+`8fc21f816cc9ea38ea6b53c7bd2765e4609b6500aff9cfb0ef7fe3d6ae81a1fd`. These are throwaway QA
+artifacts for scaffold validation, not distribution artifacts.
+
 Referee mode will require a validated two-fencer capture pipeline, piste calibration, weapon-aware
 right-of-way rules, explicit uncertainty handling, and a human-referee correction path. No scraping or
 automatic match adjudication is enabled by this scaffold.
