@@ -43,6 +43,16 @@ jobs:
         run: ./gradlew :app-android:testDebugUnitTest :app-android:testReleaseUnitTest -PwithAndroid --no-daemon
       - name: Run Android lint
         run: ./gradlew :app-android:lintRelease -PwithAndroid --no-daemon
+      - name: Run on-device Android smoke tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon
       - name: Assemble debug APK
         run: ./gradlew :app-android:assembleDebug -PwithAndroid --no-daemon
       - name: Upload Android test results

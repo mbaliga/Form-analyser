@@ -73,6 +73,7 @@ android {
         targetSdk = 35
         versionCode = configuredVersionCode
         versionName = configuredVersionName
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     // A committed debug keystore so every CI build is signed with the SAME key. Without this,
     // assembleDebug uses the auto-generated ~/.android/debug.keystore, which GitHub Actions
@@ -182,6 +183,9 @@ dependencies {
     testImplementation("androidx.test:core:1.6.1")
     testImplementation("androidx.room:room-testing:2.6.1")
     testImplementation("org.robolectric:robolectric:4.14.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:rules:1.6.1")
 }
 
 // Room's schema JSON is a migration fixture, not a disposable build artifact. Keeping it in the

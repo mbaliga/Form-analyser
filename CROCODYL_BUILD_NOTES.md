@@ -124,6 +124,10 @@ and the blueprint’s later phases
   Atelier, selected Fletching after horizontal navigation, and observed every fletching component
   label in the accessibility tree. After clearing logcat, the launch and Atelier path produced no
   fatal exception, uncaught JavaScript error, WebGL error or Chromium error.
+- The Android module now has two real-device instrumentation contracts: launcher startup and the
+  offline Atelier WebView origin/security settings. Both passed on the API-35 emulator. The Android
+  and signed-release workflows run these tests through a fresh API-35 emulator before packaging or
+  publishing artifacts.
 
 ## Historical recon findings
 
