@@ -32,6 +32,16 @@ class ProductionSmokeTest {
     }
 
     @Test
+    fun sportAndDirectoryShellsLaunchWithoutProcessFailure() {
+        ActivityScenario.launch(FencingActivity::class.java).use { fencing ->
+            fencing.onActivity { activity -> assertTrue(activity.isFinishing.not()) }
+        }
+        ActivityScenario.launch(CommunityDirectoryActivity::class.java).use { directory ->
+            directory.onActivity { activity -> assertTrue(activity.isFinishing.not()) }
+        }
+    }
+
+    @Test
     fun equipmentAtelierUsesBundledOfflineStudioContract() {
         ActivityScenario.launch(EquipmentAtelierActivity::class.java).use { scenario ->
             val instrumentation = InstrumentationRegistry.getInstrumentation()

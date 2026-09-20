@@ -23,6 +23,8 @@ cards and equipment metadata without disturbing the arrow reference studio.
 Local API-35 smoke evidence: the Home accessibility tree exposed `Sabre · Foil · Epee` and
 `COMMUNITY DIRECTORY`; opening Fencing exposed all three weapon cards and the rendered `Prêt · Allez ·
 Point — left fencer · Point — right fencer` vocabulary. This is scaffold visibility evidence only.
+The Android instrumentation contract now also launches both the Fencing and Community Directory
+activities so a future UI change cannot silently break either entry point.
 
 Referee mode will require a validated two-fencer capture pipeline, piste calibration, weapon-aware
 right-of-way rules, explicit uncertainty handling, and a human-referee correction path. No scraping or

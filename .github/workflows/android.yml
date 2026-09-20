@@ -5,6 +5,7 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "fencing-module/**"
       - "core-*/**"
       - "gradle/**"
       - "gradle.properties"
@@ -16,6 +17,7 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "fencing-module/**"
       - "core-*/**"
       - "gradle/**"
       - "gradle.properties"

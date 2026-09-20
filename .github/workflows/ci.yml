@@ -5,6 +5,7 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "fencing-module/**"
       # `./gradlew test` covers every pure-JVM module, but this workflow only fired for the two
       # above — so the core-* suites (scoring, athlete, wellness, coach, equipment, exchange, body)
       # never ran in CI at all.
@@ -20,6 +21,7 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "fencing-module/**"
       # `./gradlew test` covers every pure-JVM module, but this workflow only fired for the two
       # above — so the core-* suites (scoring, athlete, wellness, coach, equipment, exchange, body)
       # never ran in CI at all.
