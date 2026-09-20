@@ -6,6 +6,11 @@
 #/AGP stack is upgraded.
 -dontoptimize
 
+# Kotlin runtime types are resolved by AndroidX test's component-factory bridge when the minified
+# release APK is exercised under instrumentation. Keep the runtime contract explicit; debug builds
+# masked this dependency because the unminified APK retained the full stdlib transitively.
+-keep class kotlin.** { *; }
+
 # Room instantiates the database implementation generated from AppDatabase.
 -keep class xyz.mdhv.formanalyser.app.data.AppDatabase_Impl { *; }
 
