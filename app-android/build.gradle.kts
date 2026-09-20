@@ -133,6 +133,7 @@ dependencies {
     // The free engine + archery module — local project dependencies, no external repo.
     implementation(project(":engine"))
     implementation(project(":archery-module"))
+    implementation(project(":fencing-module"))
     // Pure-JVM cores (Phase 1+): shared model + equipment/poundage/wellness/body math.
     implementation(project(":core-model"))
     implementation(project(":core-equipment"))

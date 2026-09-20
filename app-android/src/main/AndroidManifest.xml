@@ -42,6 +42,14 @@
             android:name=".EquipmentAtelierActivity"
             android:exported="false"
             android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".FencingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".CommunityDirectoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FormAnalyser" />
 
         <!--
           Grants temporary access to an explicitly shared archive or an explicitly captured

@@ -13,6 +13,8 @@ import xyz.mdhv.formanalyser.app.domain.HomeViewModel
 import xyz.mdhv.formanalyser.app.ui.components.AthleteActionTile
 import xyz.mdhv.formanalyser.app.ui.components.CrocodylHero
 import xyz.mdhv.formanalyser.app.ui.components.EquipmentAtelierCard
+import xyz.mdhv.formanalyser.app.ui.components.FencingStudiesCard
+import xyz.mdhv.formanalyser.app.ui.components.CommunityDirectoryCard
 import xyz.mdhv.formanalyser.app.ui.components.ScoreActionIcon
 import xyz.mdhv.formanalyser.app.ui.theme.*
 
@@ -83,6 +85,8 @@ fun HomeScreen(
             }
         }
         item { EquipmentAtelierCard() }
+        item { FencingStudiesCard() }
+        item { CommunityDirectoryCard() }
         item {
             OutlinedButton(onClick = onLog, modifier = Modifier.fillMaxWidth()) {
                 Text("+ Log — wellness, rest, more")
