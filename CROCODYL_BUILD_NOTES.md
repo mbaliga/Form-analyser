@@ -106,10 +106,15 @@ and the blueprint’s later phases
   `assembleRelease`, `bundleRelease`, `testReleaseUnitTest` and `lintRelease`. The build passed
   R8/resource shrinking, release lint, and packaging with the throwaway QA keystore.
 - The resulting APK SHA-256 is
-  `1ff643bcc67058f45ec55e04843cd70c2ae6036acb4d4c599704678e2b7bbd43`; the AAB SHA-256 is
-  `3eb3a8e6509a5b5dad3a3bcd587c9525b76d8f483d6e36cf2f944d31ec17b7e7`. `apksigner verify`,
+  `3aefac4f4138de33313c10cc8b0dd9efe02370b619c5eb74e0c5b23525a66e85`; the AAB SHA-256 is
+  `2b43deecf044d7ec2f8b4c430c4390a59fb72d643b4602a65c94e4adc7d1eeb7`. `apksigner verify`,
   `zipalign -c -P 16 -v 4`, and `jarsigner -verify` each exited successfully. The signatures are
   QA-only evidence, not a production signing identity.
+- The minified QA APK was installed on the API-35 ARM64 emulator and cold-started through
+  `xyz.mdhv.formanalyser/.app.MainActivity`; `am start -W` returned `Status: ok`, a live process
+  remained after three seconds, and the isolated log contained no fatal app-process or class-loading
+  error. The signed release workflow now repeats this direct launch smoke on a fresh API-35 emulator;
+  the richer launcher/offline-Atelier contract remains in the debug instrumentation workflow.
 - The remaining release gates are external: production keystore/CI identity and final versioning,
   owner approval, physical-device/accessibility/thermal/battery checks, real camera/range tests,
   and the required acceptance matrix. The current generic arrow-reference studio is not an exact
@@ -125,9 +130,9 @@ and the blueprint’s later phases
   label in the accessibility tree. After clearing logcat, the launch and Atelier path produced no
   fatal exception, uncaught JavaScript error, WebGL error or Chromium error.
 - The Android module now has two real-device instrumentation contracts: launcher startup and the
-  offline Atelier WebView origin/security settings. Both passed on the API-35 emulator. The Android
-  and signed-release workflows run these tests through a fresh API-35 emulator before packaging or
-  publishing artifacts.
+  offline Atelier WebView origin/security settings. Both passed 2/2 on the API-35 emulator. The
+  Android workflow runs these contracts through a fresh API-35 emulator; the signed-release workflow
+  installs the minified artifact and runs the separate direct launch smoke before publishing.
 
 ## Historical recon findings
 

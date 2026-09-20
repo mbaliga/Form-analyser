@@ -32,8 +32,8 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
   successfully; Home → Equipment Atelier → horizontal selector → Fletching rendered the complete
   scaled taxonomy with no fatal, uncaught-JavaScript or WebGL error in the isolated log. The
   minified QA release candidate is `0.6.0-rc.2` (versionCode 602): APK
-  `1ff643bcc67058f45ec55e04843cd70c2ae6036acb4d4c599704678e2b7bbd43`; AAB
-  `3eb3a8e6509a5b5dad3a3bcd587c9525b76d8f483d6e36cf2f944d31ec17b7e7`. APK signature,
+  `3aefac4f4138de33313c10cc8b0dd9efe02370b619c5eb74e0c5b23525a66e85`; AAB
+  `2b43deecf044d7ec2f8b4c430c4390a59fb72d643b4602a65c94e4adc7d1eeb7`. APK signature,
   ZIP alignment and AAB verification passed. These artifacts use a throwaway QA keystore, not the
   production release identity, and this remains evidence rather than physical-device/range sign-off.
 - On-device instrumentation replay: API-35 ARM64 emulator, 2026-09-20, tester: Codex. The
@@ -41,6 +41,10 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
   the bundled `https://crocodyl.local/atelier/` origin, JavaScript availability, disabled file and
   content access, and blocked network loads. This is emulator evidence, not the required physical
   device matrix.
+- Minified release launch replay: API-35 ARM64 emulator, 2026-09-20, tester: Codex. The QA-signed
+  release APK returned `Status: ok` from `am start -W`, retained a live process after three seconds,
+  and emitted no fatal app-process or class-loading error. The signed release workflow repeats this
+  startup smoke on a fresh API-35 emulator.
 
 ## 2. P0 functional flows
 

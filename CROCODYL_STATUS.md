@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last updated: 2026-09-20 · current branch: **codex/production-hardening** (latest evidence `fc92ab6`) · release validation: **v0.6.0-rc.2** (versionCode 602, QA-signed)_
+_Last updated: 2026-09-20 · current branch: **codex/production-hardening** (latest hardening `5e29fdc`) · release validation: **v0.6.0-rc.2** (versionCode 602, QA-signed)_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -175,11 +175,12 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   not an owner-approved arrow or a compatibility/catalog claim.
 - **Final release-candidate gate (2026-09-20):** `assembleRelease`, `bundleRelease`,
   `testReleaseUnitTest` and `lintRelease` pass for `v0.6.0-rc.2` with the temporary QA-only
-  keystore. The new real-device instrumentation smoke contract also passes 2/2 on API-35; the APK
-  passes APK Signature Scheme v2 and ZIP alignment verification, and the AAB passes `jarsigner`.
-  Final QA artifact digests are APK
-  `1ff643bcc67058f45ec55e04843cd70c2ae6036acb4d4c599704678e2b7bbd43` and AAB
-  `3eb3a8e6509a5b5dad3a3bcd587c9525b76d8f483d6e36cf2f944d31ec17b7e7`. The production key remains
+  keystore. The real-device instrumentation smoke contract passes 2/2 on API-35; the minified
+  release APK also cold-starts directly with a live process and a clean isolated fatal/class-loading
+  log. The APK passes APK Signature Scheme v2 and ZIP alignment verification, and the AAB passes
+  `jarsigner`. Final QA artifact digests are APK
+  `3aefac4f4138de33313c10cc8b0dd9efe02370b619c5eb74e0c5b23525a66e85` and AAB
+  `2b43deecf044d7ec2f8b4c430c4390a59fb72d643b4602a65c94e4adc7d1eeb7`. The production key remains
   a CI/release-owner input; these artifacts must not be distributed.
 - **Asset reproducibility gate (2026-09-18):** the Atelier exporter now canonicalizes float
   attributes and accessor bounds before GLB serialization. Regenerating both the original study

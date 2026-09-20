@@ -96,8 +96,10 @@ For this handoff, the active and original Python contract suites plus `git diff 
 
 The release workflows now fail closed on generated-asset drift and packaged version metadata. The
 former branch-specific taxonomy baker is read-only and cannot auto-commit or push generated files.
-The Android and signed-release workflows also run the real-device smoke contract for launcher
-startup and the offline Atelier WebView boundary; the local API-35 run passed 2/2 tests.
+The Android workflow runs the real-device smoke contract for launcher startup and the offline Atelier
+WebView boundary; the local API-35 run passed 2/2 tests. The signed-release workflow separately
+installs the minified release APK and verifies direct launcher startup, process liveness and clean
+fatal/class-loading logs.
 
 These checks do not establish:
 

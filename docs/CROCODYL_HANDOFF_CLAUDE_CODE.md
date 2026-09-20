@@ -8,7 +8,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `44a0bac fix(atelier): scale fletching studies for mobile`
+Latest implementation commit: `5e29fdc fix(android): harden minified release startup smoke`
 Latest evidence commit: `fc92ab6 docs(release): refresh post-smoke artifact evidence`
 Latest test-hardening commit: `9cd7bdd test(android): add release emulator smoke contract`
 
@@ -24,15 +24,16 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 - Root JVM suite: `./gradlew test --offline --no-daemon` — passed.
 - Android debug/release unit tests and `lintRelease` — passed.
-- Android instrumentation smoke contract — 2/2 passed on the API-35 ARM64 emulator; CI and the
-  signed release workflow now run it on a fresh API-35 emulator.
+- Android instrumentation smoke contract — 2/2 passed on the API-35 ARM64 emulator; the Android
+  workflow runs it on a fresh API-35 emulator. The signed release workflow separately installs the
+  minified APK and verifies direct launcher startup, process liveness and fatal/class-loading logs.
 - Atelier asset contracts: `test_assets.py` (8), `test_arrow_library.py` (4), `test_arrow_reference_library.py` (7) — passed.
 - Original and arrow-reference generators were rerun twice and produced no tracked drift.
 - QA release APK and AAB built with a throwaway local QA keystore; APK v2 signature, AAB `jarsigner`, manifest/security checks and ZIP alignment passed.
 - Release candidate `v0.6.0-rc.2` (versionCode 602) was rebuilt with `assembleRelease`,
   `bundleRelease`, `testReleaseUnitTest` and `lintRelease`. APK SHA-256:
-  `1ff643bcc67058f45ec55e04843cd70c2ae6036acb4d4c599704678e2b7bbd43`; AAB SHA-256:
-  `3eb3a8e6509a5b5dad3a3bcd587c9525b76d8f483d6e36cf2f944d31ec17b7e7`.
+  `3aefac4f4138de33313c10cc8b0dd9efe02370b619c5eb74e0c5b23525a66e85`; AAB SHA-256:
+  `2b43deecf044d7ec2f8b4c430c4390a59fb72d643b4602a65c94e4adc7d1eeb7`.
 - Final debug APK (`a25c5ec863be8cbe731c508b94e2c9986c104b3574b849682b37e53729124461`) was installed on the API-35 ARM64 emulator and exercised through Home → Equipment Atelier → Fletching. The corrected scaled family rendered; no fatal exception, uncaught JavaScript error, or WebGL error was observed.
 - A current-tree replay also exercised Home, Train, Progress, Body and Calendar before reopening the
   Atelier. The accessibility tree exposed all eight selectors and the complete fletching component
