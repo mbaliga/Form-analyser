@@ -10,7 +10,7 @@ Branch: `codex/production-hardening`
 
 Latest implementation commit: `c97db86 feat(android): expose fencing and community directory shells`
 Latest evidence commit: `f4c0dcb ci(release): centralize Android artifact preflight`
-Latest test-hardening commit: `8c7271a test(android): cover analyzer persistence bridge`
+Latest test-hardening commit: `06de23b test(android): lock down backup and manifest privacy`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
@@ -49,6 +49,9 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - Android debug and release unit suites pass with ArcheryAnalyzer persistence/baseline bridge
   coverage in `ArcheryAnalyzerTest`; the test runs under Robolectric because the bridge uses
   Android's JSON implementation.
+- `ManifestSecurityTest` also passes in both variants, covering the committed cleartext/backup/
+  FileProvider manifest policy and backup-rule sources; packaged policy remains checked by release
+  preflight.
 
 ## Important release boundary
 
@@ -91,3 +94,4 @@ and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory
 - `fc92ab6` — refresh final rc.2 artifact digests and acceptance evidence after the smoke gate.
 - `f4c0dcb` — centralize Android release artifact preflight in CI and local tooling.
 - `8c7271a` — cover persisted analyzer features and baseline scoring at the Android app boundary.
+- `06de23b` — lock down backup, cleartext and FileProvider privacy policy in Android tests.

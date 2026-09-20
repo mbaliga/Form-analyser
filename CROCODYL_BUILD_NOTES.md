@@ -158,6 +158,9 @@ release-boundary contract.
   app-android/src/test/.../ArcheryAnalyzerTest.kt. The tests cover feature JSON persistence through
   the Android JSON runtime and the app bridge from good-shot samples to a ready baseline and
   deviation result; the Robolectric runner prevents false failures from the unmocked SDK JSON stub.
+- The same debug/release suites now include ManifestSecurityTest, which locks the committed
+  cleartext/backup/FileProvider policy and both backup-rule XML sources. Packaged manifest and
+  resource checks remain enforced independently by the release preflight.
 
 ## Historical recon findings
 
