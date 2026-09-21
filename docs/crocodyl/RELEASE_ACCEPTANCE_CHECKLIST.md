@@ -53,6 +53,12 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
   non-live scaffold and does not count as physical-device, camera, referee-vision, directory, or
   production-signing acceptance.
 
+Full current-tree verification: 2026-09-21, tester: Codex. Root JVM tests, Android debug/release
+unit tests and release lint completed successfully. Connected instrumentation was rerun as
+verification build 0.6.0-verification (versionCode 604) and passed 3/3 on API-35 ARM64
+emulator-5554. The separate release artifact audit remains recorded for the QA-signed scaffold
+build; this verification build is not a production-signed release.
+
 ## 2. P0 functional flows
 
 Run on each applicable device. A failure is release-blocking if it crashes, loses persisted data,

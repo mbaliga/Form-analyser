@@ -173,6 +173,10 @@ release-boundary contract.
 - The ordinary Android and JVM test workflows now declare contents-read-only GitHub permissions.
   The release workflow retains the narrower contents-write permission required only to publish
   signed release artifacts.
+- Full current-tree verification on 2026-09-21 completed the root JVM suite, Android debug/release
+  unit suites and release lint. The connected smoke was then rerun with verification version
+  0.6.0-verification (versionCode 604) after clearing the emulator's stale downgrade state and
+  passed 3/3 tests on API-35 ARM64 emulator-5554.
 
 ## Historical recon findings
 
