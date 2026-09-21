@@ -177,6 +177,8 @@ release-boundary contract.
   unit suites and release lint. The connected smoke was then rerun with verification version
   0.6.0-verification (versionCode 604) after clearing the emulator's stale downgrade state and
   passed 3/3 tests on API-35 ARM64 emulator-5554.
+- The release workflow now publishes a SHA-256 manifest alongside each APK/AAB, so a downloaded
+  artifact can be checked against the exact bytes produced by the signed build.
 
 ## Historical recon findings
 
