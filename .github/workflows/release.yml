@@ -98,6 +98,21 @@ jobs:
           CROCODYL_RELEASE_KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
           CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
         run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid --no-daemon -PcrocodylVersionName="${{ steps.ver.outputs.version }}" -PcrocodylVersionCode="${{ steps.ver.outputs.version_code }}"
+      - name: Run on-device smoke tests against signed minified release
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore
+          CROCODYL_RELEASE_STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          CROCODYL_RELEASE_KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="${{ steps.ver.outputs.version }}" -PcrocodylVersionCode="${{ steps.ver.outputs.version_code }}"
       - name: Run minified release smoke tests
         uses: reactivecircus/android-emulator-runner@v2
         with:

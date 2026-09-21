@@ -50,6 +50,7 @@ val configuredVersionName = providers.gradleProperty("crocodylVersionName")
     .orElse("0.6.0-spec-dev")
     .get()
     .also { require(it.isNotBlank()) { "crocodylVersionName must not be blank" } }
+val instrumentRelease = providers.gradleProperty("crocodylInstrumentRelease").isPresent
 
 plugins {
     id("com.android.application")
@@ -67,6 +68,9 @@ repositories {
 android {
     namespace = "xyz.mdhv.formanalyser.app"
     compileSdk = 35
+    // Keep ordinary CI on the fast debug contract. The release workflow opts in after signing so
+    // the same on-device smoke suite also exercises the minified production variant.
+    testBuildType = if (instrumentRelease) "release" else "debug"
     defaultConfig {
         applicationId = "xyz.mdhv.formanalyser"
         minSdk = 26

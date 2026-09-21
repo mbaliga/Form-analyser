@@ -79,6 +79,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - The release preflight now requires the `CROCODYL_RELEASE_CERT_SHA256` secret and compares the
   normalized signer fingerprint in both APK and AAB. Configure it to the production certificate
   before publishing; a QA certificate is acceptable only for explicitly labeled local validation.
+- Release CI now opts into `connectedReleaseAndroidTest` after signing through
+  `-PcrocodylInstrumentRelease=true`; the existing debug workflow remains unchanged.
 
 ## Important release boundary
 

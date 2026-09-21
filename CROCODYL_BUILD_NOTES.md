@@ -68,6 +68,8 @@ and the blueprint’s later phases
   certificate fingerprint independently in the signed APK and AAB. A valid signature with the wrong
   keystore is therefore rejected; the production workflow must configure this secret before it can
   publish. QA-only local checks may supply the QA certificate fingerprint explicitly.
+- The release workflow now opts into `connectedReleaseAndroidTest` after signing, so the on-device
+  smoke contract runs against the minified release variant as well as the ordinary debug variant.
 
 ## Hardening addendum — 2026-09-18
 
