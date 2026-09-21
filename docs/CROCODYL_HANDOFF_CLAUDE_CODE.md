@@ -9,7 +9,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 Branch: `codex/production-hardening`
 
 Latest implementation commit: `c97db86 feat(android): expose fencing and community directory shells`
-Latest evidence commit: `f4c0dcb ci(release): centralize Android artifact preflight`
+Latest evidence commit: `7d55776 docs(release): record full current-tree verification`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
@@ -60,6 +60,9 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   in both variants, preserving the atomic private model boundary.
 - The Android and JVM test workflows explicitly request only `contents: read`; only the release
   workflow retains `contents: write` for publishing artifacts.
+- Full current-tree verification on 2026-09-21 passed root JVM tests, Android debug/release unit
+  tests, release lint, and connected instrumentation 3/3 on API-35 ARM64 emulator-5554 using
+  verification versionCode 604.
 
 ## Important release boundary
 
@@ -107,3 +110,4 @@ and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory
 - `d62d0f7` — cover encrypted vault boundaries and authenticated view cleanup.
 - `3add644` — harden model inventory and filename-sanitization contracts.
 - `58941f3` — restrict ordinary CI workflows to read-only repository permissions.
+- `7d55776` — record the full current-tree verification and clean emulator smoke replay.
