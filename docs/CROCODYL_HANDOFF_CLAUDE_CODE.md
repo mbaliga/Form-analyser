@@ -9,7 +9,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 Branch: `codex/production-hardening`
 
 Latest implementation commit: `21d52bd test(android): cover share export publication cleanup`
-Latest evidence commit: `3821338 docs(handoff): link device acceptance run sheet`
+Latest evidence commit: `bc5b421 docs(release): record post-hardening verification matrix`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
