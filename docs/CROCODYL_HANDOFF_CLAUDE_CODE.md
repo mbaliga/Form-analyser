@@ -8,8 +8,8 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `b3a91bb ci(android): instrument signed minified release`
-Latest evidence commit: `2fe9040 docs(release): add production release runbook`
+Latest implementation commit: `e48398b feat(fencing): add manual referee console`
+Latest evidence commit: `f5fae36 docs(fencing): record manual console validation`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
@@ -42,10 +42,12 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   Atelier. The accessibility tree exposed all eight selectors and the complete fletching component
   set; a post-clear isolated log contained no fatal, uncaught-JavaScript, WebGL or Chromium error.
 - Fresh browser verification was not possible in this environment because Node/Chromium are unavailable. The committed real-Chromium report from the visual handoff remains at `docs/crocodyl/arrow-reference-previews/verification.json`.
-- Fencing scaffold audit: the Home card, Community Directory card, Fencing activity, three weapon
-  shells and referee vocabulary are visible and covered by the 3/3 Android smoke suite. QA release
-  build `0.6.0-fencing-scaffold` (versionCode 603) also passed release minification, lint, packaging
-  and direct cold start; see `docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md` for digests and scope.
+- Fencing audit: the Home card, Community Directory card, Fencing activity, three weapon selectors,
+  weapon metadata, manual two-fencer console, score, call history, undo/reset and referee vocabulary
+  are visible and covered by the 3/3 Android smoke suite. Pure-JVM tests cover the state core; the
+  minified release connected suite also passed 3/3 with the QA-only signing substitute. Automatic
+  camera adjudication remains explicitly out of scope for this slice; see
+  `docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`.
 - The reusable `tools/release/verify_android_release.sh` preflight was run against that APK/AAB and
   passed metadata, signing, alignment, manifest privacy, model-hash, backup-resource and staging-file
   checks. The release workflow now calls this same script.

@@ -61,6 +61,12 @@ verification build 0.6.0-verification (versionCode 604) and passed 3/3 on API-35
 emulator-5554. The separate release artifact audit remains recorded for the QA-signed scaffold
 build; this verification build is not a production-signed release.
 
+Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee console state core
+(weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected
+smoke passed 3/3 with verification versionCode 607; minified release connected smoke passed 3/3
+with QA-only version `0.6.0-fencing-manual` (versionCode 606). This validates the manual console
+slice only; it is not camera adjudication, physical-device, or production-signing acceptance.
+
 ## 2. P0 functional flows
 
 Run on each applicable device. A failure is release-blocking if it crashes, loses persisted data,
