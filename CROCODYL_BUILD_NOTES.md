@@ -70,6 +70,9 @@ and the blueprint’s later phases
   publish. QA-only local checks may supply the QA certificate fingerprint explicitly.
 - The release workflow now opts into `connectedReleaseAndroidTest` after signing, so the on-device
   smoke contract runs against the minified release variant as well as the ordinary debug variant.
+- Local QA validation of that path passed 3/3 on the API-35 ARM64 emulator on 2026-09-21 using the
+  committed debug keystore only as a QA signing substitute; this is minified-runtime evidence, not
+  production-key evidence.
 
 ## Hardening addendum — 2026-09-18
 

@@ -81,6 +81,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   before publishing; a QA certificate is acceptable only for explicitly labeled local validation.
 - Release CI now opts into `connectedReleaseAndroidTest` after signing through
   `-PcrocodylInstrumentRelease=true`; the existing debug workflow remains unchanged.
+- The same task passed 3/3 locally on API-35 ARM64 with a QA-only debug-keystore signature; retain
+  that result as minified-runtime evidence and do not treat it as production-signing acceptance.
 
 ## Important release boundary
 
