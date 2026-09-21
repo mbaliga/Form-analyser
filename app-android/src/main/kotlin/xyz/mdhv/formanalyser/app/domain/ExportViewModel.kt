@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import java.io.File
 import java.io.OutputStream
 import java.security.MessageDigest
-import java.util.UUID
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.Dispatchers
@@ -157,17 +156,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                         val dir = File(app.cacheDir, SHARE_DIR).apply { mkdirs() }
                         dir.listFiles()?.forEach { it.delete() }
                         val file = File(dir, SUGGESTED_FILENAME)
-                        val staging = File(dir, ".${UUID.randomUUID()}.partial")
-                        val message =
-                            try {
-                                val result = staging.outputStream().use { writeArchive(it) }
-                                check(staging.renameTo(file)) { "Could not publish share export" }
-                                result
-                            } catch (t: Throwable) {
-                                runCatching { staging.delete() }
-                                runCatching { file.delete() }
-                                throw t
-                            }
+                        val message = ShareExportPublisher.publish(file) { writeArchive(it) }
                         val uri =
                             FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
                         uri to message
