@@ -12,10 +12,11 @@ enum class FencingWeapon(
     val displayName: String,
     val targetSummary: String,
     val priorityRule: String,
+    val equipmentSummary: String,
 ) {
-    SABRE("sabre", "Sabre", "Head, torso and arms", "Right of way"),
-    FOIL("foil", "Foil", "Torso", "Right of way"),
-    EPEE("epee", "Epee", "Whole body", "First valid touch"),
+    SABRE("sabre", "Sabre", "Head, torso and arms", "Right of way", "Electric sabre, lamé jacket and conductive mask bib"),
+    FOIL("foil", "Foil", "Torso", "Right of way", "Electric foil, lamé jacket and conductive mask bib"),
+    EPEE("epee", "Epee", "Whole body", "First valid touch", "Electric epee and full-body scoring target"),
 }
 
 enum class FencerSide { LEFT, RIGHT }
@@ -39,6 +40,17 @@ enum class RefereeCall(val spoken: String) {
     DOUBLE_TOUCH("Double touch"),
 }
 
+enum class RefereePhase { READY, IN_PROGRESS, HALTED }
+
+data class RefereeMatchState(
+    val weapon: FencingWeapon,
+    val phase: RefereePhase,
+    val leftScore: Int,
+    val rightScore: Int,
+    val lastDecision: RefereeDecision?,
+    val history: List<RefereeDecision>,
+)
+
 data class RefereeDecision(
     val call: RefereeCall,
     val weapon: FencingWeapon,
@@ -54,28 +66,66 @@ data class RefereeDecision(
  */
 class RefereeModeSession(val weapon: FencingWeapon) {
     private var started = false
+    private var phase = RefereePhase.READY
+    private var leftScore = 0
+    private var rightScore = 0
+    private val history = mutableListOf<RefereeDecision>()
 
-    fun ready(): RefereeDecision = RefereeDecision(RefereeCall.PRET, weapon)
+    fun ready(): RefereeDecision {
+        started = false
+        phase = RefereePhase.READY
+        return record(RefereeDecision(RefereeCall.PRET, weapon))
+    }
 
     fun start(): RefereeDecision {
         started = true
-        return RefereeDecision(RefereeCall.ALLEZ, weapon)
+        phase = RefereePhase.IN_PROGRESS
+        return record(RefereeDecision(RefereeCall.ALLEZ, weapon))
     }
 
     fun halt(): RefereeDecision {
         started = false
-        return RefereeDecision(RefereeCall.HALT, weapon)
+        phase = RefereePhase.HALTED
+        return record(RefereeDecision(RefereeCall.HALT, weapon))
     }
 
     fun award(side: FencerSide, confidence: Double? = null): RefereeDecision {
         check(started) { "A point cannot be awarded before Allez" }
         require(confidence == null || confidence in 0.0..1.0) { "confidence must be 0..1" }
-        return RefereeDecision(
+        val decision = RefereeDecision(
             call = if (side == FencerSide.LEFT) RefereeCall.POINT_LEFT else RefereeCall.POINT_RIGHT,
             weapon = weapon,
             pointWinner = side,
             confidence = confidence,
         )
+        if (side == FencerSide.LEFT) leftScore++ else rightScore++
+        started = false
+        phase = RefereePhase.HALTED
+        return record(decision)
+    }
+
+    fun undoLastPoint(): RefereeDecision? {
+        val index = history.indexOfLast { it.pointWinner != null }
+        if (index < 0) return null
+        val point = history.removeAt(index)
+        if (point.pointWinner == FencerSide.LEFT) leftScore-- else rightScore--
+        return point
+    }
+
+    fun reset() {
+        started = false
+        phase = RefereePhase.READY
+        leftScore = 0
+        rightScore = 0
+        history.clear()
+    }
+
+    fun snapshot(): RefereeMatchState =
+        RefereeMatchState(weapon, phase, leftScore, rightScore, history.lastOrNull(), history.toList())
+
+    private fun record(decision: RefereeDecision): RefereeDecision {
+        history += decision
+        return decision
     }
 }
 

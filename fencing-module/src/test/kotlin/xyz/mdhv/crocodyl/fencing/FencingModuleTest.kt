@@ -11,6 +11,7 @@ class FencingModuleTest {
         assertEquals(listOf("sabre", "foil", "epee"), FencingWeapon.entries.map { it.id })
         assertEquals("Right of way", FencingWeapon.SABRE.priorityRule)
         assertEquals("Whole body", FencingWeapon.EPEE.targetSummary)
+        assertTrue(FencingWeapon.FOIL.equipmentSummary.contains("lamé"))
     }
 
     @Test
@@ -29,5 +30,37 @@ class FencingModuleTest {
         assertFailsWith<IllegalStateException> {
             RefereeModeSession(FencingWeapon.EPEE).award(FencerSide.LEFT)
         }
+    }
+
+    @Test
+    fun `match tracks score halts after a point and can undo it`() {
+        val session = RefereeModeSession(FencingWeapon.SABRE)
+        session.ready()
+        session.start()
+        session.award(FencerSide.LEFT, confidence = 1.0)
+
+        val afterPoint = session.snapshot()
+        assertEquals(RefereePhase.HALTED, afterPoint.phase)
+        assertEquals(1, afterPoint.leftScore)
+        assertEquals(0, afterPoint.rightScore)
+        assertEquals(RefereeCall.POINT_LEFT, afterPoint.lastDecision?.call)
+
+        assertEquals(RefereeCall.POINT_LEFT, session.undoLastPoint()?.call)
+        val afterUndo = session.snapshot()
+        assertEquals(0, afterUndo.leftScore)
+        assertEquals(0, afterUndo.rightScore)
+    }
+
+    @Test
+    fun `reset clears score and referee history`() {
+        val session = RefereeModeSession(FencingWeapon.EPEE)
+        session.start()
+        session.award(FencerSide.RIGHT)
+        session.reset()
+
+        assertEquals(RefereePhase.READY, session.snapshot().phase)
+        assertEquals(0, session.snapshot().leftScore)
+        assertEquals(0, session.snapshot().rightScore)
+        assertTrue(session.snapshot().history.isEmpty())
     }
 }

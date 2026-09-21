@@ -23,7 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.FencingActivity
 
-/** Visible placeholder card that establishes the Fencing cinematic/equipment surface early. */
+/** Entry card for the Fencing equipment and manual referee surface. */
 @Composable
 fun FencingStudiesCard() {
     val context = LocalContext.current
@@ -49,7 +49,7 @@ fun FencingStudiesCard() {
             Spacer(Modifier.height(10.dp))
             Text("Sabre · Foil · Epee", color = Color.White, style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(8.dp))
-            Text("Equipment cards and referee mode are being prepared", color = Color.White.copy(alpha = .86f))
+            Text("Weapon information and a manual referee console", color = Color.White.copy(alpha = .86f))
         }
     }
 }
