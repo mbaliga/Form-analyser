@@ -9,7 +9,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 Branch: `codex/production-hardening`
 
 Latest implementation commit: `b3a91bb ci(android): instrument signed minified release`
-Latest evidence commit: `5511a31 docs(handoff): refresh release instrumentation pointer`
+Latest evidence commit: `0bcdaf4 docs(status): record release-variant verification`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
