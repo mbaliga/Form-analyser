@@ -1,8 +1,9 @@
 # Crocodyl production release runbook
 
-This runbook is for the current Recurve Android release only. It does not enable the scaffolded
-Fencing referee mode, live community-directory ingestion, Advanced Search/Baseline adapters, or
-Nooz news pipeline; those remain documented roadmap work.
+This runbook is for the current Recurve Android release only. It does not enable automatic Fencing
+camera adjudication, live community-directory ingestion, Advanced Search/Baseline adapters, or the
+Nooz news pipeline; those remain documented roadmap work. The manual Fencing referee console is a
+separate next-target slice and is not a Recurve 0.6 release criterion.
 
 ## Before triggering CI
 

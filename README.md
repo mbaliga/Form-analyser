@@ -29,8 +29,9 @@ gates are recorded in [`docs/crocodyl/RELEASE_ACCEPTANCE_CHECKLIST.md`](docs/cro
 The implementation is **not equivalent to the full product blueprint yet**. Signed `.croc` exchange,
 the paid multi-athlete Coach workspace, static web viewer, fully validated automatic/live scoring,
 complete equipment intelligence, and the complete training/recovery system remain phased work. The
-Fencing and community-directory surfaces are deliberately scaffolded and documented as future work;
-they are not part of the current Recurve release gate.
+The Fencing surface now includes a live manual two-fencer referee console as the next production slice;
+automatic camera adjudication and the community-directory ingestion/contribution system remain
+documented future work and are not part of the current Recurve release gate.
 
 See [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md) for the implementation snapshot and [`docs/crocodyl/`](docs/crocodyl/) for the current product direction and execution plan.
 
