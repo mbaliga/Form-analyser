@@ -23,20 +23,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import xyz.mdhv.crocodyl.fencing.FencerSide
 import xyz.mdhv.crocodyl.fencing.FencingWeapon
 import xyz.mdhv.crocodyl.fencing.RefereeCall
 import xyz.mdhv.crocodyl.fencing.RefereeMatchState
-import xyz.mdhv.crocodyl.fencing.RefereeModeSession
 import xyz.mdhv.crocodyl.fencing.RefereePhase
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 
@@ -50,17 +46,12 @@ class FencingActivity : ComponentActivity() {
 
 @Composable
 private fun FencingScaffold(onBack: () -> Unit) {
-    var selectedId by rememberSaveable { mutableStateOf(FencingWeapon.SABRE.id) }
-    val selectedWeapon = FencingWeapon.entries.first { it.id == selectedId }
-    val session = remember(selectedWeapon) { RefereeModeSession(selectedWeapon) }
-    var state by remember(selectedWeapon) { mutableStateOf(session.snapshot()) }
-    var leftName by rememberSaveable { mutableStateOf("Left fencer") }
-    var rightName by rememberSaveable { mutableStateOf("Right fencer") }
-
-    fun act(action: () -> Unit) {
-        action()
-        state = session.snapshot()
-    }
+    val viewModel: FencingViewModel = viewModel()
+    val uiState by viewModel.state
+    val selectedWeapon = uiState.selectedWeapon
+    val state = uiState.match
+    val leftName = uiState.leftName
+    val rightName = uiState.rightName
 
     Scaffold { padding ->
         LazyColumn(
@@ -83,8 +74,8 @@ private fun FencingScaffold(onBack: () -> Unit) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FencingWeapon.entries.forEach { weapon ->
                         FilterChip(
-                            selected = weapon.id == selectedId,
-                            onClick = { selectedId = weapon.id },
+                            selected = weapon == selectedWeapon,
+                            onClick = { viewModel.selectWeapon(weapon) },
                             label = { Text(weapon.displayName) },
                         )
                     }
@@ -105,14 +96,14 @@ private fun FencingScaffold(onBack: () -> Unit) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
                         value = leftName,
-                        onValueChange = { leftName = it },
+                        onValueChange = viewModel::setLeftName,
                         label = { Text("Left fencer") },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                     )
                     OutlinedTextField(
                         value = rightName,
-                        onValueChange = { rightName = it },
+                        onValueChange = viewModel::setRightName,
                         label = { Text("Right fencer") },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
@@ -129,28 +120,28 @@ private fun FencingScaffold(onBack: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { act { session.ready() } }) { Text(RefereeCall.PRET.spoken) }
+                            OutlinedButton(onClick = viewModel::ready) { Text(RefereeCall.PRET.spoken) }
                             Button(
-                                onClick = { act { session.start() } },
+                                onClick = viewModel::start,
                                 enabled = state.phase != RefereePhase.IN_PROGRESS,
                             ) { Text(RefereeCall.ALLEZ.spoken) }
-                            OutlinedButton(onClick = { act { session.halt() } }) { Text(RefereeCall.HALT.spoken) }
+                            OutlinedButton(onClick = viewModel::halt) { Text(RefereeCall.HALT.spoken) }
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(
-                                onClick = { act { session.award(FencerSide.LEFT) } },
+                                onClick = { viewModel.award(FencerSide.LEFT) },
                                 enabled = state.phase == RefereePhase.IN_PROGRESS,
                                 modifier = Modifier.weight(1f),
                             ) { Text("Point — ${leftName.ifBlank { "left" }}") }
                             Button(
-                                onClick = { act { session.award(FencerSide.RIGHT) } },
+                                onClick = { viewModel.award(FencerSide.RIGHT) },
                                 enabled = state.phase == RefereePhase.IN_PROGRESS,
                                 modifier = Modifier.weight(1f),
                             ) { Text("Point — ${rightName.ifBlank { "right" }}") }
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { act { session.undoLastPoint() } }) { Text("Undo last point") }
-                            OutlinedButton(onClick = { act { session.reset() } }) { Text("Reset match") }
+                            OutlinedButton(onClick = viewModel::undoLastPoint) { Text("Undo last point") }
+                            OutlinedButton(onClick = viewModel::reset) { Text("Reset match") }
                         }
                     }
                 }
