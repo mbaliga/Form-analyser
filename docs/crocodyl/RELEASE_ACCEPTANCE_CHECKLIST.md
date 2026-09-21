@@ -4,6 +4,7 @@ This checklist is the final gate for the current Recurve scope. It is intentiona
 the pure-JVM and packaging checks, which are already automated. Record device model, Android
 version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
+For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
 ## 1. Required device matrix
 

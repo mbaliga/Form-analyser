@@ -14,6 +14,9 @@ Latest test-hardening commit: `3add644 test(android): harden model inventory con
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
 
+The production trigger and signing-secret procedure is captured in
+[`docs/crocodyl/PRODUCTION_RELEASE_RUNBOOK.md`](crocodyl/PRODUCTION_RELEASE_RUNBOOK.md).
+
 ## Current result
 
 Crocodyl is a production candidate for its current Android/local-first scope. The earlier arrow-first visual handoff was integrated and preserved: the generic reference library remains modular by shaft profile, shaft construction, point family and nock/rear interface, with separate component selection and analysis in the local WebGL2 studio. No generic mesh is presented as the owner's equipment.
