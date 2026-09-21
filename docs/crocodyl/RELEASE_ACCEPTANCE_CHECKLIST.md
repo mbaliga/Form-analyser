@@ -69,6 +69,10 @@ slice only; it is not camera adjudication, physical-device, or production-signin
 Android unit suite also covers lifecycle-scoped ViewModel retention, weapon switching and bounded
 fencer labels.
 
+Lifecycle-safe Fencing replay: 2026-09-21, tester: Codex. Debug connected instrumentation passed
+3/3 on API-35 ARM64 with versionCode 608; minified release connected instrumentation passed 3/3
+with QA-only signing as `0.6.0-fencing-vm` (versionCode 609). This is emulator/QA evidence only.
+
 ## 2. P0 functional flows
 
 Run on each applicable device. A failure is release-blocking if it crashes, loses persisted data,

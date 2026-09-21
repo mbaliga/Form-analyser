@@ -53,6 +53,11 @@ Android unit tests also cover ViewModel state retention, weapon switching and bo
 These validate the manual console entry path and state core, not camera adjudication or a production
 signing identity.
 
+On 2026-09-21 the lifecycle-safe build was replayed on the API-35 ARM64 emulator: debug connected
+instrumentation passed 3/3 with versionCode 608, and minified release connected instrumentation
+passed 3/3 with QA-only signing (`0.6.0-fencing-vm`, versionCode 609). These are emulator and QA
+evidence, not physical-device or production-signing acceptance.
+
 ## Community directory
 
 The Home surface now exposes a directory shell for coaches, training centres and stores. The
@@ -62,6 +67,15 @@ yet. A future importer may ingest curated web data, but must retain attribution,
 support user corrections/deletions.
 
 ## Search, baseline and news
+
+The locally available Shared-Libraries-asoc search core was audited at revision
+`597561847bce4ad20d5400d8df8ba1d796378598`; it is Apache-2.0 and publishes pure-JVM
+`dev.aarso:search-core:0.2.0` contracts (`SearchDoc`, `QueryParser`, facet registry and
+`CoverageRecencyScorer`). Baseline's open repository separately defines contracts, ledger and
+descriptive stats, while its Advanced distribution is optional and must not gate the open app.
+Crocodyl therefore keeps the existing integration seams until a repo-pinned submodule/composite-build
+decision is made. No unreviewed filesystem path or network dependency has been added to the
+production build.
 
 `engine.integration.IntegrationPorts.kt` defines the internal seams for:
 
