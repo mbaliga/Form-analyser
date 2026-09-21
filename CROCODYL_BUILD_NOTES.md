@@ -52,6 +52,14 @@ camera/permission/interruption behavior, release artifact verification with the 
 and the blueprint’s later phases
 (validated form calibration, End Scan, signed `.croc`, Coach workspace and web viewer).
 
+## Reliability addendum — 2026-09-21
+
+- Share-for-sharing exports now write to a hidden same-directory `.partial` file and publish with a
+  same-directory rename only after the archive has completed. If archive generation or publication
+  fails, both staging and final paths are cleaned up, preventing an interrupted export from leaving a
+  misleading `.crocbak` cache artifact. SAF exports remain caller-owned URI writes and are unchanged.
+  Android debug and release unit suites passed after this change (`db4747a`).
+
 ## Hardening addendum — 2026-09-18
 
 - Closed the current-scope scoring context gap: sight mark, venue, conditions and training intent are

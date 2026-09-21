@@ -8,8 +8,8 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `c97db86 feat(android): expose fencing and community directory shells`
-Latest evidence commit: `e9b0211 docs(release): add device acceptance run sheet`
+Latest implementation commit: `db4747a fix(android): publish share exports atomically`
+Latest evidence commit: `3821338 docs(handoff): link device acceptance run sheet`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
@@ -68,6 +68,12 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - Physical-device sign-off can be recorded with DEVICE_ACCEPTANCE_RUN_TEMPLATE.md, which mirrors
   the required install, camera, non-camera, volume and defect gates without marking them complete.
 
+- Share-for-sharing exports now stage into a hidden same-directory `.partial` file, publish with a
+  same-directory rename after successful archive creation, and clean up both paths on failure. This
+  protects the cache-backed share flow from interrupted archives; SAF destination writes remain
+  caller-owned and are intentionally outside this atomic-rename path. The debug and release Android
+  unit suites passed after `db4747a`.
+
 ## Important release boundary
 
 The local release artifacts are QA-signed only. A production release still requires the real production keystore/CI identity, final versioning, owner approval, physical-device/accessibility/thermal/battery checks, and range acceptance. Do not distribute the QA-signed artifacts.
@@ -117,3 +123,4 @@ and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory
 - `7d55776` — record the full current-tree verification and clean emulator smoke replay.
 - `e48f419` — publish release artifact SHA-256 checksums.
 - `e9b0211` — add the physical-device acceptance run sheet.
+- `db4747a` — publish cache-backed share exports atomically and clean up failed publications.
