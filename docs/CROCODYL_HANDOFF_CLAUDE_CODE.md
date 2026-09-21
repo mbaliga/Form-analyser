@@ -9,7 +9,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 Branch: `codex/production-hardening`
 
 Latest implementation commit: `e48398b feat(fencing): add manual referee console`
-Latest evidence commit: `f5fae36 docs(fencing): record manual console validation`
+Latest evidence commit: `cd1e226 docs(fencing): update release evidence and handoff`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
