@@ -8,7 +8,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `db4747a fix(android): publish share exports atomically`
+Latest implementation commit: `21d52bd test(android): cover share export publication cleanup`
 Latest evidence commit: `3821338 docs(handoff): link device acceptance run sheet`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
@@ -72,7 +72,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   same-directory rename after successful archive creation, and clean up both paths on failure. This
   protects the cache-backed share flow from interrupted archives; SAF destination writes remain
   caller-owned and are intentionally outside this atomic-rename path. The debug and release Android
-  unit suites passed after `db4747a`.
+  unit suites passed after `21d52bd`; `ShareExportPublisherTest` covers both success and failure
+  cleanup paths.
 
 ## Important release boundary
 
@@ -124,3 +125,4 @@ and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory
 - `e48f419` — publish release artifact SHA-256 checksums.
 - `e9b0211` — add the physical-device acceptance run sheet.
 - `db4747a` — publish cache-backed share exports atomically and clean up failed publications.
+- `21d52bd` — add debug/release regression coverage for share-export publication and cleanup.

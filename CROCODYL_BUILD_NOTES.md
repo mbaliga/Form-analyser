@@ -58,7 +58,8 @@ and the blueprint’s later phases
   same-directory rename only after the archive has completed. If archive generation or publication
   fails, both staging and final paths are cleaned up, preventing an interrupted export from leaving a
   misleading `.crocbak` cache artifact. SAF exports remain caller-owned URI writes and are unchanged.
-  Android debug and release unit suites passed after this change (`db4747a`).
+  `ShareExportPublisherTest` now covers both successful publication and failure cleanup; Android
+  debug and release unit suites passed after this change (`21d52bd`).
 
 ## Hardening addendum — 2026-09-18
 
