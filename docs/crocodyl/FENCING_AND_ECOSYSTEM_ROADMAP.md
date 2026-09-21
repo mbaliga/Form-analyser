@@ -22,6 +22,11 @@ point-right controls, score, auditable call history, undo and reset. Cinematic/e
 is visible before live capture work begins. The next visual slice should add dedicated Sabre/Foil/Epee
 cinematic imagery without disturbing the arrow reference studio.
 
+The console state is lifecycle-scoped in `FencingViewModel`: rotation/recomposition does not erase
+the selected weapon, fencer labels, score or call history. Fencer labels are capped at 40 characters
+for predictable narrow-screen layout. Selecting another weapon intentionally starts a fresh match while
+preserving the entered names.
+
 Local API-35 smoke evidence: the Home accessibility tree exposed `Sabre · Foil · Epee` and
 `COMMUNITY DIRECTORY`; opening Fencing exposed all three weapon cards and the rendered `Prêt · Allez ·
 Point — left fencer · Point — right fencer` vocabulary. This is scaffold visibility evidence only.
@@ -44,6 +49,7 @@ Current implementation evidence: the pure-JVM Fencing suite passes weapon metada
 score tracking, halt-after-point, undo and reset coverage. The Android debug connected smoke passed
 3/3 on API-35 ARM64 with verification versionCode 607, and the signed/minified release connected
 smoke passed 3/3 with the QA-only release substitute (`0.6.0-fencing-manual`, versionCode 606).
+Android unit tests also cover ViewModel state retention, weapon switching and bounded fencer labels.
 These validate the manual console entry path and state core, not camera adjudication or a production
 signing identity.
 

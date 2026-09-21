@@ -8,7 +8,7 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `e48398b feat(fencing): add manual referee console`
+Latest implementation commit: `f10f848 feat(fencing): preserve referee console state`
 Latest evidence commit: `cd1e226 docs(fencing): update release evidence and handoff`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
@@ -45,6 +45,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - Fencing audit: the Home card, Community Directory card, Fencing activity, three weapon selectors,
   weapon metadata, manual two-fencer console, score, call history, undo/reset and referee vocabulary
   are visible and covered by the 3/3 Android smoke suite. Pure-JVM tests cover the state core; the
+  lifecycle-scoped `FencingViewModel` preserves match state across configuration changes and its
+  Android unit tests cover weapon switching and bounded fencer labels. The
   minified release connected suite also passed 3/3 with the QA-only signing substitute. Automatic
   camera adjudication remains explicitly out of scope for this slice; see
   `docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`.

@@ -65,7 +65,9 @@ Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee co
 (weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected
 smoke passed 3/3 with verification versionCode 607; minified release connected smoke passed 3/3
 with QA-only version `0.6.0-fencing-manual` (versionCode 606). This validates the manual console
-slice only; it is not camera adjudication, physical-device, or production-signing acceptance.
+slice only; it is not camera adjudication, physical-device, or production-signing acceptance. The
+Android unit suite also covers lifecycle-scoped ViewModel retention, weapon switching and bounded
+fencer labels.
 
 ## 2. P0 functional flows
 
