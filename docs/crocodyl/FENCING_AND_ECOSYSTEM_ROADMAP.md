@@ -1,7 +1,8 @@
 # Fencing and ecosystem roadmap
 
-Status: scaffolded, not live. This note is the near-immediate follow-on to the production-hardening
-pass and preserves the existing arrow/component Atelier work.
+Status: first manual referee slice live; automatic adjudication and directory ingestion remain
+roadmap work. This note is the near-immediate follow-on to the production-hardening pass and
+preserves the existing arrow/component Atelier work.
 
 ## Fencing
 
@@ -15,10 +16,11 @@ currently defines:
 - Provisional decisions with optional confidence. The scaffold refuses to award a point before
   **Allez**; it does not pretend to infer right-of-way or blade priority.
 
-The Android app now shows a Fencing Studies card on Home and a visible Fencing shell with all three
-weapons plus a disabled referee-mode entry point. Cinematic/equipment cards are intentionally visible
-before live capture work begins. The next visual slice should add dedicated Sabre/Foil/Epee cinematic
-cards and equipment metadata without disturbing the arrow reference studio.
+The Android app now shows a Fencing Studies card on Home and a Fencing console with all three
+weapons, weapon-specific equipment metadata, named fencers, Prêt/Allez/Halte controls, point-left/
+point-right controls, score, auditable call history, undo and reset. Cinematic/equipment information
+is visible before live capture work begins. The next visual slice should add dedicated Sabre/Foil/Epee
+cinematic imagery without disturbing the arrow reference studio.
 
 Local API-35 smoke evidence: the Home accessibility tree exposed `Sabre · Foil · Epee` and
 `COMMUNITY DIRECTORY`; opening Fencing exposed all three weapon cards and the rendered `Prêt · Allez ·
@@ -33,9 +35,17 @@ ZIP alignment, AAB verification and direct minified cold start. APK SHA-256:
 `8fc21f816cc9ea38ea6b53c7bd2765e4609b6500aff9cfb0ef7fe3d6ae81a1fd`. These are throwaway QA
 artifacts for scaffold validation, not distribution artifacts.
 
-Referee mode will require a validated two-fencer capture pipeline, piste calibration, weapon-aware
-right-of-way rules, explicit uncertainty handling, and a human-referee correction path. No scraping or
-automatic match adjudication is enabled by this scaffold.
+The manual console is not automatic match adjudication. Production camera mode will still require a
+validated two-fencer capture pipeline, piste calibration, weapon-aware right-of-way rules, explicit
+uncertainty handling, and a human-referee correction path. No scraping or automatic match adjudication
+is enabled yet.
+
+Current implementation evidence: the pure-JVM Fencing suite passes weapon metadata, Prêt/Allez gate,
+score tracking, halt-after-point, undo and reset coverage. The Android debug connected smoke passed
+3/3 on API-35 ARM64 with verification versionCode 607, and the signed/minified release connected
+smoke passed 3/3 with the QA-only release substitute (`0.6.0-fencing-manual`, versionCode 606).
+These validate the manual console entry path and state core, not camera adjudication or a production
+signing identity.
 
 ## Community directory
 
