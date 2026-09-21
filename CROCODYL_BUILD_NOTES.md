@@ -61,6 +61,10 @@ and the blueprint’s later phases
   `ShareExportPublisherTest` now covers both successful publication and failure cleanup; Android
   debug and release unit suites passed after this change (`21d52bd`).
 
+- Post-hardening verification on 2026-09-21 passed `./gradlew test`,
+  `:app-android:testDebugUnitTest`, `:app-android:testReleaseUnitTest`, and
+  `:app-android:lintRelease` in one offline run after `21d52bd`.
+
 ## Hardening addendum — 2026-09-18
 
 - Closed the current-scope scoring context gap: sight mark, venue, conditions and training intent are

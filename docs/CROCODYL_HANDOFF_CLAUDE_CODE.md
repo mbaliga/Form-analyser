@@ -74,6 +74,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   caller-owned and are intentionally outside this atomic-rename path. The debug and release Android
   unit suites passed after `21d52bd`; `ShareExportPublisherTest` covers both success and failure
   cleanup paths.
+- A post-hardening offline verification run passed the root JVM suite, Android debug/release unit
+  suites, and `lintRelease` together after `21d52bd`.
 
 ## Important release boundary
 
