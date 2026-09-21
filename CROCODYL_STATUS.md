@@ -300,9 +300,10 @@ recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 ---
 
 ## 5. Known caveats
-- **Blind-compiled Android layer:** authored against verified core APIs and green in CI, but this is
-  its first packaging — treat `0.6.0-spec-dev` as a thorough first-pass test build, not a shipped
-  release.
+- **Android release boundary:** the current tree has passed root JVM tests, Android debug/release
+  unit tests, release lint and API-35 ARM64 connected smoke. Treat the QA-signed `0.6.0-rc.2` as
+  validation evidence, not a shipped release, until the production key and physical-device gates
+  are complete.
 - **Dependency pins:** the Android/MediaPipe stack is intentionally held for this release; upgrade
   it as a compatibility-tested maintenance change, not opportunistically during release hardening.
 - **BYOK required for cloud "Ask":** the offline rule-coach needs nothing; cloud insights need a key,
