@@ -170,6 +170,9 @@ release-boundary contract.
 - ModelInstallTest now also verifies that model inventory ignores stale staging and undersized files
   and that path-like display names are sanitized into the private model directory; both Android
   variants pass.
+- The ordinary Android and JVM test workflows now declare contents-read-only GitHub permissions.
+  The release workflow retains the narrower contents-write permission required only to publish
+  signed release artifacts.
 
 ## Historical recon findings
 

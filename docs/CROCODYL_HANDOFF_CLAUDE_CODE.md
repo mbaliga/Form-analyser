@@ -58,6 +58,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   metadata integrity, associated-data rejection and failed-view cleanup.
 - `ModelInstallTest` also covers model inventory filtering and path-like display-name sanitization
   in both variants, preserving the atomic private model boundary.
+- The Android and JVM test workflows explicitly request only `contents: read`; only the release
+  workflow retains `contents: write` for publishing artifacts.
 
 ## Important release boundary
 
@@ -104,3 +106,4 @@ and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory
 - `617771d` — cover durable database recovery notices and explicit dismissal.
 - `d62d0f7` — cover encrypted vault boundaries and authenticated view cleanup.
 - `3add644` — harden model inventory and filename-sanitization contracts.
+- `58941f3` — restrict ordinary CI workflows to read-only repository permissions.
