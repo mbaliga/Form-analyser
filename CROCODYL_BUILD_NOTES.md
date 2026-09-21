@@ -64,6 +64,10 @@ and the blueprint’s later phases
 - Post-hardening verification on 2026-09-21 passed `./gradlew test`,
   `:app-android:testDebugUnitTest`, `:app-android:testReleaseUnitTest`, and
   `:app-android:lintRelease` in one offline run after `21d52bd`.
+- Release preflight now requires `CROCODYL_RELEASE_CERT_SHA256` and compares the normalized
+  certificate fingerprint independently in the signed APK and AAB. A valid signature with the wrong
+  keystore is therefore rejected; the production workflow must configure this secret before it can
+  publish. QA-only local checks may supply the QA certificate fingerprint explicitly.
 
 ## Hardening addendum — 2026-09-18
 

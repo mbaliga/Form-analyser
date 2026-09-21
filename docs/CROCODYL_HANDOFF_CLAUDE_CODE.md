@@ -76,6 +76,9 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   cleanup paths.
 - A post-hardening offline verification run passed the root JVM suite, Android debug/release unit
   suites, and `lintRelease` together after `21d52bd`.
+- The release preflight now requires the `CROCODYL_RELEASE_CERT_SHA256` secret and compares the
+  normalized signer fingerprint in both APK and AAB. Configure it to the production certificate
+  before publishing; a QA certificate is acceptable only for explicitly labeled local validation.
 
 ## Important release boundary
 

@@ -122,6 +122,7 @@ jobs:
         env:
           EXPECTED_VERSION_CODE: ${{ steps.ver.outputs.version_code }}
           EXPECTED_VERSION_NAME: ${{ steps.ver.outputs.version }}
+          EXPECTED_CERT_SHA256: ${{ secrets.CROCODYL_RELEASE_CERT_SHA256 }}
         run: |
           tools/release/verify_android_release.sh "$(find app-android/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print -quit)" "$(find app-android/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' -print -quit)"
       - name: Rename release artifacts

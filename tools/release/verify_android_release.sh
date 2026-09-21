@@ -15,6 +15,10 @@ test -s "$AAB"
 test -n "$ANDROID_HOME"
 test -n "$EXPECTED_VERSION_CODE"
 test -n "$EXPECTED_VERSION_NAME"
+test -n "$EXPECTED_CERT_SHA256"
+
+EXPECTED_CERT_SHA256="$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+printf '%s' "$EXPECTED_CERT_SHA256" | grep -Eq '^[0-9a-f]{64}$'
 
 APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
 AAPT2="$(find "$ANDROID_HOME/build-tools" -type f -name aapt2 -print | sort -V | tail -n 1)"
@@ -27,6 +31,11 @@ test -x "$ZIPALIGN"
 "$ZIPALIGN" -c -P 16 4 "$APK"
 jarsigner -verify "$AAB"
 
+APK_CERT_SHA256="$("$APKSIGNER" verify --print-certs "$APK" | awk -F': ' '/certificate SHA-256 digest:/{print tolower($2); exit}')"
+AAB_CERT_SHA256="$(keytool -printcert -jarfile "$AAB" | awk -F': ' '/SHA256:/{gsub(":", "", $2); print tolower($2); exit}')"
+test "$APK_CERT_SHA256" = "$EXPECTED_CERT_SHA256"
+test "$AAB_CERT_SHA256" = "$EXPECTED_CERT_SHA256"
+
 MANIFEST="$(mktemp /tmp/crocodyl-release-manifest.XXXXXX)"
 trap 'rm -f "$MANIFEST"' EXIT
 "$AAPT2" dump xmltree "$APK" --file AndroidManifest.xml > "$MANIFEST"
@@ -36,14 +45,14 @@ grep -Eq 'usesCleartextTraffic.*=false' "$MANIFEST"
 grep -Eq 'allowBackup.*=false' "$MANIFEST"
 grep -A8 -B3 'androidx.core.content.FileProvider' "$MANIFEST" | grep -Eq 'exported.*=false'
 
-unzip -l "$APK" | grep -q 'assets/pose_landmarker_lite.task'
-unzip -l "$AAB" | grep -q 'base/assets/pose_landmarker_lite.task'
+unzip -l "$APK" | grep 'assets/pose_landmarker_lite.task' >/dev/null
+unzip -l "$AAB" | grep 'base/assets/pose_landmarker_lite.task' >/dev/null
 test "$(unzip -p "$APK" assets/pose_landmarker_lite.task | sha256sum | cut -d' ' -f1)" = "$POSE_SHA256"
 test "$(unzip -p "$AAB" base/assets/pose_landmarker_lite.task | sha256sum | cut -d' ' -f1)" = "$POSE_SHA256"
-unzip -l "$AAB" | grep -q 'base/res/xml/backup_rules.xml'
-unzip -l "$AAB" | grep -q 'base/res/xml/data_extraction_rules.xml'
+unzip -l "$AAB" | grep 'base/res/xml/backup_rules.xml' >/dev/null
+unzip -l "$AAB" | grep 'base/res/xml/data_extraction_rules.xml' >/dev/null
 
-if unzip -l "$APK" | grep -Eq '\.partial([[:space:]]|$)' || unzip -l "$AAB" | grep -Eq '\.partial([[:space:]]|$)'; then
+if unzip -l "$APK" | grep -E '\.partial([[:space:]]|$)' >/dev/null || unzip -l "$AAB" | grep -E '\.partial([[:space:]]|$)' >/dev/null; then
   echo 'Release bundle contains a staging file.' >&2
   exit 1
 fi
