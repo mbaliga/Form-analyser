@@ -69,6 +69,12 @@ and staging-file checks. APK SHA-256:
 `b9fa07f5b40e9c787bc1cfb7f716b9b357a68c6ab5a976aa337af73420f04987`. QA signing is not production
 signing and this remains artifact evidence, not physical-device acceptance.
 
+Repository-side contract replay: 2026-09-22, tester: Codex. Community Directory validation passed
+4/4 tests; Atelier asset contracts passed 8/8; original arrow-library contracts passed 4/4; and
+arrow-reference contracts passed 7/7. ADB connected-device verification was attempted with the
+isolated platform-tools package, but this sandbox rejects the local ADB daemon socket; no connected
+device or emulator result is claimed from this run.
+
 Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee console state core
 (weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected
 smoke passed 3/3 with verification versionCode 607; minified release connected smoke passed 3/3

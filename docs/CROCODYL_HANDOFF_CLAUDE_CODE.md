@@ -39,6 +39,9 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   checks. APK SHA-256: `66fcda10ab31a730db2fd6d9ceac7cc61d06e96c7cca09ad068b93518813e9eb`; AAB
   SHA-256: `b9fa07f5b40e9c787bc1cfb7f716b9b357a68c6ab5a976aa337af73420f04987`. The QA key is not a
   production release identity.
+- Repository-side Python contracts also passed fresh on 2026-09-22: Community Directory 4/4, Atelier
+  assets 8/8, original arrow library 4/4 and arrow-reference library 7/7. Connected ADB could not
+  start in this sandbox because its local daemon socket is denied; no device result is inferred.
 - Android debug/release unit tests and `lintRelease` — passed.
 - Android instrumentation smoke contract — 3/3 passed on the API-35 ARM64 emulator; the Android
   workflow runs it on a fresh API-35 emulator. The signed release workflow separately installs the
