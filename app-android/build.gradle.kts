@@ -131,9 +131,15 @@ android {
         compose = true
         buildConfig = true
     }
+    if (providers.gradleProperty("sharedLibrariesDir").isPresent) {
+        sourceSets.getByName("main").java.srcDir("src/sharedSessionBeta/kotlin")
+    }
 }
 
 dependencies {
+    if (providers.gradleProperty("sharedLibrariesDir").isPresent) {
+        implementation("dev.aarso:local-session-core:0.1.0")
+    }
     // The free engine + archery module — local project dependencies, no external repo.
     implementation(project(":engine"))
     implementation(project(":archery-module"))

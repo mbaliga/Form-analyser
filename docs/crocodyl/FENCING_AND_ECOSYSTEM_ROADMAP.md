@@ -72,10 +72,11 @@ The authoritative platform-neutral contract now lives in Shared-Libraries-asoc a
 `dev.aarso:local-session-core:0.1.0`, pinned during beta verification at shared revision `b173c8e`
 and build-unblock revision `c240a79`. It provides session identity, packet vocabulary, monotonic
 per-participant event ordering and duplicate suppression. Bocal and Crocodyl beta builds can consume
-the same contract through `-PsharedLibrariesDir=...`; neither app yet has a production transport.
-Nearby/Bluetooth/LAN discovery, trust ceremony, reconnect handling and physical two-device acceptance
-remain host-layer work. This is now a shared implementation boundary, not a duplicated Crocodyl-only
-placeholder.
+the same contract through `-PsharedLibrariesDir=...`; both beta bridges now expose the shared
+line-framed TCP local-network transport. Nearby/Bluetooth/LAN discovery, trust ceremony, reconnect
+handling, event-to-feature mapping and physical two-device acceptance remain host-layer work. This
+is now a shared implementation boundary plus a runnable beta transport, not a duplicated
+Crocodyl-only placeholder.
 
 ## Search, baseline and news
 
