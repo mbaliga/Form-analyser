@@ -6,6 +6,7 @@ import dev.aarso.session.ParticipantId
 import dev.aarso.session.SessionId
 import dev.aarso.session.SessionPacket
 import dev.aarso.session.SessionPacketListener
+import dev.aarso.session.SessionPairingCode
 import dev.aarso.session.SessionRole
 import dev.aarso.session.TcpLocalSessionHost
 import dev.aarso.session.TcpLocalSessionTransport
@@ -20,8 +21,17 @@ class LocalSessionBridge(
     fun snapshot() = ledger.snapshot()
     fun accept(packet: SessionPacket) = ledger.accept(packet)
     fun appendLocalEvent(sequence: Long, eventId: String, payload: String) = ledger.localEvent(sequence, eventId, payload)
-    fun connect(host: String, port: Int, listener: SessionPacketListener): LocalSessionTransport =
-        TcpLocalSessionTransport.connect(host, port, listener)
-    fun host(port: Int, listener: SessionPacketListener, onConnection: (LocalSessionTransport) -> Unit): TcpLocalSessionHost =
-        TcpLocalSessionHost.bind(port, listener, onConnection).start()
+    fun connect(
+        host: String,
+        port: Int,
+        listener: SessionPacketListener,
+        pairingCode: SessionPairingCode? = null,
+    ): LocalSessionTransport = TcpLocalSessionTransport.connect(host, port, listener, pairingCode)
+
+    fun host(
+        port: Int,
+        listener: SessionPacketListener,
+        onConnection: (LocalSessionTransport) -> Unit,
+        pairingCode: SessionPairingCode? = null,
+    ): TcpLocalSessionHost = TcpLocalSessionHost.bind(port, listener, onConnection, pairingCode).start()
 }

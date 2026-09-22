@@ -73,8 +73,9 @@ The authoritative platform-neutral contract now lives in Shared-Libraries-asoc a
 (with JVM17 compatibility in `5a855cf` and build unblocking in `c240a79`). It provides session identity, packet vocabulary, monotonic
 per-participant event ordering and duplicate suppression. Bocal and Crocodyl beta builds can consume
 the same contract through `-PsharedLibrariesDir=...`; both beta bridges now expose the shared
-line-framed TCP local-network transport. Nearby/Bluetooth/LAN discovery, trust ceremony, reconnect
-handling, event-to-feature mapping and physical two-device acceptance remain host-layer work. This
+line-framed TCP local-network transport with an optional six-digit pairing-code handshake. Nearby/
+Bluetooth/LAN discovery, code display/entry, reconnect handling, encryption/platform identity,
+event-to-feature mapping and physical two-device acceptance remain host-layer work. This
 is now a shared implementation boundary plus a runnable beta transport, not a duplicated
 Crocodyl-only placeholder.
 
