@@ -5,6 +5,14 @@ pluginManagement {
         google()
     }
 }
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
 rootProject.name = "form-analyser"
 
 // Beta-only shared-library consumption. Production builds remain self-contained; beta verification
