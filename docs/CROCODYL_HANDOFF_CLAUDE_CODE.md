@@ -29,6 +29,10 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - Shared performance-analysis and local-session-core suites passed fresh on 2026-09-22; the
   local-session suite includes TCP loopback, pairing acceptance/rejection and oversized-frame
   rejection coverage.
+- Fresh Android verification on 2026-09-22 passed with an isolated JDK 21/Android SDK: Crocodyl's
+  shared-session beta compile passed (41 tasks), Bocal's matching shared-session beta compile passed
+  (9 tasks), and Crocodyl debug/release unit tests plus `lintRelease` passed (83 tasks). These are
+  compile/unit/lint results; no physical device or connected two-device run was performed here.
 - Android debug/release unit tests and `lintRelease` — passed.
 - Android instrumentation smoke contract — 3/3 passed on the API-35 ARM64 emulator; the Android
   workflow runs it on a fresh API-35 emulator. The signed release workflow separately installs the

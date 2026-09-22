@@ -81,6 +81,10 @@ transport also rejects frames larger than 64 KiB. This
 is now a shared implementation boundary plus a runnable beta transport, not a duplicated
 Crocodyl-only placeholder.
 
+On 2026-09-22, the Crocodyl beta Android source set compiled against `6b54b98`, Bocal's matching
+beta source set compiled against the same shared revision, and Crocodyl debug/release unit tests plus
+release lint passed. This confirms build compatibility, not physical two-device behavior.
+
 The beta runner at `tools/performance/run_beta_report.sh` measures the shared search and session
 paths and writes JSON under `performance-report/build/reports/beta/`. The latest run against
 `6b54b98` completed successfully: 30 measured iterations after 5 warmups for each measurement,
