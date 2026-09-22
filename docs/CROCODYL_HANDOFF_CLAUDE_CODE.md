@@ -96,7 +96,8 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   and Bocal beta Android source sets forward the same optional pairing code. Crocodyl's earlier
   `performance-report` module completed its shared search/session benchmark at revision `6051c7d`.
   The JSON is a beta diagnostic artifact, not a release-performance claim. The pairing revision
-  `ce70f0a` still requires a JDK-backed Android compile and physical two-device verification.
+  `6b54b98` adds the pairing gate and a 64 KiB frame bound; it still requires a JDK-backed Android
+  compile and physical two-device verification.
 
 ## Important release boundary
 

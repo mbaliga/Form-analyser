@@ -69,14 +69,15 @@ support user corrections/deletions.
 ## Local multiplayer
 
 The authoritative platform-neutral contract now lives in Shared-Libraries-asoc as
-`dev.aarso:local-session-core:0.1.0`, latest shared pairing revision `ce70f0a` (the prior beta
-transport verification ran at `6051c7d`)
+`dev.aarso:local-session-core:0.1.0`, latest shared transport-hardening revision `6b54b98` (the
+prior beta transport verification ran at `6051c7d`)
 (with JVM17 compatibility in `5a855cf` and build unblocking in `c240a79`). It provides session identity, packet vocabulary, monotonic
 per-participant event ordering and duplicate suppression. Bocal and Crocodyl beta builds can consume
 the same contract through `-PsharedLibrariesDir=...`; both beta bridges now expose the shared
 line-framed TCP local-network transport with an optional six-digit pairing-code handshake. Nearby/
 Bluetooth/LAN discovery, code display/entry, reconnect handling, encryption/platform identity,
-event-to-feature mapping and physical two-device acceptance remain host-layer work. This
+event-to-feature mapping and physical two-device acceptance remain host-layer work. The shared
+transport also rejects frames larger than 64 KiB. This
 is now a shared implementation boundary plus a runnable beta transport, not a duplicated
 Crocodyl-only placeholder.
 
