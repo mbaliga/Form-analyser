@@ -83,9 +83,10 @@ Crocodyl-only placeholder.
 
 The beta runner at `tools/performance/run_beta_report.sh` measures the shared search and session
 paths and writes JSON under `performance-report/build/reports/beta/`. The latest run against
-`6051c7d` completed successfully: 30 measured iterations after 5 warmups for each measurement,
-with session-event p50 `2,542 ns` and p95 `10,500 ns`. These are synthetic JVM measurements, not
-camera, rendering, thermal or two-device network acceptance results.
+`6b54b98` completed successfully: 30 measured iterations after 5 warmups for each measurement,
+with session-event p50 `3,916 ns` and p95 `159,834 ns`; shared-search rank p50 was `4,183,917 ns`.
+These are synthetic JVM measurements, not camera, rendering, thermal or two-device network
+acceptance results.
 
 ## Search, baseline and news
 

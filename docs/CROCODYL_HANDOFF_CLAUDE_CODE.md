@@ -25,7 +25,10 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 ## Verified in this checkout
 
-- Root JVM suite: `./gradlew test --offline --no-daemon` — passed.
+- Root JVM suite: `./gradlew test --no-daemon` — passed fresh on 2026-09-22 with JDK 21.
+- Shared performance-analysis and local-session-core suites passed fresh on 2026-09-22; the
+  local-session suite includes TCP loopback, pairing acceptance/rejection and oversized-frame
+  rejection coverage.
 - Android debug/release unit tests and `lintRelease` — passed.
 - Android instrumentation smoke contract — 3/3 passed on the API-35 ARM64 emulator; the Android
   workflow runs it on a fresh API-35 emulator. The signed release workflow separately installs the
@@ -93,11 +96,11 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 - Shared beta integration is wired across repositories. Shared-Libraries-asoc provides
   `dev.aarso:local-session-core:0.1.0` with TCP loopback and pairing-code test coverage; Crocodyl
-  and Bocal beta Android source sets forward the same optional pairing code. Crocodyl's earlier
-  `performance-report` module completed its shared search/session benchmark at revision `6051c7d`.
-  The JSON is a beta diagnostic artifact, not a release-performance claim. The pairing revision
-  `6b54b98` adds the pairing gate and a 64 KiB frame bound; it still requires a JDK-backed Android
-  compile and physical two-device verification.
+  and Bocal beta Android source sets forward the same optional pairing code. Crocodyl's
+  `performance-report` module completed its shared search/session benchmark at revision `6b54b98`;
+  the current report is under `performance-report/build/reports/beta/`. The JSON is a beta
+  diagnostic artifact, not a release-performance claim. The pairing revision adds the pairing gate
+  and a 64 KiB frame bound; Android compilation and physical two-device verification remain open.
 
 ## Important release boundary
 
