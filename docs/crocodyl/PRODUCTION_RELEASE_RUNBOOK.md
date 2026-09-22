@@ -62,3 +62,5 @@ The workflow currently references GitHub Actions by maintained major tags (`@vN`
 immutable commit SHAs. That is operationally reproducible only within the tag-maintainer trust
 boundary. Before a high-assurance production rollout, pin each third-party action to a reviewed
 commit SHA and record the update in the release checklist; do not silently substitute guessed SHAs.
+Dependabot is configured for weekly GitHub Actions updates in `.github/dependabot.yml`, so tag drift
+produces a reviewable update rather than remaining invisible.
