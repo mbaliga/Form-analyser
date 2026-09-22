@@ -8,8 +8,8 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `a7ff018 feat(crocodyl): expose shared TCP session beta bridge`
-Latest evidence commit: `3a2292c docs(crocodyl): update shared session revision`
+Latest implementation commit: `2897edf feat(crocodyl): expose paired beta sessions`
+Latest evidence commit: `a581542 docs(crocodyl): capture shared multiplayer beta evidence`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
@@ -91,11 +91,12 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - The same task passed 3/3 locally on API-35 ARM64 with a QA-only debug-keystore signature; retain
   that result as minified-runtime evidence and do not treat it as production-signing acceptance.
 
-- Shared beta integration is verified across repositories. Shared-Libraries-asoc provides
-  `dev.aarso:local-session-core:0.1.0` with a TCP loopback test; Crocodyl and Bocal beta Android
-  source sets compile against the same contract. Crocodyl's `performance-report` module completed
-  its shared search/session benchmark at revision `6051c7d`. The JSON is a beta diagnostic artifact,
-  not a release-performance claim.
+- Shared beta integration is wired across repositories. Shared-Libraries-asoc provides
+  `dev.aarso:local-session-core:0.1.0` with TCP loopback and pairing-code test coverage; Crocodyl
+  and Bocal beta Android source sets forward the same optional pairing code. Crocodyl's earlier
+  `performance-report` module completed its shared search/session benchmark at revision `6051c7d`.
+  The JSON is a beta diagnostic artifact, not a release-performance claim. The pairing revision
+  `ce70f0a` still requires a JDK-backed Android compile and physical two-device verification.
 
 ## Important release boundary
 
