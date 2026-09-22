@@ -50,6 +50,13 @@ class DirectoryValidationTest(unittest.TestCase):
             self.assertTrue(any("duplicate id" in error for error in errors))
             self.assertTrue(any("future" in error for error in errors))
 
+    def test_invalid_email_format_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.write(root, "bad-email.json", {**{key: value for key, value in VALID.items() if key != "website"}, "email": "not-an-email"})
+            errors = validate_directory(root, dt.date(2026, 9, 22))
+            self.assertTrue(any("valid address format" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{2,127}$")
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 KINDS = {"coach", "training_centre", "store"}
 SOURCES = {"curated", "community", "imported"}
 REQUIRED = {
@@ -69,6 +70,8 @@ def validate_entry(entry: object, path: Path, today: dt.date | None = None) -> l
     for field in CONTACT_FIELDS:
         if field in entry and not isinstance(entry[field], str):
             errors.append(_fail(path, f"{field} must be a string"))
+    if "email" in entry and isinstance(entry["email"], str) and not EMAIL_RE.fullmatch(entry["email"]):
+        errors.append(_fail(path, "email must have a valid address format"))
     if not any(isinstance(entry.get(field), str) and entry[field].strip() for field in CONTACT_FIELDS):
         errors.append(_fail(path, "at least one contact field is required: website, email or phone"))
     for field in ("website", "sourceUrl"):
