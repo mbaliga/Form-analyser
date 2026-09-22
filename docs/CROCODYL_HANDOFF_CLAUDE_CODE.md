@@ -1,6 +1,6 @@
 # Crocodyl handoff to Claude Code
 
-Status: current snapshot, 2026-09-20 (Asia/Kolkata)
+Status: current snapshot, 2026-09-22 (Asia/Kolkata)
 
 Repository: `mbaliga/Form-analyser`
 
@@ -8,8 +8,8 @@ Checkout: `/Users/tulikapandey/Documents/Codex/2026-09-14/cur/work/crocodyl-curr
 
 Branch: `codex/production-hardening`
 
-Latest implementation commit: `f10f848 feat(fencing): preserve referee console state`
-Latest evidence commit: `6048cf5 docs(fencing): record lifecycle-safe console state`
+Latest implementation commit: `a7ff018 feat(crocodyl): expose shared TCP session beta bridge`
+Latest evidence commit: `3a2292c docs(crocodyl): update shared session revision`
 Latest test-hardening commit: `3add644 test(android): harden model inventory contracts`
 
 The worktree was clean when this handoff was written. All changes made during this pass were committed incrementally with context in the commit messages.
@@ -91,6 +91,12 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 - The same task passed 3/3 locally on API-35 ARM64 with a QA-only debug-keystore signature; retain
   that result as minified-runtime evidence and do not treat it as production-signing acceptance.
 
+- Shared beta integration is verified across repositories. Shared-Libraries-asoc provides
+  `dev.aarso:local-session-core:0.1.0` with a TCP loopback test; Crocodyl and Bocal beta Android
+  source sets compile against the same contract. Crocodyl's `performance-report` module completed
+  its shared search/session benchmark at revision `6051c7d`. The JSON is a beta diagnostic artifact,
+  not a release-performance claim.
+
 ## Important release boundary
 
 The local release artifacts are QA-signed only. A production release still requires the real production keystore/CI identity, final versioning, owner approval, physical-device/accessibility/thermal/battery checks, and range acceptance. Do not distribute the QA-signed artifacts.
@@ -102,6 +108,11 @@ Foil and Epee plus provisional Prêt/Allez/point-call referee state, and the And
 shows Fencing Studies and Community Directory cards. See
 [`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`](crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md)
 and [`docs/crocodyl/community-directory/README.md`](crocodyl/community-directory/README.md).
+
+Local multiplayer is scaffolded at the shared-library boundary. The beta TCP transport is usable
+for development-network testing, but production multiplayer still needs discovery/pairing, trust
+and identity UX, reconnect semantics, host-authoritative event mapping, and physical two-device
+acceptance in both Bocal and Crocodyl.
 
 ## Recommended continuation order
 
