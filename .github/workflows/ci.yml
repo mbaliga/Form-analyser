@@ -17,6 +17,7 @@ on:
       - "app-android/**"
       - "docs/crocodyl/community-directory/**"
       - "tools/community_directory/**"
+      - "tools/release/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
   pull_request:
@@ -35,6 +36,7 @@ on:
       - "app-android/**"
       - "docs/crocodyl/community-directory/**"
       - "tools/community_directory/**"
+      - "tools/release/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
 

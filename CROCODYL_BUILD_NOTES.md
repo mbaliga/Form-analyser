@@ -5,6 +5,11 @@ convention: this is one autonomous build across Phases 1–3, so notes are conso
 
 ## Current addendum — 2026-09-16
 
+The CI path filter includes `tools/release/**` and `tools/community_directory/**`, so changes to
+release preflight or directory provenance validation cannot silently bypass the ordinary repository
+signal. The release workflow runs the directory unit tests and validates the empty-or-curated
+dataset before packaging.
+
 The notes below are the historical implementation log and contain superseded “pending” entries from
 before the Android layers landed. The authoritative current snapshot is [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md).
 
