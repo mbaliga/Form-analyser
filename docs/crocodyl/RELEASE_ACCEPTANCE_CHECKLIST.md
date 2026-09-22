@@ -61,6 +61,14 @@ verification build 0.6.0-verification (versionCode 604) and passed 3/3 on API-35
 emulator-5554. The separate release artifact audit remains recorded for the QA-signed scaffold
 build; this verification build is not a production-signed release.
 
+Fresh QA artifact preflight: 2026-09-22, tester: Codex. Version `0.6.0-qa-verification`,
+versionCode `610`, built with the isolated JDK 21/Android SDK. The reusable release preflight passed
+APK/AAB signing, version metadata, manifest security, ZIP alignment, model hash, backup resources
+and staging-file checks. APK SHA-256:
+`66fcda10ab31a730db2fd6d9ceac7cc61d06e96c7cca09ad068b93518813e9eb`; AAB SHA-256:
+`b9fa07f5b40e9c787bc1cfb7f716b9b357a68c6ab5a976aa337af73420f04987`. QA signing is not production
+signing and this remains artifact evidence, not physical-device acceptance.
+
 Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee console state core
 (weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected
 smoke passed 3/3 with verification versionCode 607; minified release connected smoke passed 3/3

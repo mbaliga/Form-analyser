@@ -33,6 +33,12 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   shared-session beta compile passed (41 tasks), Bocal's matching shared-session beta compile passed
   (9 tasks), and Crocodyl debug/release unit tests plus `lintRelease` passed (83 tasks). These are
   compile/unit/lint results; no physical device or connected two-device run was performed here.
+- A fresh QA-signed minified artifact pair was built on 2026-09-22 as version `0.6.0-qa-verification`
+  / versionCode `610`. The reusable release preflight passed APK/AAB signing, version metadata,
+  cleartext/backup/FileProvider policy, APK alignment, model hash, backup resources and staging-file
+  checks. APK SHA-256: `66fcda10ab31a730db2fd6d9ceac7cc61d06e96c7cca09ad068b93518813e9eb`; AAB
+  SHA-256: `b9fa07f5b40e9c787bc1cfb7f716b9b357a68c6ab5a976aa337af73420f04987`. The QA key is not a
+  production release identity.
 - Android debug/release unit tests and `lintRelease` — passed.
 - Android instrumentation smoke contract — 3/3 passed on the API-35 ARM64 emulator; the Android
   workflow runs it on a fresh API-35 emulator. The signed release workflow separately installs the
