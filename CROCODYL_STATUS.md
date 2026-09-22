@@ -7,7 +7,7 @@ It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-
 
 ## Next milestone — Fencing and open ecosystem
 
-The near-term follow-on is underway in [`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`](docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md): Sabre, Foil and Epee, a live manual two-fencer referee console for **Prêt**, **Allez**, **Halte** and point calls, visible equipment metadata before live capture, and a provenance-aware directory for coaches, training centres and stores. The sport module and Android entry points are present; referee vision, web ingestion, advanced-search adoption and Nooz news adapters are not live yet.
+The near-term follow-on is underway in [`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`](docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md): Sabre, Foil and Epee, a live manual two-fencer referee console for **Prêt**, **Allez**, **Halte** and point calls, visible equipment metadata before live capture, a provenance-aware directory, and a shared local-session contract for Bocal/Crocodyl beta builds. The sport module and Android entry points are present; referee vision, web ingestion, advanced-search adoption, Nooz news adapters and production local transport are not live yet.
 
 > **Product direction is now governed by `docs/crocodyl/blueprint/`** (Product Blueprint v2.1: 
 > [`01-product-direction.md`](docs/crocodyl/blueprint/01-product-direction.md),
