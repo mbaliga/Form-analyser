@@ -55,3 +55,10 @@ P0 disposition and distribution-channel approval are listed in
 
 The release is not production-approved until the production-signed artifact, physical acceptance
 records, owner approval and selected distribution channel are all recorded.
+
+## CI supply-chain note
+
+The workflow currently references GitHub Actions by maintained major tags (`@vN`) rather than
+immutable commit SHAs. That is operationally reproducible only within the tag-maintainer trust
+boundary. Before a high-assurance production rollout, pin each third-party action to a reviewed
+commit SHA and record the update in the release checklist; do not silently substitute guessed SHAs.
