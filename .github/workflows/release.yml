@@ -84,6 +84,8 @@ jobs:
           script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon -PcrocodylVersionName="${{ steps.ver.outputs.version }}" -PcrocodylVersionCode="${{ steps.ver.outputs.version_code }}"
       - name: Validate packaged equipment source contracts
         run: |
+          python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
+          python3 tools/community_directory/validate_directory.py docs/crocodyl/community-directory/entries
           python3 tools/atelier/test_assets.py
           python3 tools/atelier/test_arrow_library.py
           python3 tools/atelier/test_arrow_reference_library.py

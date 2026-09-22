@@ -15,6 +15,8 @@ on:
       # assert every Room table is classified. Adding a table only touches app-android, so without
       # this path that test could never fire on the very change it exists to catch.
       - "app-android/**"
+      - "docs/crocodyl/community-directory/**"
+      - "tools/community_directory/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
   pull_request:
@@ -31,6 +33,8 @@ on:
       # assert every Room table is classified. Adding a table only touches app-android, so without
       # this path that test could never fire on the very change it exists to catch.
       - "app-android/**"
+      - "docs/crocodyl/community-directory/**"
+      - "tools/community_directory/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
 
@@ -49,3 +53,5 @@ jobs:
       # Self-contained: builds the engine module and the archery module together.
       - name: Test
         run: ./gradlew test --no-daemon
+      - name: Validate community directory contracts
+        run: python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
