@@ -15,6 +15,7 @@ import xyz.mdhv.formanalyser.app.ui.components.CrocodylHero
 import xyz.mdhv.formanalyser.app.ui.components.EquipmentAtelierCard
 import xyz.mdhv.formanalyser.app.ui.components.FencingStudiesCard
 import xyz.mdhv.formanalyser.app.ui.components.CommunityDirectoryCard
+import xyz.mdhv.formanalyser.app.ui.components.PairedSessionCard
 import xyz.mdhv.formanalyser.app.ui.components.ScoreActionIcon
 import xyz.mdhv.formanalyser.app.ui.theme.*
 
