@@ -82,6 +82,8 @@ actionable tasks; 21 executed, 62 up-to-date). This verifies source/unit/lint he
 connected instrumentation, production signing, physical-device, or range acceptance is implied.
 The same gate was rerun after replacing deprecated app-source APIs and completed successfully in
 55 seconds; the remaining deprecation notice is from Gradle tooling rather than Crocodyl source.
+The subsequent repository replay also passed root JVM tests, viewer and community-directory
+contracts, immutable workflow-action verification, and `git diff --check`.
 
 Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee console state core
 (weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected

@@ -41,3 +41,11 @@ participants.
 The current artifact may be used for QA and stakeholder review, but it must not be represented as a
 production-signed release until the remaining external gates above have evidence attached to the
 release checklist.
+
+## Verification replay after warning cleanup
+
+On 2026-09-24, the current tree passed root JVM `test` (42 actionable tasks), Android debug/release
+unit tests, Android release lint, offline viewer tests (4/4), community-directory tests (4/4), the
+immutable workflow-action guard, and `git diff --check`. The Android app-source deprecation warnings
+were removed in `e8e34bf`; the remaining Gradle notice concerns tooling compatibility, not Crocodyl
+source. No connected-device or physical-device evidence was available in this replay.
