@@ -28,6 +28,9 @@ participants.
 
 ## Current commits
 
+- Crocodyl: `dbe5856` — current connected replay evidence, including the minified-release device-offline result.
+- Crocodyl: `ce95805` — current-tree QA APK/AAB package audit and hashes.
+- Crocodyl: `e8e34bf` — remove app-source deprecation warnings and record the passing Android gate.
 - Crocodyl: `688491c` — Paired Session walkthrough, desktop viewer and documentation.
 - Crocodyl: `bd84d72` — immutable GitHub Action pins and workflow policy guard.
 - Crocodyl: `2e7cdbd` — fix Android compile import exposed by fresh replay.
