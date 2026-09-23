@@ -50,4 +50,6 @@ immutable workflow-action guard, and `git diff --check`. The Android app-source 
 were removed in `e8e34bf`; the remaining Gradle notice concerns tooling compatibility, not Crocodyl
 source. A fresh minified QA-signed APK/AAB package also passed the release preflight with version
 `0.6.0-qa-current` / versionCode `620`; no connected-device or physical-device evidence was
-available in this replay.
+available for that package in this replay. A current-tree debug connected replay did pass 3/3 on
+the API-35 ARM64 `alloy-api35-arm64` emulator; the subsequent minified-release connected attempt
+was rejected because the emulator went offline before test execution.

@@ -94,6 +94,11 @@ resources, and staging-file checks. APK SHA-256:
 `41db10c25edb0ecfffc6b4a2c16e11ad3c8276a05efed88c82000e843b2b545e`. This is QA artifact
 evidence only and is not production signing or device acceptance.
 
+Current-tree connected replay: 2026-09-24, tester: Codex. `connectedDebugAndroidTest` passed 3/3 on
+the API-35 ARM64 `alloy-api35-arm64` emulator. The subsequent `connectedReleaseAndroidTest` build
+completed its minified test APK preparation, but the emulator went offline before test execution
+(`AdbCommandRejectedException: device offline`); no minified-release connected pass is claimed.
+
 Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee console state core
 (weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected
 smoke passed 3/3 with verification versionCode 607; minified release connected smoke passed 3/3
