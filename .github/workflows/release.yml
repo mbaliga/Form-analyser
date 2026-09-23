@@ -36,7 +36,9 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
         run: |
           test -n "$KEYSTORE_BASE64"
+          umask 077
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app-android/release.keystore
+          chmod 600 app-android/release.keystore
       - name: Resolve version name
         id: ver
         env:
@@ -160,3 +162,6 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: crocodyl-*.apk,crocodyl-*.aab,crocodyl-*-SHA256SUMS.txt
           generate_release_notes: true
+      - name: Remove signing material
+        if: ${{ always() }}
+        run: rm -f app-android/release.keystore
