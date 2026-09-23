@@ -18,6 +18,8 @@ on:
       - "docs/crocodyl/community-directory/**"
       - "tools/community_directory/**"
       - "tools/release/**"
+      - "tools/web_viewer/**"
+      - "web-viewer/**"
       - ".github/workflows/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
@@ -38,6 +40,8 @@ on:
       - "docs/crocodyl/community-directory/**"
       - "tools/community_directory/**"
       - "tools/release/**"
+      - "tools/web_viewer/**"
+      - "web-viewer/**"
       - ".github/workflows/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
@@ -61,3 +65,5 @@ jobs:
         run: python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
       - name: Verify immutable workflow action refs
         run: python3 tools/release/verify_workflow_actions.py
+      - name: Validate offline desktop viewer contract
+        run: python3 -m unittest discover -s tools/web_viewer -p 'test_*.py'

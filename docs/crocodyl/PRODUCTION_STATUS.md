@@ -19,7 +19,7 @@ participants.
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
 | Paired Session | UX walkthrough + beta transport boundary | First-run/returning-user walkthrough is in Android; shared TCP/pairing core is in Shared-Libraries-asoc. Discovery, trust, reconnect and two-device acceptance remain. |
-| Desktop file fallback | Local integrity-checked metadata viewer implemented | `web-viewer/` opens current `.crocbak` archives locally, verifies the declared SHA-256 payload checksum, and accepts `.croc` as a forward-compatible extension. Signed `.croc` verification and full report rendering remain. |
+| Desktop file fallback | Local integrity-checked metadata viewer implemented | `web-viewer/` opens current `.crocbak` archives locally, verifies the declared SHA-256 payload checksum, and accepts `.croc` as a forward-compatible extension. Its offline-only contract is now covered by CI tests. Signed `.croc` verification and full report rendering remain. |
 | Bocal interoperability | Beta compile integration | Bocal and Crocodyl consume the shared session boundary. No claim of production cross-device acceptance. |
 | Production distribution | Not yet releasable | Workflow actions are now immutably pinned and guarded. Production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance remain. |
 

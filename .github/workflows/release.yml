@@ -85,6 +85,7 @@ jobs:
       - name: Validate packaged equipment source contracts
         run: |
           python3 tools/release/verify_workflow_actions.py
+          python3 -m unittest discover -s tools/web_viewer -p 'test_*.py'
           python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
           python3 tools/community_directory/validate_directory.py docs/crocodyl/community-directory/entries
           python3 tools/atelier/test_assets.py
