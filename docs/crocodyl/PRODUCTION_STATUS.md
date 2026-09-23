@@ -61,3 +61,7 @@ was rejected because the emulator went offline before test execution.
 
 The paired-session walkthrough persistence flag now has a dedicated Robolectric test covering its
 unseen default and completed state in both debug and release unit-test variants.
+
+The shared beta performance report was rerun on 2026-09-24 against Shared-Libraries-asoc revision
+`6b54b980…`; the recorded search/session measurements are in
+`PERFORMANCE_REPORT_2026-09-24.md`.
