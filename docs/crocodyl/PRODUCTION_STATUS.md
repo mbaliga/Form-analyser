@@ -48,4 +48,6 @@ On 2026-09-24, the current tree passed root JVM `test` (42 actionable tasks), An
 unit tests, Android release lint, offline viewer tests (4/4), community-directory tests (4/4), the
 immutable workflow-action guard, and `git diff --check`. The Android app-source deprecation warnings
 were removed in `e8e34bf`; the remaining Gradle notice concerns tooling compatibility, not Crocodyl
-source. No connected-device or physical-device evidence was available in this replay.
+source. A fresh minified QA-signed APK/AAB package also passed the release preflight with version
+`0.6.0-qa-current` / versionCode `620`; no connected-device or physical-device evidence was
+available in this replay.

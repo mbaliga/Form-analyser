@@ -85,6 +85,15 @@ The same gate was rerun after replacing deprecated app-source APIs and completed
 The subsequent repository replay also passed root JVM tests, viewer and community-directory
 contracts, immutable workflow-action verification, and `git diff --check`.
 
+Fresh current-tree QA package: 2026-09-24, tester: Codex. Minified `bundleRelease` and
+`assembleRelease` completed with version `0.6.0-qa-current`, versionCode `620`, using the committed
+QA/debug signing identity. The reusable Android release preflight passed APK v2 verification, AAB
+verification, version metadata, manifest security, ZIP alignment, bundled BlazePose hash, backup
+resources, and staging-file checks. APK SHA-256:
+`35a2332aaaf4ff16664a5aa477059baf1b66677afdccfd241bf5d7593dc035bf`; AAB SHA-256:
+`41db10c25edb0ecfffc6b4a2c16e11ad3c8276a05efed88c82000e843b2b545e`. This is QA artifact
+evidence only and is not production signing or device acceptance.
+
 Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee console state core
 (weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected
 smoke passed 3/3 with verification versionCode 607; minified release connected smoke passed 3/3
