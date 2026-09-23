@@ -75,6 +75,12 @@ arrow-reference contracts passed 7/7. ADB connected-device verification was atte
 isolated platform-tools package, but this sandbox rejects the local ADB daemon socket; no connected
 device or emulator result is claimed from this run.
 
+Unrestricted Android verification replay: 2026-09-24, tester: Codex. With the isolated Temurin JDK
+21, Gradle 8.14.3, Android API 35 and build-tools 35.0.0 toolchain, `:app-android:testDebugUnitTest`,
+`:app-android:testReleaseUnitTest`, and `:app-android:lintRelease` completed successfully (83
+actionable tasks; 21 executed, 62 up-to-date). This verifies source/unit/lint health only. No
+connected instrumentation, production signing, physical-device, or range acceptance is implied.
+
 Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee console state core
 (weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected
 smoke passed 3/3 with verification versionCode 607; minified release connected smoke passed 3/3

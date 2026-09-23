@@ -4,9 +4,10 @@ Last reviewed: 2026-09-24
 
 Latest verification replay: root JVM `test` passed on the current tree with Temurin JDK 21 and
 Gradle 8.14.3 (42 actionable tasks). The Android compile was provisioned with API 35/build-tools
-35.0.0 and caught a missing `PairedSessionCard` import; that defect is fixed in `2e7cdbd`. A full
-Android test/lint completion remains to be replayed in a normal SDK/Kotlin-daemon environment; no
-Android pass is claimed from the interrupted sandbox run.
+35.0.0 and caught a missing `PairedSessionCard` import; that defect is fixed in `2e7cdbd`. An
+unrestricted replay completed `:app-android:testDebugUnitTest`, `:app-android:testReleaseUnitTest`,
+and `:app-android:lintRelease` successfully on 2026-09-24 using Temurin JDK 21 and Gradle 8.14.3.
+Connected instrumentation and physical-device acceptance remain separate gates.
 
 This is the current release boundary for the Recurve Android app. It separates evidence-backed
 completion from gates that require a production signing environment, a connected device, or range
@@ -14,7 +15,7 @@ participants.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | JVM, Android unit tests, lint, release artifact preflight and contract replays are recorded in the release checklist. Re-run on the final CI JDK before distribution. |
+| Recurve Android build | QA production candidate | Root JVM tests and the unrestricted Android debug/release unit-test plus release-lint replay pass. Re-run the same gates in final CI before distribution. |
 | Data safety and recovery | Implemented and tested | Room recovery, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -28,6 +29,8 @@ participants.
 - Crocodyl: `688491c` — Paired Session walkthrough, desktop viewer and documentation.
 - Crocodyl: `bd84d72` — immutable GitHub Action pins and workflow policy guard.
 - Crocodyl: `2e7cdbd` — fix Android compile import exposed by fresh replay.
+- Crocodyl verification: 2026-09-24 — Android debug/release unit tests and `lintRelease` passed with
+  the isolated Temurin JDK 21/API-35 toolchain; connected instrumentation was not included.
 - Shared-Libraries-asoc: `6b54b98` — bounded local-session transport frames.
 - Bocal: `e57ef5e` — session frame guard documentation.
 
