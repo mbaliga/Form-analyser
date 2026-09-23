@@ -27,6 +27,7 @@ fun HomeScreen(
     onManageRigs: () -> Unit,
     onLog: () -> Unit,
     onCoach: () -> Unit,
+    onPairedSession: () -> Unit,
 ) {
     LaunchedEffect(Unit) { vm.load() }
     val athlete by vm.athlete.collectAsState()
@@ -86,6 +87,7 @@ fun HomeScreen(
         }
         item { EquipmentAtelierCard() }
         item { FencingStudiesCard() }
+        item { PairedSessionCard(onClick = onPairedSession) }
         item { CommunityDirectoryCard() }
         item {
             OutlinedButton(onClick = onLog, modifier = Modifier.fillMaxWidth()) {

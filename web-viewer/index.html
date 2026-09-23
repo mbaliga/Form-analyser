@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Crocodyl local file viewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <p class="eyebrow">CROCODYL · OFFLINE VIEWER</p>
+      <h1>Open a training file privately.</h1>
+      <p class="lede">Choose a <code>.crocbak</code> export (or future <code>.croc</code> package). The file is read in this browser; it is not uploaded.</p>
+    </header>
+    <section class="dropzone" id="dropzone" tabindex="0">
+      <input id="file" type="file" accept=".crocbak,.croc,application/zip,application/json">
+      <label for="file"><strong>Choose a file</strong><span>or drop it here</span></label>
+      <p class="hint">Suitable for WhatsApp, USB, Bluetooth, LocalSend or any other file transfer.</p>
+    </section>
+    <section id="status" class="status" aria-live="polite">No file opened.</section>
+    <section id="report" class="report" hidden></section>
+    <footer>Local-only preview · No account · No report bytes leave this browser</footer>
+  </main>
+  <script src="viewer.js"></script>
+</body>
+</html>

@@ -65,6 +65,7 @@ private object Routes {
     const val INJURY_EDIT = "injury_edit"
     const val PLAN_EDIT = "plan_edit"
     const val DOC_VIEW = "doc_view"
+    const val PAIRED_SESSION = "paired_session"
     val TABS = setOf(HOME, TRAIN, PROGRESS, BODY, CALENDAR)
 }
 
@@ -298,8 +299,10 @@ private fun MainShell() {
                     { nav.navigate(Routes.S_RIGS) },
                     { nav.navigate(Routes.LOG) },
                     { nav.navigate(Routes.COACH) },
+                    { nav.navigate(Routes.PAIRED_SESSION) },
                 )
             }
+            composable(Routes.PAIRED_SESSION) { PairedSessionScreen(prefs) { nav.popBackStack() } }
             composable(Routes.COACH) {
                 val app = LocalContext.current.applicationContext as Application
                 val vm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
@@ -521,6 +524,7 @@ private fun detailTitle(r: String?): String =
         Routes.INJURY_EDIT -> "Injury"
         Routes.PLAN_EDIT -> "Physio plan"
         Routes.DOC_VIEW -> "Document"
+        Routes.PAIRED_SESSION -> "Paired Session"
         else -> "Crocodyl"
     }
 

@@ -24,6 +24,7 @@ class AppPrefs(private val context: Context) {
         val PLANNED_REST_DAYS = stringPreferencesKey("planned_rest_days") // CSV: "MO,TH"
         val CYCLE_ENABLED = booleanPreferencesKey("cycle_enabled")
         val SORENESS_CHIPS = booleanPreferencesKey("soreness_chips")      // true = chips fallback, false = mini-atlas
+        val PAIRED_SESSION_WALKTHROUGH_SEEN = booleanPreferencesKey("paired_session_walkthrough_seen")
     }
 
     val role: Flow<String> = context.dataStore.data.map { it[Keys.ROLE] ?: "ARCHER" }
@@ -49,4 +50,10 @@ class AppPrefs(private val context: Context) {
     suspend fun setPlannedRestDays(v: String) = context.dataStore.edit { it[Keys.PLANNED_REST_DAYS] = v }
     suspend fun setCycleEnabled(v: Boolean) = context.dataStore.edit { it[Keys.CYCLE_ENABLED] = v }
     suspend fun setSorenessChips(v: Boolean) = context.dataStore.edit { it[Keys.SORENESS_CHIPS] = v }
+
+    val pairedSessionWalkthroughSeen: Flow<Boolean> =
+        context.dataStore.data.map { it[Keys.PAIRED_SESSION_WALKTHROUGH_SEEN] ?: false }
+
+    suspend fun setPairedSessionWalkthroughSeen(v: Boolean) =
+        context.dataStore.edit { it[Keys.PAIRED_SESSION_WALKTHROUGH_SEEN] = v }
 }

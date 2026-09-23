@@ -92,6 +92,18 @@ with session-event p50 `3,916 ns` and p95 `159,834 ns`; shared-search rank p50 w
 These are synthetic JVM measurements, not camera, rendering, thermal or two-device network
 acceptance results.
 
+The user-facing name is now **Paired Session**. Crocodyl presents a persisted first-run walkthrough
+covering host/join roles, trusted-network setup, six-digit code verification and the file-transfer
+fallback. The walkthrough is guidance, not a claim that production discovery or two-device
+acceptance is complete.
+
+The new `web-viewer/` static viewer is the desktop fallback for a coach without an Android device.
+It opens current `.crocbak` ZIP exports locally and displays manifest/table metadata without
+uploading or importing records. It accepts the `.croc` extension for forward compatibility, but
+the signed `.croc` person-to-person envelope, signature verification and full report rendering are
+still pending. A file can be carried over WhatsApp, USB, Bluetooth, LocalSend or any equivalent
+file-transfer method.
+
 ## Search, baseline and news
 
 The locally available Shared-Libraries-asoc search core was audited at revision

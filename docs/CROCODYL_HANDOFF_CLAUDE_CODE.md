@@ -117,6 +117,17 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 ## Important release boundary
 
+The current user-facing nearby-session entry is named **Paired Session**. A persisted first-run
+walkthrough now explains host/join roles, same-network setup, six-digit code verification and the
+desktop/file fallback. This is UX scaffolding around the existing beta transport; it does not
+claim production discovery, reconnect, identity or two-device acceptance.
+
+For coaches without a phone, `web-viewer/` is a dependency-free static desktop fallback. It reads
+the current `.crocbak` ZIP manifest and table metadata entirely in-browser, with no upload or
+automatic import. `.croc` is accepted as a forward-compatible filename, not as a claim that the
+signed `.croc` envelope is already implemented. The viewer is suitable for files moved through
+WhatsApp, removable media, Bluetooth or LocalSend.
+
 The local release artifacts are QA-signed only. A production release still requires the real production keystore/CI identity, final versioning, owner approval, physical-device/accessibility/thermal/battery checks, and range acceptance. Do not distribute the QA-signed artifacts.
 
 The exact owner-arrow catalog is intentionally not complete. The one-piece hardened 416 stainless glue-in point, adjustable glue-in bullet weight modules, and independent fletching taxonomy are now represented as separately named generic taxonomy components, with source/provenance and deterministic contract coverage. The next in-scope work is intake and approval of one exact owner arrow. Do not expand the recurve collection or infer component compatibility while doing so.
