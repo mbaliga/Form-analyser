@@ -29,6 +29,7 @@ participants.
 ## Current commits
 
 - Crocodyl: `dbe5856` — current connected replay evidence, including the minified-release device-offline result.
+- Crocodyl: `9061f89` — paired-session walkthrough persistence test and replay evidence.
 - Crocodyl: `ce95805` — current-tree QA APK/AAB package audit and hashes.
 - Crocodyl: `e8e34bf` — remove app-source deprecation warnings and record the passing Android gate.
 - Crocodyl: `688491c` — Paired Session walkthrough, desktop viewer and documentation.
