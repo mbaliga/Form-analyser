@@ -62,7 +62,6 @@ class EquipmentAtelierActivity : ComponentActivity() {
                                     settings.allowFileAccess = false
                                     settings.allowContentAccess = false
                                     settings.domStorageEnabled = false
-                                    settings.databaseEnabled = false
                                     settings.blockNetworkLoads = true
                                     settings.cacheMode = WebSettings.LOAD_NO_CACHE
                                     settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW

@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -196,7 +196,7 @@ fun CaptureFramingOverlay(tracking: Boolean, modifier: Modifier = Modifier) {
         drawLine(ink.copy(alpha = .35f), hip, Offset(x + size.width * .1f, floorY), 5f)
         val bow = Path().apply {
             moveTo(x + size.width * .19f, size.height * .22f)
-            quadraticBezierTo(x + size.width * .3f, size.height * .34f, x + size.width * .19f, size.height * .49f)
+            quadraticTo(x + size.width * .3f, size.height * .34f, x + size.width * .19f, size.height * .49f)
         }
         drawPath(bow, ink.copy(alpha = .45f), style = Stroke(3f))
     }
@@ -214,7 +214,7 @@ fun ImprovementAreas(shots: List<ShotView>, modifier: Modifier = Modifier) {
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Icon(Icons.Filled.DirectionsRun, null, tint = Hyle.AccentBright)
+                Icon(Icons.AutoMirrored.Filled.DirectionsRun, null, tint = Hyle.AccentBright)
                 Column {
                     Text("Improvement areas", color = Hyle.OnBackground, style = MaterialTheme.typography.titleMedium)
                     Text("Prioritised from this session—not a generic checklist.", color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.bodySmall)

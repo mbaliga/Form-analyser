@@ -7,7 +7,9 @@ Gradle 8.14.3 (42 actionable tasks). The Android compile was provisioned with AP
 35.0.0 and caught a missing `PairedSessionCard` import; that defect is fixed in `2e7cdbd`. An
 unrestricted replay completed `:app-android:testDebugUnitTest`, `:app-android:testReleaseUnitTest`,
 and `:app-android:lintRelease` successfully on 2026-09-24 using Temurin JDK 21 and Gradle 8.14.3.
-Connected instrumentation and physical-device acceptance remain separate gates.
+Connected instrumentation and physical-device acceptance remain separate gates. The follow-up
+replay after deprecation cleanup also passed; no app-source Kotlin deprecation warnings were
+reported.
 
 This is the current release boundary for the Recurve Android app. It separates evidence-backed
 completion from gates that require a production signing environment, a connected device, or range
