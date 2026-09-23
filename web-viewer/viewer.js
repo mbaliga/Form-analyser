@@ -19,14 +19,30 @@ async function openFile(file) {
     if (!manifestBytes) throw new Error('manifest.json is missing');
     const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
     if (!Number.isInteger(manifest.schemaVersion) || !manifest.appVersion) throw new Error('Unsupported manifest');
-    render(file, manifest, entries);
+    const integrity = await verifyPayloadChecksum(manifest, entries);
+    render(file, manifest, entries, integrity);
     status.textContent = `Opened ${file.name} locally. No upload was performed.`;
   } catch (error) {
     status.textContent = `Could not open this file: ${error.message}`;
   }
 }
 
-function render(file, manifest, entries) {
+async function verifyPayloadChecksum(manifest, entries) {
+  const declared = typeof manifest.contentChecksum === 'string' ? manifest.contentChecksum : '';
+  if (!declared) return { state: 'not supplied', detail: 'The manifest does not declare a payload checksum.' };
+  if (!globalThis.crypto?.subtle) throw new Error('This browser cannot verify the payload checksum');
+  const payloadNames = Object.keys(entries).filter(name => name.startsWith('tables/')).sort();
+  const total = payloadNames.reduce((size, name) => size + entries[name].byteLength, 0);
+  const combined = new Uint8Array(total);
+  let offset = 0;
+  for (const name of payloadNames) { combined.set(entries[name], offset); offset += entries[name].byteLength; }
+  const digest = await crypto.subtle.digest('SHA-256', combined);
+  const actual = 'sha256:' + [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+  if (actual !== declared.toLowerCase()) throw new Error('Payload checksum mismatch; the file was not opened');
+  return { state: 'verified', detail: actual };
+}
+
+function render(file, manifest, entries, integrity) {
   const tables = Object.keys(entries).filter(name => name.startsWith('tables/') && name.endsWith('.json'));
   const included = Array.isArray(manifest.includedTables) ? manifest.includedTables : [];
   const tableRows = tables.map(name => {
@@ -44,11 +60,12 @@ function render(file, manifest, entries) {
     ${fact('Created', manifest.createdAtMs ? new Date(manifest.createdAtMs).toLocaleString() : 'Not supplied')}
     ${fact('Schema', String(manifest.schemaVersion))}${fact('App version', escapeHtml(manifest.appVersion))}
     ${fact('Tier', escapeHtml(manifest.tierName || 'Not supplied'))}
+    ${fact('Integrity', escapeHtml(integrity.state))}
   </div></div>
   <div class="card"><h2>Included data</h2><p>${included.length} manifest table(s), ${tables.length} readable payload(s).</p>
     <ul>${tableRows || (included.length ? included.map(t => `<li><code>${escapeHtml(t)}</code></li>`).join('') : '<li>No table list supplied</li>')}</ul>
   </div>
-  <div class="card"><h2>Privacy boundary</h2><p>This preview inspects the manifest and table names only. It does not send data to a server or silently import anything into a device.</p></div>`;
+  <div class="card"><h2>Privacy boundary</h2><p>This preview inspects the manifest and table names only. It does not send data to a server or silently import anything into a device.</p><p class="hint">${escapeHtml(integrity.detail)}</p></div>`;
   report.hidden = false;
 }
 

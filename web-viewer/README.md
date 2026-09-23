@@ -11,9 +11,10 @@ Bluetooth, LocalSend or another file-transfer method.
   person-to-person envelope is not implemented yet. The viewer currently expects the same ZIP
   `manifest.json` shape as `.crocbak`.
 
-The viewer parses the archive in the browser, shows manifest/table metadata, and does not upload,
-persist, or import records. It deliberately does not claim signature verification or full report
-rendering yet; those belong to the signed `.croc` implementation.
+The viewer parses the archive in the browser, verifies the manifest's SHA-256 payload checksum
+before rendering metadata, and does not upload, persist, or import records. It deliberately does
+not claim public-key signature verification or full report rendering yet; those belong to the signed
+`.croc` implementation.
 
 For a quick local preview, serve this directory with any static file server or open `index.html` in
 a modern browser supporting `DecompressionStream`.
