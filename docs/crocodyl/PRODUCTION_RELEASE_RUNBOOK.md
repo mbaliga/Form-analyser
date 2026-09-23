@@ -35,6 +35,8 @@ signing inputs or expected certificate fingerprint are absent.
 2. Require the release workflow to pass JVM tests, Android debug/release unit tests, release lint,
    debug connected smoke, signed minified release connected smoke, generated-asset drift checks,
    signed artifact preflight, and checksum publication.
+   The workflow also runs the release-workflow contract tests, which fail if signing-material
+   permissions/cleanup or the release verification steps are removed.
 3. Confirm the preflight output verifies APK v2 signing, AAB signing, ZIP alignment, expected
    version metadata, cleartext/backup/FileProvider policy, BlazePose hash, backup resources, no
    staging files, and the expected signer fingerprint in both artifacts.

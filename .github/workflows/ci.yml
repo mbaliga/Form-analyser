@@ -65,5 +65,7 @@ jobs:
         run: python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
       - name: Verify immutable workflow action refs
         run: python3 tools/release/verify_workflow_actions.py
+      - name: Validate release workflow security contract
+        run: python3 -m unittest discover -s tools/release -p 'test_*.py'
       - name: Validate offline desktop viewer contract
         run: python3 -m unittest discover -s tools/web_viewer -p 'test_*.py'
