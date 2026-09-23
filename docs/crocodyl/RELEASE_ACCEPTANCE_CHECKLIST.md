@@ -131,6 +131,8 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [x] `./gradlew test` passes (local verification recorded in the handoff/build notes).
 - [x] `:app-android:testDebugUnitTest` and `:app-android:testReleaseUnitTest` pass with `-PwithAndroid` (2026-09-20; includes analyzer persistence/baseline, manifest privacy, durable recovery-notice, encrypted-vault, and model-inventory tests).
 - [x] `:app-android:lintRelease` has zero errors and zero warnings (local QA release audit).
+- [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
+      `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, absence of staging files, and the expected production

@@ -15,11 +15,12 @@ participants.
 | Paired Session | UX walkthrough + beta transport boundary | First-run/returning-user walkthrough is in Android; shared TCP/pairing core is in Shared-Libraries-asoc. Discovery, trust, reconnect and two-device acceptance remain. |
 | Desktop file fallback | Local metadata viewer implemented | `web-viewer/` opens current `.crocbak` archives locally and accepts `.croc` as a forward-compatible extension. Signed `.croc` verification and full report rendering remain. |
 | Bocal interoperability | Beta compile integration | Bocal and Crocodyl consume the shared session boundary. No claim of production cross-device acceptance. |
-| Production distribution | Not yet releasable | Requires production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance. |
+| Production distribution | Not yet releasable | Workflow actions are now immutably pinned and guarded. Production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance remain. |
 
 ## Current commits
 
 - Crocodyl: `688491c` — Paired Session walkthrough, desktop viewer and documentation.
+- Crocodyl: `bd84d72` — immutable GitHub Action pins and workflow policy guard.
 - Shared-Libraries-asoc: `6b54b98` — bounded local-session transport frames.
 - Bocal: `e57ef5e` — session frame guard documentation.
 
