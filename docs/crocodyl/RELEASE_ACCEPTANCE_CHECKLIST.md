@@ -99,6 +99,10 @@ the API-35 ARM64 `alloy-api35-arm64` emulator. The subsequent `connectedReleaseA
 completed its minified test APK preparation, but the emulator went offline before test execution
 (`AdbCommandRejectedException: device offline`); no minified-release connected pass is claimed.
 
+Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
+DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
+Android unit-test suites plus release lint passed with this test included.
+
 Fencing next-target validation: 2026-09-21, tester: Codex. The manual referee console state core
 (weapon metadata, Prêt/Allez/Halte, score, undo and reset) passed pure-JVM tests. Debug connected
 smoke passed 3/3 with verification versionCode 607; minified release connected smoke passed 3/3

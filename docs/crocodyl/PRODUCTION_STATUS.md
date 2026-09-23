@@ -56,3 +56,6 @@ source. A fresh minified QA-signed APK/AAB package also passed the release prefl
 available for that package in this replay. A current-tree debug connected replay did pass 3/3 on
 the API-35 ARM64 `alloy-api35-arm64` emulator; the subsequent minified-release connected attempt
 was rejected because the emulator went offline before test execution.
+
+The paired-session walkthrough persistence flag now has a dedicated Robolectric test covering its
+unseen default and completed state in both debug and release unit-test variants.
