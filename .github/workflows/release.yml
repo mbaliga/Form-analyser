@@ -25,12 +25,12 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: temurin
           java-version: "21"
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
       - name: Prepare release signing
         env:
           KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
@@ -73,7 +73,7 @@ jobs:
       - name: Run Android lint
         run: ./gradlew :app-android:lintRelease -PwithAndroid --no-daemon
       - name: Run on-device Android smoke tests
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 35
           target: google_apis
@@ -84,6 +84,7 @@ jobs:
           script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon -PcrocodylVersionName="${{ steps.ver.outputs.version }}" -PcrocodylVersionCode="${{ steps.ver.outputs.version_code }}"
       - name: Validate packaged equipment source contracts
         run: |
+          python3 tools/release/verify_workflow_actions.py
           python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
           python3 tools/community_directory/validate_directory.py docs/crocodyl/community-directory/entries
           python3 tools/atelier/test_assets.py
@@ -101,7 +102,7 @@ jobs:
           CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
         run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid --no-daemon -PcrocodylVersionName="${{ steps.ver.outputs.version }}" -PcrocodylVersionCode="${{ steps.ver.outputs.version_code }}"
       - name: Run on-device smoke tests against signed minified release
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         env:
           CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore
           CROCODYL_RELEASE_STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
@@ -116,7 +117,7 @@ jobs:
           disable-animations: true
           script: ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="${{ steps.ver.outputs.version }}" -PcrocodylVersionCode="${{ steps.ver.outputs.version_code }}"
       - name: Run minified release smoke tests
-        uses: reactivecircus/android-emulator-runner@v2
+        uses: reactivecircus/android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed # v2.34.0
         with:
           api-level: 35
           target: google_apis
@@ -152,7 +153,7 @@ jobs:
           sha256sum "crocodyl-${{ steps.ver.outputs.version }}.apk" "crocodyl-${{ steps.ver.outputs.version }}.aab" > "crocodyl-${{ steps.ver.outputs.version }}-SHA256SUMS.txt"
       # Public no-login download links on the Release page (APK for direct testing, AAB for Play).
       - name: Attach to GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
         with:
           tag_name: ${{ steps.ver.outputs.version }}
           target_commitish: ${{ github.sha }}

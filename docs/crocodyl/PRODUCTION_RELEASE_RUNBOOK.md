@@ -58,9 +58,7 @@ records, owner approval and selected distribution channel are all recorded.
 
 ## CI supply-chain note
 
-The workflow currently references GitHub Actions by maintained major tags (`@vN`) rather than
-immutable commit SHAs. That is operationally reproducible only within the tag-maintainer trust
-boundary. Before a high-assurance production rollout, pin each third-party action to a reviewed
-commit SHA and record the update in the release checklist; do not silently substitute guessed SHAs.
-Dependabot is configured for weekly GitHub Actions updates in `.github/dependabot.yml`, so tag drift
-produces a reviewable update rather than remaining invisible.
+All third-party workflow actions are pinned to reviewed upstream commit SHAs. The release and CI
+jobs run `tools/release/verify_workflow_actions.py`, which fails closed if a future edit uses a
+mutable tag or branch. Dependabot is configured for weekly GitHub Actions updates in
+`.github/dependabot.yml`; every proposed SHA change remains reviewable before release.
