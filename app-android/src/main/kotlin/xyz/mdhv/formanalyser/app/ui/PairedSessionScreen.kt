@@ -19,6 +19,8 @@ import xyz.mdhv.formanalyser.app.data.AppPrefs
 @Composable
 fun PairedSessionScreen(prefs: AppPrefs, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
+    val walkthroughSeen by prefs.pairedSessionWalkthroughSeen.collectAsState(initial = false)
+    var reviewing by remember(walkthroughSeen) { mutableStateOf(!walkthroughSeen) }
     var step by remember { mutableIntStateOf(0) }
     val steps = listOf(
         "Choose the session role" to "The coach hosts and the athlete joins. The host displays a fresh six-digit pairing code.",
@@ -26,6 +28,33 @@ fun PairedSessionScreen(prefs: AppPrefs, onBack: () -> Unit) {
         "Pair, then verify" to "The joiner enters the code. Check the names and session purpose before sharing any score or observation.",
         "Use file exchange when needed" to "A coach without a phone can open a .crocbak export on the desktop viewer. Transfer it by WhatsApp, USB, Bluetooth or LocalSend; the file is inspected locally.",
     )
+    if (walkthroughSeen && !reviewing) {
+        Column(
+            Modifier.fillMaxSize().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text("Paired Session", style = MaterialTheme.typography.headlineMedium)
+            Text("Ready for a nearby coach-and-athlete session.")
+            ElevatedCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Quick setup", style = MaterialTheme.typography.titleLarge)
+                    Text("Host: coach · Join: athlete · Network: same trusted Wi‑Fi · Pairing: fresh six-digit code")
+                }
+            }
+            Text(
+                "If the devices cannot connect, use the desktop viewer and a .crocbak file instead. This does not upload your training data.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedButton(onClick = onBack, modifier = Modifier.weight(1f)) { Text("Back") }
+                Button(onClick = { reviewing = true }, modifier = Modifier.weight(1f)) {
+                    Text("Review setup")
+                }
+            }
+        }
+        return
+    }
+
     val current = steps[step]
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),

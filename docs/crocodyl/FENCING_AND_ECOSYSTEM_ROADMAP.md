@@ -104,6 +104,9 @@ the signed `.croc` person-to-person envelope, signature verification and full re
 still pending. A file can be carried over WhatsApp, USB, Bluetooth, LocalSend or any equivalent
 file-transfer method.
 
+The walkthrough preference is now honored: first-time users see the guided setup, while returning
+users see a compact setup summary with an explicit option to review the walkthrough again.
+
 ## Search, baseline and news
 
 The locally available Shared-Libraries-asoc search core was audited at revision
