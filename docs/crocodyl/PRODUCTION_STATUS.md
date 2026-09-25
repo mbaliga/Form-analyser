@@ -60,6 +60,10 @@ available for that package in this replay. A current-tree debug connected replay
 the API-35 ARM64 `alloy-api35-arm64` emulator; the subsequent minified-release connected attempt
 was rejected because the emulator went offline before test execution.
 
+The offline desktop viewer now fails closed on oversized input, ZIP expansion bombs, duplicate
+entries, path-traversal names, and entries that exceed the bounded local payload contract; five
+viewer contract tests pass.
+
 The paired-session walkthrough persistence flag now has a dedicated Robolectric test covering its
 unseen default and completed state in both debug and release unit-test variants.
 

@@ -3,6 +3,10 @@ const input = document.querySelector('#file');
 const zone = document.querySelector('#dropzone');
 const status = document.querySelector('#status');
 const report = document.querySelector('#report');
+const MAX_ARCHIVE_BYTES = 256 * 1024 * 1024;
+const MAX_ZIP_ENTRIES = 1024;
+const MAX_ENTRY_BYTES = 64 * 1024 * 1024;
+const MAX_EXPANDED_BYTES = 128 * 1024 * 1024;
 
 input.addEventListener('change', () => input.files[0] && openFile(input.files[0]));
 ['dragenter','dragover'].forEach(name => zone.addEventListener(name, e => { e.preventDefault(); zone.classList.add('drag'); }));
@@ -13,6 +17,7 @@ async function openFile(file) {
   report.hidden = true;
   status.textContent = `Reading ${file.name} locally…`;
   try {
+    if (file.size > MAX_ARCHIVE_BYTES) throw new Error('File exceeds the 256 MiB local viewer limit');
     const bytes = new Uint8Array(await file.arrayBuffer());
     const entries = isZip(bytes) ? await readZip(bytes) : { 'manifest.json': bytes };
     const manifestBytes = entries['manifest.json'];
@@ -77,16 +82,26 @@ async function readZip(bytes) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const result = {};
   let pos = findEnd(view);
+  const entryCount = view.getUint16(pos + 10, true);
+  if (entryCount > MAX_ZIP_ENTRIES) throw new Error('Archive contains too many entries');
   const centralSize = view.getUint32(pos + 12, true), centralOffset = view.getUint32(pos + 16, true);
+  if (centralOffset + centralSize > bytes.byteLength) throw new Error('ZIP directory exceeds the file');
   let cursor = centralOffset, end = centralOffset + centralSize;
+  let expandedBytes = 0;
   while (cursor < end) {
     if (view.getUint32(cursor, true) !== 0x02014b50) throw new Error('Invalid ZIP directory');
     const method = view.getUint16(cursor + 10, true), compressed = view.getUint32(cursor + 20, true);
+    const uncompressed = view.getUint32(cursor + 24, true);
     const nameLength = view.getUint16(cursor + 28, true), extraLength = view.getUint16(cursor + 30, true), commentLength = view.getUint16(cursor + 32, true);
     const name = new TextDecoder().decode(bytes.slice(cursor + 46, cursor + 46 + nameLength));
+    if (!name || name.startsWith('/') || name.split('/').includes('..')) throw new Error('Unsafe ZIP entry path');
+    if (Object.prototype.hasOwnProperty.call(result, name)) throw new Error('Duplicate ZIP entry');
+    if (uncompressed > MAX_ENTRY_BYTES || expandedBytes + uncompressed > MAX_EXPANDED_BYTES) throw new Error('Archive expands beyond the local viewer limit');
     const local = view.getUint32(cursor + 42, true), localNameLength = view.getUint16(local + 26, true), localExtraLength = view.getUint16(local + 28, true);
+    if (local + 30 + localNameLength + localExtraLength + compressed > bytes.byteLength) throw new Error('ZIP entry exceeds the file');
     const data = bytes.slice(local + 30 + localNameLength + localExtraLength, local + 30 + localNameLength + localExtraLength + compressed);
     if (!name.endsWith('/')) result[name] = await inflate(data, method);
+    expandedBytes += uncompressed;
     cursor += 46 + nameLength + extraLength + commentLength;
   }
   return result;

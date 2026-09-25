@@ -37,6 +37,14 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("name.endsWith('.json')", self.script)
         self.assertIn("isZip(bytes)", self.script)
 
+    def test_archive_expansion_and_entry_paths_fail_closed(self) -> None:
+        self.assertIn("MAX_ARCHIVE_BYTES", self.script)
+        self.assertIn("MAX_ZIP_ENTRIES", self.script)
+        self.assertIn("MAX_EXPANDED_BYTES", self.script)
+        self.assertIn("Unsafe ZIP entry path", self.script)
+        self.assertIn("Duplicate ZIP entry", self.script)
+        self.assertIn("Archive expands beyond the local viewer limit", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()
