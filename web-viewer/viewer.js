@@ -112,8 +112,14 @@ async function readZip(bytes) {
     const local = view.getUint32(cursor + 42, true), localNameLength = view.getUint16(local + 26, true), localExtraLength = view.getUint16(local + 28, true);
     if (local + 30 + localNameLength + localExtraLength + compressed > bytes.byteLength) throw new Error('ZIP entry exceeds the file');
     const data = bytes.slice(local + 30 + localNameLength + localExtraLength, local + 30 + localNameLength + localExtraLength + compressed);
-    if (!name.endsWith('/')) result[name] = await inflate(data, method);
-    expandedBytes += uncompressed;
+    if (!name.endsWith('/')) {
+      const inflated = await inflate(data, method);
+      if (inflated.byteLength > MAX_ENTRY_BYTES || expandedBytes + inflated.byteLength > MAX_EXPANDED_BYTES) {
+        throw new Error('Archive expands beyond the local viewer limit');
+      }
+      result[name] = inflated;
+      expandedBytes += inflated.byteLength;
+    }
     cursor += 46 + nameLength + extraLength + commentLength;
   }
   return result;
