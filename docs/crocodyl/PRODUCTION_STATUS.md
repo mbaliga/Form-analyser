@@ -63,6 +63,8 @@ was rejected because the emulator went offline before test execution.
 The offline desktop viewer now fails closed on oversized input, ZIP expansion bombs, duplicate
 entries, path-traversal names, entries that exceed the bounded local payload contract, missing
 checksums, and manifest/table mismatches; six viewer contract tests pass.
+The picker drop zone is also keyboard-operable with accessible button semantics; seven viewer
+contract tests pass.
 
 The paired-session walkthrough persistence flag now has a dedicated Robolectric test covering its
 unseen default and completed state in both debug and release unit-test variants.
