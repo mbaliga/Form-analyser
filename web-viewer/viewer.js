@@ -34,9 +34,18 @@ async function openFile(file) {
 
 async function verifyPayloadChecksum(manifest, entries) {
   const declared = typeof manifest.contentChecksum === 'string' ? manifest.contentChecksum : '';
-  if (!declared) return { state: 'not supplied', detail: 'The manifest does not declare a payload checksum.' };
+  if (!declared) throw new Error('Manifest does not declare a payload checksum');
+  const payloadNames = Object.keys(entries).filter(name => name.startsWith('tables/'));
+  if (payloadNames.some(name => !name.endsWith('.json'))) throw new Error('Unsupported table payload');
+  const actualTables = payloadNames.map(name => name.slice(7, -5)).sort();
+  const declaredTables = Array.isArray(manifest.includedTables)
+    ? manifest.includedTables.filter(table => typeof table === 'string').slice().sort()
+    : null;
+  if (!declaredTables || JSON.stringify(actualTables) !== JSON.stringify(declaredTables)) {
+    throw new Error('Manifest table list does not match the archive');
+  }
   if (!globalThis.crypto?.subtle) throw new Error('This browser cannot verify the payload checksum');
-  const payloadNames = Object.keys(entries).filter(name => name.startsWith('tables/')).sort();
+  payloadNames.sort();
   const total = payloadNames.reduce((size, name) => size + entries[name].byteLength, 0);
   const combined = new Uint8Array(total);
   let offset = 0;

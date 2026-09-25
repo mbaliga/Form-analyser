@@ -45,6 +45,11 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("Duplicate ZIP entry", self.script)
         self.assertIn("Archive expands beyond the local viewer limit", self.script)
 
+    def test_exports_require_checksum_and_manifest_table_match(self) -> None:
+        self.assertIn("Manifest does not declare a payload checksum", self.script)
+        self.assertIn("Manifest table list does not match the archive", self.script)
+        self.assertIn("Unsupported table payload", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()
