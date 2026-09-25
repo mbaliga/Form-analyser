@@ -12,6 +12,9 @@ input.addEventListener('change', () => input.files[0] && openFile(input.files[0]
 ['dragenter','dragover'].forEach(name => zone.addEventListener(name, e => { e.preventDefault(); zone.classList.add('drag'); }));
 ['dragleave','drop'].forEach(name => zone.addEventListener(name, e => { e.preventDefault(); zone.classList.remove('drag'); }));
 zone.addEventListener('drop', e => e.dataTransfer.files[0] && openFile(e.dataTransfer.files[0]));
+zone.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+});
 
 async function openFile(file) {
   report.hidden = true;

@@ -50,6 +50,12 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("Manifest table list does not match the archive", self.script)
         self.assertIn("Unsupported table payload", self.script)
 
+    def test_file_drop_zone_is_keyboard_accessible(self) -> None:
+        self.assertIn('role="button"', self.html)
+        self.assertIn('aria-controls="file"', self.html)
+        self.assertIn("e.key === 'Enter'", self.script)
+        self.assertIn("e.key === ' '", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()
