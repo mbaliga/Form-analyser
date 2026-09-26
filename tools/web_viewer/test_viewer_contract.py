@@ -70,6 +70,13 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("JSON.stringify", self.script)
         self.assertIn("read-only preview", self.script)
 
+    def test_croc_requires_local_ecdsa_signature_verification(self) -> None:
+        self.assertIn("endsWith('.croc')", self.script)
+        self.assertIn("SHA256withECDSA", self.script)
+        self.assertIn("crypto.subtle.importKey", self.script)
+        self.assertIn("Signature verification failed", self.script)
+        self.assertIn("derSignatureToRaw", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()

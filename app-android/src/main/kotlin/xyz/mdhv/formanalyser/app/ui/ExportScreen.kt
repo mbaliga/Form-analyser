@@ -62,7 +62,7 @@ fun ExportScreen(vm: ExportViewModel) {
 
     val picker =
         rememberLauncherForActivityResult(
-            ActivityResultContracts.CreateDocument(ExportViewModel.MIME_CROCBACKUP)
+            ActivityResultContracts.CreateDocument(ExportViewModel.MIME_CROC)
         ) { uri ->
             if (uri != null) vm.export(uri)
         }
@@ -73,7 +73,7 @@ fun ExportScreen(vm: ExportViewModel) {
     ) {
         Text("Export", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Text(
-            "Build a signed-identity .crocbak archive of your data. You choose exactly what leaves " +
+            "Build a signed .croc sharing archive of your data. You choose exactly what leaves " +
                 "this device — private data (mood, life events, cycle) never can.",
             color = Hyle.OnSurfaceDim,
         )
@@ -162,7 +162,7 @@ fun ExportScreen(vm: ExportViewModel) {
             enabled = !busy && leaving.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (busy) "Exporting…" else "Save .crocbak to this device")
+            Text(if (busy) "Exporting…" else "Save signed .croc to this device")
         }
 
         // Same archive, same consent decision — only the destination differs. Saving to storage
@@ -173,7 +173,7 @@ fun ExportScreen(vm: ExportViewModel) {
                 vm.exportForSharing { uri ->
                     val send =
                         Intent(Intent.ACTION_SEND).apply {
-                            type = ExportViewModel.MIME_CROCBACKUP
+                            type = ExportViewModel.MIME_CROC
                             putExtra(Intent.EXTRA_STREAM, uri)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }

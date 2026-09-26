@@ -1,6 +1,6 @@
 # Crocodyl production status
 
-Last reviewed: 2026-09-24
+Last reviewed: 2026-09-27
 
 Latest verification replay: root JVM `test` passed on the current tree with Temurin JDK 21 and
 Gradle 8.14.3 (42 actionable tasks). The Android compile was provisioned with API 35/build-tools
@@ -22,7 +22,7 @@ participants.
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
 | Paired Session | UX walkthrough + beta transport boundary | First-run/returning-user walkthrough is in Android; shared TCP/pairing core is in Shared-Libraries-asoc. Discovery, trust, reconnect and two-device acceptance remain. |
-| Desktop file fallback | Local integrity-checked read-only table preview implemented | `web-viewer/` opens current `.crocbak` archives locally, verifies the declared SHA-256 payload checksum and manifest/table contract, and exposes bounded escaped row previews. It accepts `.croc` as a forward-compatible extension. Signed `.croc` verification and full report/analysis rendering remain. |
+| Desktop file fallback | Local integrity-checked read-only preview implemented; signed `.croc` verification added | `web-viewer/` opens `.crocbak` recovery archives and signed `.croc` sharing archives locally, verifies the declared SHA-256 payload checksum and manifest/table contract, and verifies the `.croc` P-256/ECDSA producer signature before exposing bounded escaped row previews. Full report/analysis rendering remains. |
 | Bocal interoperability | Beta compile integration | Bocal and Crocodyl consume the shared session boundary. No claim of production cross-device acceptance. |
 | Production distribution | Not yet releasable | Workflow actions are now immutably pinned and guarded. Production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance remain. |
 
@@ -42,6 +42,8 @@ participants.
   the isolated Temurin JDK 21/API-35 toolchain; connected instrumentation was not included.
 - Shared-Libraries-asoc: `6b54b98` — bounded local-session transport frames.
 - Bocal: `e57ef5e` — session frame guard documentation.
+- Crocodyl: signed-export change — Android sharing exports now use `.croc` with a P-256/ECDSA
+  producer signature; the offline viewer verifies it locally and keeps `.crocbak` checksum-only.
 
 ## Release decision
 
@@ -67,7 +69,8 @@ checksums, and manifest/table mismatches; six viewer contract tests pass.
 The picker drop zone is also keyboard-operable with accessible button semantics; seven viewer
 contract tests pass. Unknown manifest schemas are rejected before rendering; eight viewer contract
 tests pass. Verified exports now expose bounded read-only table-row previews for desktop coaches;
-nine viewer contract tests pass.
+signed `.croc` envelopes additionally require a valid P-256/ECDSA signature over the declared
+payload checksum; ten viewer contract tests pass.
 
 The paired-session walkthrough persistence flag now has a dedicated Robolectric test covering its
 unseen default and completed state in both debug and release unit-test variants.

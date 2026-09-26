@@ -30,7 +30,7 @@ The full vision loop, end to end:
 - `ui/` — Hyle-themed Compose: Home (session setup) · Capture (CameraX preview + live form readout, radium-green provenance glow) · Review (per-shot cards, manual score entry, baseline toggles, bow-arm trend + form-vs-score charts, fatigue + correlation summaries) · Score (WA/custom rounds, numeric/plot/observer input, interruption-safe resume, PBs and grouping).
 - `data/` — migration failures are preserved in a private recovery copy and shown in a blocking screen; replacing the database requires an explicit reset confirmation after backup verification. Injury documents support SAF import and camera capture, with atomic encrypted-vault writes and plaintext staging cleanup.
 
-Still to come (later layers): real-time per-shot detection during capture, pose-overlay rendering, flexibility/ROM tests, validated form calibration, automatic End Scan target scoring, the signed `.croc` exchange protocol, the Coach workspace, and the web review companion. Sensor signals come via the paid add-on.
+Still to come (later layers): real-time per-shot detection during capture, pose-overlay rendering, flexibility/ROM tests, validated form calibration, automatic End Scan target scoring, signature identity pinning/TOFU and import/merge workflows around the signed `.croc` envelope, the Coach workspace, and the full web review companion. Sensor signals come via the paid add-on.
 
 ## Release builds
 

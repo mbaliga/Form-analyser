@@ -6,6 +6,8 @@ import xyz.mdhv.formanalyser.exchange.KeyProvider
 import xyz.mdhv.formanalyser.exchange.PubkeyIdentity
 import java.security.KeyPairGenerator
 import java.security.KeyStore
+import java.security.Signature
+import java.security.PrivateKey
 import java.security.PublicKey
 
 /**
@@ -17,16 +19,29 @@ import java.security.PublicKey
  * encoding is deterministic and constant for the life of the key, so wrapping it in a
  * [PubkeyIdentity] yields a stable fingerprint that identifies every `.crocbak` this device produces.
  *
- * The private key never leaves secure storage and is never exercised here (Phase 5 does not sign the
- * archive — the manifest merely records *who* produced it). We deliberately avoid storing any secret
- * in app-owned storage: unlike a Tink-wrapped random seed, the raw private key material for this
- * identity never exists in the app process at all. Generation is idempotent — an existing key is
+ * The private key never leaves secure storage. It is used in-place by the Keystore to sign a
+ * person-to-person `.croc` checksum; raw private key material never exists in the app process.
+ * Generation is idempotent — an existing key is
  * reused, so the identity survives app restarts and only changes if the user wipes app data (which
  * also wipes every table an export could describe).
  */
 class AndroidKeyProvider : KeyProvider {
 
     override fun identity(): PubkeyIdentity = PubkeyIdentity.of(getOrCreatePublicKey().encoded)
+
+    /** Sign the supplied checksum with the non-exportable Keystore key. */
+    fun signChecksum(checksum: String): ByteArray {
+        val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+        val privateKey = ks.getKey(ALIAS, null) as? PrivateKey ?: run {
+            getOrCreatePublicKey()
+            (KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }).getKey(ALIAS, null) as? PrivateKey
+        } ?: error("Crocodyl export identity private key is unavailable")
+        return Signature.getInstance(SIGNATURE_ALGORITHM).run {
+            initSign(privateKey)
+            update(checksum.toByteArray(Charsets.UTF_8))
+            sign()
+        }
+    }
 
     private fun getOrCreatePublicKey(): PublicKey {
         val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
@@ -48,6 +63,7 @@ class AndroidKeyProvider : KeyProvider {
     companion object {
         /** Keystore alias for the durable export identity key. */
         const val ALIAS: String = "crocodyl_export_identity"
+        const val SIGNATURE_ALGORITHM: String = "SHA256withECDSA"
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
     }
 }

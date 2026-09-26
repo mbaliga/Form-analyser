@@ -34,7 +34,7 @@ import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
 
 /**
  * Phase 5 export ceremony (over `core-exchange`). Drives the tier/grant selection, computes the
- * live [ConsentDecision] preview, and — on confirm — assembles a `.crocbak` zip to a
+ * live [ConsentDecision] preview, and — on confirm — assembles a signed `.croc` zip to a
  * caller-supplied SAF [Uri].
  *
  * Privacy enforcement is delegated entirely to [ConsentFilter]/[PrivacyRegistry]: this VM only ever
@@ -108,7 +108,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         ConsentFilter.filter(ALL_TABLES, tier, grants)
 
     /**
-     * Assemble the `.crocbak` archive into [uri] (a `CreateDocument` result). Runs off the main
+     * Assemble the signed `.croc` archive into [uri] (a `CreateDocument` result). Runs off the main
      * thread; publishes the result to [outcome].
      */
     fun export(uri: Uri) {
@@ -116,7 +116,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         _busy.value = true
         _outcome.value = null
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { runCatching { writeArchive(uri) } }
+            val result = withContext(Dispatchers.IO) { runCatching { writeArchive(uri, signed = true) } }
             _busy.value = false
             _outcome.value =
                 result.fold(
@@ -140,7 +140,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * — SAF writes it somewhere the athlete picked on this device, this hands it to an app they
      * pick.
      *
-     * Previous share exports are deleted first. A .crocbak can carry medical rows, and leaving old
+     * Previous share exports are deleted first. A .croc can carry medical rows, and leaving old
      * copies in a world-readable-to-the-recipient cache is exactly the quiet accumulation the
      * privacy model exists to prevent.
      */
@@ -156,7 +156,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                         val dir = File(app.cacheDir, SHARE_DIR).apply { mkdirs() }
                         dir.listFiles()?.forEach { it.delete() }
                         val file = File(dir, SUGGESTED_FILENAME)
-                        val message = ShareExportPublisher.publish(file) { writeArchive(it) }
+                        val message = ShareExportPublisher.publish(file) { writeArchive(it, signed = true) }
                         val uri =
                             FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
                         uri to message
@@ -179,11 +179,11 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun writeArchive(uri: Uri): String {
+    private fun writeArchive(uri: Uri, signed: Boolean): String {
         val out =
             getApplication<Application>().contentResolver.openOutputStream(uri)
                 ?: error("cannot open destination")
-        return out.use { writeArchive(it) }
+        return out.use { writeArchive(it, signed = signed) }
     }
 
     /**
@@ -191,7 +191,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * file the sharesheet hands on — go through it, so a shared archive and a saved one are
      * byte-for-byte the same ceremony and cannot drift apart in what they include.
      */
-    private fun writeArchive(out: OutputStream): String {
+    private fun writeArchive(out: OutputStream, signed: Boolean): String {
         val decision = _decision.value
         val tier = _tier.value
         val included = decision.included.sorted()
@@ -228,9 +228,19 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                 rowCounts = rowCounts,
             )
 
+        val signedManifest = if (signed) {
+            manifest.copy(
+                signatureAlgorithm = AndroidKeyProvider.SIGNATURE_ALGORITHM,
+                publicKeyBase64 = Base64.encodeToString(keyProvider.identity().keyBytes, Base64.NO_WRAP),
+                signatureBase64 = Base64.encodeToString(keyProvider.signChecksum(checksum), Base64.NO_WRAP),
+            )
+        } else {
+            manifest
+        }
+
         ZipOutputStream(out.buffered()).use { zip ->
             zip.putNextEntry(ZipEntry("manifest.json"))
-            zip.write(manifest.serialize().toByteArray())
+            zip.write(signedManifest.serialize().toByteArray())
             zip.closeEntry()
             for ((logical, bytes) in payloads) {
                 zip.putNextEntry(ZipEntry("tables/$logical.json"))
@@ -240,7 +250,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         val rows = rowCounts.values.sum()
-        return "Exported ${payloads.size} table(s), $rows row(s) to a .crocbak archive."
+        return "Exported ${payloads.size} table(s), $rows row(s) to a ${if (signed) ".croc" else ".crocbak"} archive."
     }
 
     /**
@@ -291,14 +301,14 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
             get() = BuildConfig.VERSION_NAME
 
         /** Suggested SAF filename for the CreateDocument picker. */
-        const val SUGGESTED_FILENAME: String = "crocodyl-export.crocbak"
+        const val SUGGESTED_FILENAME: String = "crocodyl-export.croc"
 
         /**
          * MIME for Crocodyl's portable archive. Keep this vendor type rather than
          * `application/zip`: Android's DocumentsUI otherwise appends `.zip` to the requested
-         * `.crocbak` filename, hiding the artifact type from users and import tooling.
+         * `.croc` filename, hiding the artifact type from users and import tooling.
          */
-        const val MIME_CROCBACKUP: String = "application/vnd.crocodyl.crocbak"
+        const val MIME_CROC: String = "application/vnd.crocodyl.croc"
 
         /** Cache subdirectory the FileProvider exposes; nothing else in the cache is shareable. */
         const val SHARE_DIR: String = "share"
