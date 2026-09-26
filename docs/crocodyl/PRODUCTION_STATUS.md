@@ -114,3 +114,11 @@ passed the complete local artifact verifier, including APK/AAB certificate match
 identity, version metadata, manifest privacy flags, ZIP alignment, model hash, backup resources,
 and staging-file checks. It uses the disposable QA/debug signing identity and is not a production
 release.
+
+Consolidated repository audit (2026-09-27): root JVM tests passed (42 actionable tasks), release
+contracts passed 6/6, viewer contracts passed 10/10, ECDSA interoperability passed, Community
+Directory passed 4/4, Atelier assets passed 8/8, original arrow library passed 4/4,
+arrow-reference library passed 7/7, immutable workflow refs passed, and `git diff --check` passed.
+The open checklist items remain physical-device/range acceptance, production signing/CI evidence,
+clean-install/update acceptance, real-session volume, owner approval, and the explicitly documented
+multiplayer transport publication and cross-device acceptance gates.
