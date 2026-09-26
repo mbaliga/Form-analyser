@@ -6,8 +6,9 @@ Bluetooth, LocalSend or another file-transfer method.
 
 ## Supported files
 
-- `.croc` signed person-to-person archives produced by the current sharing flow. The manifest
-  carries a P-256 public key and ECDSA signature over the declared payload checksum.
+- `.croc` signed person-to-person archives produced by the current sharing flow. New envelopes
+  carry a P-256 public key and ECDSA signature over the declared payload checksum plus the sorted
+  table list and consent tier; legacy checksum-only signatures remain readable.
 - `.crocbak` schema v1 recovery archives from earlier/current backup flows. These remain checksum-verified but are not required to
   carry a producer signature.
 

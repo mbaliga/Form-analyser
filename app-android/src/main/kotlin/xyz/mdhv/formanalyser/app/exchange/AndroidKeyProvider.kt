@@ -30,7 +30,13 @@ class AndroidKeyProvider : KeyProvider {
     override fun identity(): PubkeyIdentity = PubkeyIdentity.of(getOrCreatePublicKey().encoded)
 
     /** Sign the supplied checksum with the non-exportable Keystore key. */
-    fun signChecksum(checksum: String): ByteArray {
+    fun signChecksum(checksum: String): ByteArray = signBytes(checksum)
+
+    /** Sign the checksum and consent envelope fields used by new `.croc` exports. */
+    fun signEnvelope(checksum: String, includedTables: List<String>, tierName: String): ByteArray =
+        signBytes(envelopePayload(checksum, includedTables, tierName))
+
+    private fun signBytes(payload: String): ByteArray {
         val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         val privateKey = ks.getKey(ALIAS, null) as? PrivateKey ?: run {
             getOrCreatePublicKey()
@@ -38,7 +44,7 @@ class AndroidKeyProvider : KeyProvider {
         } ?: error("Crocodyl export identity private key is unavailable")
         return Signature.getInstance(SIGNATURE_ALGORITHM).run {
             initSign(privateKey)
-            update(checksum.toByteArray(Charsets.UTF_8))
+            update(payload.toByteArray(Charsets.UTF_8))
             sign()
         }
     }
@@ -64,6 +70,12 @@ class AndroidKeyProvider : KeyProvider {
         /** Keystore alias for the durable export identity key. */
         const val ALIAS: String = "crocodyl_export_identity"
         const val SIGNATURE_ALGORITHM: String = "SHA256withECDSA"
+        const val ENVELOPE_SIGNATURE_ALGORITHM: String = "SHA256withECDSA/CrocodylEnvelopeV2"
+
+        /** Canonical UTF-8 payload: checksum, sorted logical tables, and consent tier. */
+        fun envelopePayload(checksum: String, includedTables: List<String>, tierName: String): String =
+            "$checksum\n${includedTables.sorted().joinToString(",")}\n$tierName"
+
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
     }
 }

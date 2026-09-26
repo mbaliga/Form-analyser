@@ -7,7 +7,7 @@ async function verifyEnvelopeSignature(fileName, manifest) {
     return { state: 'verified', detail: 'Payload checksum verified; recovery archive is unsigned.' };
   }
   if (
-    manifest.signatureAlgorithm !== 'SHA256withECDSA' ||
+    !['SHA256withECDSA', 'SHA256withECDSA/CrocodylEnvelopeV2'].includes(manifest.signatureAlgorithm) ||
     typeof manifest.publicKeyBase64 !== 'string' ||
     typeof manifest.signatureBase64 !== 'string'
   ) {
@@ -21,14 +21,20 @@ async function verifyEnvelopeSignature(fileName, manifest) {
     false,
     ['verify'],
   );
+  const signedPayload = manifest.signatureAlgorithm === 'SHA256withECDSA/CrocodylEnvelopeV2'
+    ? `${manifest.contentChecksum}\n${(Array.isArray(manifest.includedTables) ? manifest.includedTables.slice() : []).sort().join(',')}\n${manifest.tierName || ''}`
+    : manifest.contentChecksum;
   const valid = await crypto.subtle.verify(
     { name: 'ECDSA', hash: 'SHA-256' },
     key,
     derSignatureToRaw(base64Bytes(manifest.signatureBase64)),
-    new TextEncoder().encode(manifest.contentChecksum),
+    new TextEncoder().encode(signedPayload),
   );
   if (!valid) throw new Error('Signature verification failed; the file was not opened');
-  return { state: 'signed and verified', detail: 'Payload checksum and producer signature verified locally.' };
+  const scope = manifest.signatureAlgorithm === 'SHA256withECDSA/CrocodylEnvelopeV2'
+    ? 'Payload checksum, consent envelope and producer signature'
+    : 'Payload checksum and producer signature';
+  return { state: 'signed and verified', detail: `${scope} verified locally.` };
 }
 
 function base64Bytes(value) {

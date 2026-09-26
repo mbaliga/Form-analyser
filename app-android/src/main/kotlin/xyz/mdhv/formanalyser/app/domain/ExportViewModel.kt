@@ -230,9 +230,12 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
         val signedManifest = if (signed) {
             manifest.copy(
-                signatureAlgorithm = AndroidKeyProvider.SIGNATURE_ALGORITHM,
+                signatureAlgorithm = AndroidKeyProvider.ENVELOPE_SIGNATURE_ALGORITHM,
                 publicKeyBase64 = Base64.encodeToString(keyProvider.identity().keyBytes, Base64.NO_WRAP),
-                signatureBase64 = Base64.encodeToString(keyProvider.signChecksum(checksum), Base64.NO_WRAP),
+                signatureBase64 = Base64.encodeToString(
+                    keyProvider.signEnvelope(checksum, manifest.includedTables, manifest.tierName),
+                    Base64.NO_WRAP,
+                ),
             )
         } else {
             manifest
