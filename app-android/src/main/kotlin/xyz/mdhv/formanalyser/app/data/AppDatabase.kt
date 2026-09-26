@@ -129,7 +129,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun resetAfterConfirmation(context: Context, backupPath: String?): AppDatabase =
             synchronized(this) {
                 val app = context.applicationContext
-                check(DbRecovery.isUsableBackup(backupPath, DB_NAME)) {
+                check(DbRecovery.isUsableBackup(app, backupPath, DB_NAME)) {
                     "Cannot reset $DB_NAME without a verified recovery backup"
                 }
                 runCatching { instance?.close() }

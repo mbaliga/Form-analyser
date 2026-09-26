@@ -160,9 +160,10 @@ private fun DatabaseRecoveryScreen(
     onReset: suspend () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var resetting by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-    val canReset = DbRecovery.isUsableBackup(failure.backupPath, failure.dbName)
+    val canReset = DbRecovery.isUsableBackup(context, failure.backupPath, failure.dbName)
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),

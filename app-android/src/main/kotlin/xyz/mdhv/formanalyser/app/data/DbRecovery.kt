@@ -61,12 +61,16 @@ object DbRecovery {
     }.getOrNull()
 
     /** A reset is allowed only when the original database bytes are actually preserved. */
-    fun isUsableBackup(path: String?, dbName: String): Boolean {
-        val dir = path?.takeIf { it.isNotBlank() }?.let(::File) ?: return false
+    fun isUsableBackup(context: Context, path: String?, dbName: String): Boolean = runCatching {
+        val dir = path?.takeIf { it.isNotBlank() }?.let(::File) ?: return@runCatching false
+        // Only accept a directory directly created under the app-private recovery root. This
+        // prevents a caller from supplying an arbitrary path that merely happens to contain a
+        // matching database and checksum manifest.
+        if (dir.canonicalFile.parentFile != recoveryDir(context).canonicalFile) return@runCatching false
         val db = File(dir, dbName)
-        if (!dir.isDirectory || !db.isFile || db.length() == 0L) return false
+        if (!dir.isDirectory || !db.isFile || db.length() == 0L) return@runCatching false
         val manifest = File(dir, BACKUP_MANIFEST)
-        if (!manifest.isFile || manifest.length() == 0L) return false
+        if (!manifest.isFile || manifest.length() == 0L) return@runCatching false
         val allowed = DB_SUFFIXES.map { dbName + it }.toSet()
         val entries = runCatching {
             manifest.readLines().filter { it.isNotBlank() }.associate { line ->
@@ -78,13 +82,13 @@ object DbRecovery {
                 require(name in allowed)
                 name to digest
             }
-        }.getOrNull() ?: return false
-        if (entries.isEmpty() || dbName !in entries.keys) return false
-        return entries.all { (name, expected) ->
+        }.getOrNull() ?: return@runCatching false
+        if (entries.isEmpty() || dbName !in entries.keys) return@runCatching false
+        entries.all { (name, expected) ->
             val file = File(dir, name)
             file.isFile && sha256(file) == expected
         }
-    }
+    }.getOrDefault(false)
 
     private fun sha256(file: File): String {
         val digest = MessageDigest.getInstance("SHA-256")
