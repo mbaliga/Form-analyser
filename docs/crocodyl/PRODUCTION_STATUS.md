@@ -107,3 +107,9 @@ Recovery hardening replay (2026-09-27): both Android unit-test variants, release
 connected debug instrumentation passed after checksum-manifested backups and the app-private
 recovery-root restriction were added. Connected instrumentation passed 3/3 on
 `alloy-api35-arm64` / `emulator-5554`.
+
+QA release preflight replay (2026-09-27): APK/AAB `0.6.0-qa-preflight` / versionCode `630`
+passed the complete local artifact verifier, including APK/AAB certificate matching, package
+identity, version metadata, manifest privacy flags, ZIP alignment, model hash, backup resources,
+and staging-file checks. It uses the disposable QA/debug signing identity and is not a production
+release.

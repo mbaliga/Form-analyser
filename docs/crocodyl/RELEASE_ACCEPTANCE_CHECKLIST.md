@@ -69,6 +69,12 @@ and staging-file checks. APK SHA-256:
 `b9fa07f5b40e9c787bc1cfb7f716b9b357a68c6ab5a976aa337af73420f04987`. QA signing is not production
 signing and this remains artifact evidence, not physical-device acceptance.
 
+Fresh QA artifact preflight: 2026-09-27, tester: Codex. Version `0.6.0-qa-preflight`, versionCode
+`630`, built with the isolated JDK 21/Android SDK and disposable QA/debug keystore. The reusable
+preflight passed APK/AAB certificate matching, package identity, version metadata, manifest
+security, ZIP alignment, bundled BlazePose hash, backup resources, and staging-file checks. This
+is QA artifact evidence only and is not production signing or release approval.
+
 Repository-side contract replay: 2026-09-22, tester: Codex. Community Directory validation passed
 4/4 tests; Atelier asset contracts passed 8/8; original arrow-library contracts passed 4/4; and
 arrow-reference contracts passed 7/7. ADB connected-device verification was attempted with the
