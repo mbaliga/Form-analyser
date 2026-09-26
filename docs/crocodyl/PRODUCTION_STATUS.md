@@ -101,3 +101,8 @@ the available development checkout, while the published `codex/evidence-schema-v
 to a later history without `local-session-core`. Crocodyl therefore does not pin a submodule or
 claim a reproducible production multiplayer build until the transport commit is published in the
 shared repository's supported history.
+
+Recovery hardening replay (2026-09-27): both Android unit-test variants, release lint, and
+connected debug instrumentation passed after checksum-manifested backups and the app-private
+recovery-root restriction were added. Connected instrumentation passed 3/3 on
+`alloy-api35-arm64` / `emulator-5554`.
