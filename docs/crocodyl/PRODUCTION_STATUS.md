@@ -65,7 +65,8 @@ entries, path-traversal names, entries that exceed the bounded local payload con
 checksums, and manifest/table mismatches; six viewer contract tests pass.
 The picker drop zone is also keyboard-operable with accessible button semantics; seven viewer
 contract tests pass. Unknown manifest schemas are rejected before rendering; eight viewer contract
-tests pass.
+tests pass. Verified exports now expose bounded read-only table-row previews for desktop coaches;
+nine viewer contract tests pass.
 
 The paired-session walkthrough persistence flag now has a dedicated Robolectric test covering its
 unseen default and completed state in both debug and release unit-test variants.

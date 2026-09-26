@@ -63,6 +63,13 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("manifest.schemaVersion !== 1", self.script)
         self.assertIn("Unsupported manifest schema", self.script)
 
+    def test_verified_exports_have_bounded_read_only_table_previews(self) -> None:
+        self.assertIn("MAX_DISPLAY_ROWS", self.script)
+        self.assertIn("MAX_DISPLAY_CHARS", self.script)
+        self.assertIn("table-preview", self.script)
+        self.assertIn("JSON.stringify", self.script)
+        self.assertIn("read-only preview", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,6 +7,8 @@ const MAX_ARCHIVE_BYTES = 256 * 1024 * 1024;
 const MAX_ZIP_ENTRIES = 1024;
 const MAX_ENTRY_BYTES = 64 * 1024 * 1024;
 const MAX_EXPANDED_BYTES = 128 * 1024 * 1024;
+const MAX_DISPLAY_ROWS = 100;
+const MAX_DISPLAY_CHARS = 200000;
 
 input.addEventListener('change', () => input.files[0] && openFile(input.files[0]));
 ['dragenter','dragover'].forEach(name => zone.addEventListener(name, e => { e.preventDefault(); zone.classList.add('drag'); }));
@@ -64,16 +66,25 @@ async function verifyPayloadChecksum(manifest, entries) {
 function render(file, manifest, entries, integrity) {
   const tables = Object.keys(entries).filter(name => name.startsWith('tables/') && name.endsWith('.json'));
   const included = Array.isArray(manifest.includedTables) ? manifest.includedTables : [];
-  const tableRows = tables.map(name => {
+  const parsedTables = tables.map(name => {
     try {
       const value = JSON.parse(new TextDecoder().decode(entries[name]));
       const count = Array.isArray(value) ? value.length : 0;
       const fields = count && value[0] && typeof value[0] === 'object' ? Object.keys(value[0]).slice(0, 6).join(', ') : 'no row fields';
-      return `<li><code>${escapeHtml(name.slice(7, -5))}</code> · ${count} row(s) · ${escapeHtml(fields)}</li>`;
+      const preview = JSON.stringify(Array.isArray(value) ? value.slice(0, MAX_DISPLAY_ROWS) : value, null, 2)
+        .slice(0, MAX_DISPLAY_CHARS);
+      return { name: name.slice(7, -5), count, fields, preview };
     } catch (_) {
-      return `<li><code>${escapeHtml(name.slice(7, -5))}</code> · payload unreadable</li>`;
+      return { name: name.slice(7, -5), count: 0, fields: 'payload unreadable', preview: '' };
     }
-  }).join('');
+  });
+  const tableRows = parsedTables.map(table =>
+    `<li><code>${escapeHtml(table.name)}</code> · ${table.count} row(s) · ${escapeHtml(table.fields)}</li>`
+  ).join('');
+  const tablePreviews = parsedTables.map(table => table.preview
+    ? `<details class="table-preview"><summary><code>${escapeHtml(table.name)}</code> · ${table.count} row(s)</summary><pre>${escapeHtml(table.preview)}</pre>${table.count > MAX_DISPLAY_ROWS ? `<p class="hint">Showing the first ${MAX_DISPLAY_ROWS} rows.</p>` : ''}</details>`
+    : `<details class="table-preview"><summary><code>${escapeHtml(table.name)}</code> · payload unreadable</summary></details>`
+  ).join('');
   report.innerHTML = `<div class="card"><h2>File</h2><div class="facts">
     ${fact('Name', escapeHtml(file.name))}${fact('Size', `${file.size.toLocaleString()} bytes`)}
     ${fact('Created', manifest.createdAtMs ? new Date(manifest.createdAtMs).toLocaleString() : 'Not supplied')}
@@ -83,8 +94,9 @@ function render(file, manifest, entries, integrity) {
   </div></div>
   <div class="card"><h2>Included data</h2><p>${included.length} manifest table(s), ${tables.length} readable payload(s).</p>
     <ul>${tableRows || (included.length ? included.map(t => `<li><code>${escapeHtml(t)}</code></li>`).join('') : '<li>No table list supplied</li>')}</ul>
+    <div class="table-previews">${tablePreviews}</div>
   </div>
-  <div class="card"><h2>Privacy boundary</h2><p>This preview inspects the manifest and table names only. It does not send data to a server or silently import anything into a device.</p><p class="hint">${escapeHtml(integrity.detail)}</p></div>`;
+  <div class="card"><h2>Privacy boundary</h2><p>This read-only preview inspects the included manifest and table rows locally. It does not send data to a server or silently import anything into a device.</p><p class="hint">${escapeHtml(integrity.detail)}</p></div>`;
   report.hidden = false;
 }
 
