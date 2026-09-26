@@ -85,6 +85,10 @@ payload checksum; ten viewer contract tests pass.
 The executable interoperability check also passes against a generated P-256 key and a
 Java-compatible DER ECDSA signature, including tamper rejection and unsigned `.crocbak` fallback.
 
+Post-viewer-hardening replay (2026-09-27): root JVM `test`, Android debug/release unit tests and
+`lintRelease` passed again. The viewer contract suite remained 10/10 and the executable ECDSA
+interoperability check passed after unexpected ZIP-entry rejection was added.
+
 The paired-session walkthrough persistence flag now has a dedicated Robolectric test covering its
 unseen default and completed state in both debug and release unit-test variants.
 
