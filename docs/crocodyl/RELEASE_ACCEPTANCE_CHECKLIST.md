@@ -132,7 +132,8 @@ leaks private data, or leaves the user unable to recover without clearing app st
       and injury-linked readiness behave correctly.
 - [ ] Import a document through SAF and in-app camera; preview it; verify encrypted vault storage;
       cancel and retry imports; verify temporary camera files are removed.
-- [ ] Export a `.crocbak`, inspect the consent preview, share it, and verify PRIVATE data is absent.
+- [ ] Export a signed `.croc`, inspect the consent preview, share it, verify PRIVATE data is absent,
+      and open it in the offline viewer with local producer-signature verification.
 - [ ] Offline rule-coach works without a key; BYOK cloud paths are opt-in; invalid keys/models fail
       visibly without corrupting existing settings or installed models.
 - [ ] Data wipe, database recovery notice, explicit reset-after-backup, and post-reset disclosure work.
@@ -168,6 +169,6 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [ ] APK is installed over the previous production build and launches on the acceptance matrix.
 - [ ] Owner approves the release notes and selected distribution channel.
 
-End Scan, Live Observer, signed `.croc` exchange, Coach workspace, web viewer, equipment catalog,
-and the broader training/recovery roadmap are not acceptance criteria for 0.6; see
+End Scan, Live Observer, complete `.croc` import/merge exchange, Coach workspace, full web report
+rendering, equipment catalog, and the broader training/recovery roadmap are not acceptance criteria for 0.6; see
 [`CROCODYL_STATUS.md`](../../CROCODYL_STATUS.md).

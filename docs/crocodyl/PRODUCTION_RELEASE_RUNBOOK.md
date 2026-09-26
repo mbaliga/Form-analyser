@@ -23,7 +23,8 @@ keytool -list -v -keystore production.keystore | grep -i 'SHA256:'
 ```
 
 Never commit the keystore, passwords, or fingerprint-bearing private key material. The release
-workflow writes the keystore only into the ephemeral CI workspace with owner-only permissions,
+workflow validates all five inputs before materializing anything, then writes the keystore only
+into the ephemeral CI workspace with owner-only permissions,
 removes it in an `always()` cleanup step after artifact publication, and fails closed if the
 signing inputs or expected certificate fingerprint are absent.
 

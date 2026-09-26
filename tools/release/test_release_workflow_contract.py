@@ -18,6 +18,14 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("umask 077", self.workflow)
         self.assertIn("chmod 600 app-android/release.keystore", self.workflow)
 
+    def test_all_signing_inputs_are_checked_before_keystore_materialization(self) -> None:
+        verify = self.workflow.index("- name: Verify production signing inputs")
+        prepare = self.workflow.index("- name: Prepare release signing")
+        self.assertLess(verify, prepare)
+        for token in ("STORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD", "CERT_SHA256"):
+            self.assertIn(f'test -n "${token}"' if token != "CERT_SHA256" else "NORMALIZED_CERT", self.workflow[verify:prepare])
+        self.assertIn("^[0-9a-f]{64}$", self.workflow[verify:prepare])
+
     def test_signing_material_has_always_run_cleanup(self) -> None:
         self.assertIn("- name: Remove signing material", self.workflow)
         self.assertIn("if: ${{ always() }}", self.workflow)

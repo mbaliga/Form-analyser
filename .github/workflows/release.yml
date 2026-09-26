@@ -31,6 +31,20 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+      - name: Verify production signing inputs
+        env:
+          KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+          CERT_SHA256: ${{ secrets.CROCODYL_RELEASE_CERT_SHA256 }}
+        run: |
+          test -n "$KEYSTORE_BASE64"
+          test -n "$STORE_PASSWORD"
+          test -n "$KEY_ALIAS"
+          test -n "$KEY_PASSWORD"
+          NORMALIZED_CERT="$(printf '%s' "$CERT_SHA256" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
+          printf '%s' "$NORMALIZED_CERT" | grep -Eq '^[0-9a-f]{64}$'
       - name: Prepare release signing
         env:
           KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
