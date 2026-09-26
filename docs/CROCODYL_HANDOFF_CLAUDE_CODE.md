@@ -124,8 +124,10 @@ claim production discovery, reconnect, identity or two-device acceptance.
 
 For coaches without a phone, `web-viewer/` is a dependency-free static desktop fallback. It reads
 `.crocbak` recovery archives and signed `.croc` sharing archives entirely in-browser, with no upload
-or automatic import. The viewer verifies the `.croc` producer signature locally and is suitable for files moved through
-WhatsApp, removable media, Bluetooth or LocalSend.
+or automatic import. New `.croc` envelopes authenticate the payload checksum, sorted included-table
+list and consent tier; legacy checksum-only signatures remain readable. The viewer verifies the
+producer signature locally and is suitable for files moved through WhatsApp, removable media,
+Bluetooth or LocalSend.
 
 The walkthrough preference is behaviorally enforced: first entry shows the four-step guide and
 subsequent entries show a compact setup summary with a review action.
@@ -133,8 +135,12 @@ subsequent entries show a compact setup summary with a review action.
 Fresh verification note (2026-09-27): root JVM tests, Android debug/release unit tests and
 `lintRelease` pass with Temurin JDK 21, Gradle 8.14.3 and API 35/build-tools 35.0.0. The offline
 viewer contract suite passes 10/10, and executable WebCrypto interoperability covers valid,
-tampered and checksum-only recovery files. Connected instrumentation, production signing and
-physical-device acceptance remain separate gates.
+tampered, legacy and consent-envelope signatures, and checksum-only recovery files. Connected
+instrumentation, production signing and physical-device acceptance remain separate gates.
+
+The current recovery path writes a SHA-256 manifest beside preserved database/WAL/SHM files and
+accepts reset only for an intact backup directly under the app-private recovery root. Both Android
+unit variants, release lint and connected debug instrumentation passed after this hardening.
 
 The local release artifacts are QA-signed only. A production release still requires the real production keystore/CI identity, final versioning, owner approval, physical-device/accessibility/thermal/battery checks, and range acceptance. Do not distribute the QA-signed artifacts.
 
