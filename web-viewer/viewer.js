@@ -101,15 +101,20 @@ async function readZip(bytes) {
   let cursor = centralOffset, end = centralOffset + centralSize;
   let expandedBytes = 0;
   while (cursor < end) {
+    if (cursor + 46 > end) throw new Error('Invalid ZIP directory');
     if (view.getUint32(cursor, true) !== 0x02014b50) throw new Error('Invalid ZIP directory');
     const method = view.getUint16(cursor + 10, true), compressed = view.getUint32(cursor + 20, true);
     const uncompressed = view.getUint32(cursor + 24, true);
     const nameLength = view.getUint16(cursor + 28, true), extraLength = view.getUint16(cursor + 30, true), commentLength = view.getUint16(cursor + 32, true);
     const name = new TextDecoder().decode(bytes.slice(cursor + 46, cursor + 46 + nameLength));
-    if (!name || name.startsWith('/') || name.split('/').includes('..')) throw new Error('Unsafe ZIP entry path');
+    if (!name || name.startsWith('/') || name.includes('\\') || name.split('/').includes('..')) throw new Error('Unsafe ZIP entry path');
     if (Object.prototype.hasOwnProperty.call(result, name)) throw new Error('Duplicate ZIP entry');
     if (uncompressed > MAX_ENTRY_BYTES || expandedBytes + uncompressed > MAX_EXPANDED_BYTES) throw new Error('Archive expands beyond the local viewer limit');
-    const local = view.getUint32(cursor + 42, true), localNameLength = view.getUint16(local + 26, true), localExtraLength = view.getUint16(local + 28, true);
+    const local = view.getUint32(cursor + 42, true);
+    if (local + 30 > bytes.byteLength || view.getUint32(local, true) !== 0x04034b50) throw new Error('Invalid ZIP local header');
+    const localNameLength = view.getUint16(local + 26, true), localExtraLength = view.getUint16(local + 28, true);
+    const localName = new TextDecoder().decode(bytes.slice(local + 30, local + 30 + localNameLength));
+    if (localName !== name) throw new Error('ZIP entry name mismatch');
     if (local + 30 + localNameLength + localExtraLength + compressed > bytes.byteLength) throw new Error('ZIP entry exceeds the file');
     const data = bytes.slice(local + 30 + localNameLength + localExtraLength, local + 30 + localNameLength + localExtraLength + compressed);
     if (!name.endsWith('/')) {
