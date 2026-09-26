@@ -2,11 +2,12 @@
 
 Last reviewed: 2026-09-27
 
-Latest verification replay: root JVM `test` passed on the current tree with Temurin JDK 21 and
-Gradle 8.14.3 (42 actionable tasks). The Android compile was provisioned with API 35/build-tools
-35.0.0 and caught a missing `PairedSessionCard` import; that defect is fixed in `2e7cdbd`. An
-unrestricted replay completed `:app-android:testDebugUnitTest`, `:app-android:testReleaseUnitTest`,
-and `:app-android:lintRelease` successfully on 2026-09-24 using Temurin JDK 21 and Gradle 8.14.3.
+Latest verification replay: root JVM `test` and the Android debug/release unit-test plus
+`lintRelease` gates passed on the current tree with Temurin JDK 21, Gradle 8.14.3, API 35 and
+build-tools 35.0.0. An earlier Android compile caught a missing `PairedSessionCard` import; that
+defect is fixed in `2e7cdbd`. The latest Android replay completed
+`:app-android:testDebugUnitTest`, `:app-android:testReleaseUnitTest`, and `:app-android:lintRelease`
+successfully on 2026-09-27.
 Connected instrumentation and physical-device acceptance remain separate gates. The follow-up
 replay after deprecation cleanup also passed; no app-source Kotlin deprecation warnings were
 reported.
