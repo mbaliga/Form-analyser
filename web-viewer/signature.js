@@ -13,6 +13,15 @@ async function verifyEnvelopeSignature(fileName, manifest) {
   ) {
     throw new Error('Signed .croc metadata is incomplete or unsupported');
   }
+  if (
+    manifest.signatureAlgorithm === 'SHA256withECDSA/CrocodylEnvelopeV2' &&
+    (!Array.isArray(manifest.includedTables) ||
+      manifest.includedTables.some(table => typeof table !== 'string') ||
+      typeof manifest.tierName !== 'string' ||
+      !manifest.tierName)
+  ) {
+    throw new Error('Signed .croc consent envelope is incomplete');
+  }
   if (!globalThis.crypto?.subtle) throw new Error('This browser cannot verify the .croc signature');
   const key = await crypto.subtle.importKey(
     'spki',

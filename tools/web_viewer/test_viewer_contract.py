@@ -82,6 +82,7 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("SHA256withECDSA", self.signature)
         self.assertIn("SHA256withECDSA/CrocodylEnvelopeV2", self.signature)
         self.assertIn("includedTables", self.signature)
+        self.assertIn("Signed .croc consent envelope is incomplete", self.signature)
         self.assertIn("crypto.subtle.importKey", self.signature)
         self.assertIn("Signature verification failed", self.signature)
         self.assertIn("derSignatureToRaw", self.signature)
