@@ -32,6 +32,7 @@ async function openFile(file) {
       throw new Error('Unsupported manifest schema');
     }
     const integrity = await verifyPayloadChecksum(manifest, entries);
+    validateTablePayloads(manifest, entries);
     const signature = await verifyEnvelopeSignature(file.name, manifest);
     render(file, manifest, entries, { ...integrity, ...signature });
     status.textContent = `Opened ${file.name} locally. No upload was performed.`;
@@ -62,6 +63,26 @@ async function verifyPayloadChecksum(manifest, entries) {
   const actual = 'sha256:' + [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
   if (actual !== declared.toLowerCase()) throw new Error('Payload checksum mismatch; the file was not opened');
   return { state: 'verified', detail: actual };
+}
+
+function validateTablePayloads(manifest, entries) {
+  const declaredCounts = manifest.rowCounts;
+  if (declaredCounts !== undefined && (declaredCounts === null || typeof declaredCounts !== 'object' || Array.isArray(declaredCounts))) {
+    throw new Error('Manifest row counts are invalid');
+  }
+  for (const name of Object.keys(entries).filter(entry => entry.startsWith('tables/') && entry.endsWith('.json'))) {
+    let value;
+    try { value = JSON.parse(new TextDecoder().decode(entries[name])); }
+    catch (_) { throw new Error(`Table payload is not valid JSON: ${name.slice(7, -5)}`); }
+    if (!Array.isArray(value)) throw new Error(`Table payload is not an array: ${name.slice(7, -5)}`);
+    const logical = name.slice(7, -5);
+    if (declaredCounts && Object.prototype.hasOwnProperty.call(declaredCounts, logical)) {
+      const expected = declaredCounts[logical];
+      if (!Number.isSafeInteger(expected) || expected < 0 || expected !== value.length) {
+        throw new Error(`Manifest row count mismatch: ${logical}`);
+      }
+    }
+  }
 }
 
 function render(file, manifest, entries, integrity) {

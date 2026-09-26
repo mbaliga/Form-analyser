@@ -74,7 +74,8 @@ gates.
 
 The offline desktop viewer now fails closed on oversized input, ZIP expansion bombs, duplicate
 entries, path-traversal names, entries that exceed the bounded local payload contract, missing
-checksums, and manifest/table mismatches; six viewer contract tests pass.
+checksums, malformed table JSON, row-count mismatches and manifest/table mismatches; six viewer
+contract tests pass.
 Unexpected non-directory ZIP entries are also rejected rather than ignored, preserving the
 manifest-plus-table exchange boundary; this hardening is covered by the viewer contract suite.
 The picker drop zone is also keyboard-operable with accessible button semantics; seven viewer

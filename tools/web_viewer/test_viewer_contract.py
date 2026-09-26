@@ -55,6 +55,9 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("Manifest does not declare a payload checksum", self.script)
         self.assertIn("Manifest table list does not match the archive", self.script)
         self.assertIn("Unsupported table payload", self.script)
+        self.assertIn("validateTablePayloads", self.script)
+        self.assertIn("Table payload is not valid JSON", self.script)
+        self.assertIn("Manifest row count mismatch", self.script)
 
     def test_file_drop_zone_is_keyboard_accessible(self) -> None:
         self.assertIn('role="button"', self.html)
