@@ -69,3 +69,5 @@ jobs:
         run: python3 -m unittest discover -s tools/release -p 'test_*.py'
       - name: Validate offline desktop viewer contract
         run: python3 -m unittest discover -s tools/web_viewer -p 'test_*.py'
+      - name: Verify .croc ECDSA interoperability
+        run: node tools/web_viewer/test_signature_interop.mjs

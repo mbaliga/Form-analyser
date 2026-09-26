@@ -15,6 +15,8 @@ class ViewerContract(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.html = (VIEWER / "index.html").read_text()
         cls.script = (VIEWER / "viewer.js").read_text()
+        cls.signature = (VIEWER / "signature.js").read_text()
+        cls.interop = (ROOT / "tools/web_viewer/test_signature_interop.mjs").read_text()
         cls.readme = (VIEWER / "README.md").read_text()
 
     def test_picker_accepts_current_and_forward_extensions(self) -> None:
@@ -71,11 +73,13 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("read-only preview", self.script)
 
     def test_croc_requires_local_ecdsa_signature_verification(self) -> None:
-        self.assertIn("endsWith('.croc')", self.script)
-        self.assertIn("SHA256withECDSA", self.script)
-        self.assertIn("crypto.subtle.importKey", self.script)
-        self.assertIn("Signature verification failed", self.script)
-        self.assertIn("derSignatureToRaw", self.script)
+        self.assertIn("endsWith('.croc')", self.signature)
+        self.assertIn('src="signature.js"', self.html)
+        self.assertIn("SHA256withECDSA", self.signature)
+        self.assertIn("crypto.subtle.importKey", self.signature)
+        self.assertIn("Signature verification failed", self.signature)
+        self.assertIn("derSignatureToRaw", self.signature)
+        self.assertIn("ECDSA .croc signature interoperability passed", self.interop)
 
 
 if __name__ == "__main__":
