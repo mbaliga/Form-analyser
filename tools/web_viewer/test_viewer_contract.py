@@ -21,6 +21,8 @@ class ViewerContract(unittest.TestCase):
 
     def test_picker_accepts_current_and_forward_extensions(self) -> None:
         self.assertRegex(self.html, r'accept="[^"]*\.crocbak[^"]*\.croc')
+        self.assertIn("signed", self.html)
+        self.assertNotIn("future <code>.croc</code>", self.html)
 
     def test_viewer_is_dependency_free_and_local_only(self) -> None:
         self.assertNotRegex(self.html, r"<script[^>]+src=[\"']https?://")
