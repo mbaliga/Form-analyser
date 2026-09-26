@@ -524,7 +524,7 @@ private fun detailTitle(r: String?): String =
         Routes.INJURY_EDIT -> "Injury"
         Routes.PLAN_EDIT -> "Physio plan"
         Routes.DOC_VIEW -> "Document"
-        Routes.PAIRED_SESSION -> "Paired Session"
+        Routes.PAIRED_SESSION -> "Local Multiplayer"
         else -> "Crocodyl"
     }
 

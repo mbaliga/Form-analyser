@@ -8,18 +8,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 
-/** User-facing entry point for the nearby coach/athlete session flow. */
+/** User-facing entry point for the nearby coach/athlete local multiplayer flow. */
 @Composable
 fun PairedSessionCard(onClick: () -> Unit) {
     OutlinedCard(
         Modifier.fillMaxWidth().clickable(
             role = Role.Button,
-            onClickLabel = "Open paired session",
+            onClickLabel = "Open local multiplayer",
             onClick = onClick,
         ),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text("PAIRED SESSION", style = MaterialTheme.typography.labelSmall)
+            Text("LOCAL MULTIPLAYER", style = MaterialTheme.typography.labelSmall)
             Text("Coach + athlete, nearby", style = MaterialTheme.typography.titleMedium)
             Text(
                 "Set up a short-lived local session, or use a shareable file when a phone is not available.",

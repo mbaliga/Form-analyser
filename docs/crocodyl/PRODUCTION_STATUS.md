@@ -21,7 +21,7 @@ participants.
 | Data safety and recovery | Implemented and tested | Room recovery, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
-| Paired Session | UX walkthrough + beta transport boundary | First-run/returning-user walkthrough is in Android; shared TCP/pairing core is in Shared-Libraries-asoc. Discovery, trust, reconnect and two-device acceptance remain. |
+| Local Multiplayer | UX walkthrough + beta transport boundary | The first-run/returning-user walkthrough is user-facing; shared TCP/pairing core is in Shared-Libraries-asoc. Discovery, trust, reconnect and two-device acceptance remain. |
 | Desktop file fallback | Local integrity-checked read-only preview implemented; signed `.croc` verification added | `web-viewer/` opens `.crocbak` recovery archives and signed `.croc` sharing archives locally, verifies the declared SHA-256 payload checksum and manifest/table contract, and verifies the `.croc` P-256/ECDSA producer signature before exposing bounded escaped row previews. Full report/analysis rendering remains. |
 | Bocal interoperability | Beta compile integration | Bocal and Crocodyl consume the shared session boundary. No claim of production cross-device acceptance. |
 | Production distribution | Not yet releasable | Workflow actions are now immutably pinned and guarded. Production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance remain. |
@@ -42,7 +42,7 @@ participants.
   the isolated Temurin JDK 21/API-35 toolchain; connected instrumentation was not included.
 - Shared-Libraries-asoc: `6b54b98` — bounded local-session transport frames.
 - Bocal: `e57ef5e` — session frame guard documentation.
-- Crocodyl: signed-export change — Android sharing exports now use `.croc` with a P-256/ECDSA
+- Crocodyl: `777a35a` — Android sharing exports now use `.croc` with a P-256/ECDSA
   producer signature; the offline viewer verifies it locally and keeps `.crocbak` checksum-only.
 
 ## Release decision

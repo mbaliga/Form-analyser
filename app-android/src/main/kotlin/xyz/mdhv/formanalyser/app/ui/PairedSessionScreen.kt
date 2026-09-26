@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import xyz.mdhv.formanalyser.app.data.AppPrefs
 
 /**
- * First-run setup for the user-facing Paired Session feature.
+ * First-run setup for the user-facing Local Multiplayer feature.
  *
  * The transport is deliberately not hidden behind this walkthrough: the beta TCP bridge remains
  * opt-in and host-owned until discovery, trust, reconnect and device acceptance are complete.
@@ -26,14 +26,14 @@ fun PairedSessionScreen(prefs: AppPrefs, onBack: () -> Unit) {
         "Choose the session role" to "The coach hosts and the athlete joins. The host displays a fresh six-digit pairing code.",
         "Put both devices nearby" to "Use the same trusted Wi‑Fi network. Turn off VPNs or guest-network isolation if the devices cannot see one another.",
         "Pair, then verify" to "The joiner enters the code. Check the names and session purpose before sharing any score or observation.",
-        "Use file exchange when needed" to "A coach without a phone can open a .crocbak export on the desktop viewer. Transfer it by WhatsApp, USB, Bluetooth or LocalSend; the file is inspected locally.",
+        "Use file exchange when needed" to "A coach without a phone can open a signed .croc export on the desktop viewer. Transfer it by WhatsApp, USB, Bluetooth or LocalSend; the file is inspected locally.",
     )
     if (walkthroughSeen && !reviewing) {
         Column(
             Modifier.fillMaxSize().padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text("Paired Session", style = MaterialTheme.typography.headlineMedium)
+            Text("Local Multiplayer", style = MaterialTheme.typography.headlineMedium)
             Text("Ready for a nearby coach-and-athlete session.")
             ElevatedCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -42,7 +42,7 @@ fun PairedSessionScreen(prefs: AppPrefs, onBack: () -> Unit) {
                 }
             }
             Text(
-                "If the devices cannot connect, use the desktop viewer and a .crocbak file instead. This does not upload your training data.",
+                "If the devices cannot connect, use the desktop viewer and a signed .croc file instead. This does not upload your training data.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -60,7 +60,7 @@ fun PairedSessionScreen(prefs: AppPrefs, onBack: () -> Unit) {
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Paired Session", style = MaterialTheme.typography.headlineMedium)
+        Text("Local Multiplayer", style = MaterialTheme.typography.headlineMedium)
         Text(
             "A nearby coach-and-athlete session for short-lived sharing. Your data stays on the devices unless you explicitly export it.",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
