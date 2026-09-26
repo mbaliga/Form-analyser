@@ -4,13 +4,11 @@ Last reviewed: 2026-09-27
 
 Latest verification replay: root JVM `test` and the Android debug/release unit-test plus
 `lintRelease` gates passed on the current tree with Temurin JDK 21, Gradle 8.14.3, API 35 and
-build-tools 35.0.0. An earlier Android compile caught a missing `PairedSessionCard` import; that
-defect is fixed in `2e7cdbd`. The latest Android replay completed
-`:app-android:testDebugUnitTest`, `:app-android:testReleaseUnitTest`, and `:app-android:lintRelease`
-successfully on 2026-09-27.
-Connected instrumentation and physical-device acceptance remain separate gates. The follow-up
-replay after deprecation cleanup also passed; no app-source Kotlin deprecation warnings were
-reported.
+build-tools 35.0.0. The connected debug suite also passed 3/3 on the `alloy-api35-arm64`
+emulator (`emulator-5554`) on 2026-09-27. An earlier Android compile caught a missing
+`PairedSessionCard` import; that defect is fixed in `2e7cdbd`. Physical-device and production
+signing acceptance remain separate gates. The follow-up replay after deprecation cleanup also
+passed; no app-source Kotlin deprecation warnings were reported.
 
 This is the current release boundary for the Recurve Android app. It separates evidence-backed
 completion from gates that require a production signing environment, a connected device, or range
@@ -29,7 +27,10 @@ participants.
 
 ## Current commits
 
-- Crocodyl: `dbe5856` — current connected replay evidence, including the minified-release device-offline result.
+- Crocodyl: `481d3b3` — fail-fast release signing-input validation.
+- Crocodyl verification: 2026-09-27 — connected debug instrumentation passed 3/3 on API-35
+  ARM64 emulator `alloy-api35-arm64` / `emulator-5554`.
+- Crocodyl: `dbe5856` — earlier connected replay evidence, including the minified-release device-offline result.
 - Crocodyl: `9061f89` — paired-session walkthrough persistence test and replay evidence.
 - Crocodyl: `bbe938c` — release-workflow security contract tests and CI/release integration.
 - Crocodyl: `1c4424c` — fresh shared search/session beta performance report.
@@ -65,6 +66,11 @@ source. A fresh minified QA-signed APK/AAB package also passed the release prefl
 available for that package in this replay. A current-tree debug connected replay did pass 3/3 on
 the API-35 ARM64 `alloy-api35-arm64` emulator; the subsequent minified-release connected attempt
 was rejected because the emulator went offline before test execution.
+
+On 2026-09-27, the current tree replayed `:app-android:connectedDebugAndroidTest` successfully:
+3/3 tests passed on `alloy-api35-arm64` (`emulator-5554`). This is connected debug evidence only;
+production signing, release-connected execution and physical-device acceptance remain separate
+gates.
 
 The offline desktop viewer now fails closed on oversized input, ZIP expansion bombs, duplicate
 entries, path-traversal names, entries that exceed the bounded local payload contract, missing
