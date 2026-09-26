@@ -59,6 +59,10 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("e.key === 'Enter'", self.script)
         self.assertIn("e.key === ' '", self.script)
 
+    def test_viewer_fails_closed_on_unknown_manifest_schema(self) -> None:
+        self.assertIn("manifest.schemaVersion !== 1", self.script)
+        self.assertIn("Unsupported manifest schema", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()

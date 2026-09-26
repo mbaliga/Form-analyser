@@ -26,7 +26,9 @@ async function openFile(file) {
     const manifestBytes = entries['manifest.json'];
     if (!manifestBytes) throw new Error('manifest.json is missing');
     const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
-    if (!Number.isInteger(manifest.schemaVersion) || !manifest.appVersion) throw new Error('Unsupported manifest');
+    if (manifest.schemaVersion !== 1 || typeof manifest.appVersion !== 'string' || !manifest.appVersion.trim()) {
+      throw new Error('Unsupported manifest schema');
+    }
     const integrity = await verifyPayloadChecksum(manifest, entries);
     render(file, manifest, entries, integrity);
     status.textContent = `Opened ${file.name} locally. No upload was performed.`;
