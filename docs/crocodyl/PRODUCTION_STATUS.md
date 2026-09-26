@@ -44,6 +44,8 @@ participants.
 - Bocal: `e57ef5e` — session frame guard documentation.
 - Crocodyl: `777a35a` — Android sharing exports now use `.croc` with a P-256/ECDSA
   producer signature; the offline viewer verifies it locally and keeps `.crocbak` checksum-only.
+- Crocodyl: `a9e3da3` — browser signature verification is isolated and covered by executable
+  WebCrypto interoperability coverage in CI and release validation.
 
 ## Release decision
 
@@ -71,6 +73,8 @@ contract tests pass. Unknown manifest schemas are rejected before rendering; eig
 tests pass. Verified exports now expose bounded read-only table-row previews for desktop coaches;
 signed `.croc` envelopes additionally require a valid P-256/ECDSA signature over the declared
 payload checksum; ten viewer contract tests pass.
+The executable interoperability check also passes against a generated P-256 key and a
+Java-compatible DER ECDSA signature, including tamper rejection and unsigned `.crocbak` fallback.
 
 The paired-session walkthrough persistence flag now has a dedicated Robolectric test covering its
 unseen default and completed state in both debug and release unit-test variants.
