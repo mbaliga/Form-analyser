@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last updated: 2026-09-21 · current branch: **codex/production-hardening** (latest verification `cd1e226`) · release validation: **v0.6.0-rc.2** (versionCode 602, QA-signed)_
+_Last updated: 2026-09-27 · current branch: **codex/production-hardening** (latest verification `53fdfe9`) · release validation: **QA-only artifacts**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -135,8 +135,9 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
   Gemini generateContent / DeepSeek); on-device client via MediaPipe LLM Inference; `CoachViewModel` +
   `CoachScreen` (offline insights always; grounded "Ask"; provenance-coloured model picker; a
   "what wasn't sent" report).
-- **Phase 5 export:** `AndroidKeyProvider` (Keystore identity), `ExportViewModel` (builds the
-  `.crocbak` zip from only the consent-included tables), `ExportScreen` (live consent preview + SAF write).
+- **Phase 5 export:** `AndroidKeyProvider` (Keystore identity/signing), `ExportViewModel` (builds a
+  signed `.croc` sharing archive from only the consent-included tables), `ExportScreen` (live consent
+  preview + SAF/share write). Existing `.crocbak` recovery archives remain checksum-compatible.
 - **Phase 4 tuning UI:** `AdvancedTuningSection` wired into the rig editor — brace/tiller/plunger/
   stabilizer/arrow, with live FOC/GPP and validation warnings.
 - Wiring: nav routes, Home "Coach" card, Settings rows, INTERNET permission (BYOK cloud calls only).
@@ -276,9 +277,10 @@ larger surface than what's built so far. Concretely, **not yet built**, per that
 - **End Scan** — editable automatic post-end target-photo scoring.
 - **Live Observer** — tap/constrained-voice scoring during form capture; **Paired Target Cam** later.
 - **Coach workspace** — a paid, multi-athlete surface (roster, report review, notes, assignments).
-- **Static local-only web viewer** for exported files.
-- **Signed `.croc` exchange** — a person-to-person envelope, distinct from the device-backup
-  `.crocbak` this repo already has (Phase 5 built the backup half only).
+- **Full static web report viewer** — the current bounded local viewer reads manifests and table-row
+  previews, but full report/analysis rendering is still future work.
+- **Complete `.croc` exchange** — signing and local verification are implemented; public-key
+  identity pinning/TOFU, import/merge, deduplication/conflict handling and coach round-trips remain.
 - **Equipment catalog/commerce** — provenance-rich catalog, wear forecasts, upgrade evidence,
   affiliate-link laws (commerce must never steer evidence/ranking).
 - **Fuller training/recovery system** — richer plans, goals, habits, injury-risk context, and
@@ -335,5 +337,5 @@ understood to be open-source, gated by entitlement rather than by a closed repo 
 
 A much larger product blueprint (Product Blueprint v2.1 + Phased Implementation Plan, in
 `docs/crocodyl/`) now governs where Crocodyl is headed — manual scoring, End Scan, Live Observer, a
-paid Coach workspace, a static web viewer, signed `.croc` exchange, and more (§4.6). Everything in
+paid Coach workspace, full report rendering, complete `.croc` exchange, and more (§4.6). Everything in
 this file is the *implementation* snapshot underneath that direction, not a competing plan.

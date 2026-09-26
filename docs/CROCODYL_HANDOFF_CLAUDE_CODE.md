@@ -117,24 +117,24 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
 
 ## Important release boundary
 
-The current user-facing nearby-session entry is named **Paired Session**. A persisted first-run
+The current user-facing nearby-session entry is named **Local Multiplayer**. A persisted first-run
 walkthrough now explains host/join roles, same-network setup, six-digit code verification and the
 desktop/file fallback. This is UX scaffolding around the existing beta transport; it does not
 claim production discovery, reconnect, identity or two-device acceptance.
 
 For coaches without a phone, `web-viewer/` is a dependency-free static desktop fallback. It reads
-the current `.crocbak` ZIP manifest and table metadata entirely in-browser, with no upload or
-automatic import. `.croc` is accepted as a forward-compatible filename, not as a claim that the
-signed `.croc` envelope is already implemented. The viewer is suitable for files moved through
+`.crocbak` recovery archives and signed `.croc` sharing archives entirely in-browser, with no upload
+or automatic import. The viewer verifies the `.croc` producer signature locally and is suitable for files moved through
 WhatsApp, removable media, Bluetooth or LocalSend.
 
 The walkthrough preference is behaviorally enforced: first entry shows the four-step guide and
 subsequent entries show a compact setup summary with a review action.
 
-Fresh verification note (2026-09-24): root JVM tests pass with Temurin JDK 21/Gradle 8.14.3. An
-isolated API-35 Android build caught and fixed the missing `PairedSessionCard` import in
-`2e7cdbd`; the sandbox's Kotlin compile remained non-terminating after that fix, so Android unit
-test/lint success is not claimed from this replay.
+Fresh verification note (2026-09-27): root JVM tests, Android debug/release unit tests and
+`lintRelease` pass with Temurin JDK 21, Gradle 8.14.3 and API 35/build-tools 35.0.0. The offline
+viewer contract suite passes 10/10, and executable WebCrypto interoperability covers valid,
+tampered and checksum-only recovery files. Connected instrumentation, production signing and
+physical-device acceptance remain separate gates.
 
 The local release artifacts are QA-signed only. A production release still requires the real production keystore/CI identity, final versioning, owner approval, physical-device/accessibility/thermal/battery checks, and range acceptance. Do not distribute the QA-signed artifacts.
 
