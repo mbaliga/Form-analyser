@@ -17,7 +17,7 @@ participants.
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
 | Recurve Android build | QA production candidate | Root JVM tests and the unrestricted Android debug/release unit-test plus release-lint replay pass. Re-run the same gates in final CI before distribution. |
-| Data safety and recovery | Implemented and tested | Room recovery, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
+| Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
 | Local Multiplayer | UX walkthrough + beta transport boundary | The first-run/returning-user walkthrough is user-facing; the shared TCP/pairing core is available in the local Shared-Libraries-asoc checkout. Its transport revision `6b54b98` is not yet present on the published branch used for reproducible checkout; discovery, trust, reconnect and two-device acceptance remain. |

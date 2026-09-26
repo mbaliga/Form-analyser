@@ -83,9 +83,13 @@ class AppDatabaseMigrationTest {
             assertNotNull(backupPath)
             assertTrue(DbRecovery.isUsableBackup(backupPath, name))
             val backup = File(requireNotNull(backupPath))
+            assertTrue(File(backup, "backup.sha256").isFile)
             assertArrayEquals(live.readBytes(), File(backup, name).readBytes())
             assertArrayEquals(wal.readBytes(), File(backup, "$name-wal").readBytes())
             assertArrayEquals(shm.readBytes(), File(backup, "$name-shm").readBytes())
+
+            File(backup, name).appendBytes(byteArrayOf(9))
+            assertTrue(!DbRecovery.isUsableBackup(backupPath, name))
         } finally {
             backupPath?.let { File(it).deleteRecursively() }
             context.deleteDatabase(name)
