@@ -123,6 +123,10 @@ async function readZip(bytes) {
     const nameLength = view.getUint16(cursor + 28, true), extraLength = view.getUint16(cursor + 30, true), commentLength = view.getUint16(cursor + 32, true);
     const name = new TextDecoder().decode(bytes.slice(cursor + 46, cursor + 46 + nameLength));
     if (!name || name.startsWith('/') || name.includes('\\') || name.split('/').includes('..')) throw new Error('Unsafe ZIP entry path');
+    const isDirectory = name.endsWith('/');
+    const isManifest = name === 'manifest.json';
+    const isTable = name.startsWith('tables/') && name.endsWith('.json');
+    if (!isDirectory && !isManifest && !isTable) throw new Error('Unsupported ZIP entry');
     if (Object.prototype.hasOwnProperty.call(result, name)) throw new Error('Duplicate ZIP entry');
     if (uncompressed > MAX_ENTRY_BYTES || expandedBytes + uncompressed > MAX_EXPANDED_BYTES) throw new Error('Archive expands beyond the local viewer limit');
     const local = view.getUint32(cursor + 42, true);
@@ -132,7 +136,7 @@ async function readZip(bytes) {
     if (localName !== name) throw new Error('ZIP entry name mismatch');
     if (local + 30 + localNameLength + localExtraLength + compressed > bytes.byteLength) throw new Error('ZIP entry exceeds the file');
     const data = bytes.slice(local + 30 + localNameLength + localExtraLength, local + 30 + localNameLength + localExtraLength + compressed);
-    if (!name.endsWith('/')) {
+    if (!isDirectory) {
       const inflated = await inflate(data, method);
       if (inflated.byteLength > MAX_ENTRY_BYTES || expandedBytes + inflated.byteLength > MAX_EXPANDED_BYTES) {
         throw new Error('Archive expands beyond the local viewer limit');
