@@ -34,11 +34,11 @@ fun PairedSessionScreen(prefs: AppPrefs, onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text("Local Multiplayer", style = MaterialTheme.typography.headlineMedium)
-            Text("Ready for a nearby coach-and-athlete session.")
+            Text("Setup guide complete. Live device pairing is still a beta transport path.")
             ElevatedCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Quick setup", style = MaterialTheme.typography.titleLarge)
-                    Text("Host: coach · Join: athlete · Network: same trusted Wi‑Fi · Pairing: fresh six-digit code")
+                    Text("Current status", style = MaterialTheme.typography.titleLarge)
+                    Text("The host/join transport is not enabled in this production candidate. The setup guidance is retained for beta builds.")
                 }
             }
             Text(
