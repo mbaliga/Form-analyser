@@ -40,6 +40,7 @@ MANIFEST="$(mktemp /tmp/crocodyl-release-manifest.XXXXXX)"
 trap 'rm -f "$MANIFEST"' EXIT
 "$AAPT2" dump xmltree "$APK" --file AndroidManifest.xml > "$MANIFEST"
 BADGING="$("$AAPT2" dump badging "$APK")"
+printf '%s\n' "$BADGING" | grep -F "package: name='xyz.mdhv.formanalyser'"
 printf '%s\n' "$BADGING" | grep -F "versionCode='$EXPECTED_VERSION_CODE' versionName='$EXPECTED_VERSION_NAME'"
 grep -Eq 'usesCleartextTraffic.*=false' "$MANIFEST"
 grep -Eq 'allowBackup.*=false' "$MANIFEST"

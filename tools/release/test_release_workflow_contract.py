@@ -40,6 +40,12 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn(":app-android:testReleaseUnitTest", self.workflow)
         self.assertIn(":app-android:lintRelease", self.workflow)
 
+    def test_artifact_preflight_binds_package_identity(self) -> None:
+        verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
+        self.assertIn("package: name='xyz.mdhv.formanalyser'", verifier)
+        self.assertIn("certificate SHA-256 digest", verifier)
+        self.assertIn("keytool -printcert -jarfile", verifier)
+
 
 if __name__ == "__main__":
     unittest.main()
