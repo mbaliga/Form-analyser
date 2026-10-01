@@ -1,6 +1,6 @@
 # Crocodyl production status
 
-Last reviewed: 2026-09-27
+Last reviewed: 2026-10-02
 
 Latest verification replay: root JVM `test` and the Android debug/release unit-test plus
 `lintRelease` gates passed on the current tree with Temurin JDK 21, Gradle 8.14.3, API 35 and
@@ -9,6 +9,14 @@ emulator (`emulator-5554`) on 2026-09-27. An earlier Android compile caught a mi
 `PairedSessionCard` import; that defect is fixed in `2e7cdbd`. Physical-device and production
 signing acceptance remain separate gates. The follow-up replay after deprecation cleanup also
 passed; no app-source Kotlin deprecation warnings were reported.
+
+The 2026-10-02 local contract replay passed shared-library lock verification (3/3), release
+contracts (6/6), and desktop viewer contracts (10/10). The locked Shared-Libraries-asoc
+checkout is `codex/evidence-schema-v1` at `da50c62dd93bb67d590584a788eb794a6b7b55ec`; the
+negative verifier test also confirms that a wrong checkout remote is rejected. The current
+environment has no JDK or Android SDK, so the Gradle and connected-device gates above are
+historical evidence from the 2026-09-27 replay and must be rerun in CI or a provisioned release
+environment before distribution.
 
 This is the current release boundary for the Recurve Android app. It separates evidence-backed
 completion from gates that require a production signing environment, a connected device, or range
@@ -28,6 +36,8 @@ participants.
 ## Current commits
 
 - Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
+- Crocodyl: `2063e84` — shared-library lock verifier negative-path coverage.
+- Crocodyl: `1f0626c` — require the locked shared-library revision to be published on the locked ref.
 - Crocodyl: `481d3b3` — fail-fast release signing-input validation.
 - Crocodyl verification: 2026-09-27 — connected debug instrumentation passed 3/3 on API-35
   ARM64 emulator `alloy-api35-arm64` / `emulator-5554`.
