@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import json
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -23,6 +25,22 @@ class SharedCheckoutLockContract(unittest.TestCase):
         self.assertIn("ref mismatch", source)
         self.assertIn("revision mismatch", source)
         self.assertIn("remote mismatch", source)
+
+    def test_wrong_checkout_is_rejected_executable(self) -> None:
+        script = ROOT / "tools/shared/verify_shared_checkout.py"
+        with tempfile.TemporaryDirectory() as temp:
+            checkout = Path(temp) / "shared"
+            checkout.mkdir()
+            subprocess.run(["git", "-C", str(checkout), "init", "-q"], check=True)
+            subprocess.run(["git", "-C", str(checkout), "config", "user.email", "test@example.invalid"], check=True)
+            subprocess.run(["git", "-C", str(checkout), "config", "user.name", "Test"], check=True)
+            (checkout / "placeholder").write_text("wrong revision\n")
+            subprocess.run(["git", "-C", str(checkout), "add", "placeholder"], check=True)
+            subprocess.run(["git", "-C", str(checkout), "commit", "-qm", "wrong"], check=True)
+            subprocess.run(["git", "-C", str(checkout), "remote", "add", "origin", "https://example.invalid/wrong.git"], check=True)
+            result = subprocess.run(["python3", str(script), str(checkout)], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("remote mismatch", result.stderr + result.stdout)
 
 
 if __name__ == "__main__":
