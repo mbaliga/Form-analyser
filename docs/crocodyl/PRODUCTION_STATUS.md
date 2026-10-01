@@ -2,21 +2,20 @@
 
 Last reviewed: 2026-10-02
 
-Latest verification replay: root JVM `test` and the Android debug/release unit-test plus
-`lintRelease` gates passed on the current tree with Temurin JDK 21, Gradle 8.14.3, API 35 and
-build-tools 35.0.0. The connected debug suite also passed 3/3 on the `alloy-api35-arm64`
-emulator (`emulator-5554`) on 2026-09-27. An earlier Android compile caught a missing
-`PairedSessionCard` import; that defect is fixed in `2e7cdbd`. Physical-device and production
-signing acceptance remain separate gates. The follow-up replay after deprecation cleanup also
-passed; no app-source Kotlin deprecation warnings were reported.
+Latest verification replay: on 2026-10-02, root JVM `test`, Android debug/release unit tests,
+and `lintRelease` passed with Temurin JDK 21, Gradle 8.14.3, API 35 and build-tools 35.0.0. The
+same replay built QA APK/AAB `0.6.0-qa-provisioned` (versionCode 640), passed the complete local
+artifact preflight, and passed both connected debug and minified release instrumentation 3/3 on
+the `alloy-api35-arm64` emulator (`emulator-5554`). Physical-device and production-signing
+acceptance remain separate gates. No app-source Kotlin deprecation warnings were reported; the
+environment emitted only its known Gradle/tooling notices.
 
 The 2026-10-02 local contract replay passed shared-library lock verification (4/4), release
 contracts (6/6), and desktop viewer contracts (10/10). The locked Shared-Libraries-asoc
 checkout is `codex/evidence-schema-v1` at `da50c62dd93bb67d590584a788eb794a6b7b55ec`; the
 negative verifier test also confirms that a wrong checkout remote is rejected. The current
-environment has no JDK or Android SDK, so the Gradle and connected-device gates above are
-historical evidence from the 2026-09-27 replay and must be rerun in CI or a provisioned release
-environment before distribution.
+the Android replay used an isolated JDK/SDK under `/private/tmp`; CI must still reproduce the
+gates with the production signing identity before distribution.
 
 The CI and release workflows now clone the locked ref before their contract suites and invoke the
 same verifier against that checkout; this is guarded by the shared lock contract test.
@@ -46,6 +45,8 @@ participants.
 - Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
 - Crocodyl: `2063e84` — shared-library lock verifier negative-path coverage.
 - Crocodyl: `1f0626c` — require the locked shared-library revision to be published on the locked ref.
+- Crocodyl: `7cf0324` — record the shared-checkout replay evidence.
+- Crocodyl: `014b12e` — CI/release workflows fetch and verify the locked shared checkout.
 - Crocodyl: `481d3b3` — fail-fast release signing-input validation.
 - Crocodyl verification: 2026-09-27 — connected debug instrumentation passed 3/3 on API-35
   ARM64 emulator `alloy-api35-arm64` / `emulator-5554`.
@@ -132,6 +133,16 @@ passed the complete local artifact verifier, including APK/AAB certificate match
 identity, version metadata, manifest privacy flags, ZIP alignment, model hash, backup resources,
 and staging-file checks. It uses the disposable QA/debug signing identity and is not a production
 release.
+
+Provisioned current-tree replay (2026-10-02): with isolated Temurin JDK 21, Gradle 8.14.3,
+Android API 35 and build-tools 35.0.0, root JVM tests, Android debug/release unit tests and
+`lintRelease` passed. QA APK/AAB `0.6.0-qa-provisioned` / versionCode `640` passed the reusable
+artifact preflight, including APK v2/AAB signing, certificate consistency, package/version
+metadata, manifest security, ZIP alignment, BlazePose hash, backup resources and staging-file
+checks. Connected debug instrumentation passed 3/3 and connected minified release instrumentation
+passed 3/3 on `alloy-api35-arm64` / `emulator-5554`. The signing identity was the committed QA
+debug key; this is current emulator and artifact evidence, not production signing or physical
+device/range acceptance.
 
 Consolidated repository audit (2026-09-27): root JVM tests passed (42 actionable tasks), release
 contracts passed 6/6, viewer contracts passed 10/10, ECDSA interoperability passed, Community

@@ -110,6 +110,13 @@ passed 3/3 on API-35 ARM64 `alloy-api35-arm64` (`emulator-5554`) using the curre
 `codex/production-hardening` tree. This strengthens emulator evidence only; it does not satisfy the
 physical-device matrix, production-signing, release-connected, or range-acceptance gates.
 
+Provisioned current-tree replay: 2026-10-02, tester: Codex. With isolated Temurin JDK 21, Gradle
+8.14.3, API 35 and build-tools 35.0.0, root JVM tests, Android debug/release unit tests and
+`lintRelease` passed. QA APK/AAB `0.6.0-qa-provisioned` / versionCode 640 passed the complete
+artifact preflight. Connected debug instrumentation passed 3/3 and connected minified release
+instrumentation passed 3/3 on `alloy-api35-arm64` / `emulator-5554`. The artifact uses the
+committed QA/debug key; this does not satisfy production-signing or physical-device acceptance.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.
