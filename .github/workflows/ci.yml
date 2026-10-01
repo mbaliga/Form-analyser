@@ -62,6 +62,12 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      - name: Fetch and verify locked shared-library checkout
+        run: |
+          SHARED_REPOSITORY="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["repository"])')"
+          SHARED_REF="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["ref"])')"
+          git clone --depth 1 --branch "$SHARED_REF" "$SHARED_REPOSITORY" .ci/shared-libraries-asoc
+          python3 tools/shared/verify_shared_checkout.py .ci/shared-libraries-asoc
       # Self-contained: builds the engine module and the archery module together.
       - name: Test
         run: ./gradlew test --no-daemon

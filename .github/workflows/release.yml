@@ -31,6 +31,12 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+      - name: Fetch and verify locked shared-library checkout
+        run: |
+          SHARED_REPOSITORY="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["repository"])')"
+          SHARED_REF="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["ref"])')"
+          git clone --depth 1 --branch "$SHARED_REF" "$SHARED_REPOSITORY" .ci/shared-libraries-asoc
+          python3 tools/shared/verify_shared_checkout.py .ci/shared-libraries-asoc
       - name: Verify production signing inputs
         env:
           KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}

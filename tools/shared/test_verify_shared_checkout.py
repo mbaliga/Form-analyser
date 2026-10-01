@@ -10,6 +10,13 @@ ROOT = Path(__file__).parents[2]
 
 
 class SharedCheckoutLockContract(unittest.TestCase):
+    def test_ci_and_release_fetch_and_verify_the_locked_checkout(self) -> None:
+        for workflow in (ROOT / ".github/workflows/ci.yml", ROOT / ".github/workflows/release.yml"):
+            source = workflow.read_text()
+            self.assertIn("Fetch and verify locked shared-library checkout", source)
+            self.assertIn("git clone --depth 1 --branch", source)
+            self.assertIn("tools/shared/verify_shared_checkout.py .ci/shared-libraries-asoc", source)
+
     def test_lock_points_at_published_transport_revision(self) -> None:
         lock = json.loads((ROOT / "shared-libraries.lock").read_text())
         self.assertEqual(lock["ref"], "codex/evidence-schema-v1")
