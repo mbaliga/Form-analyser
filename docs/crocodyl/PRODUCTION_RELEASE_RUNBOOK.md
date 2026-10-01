@@ -5,6 +5,15 @@ camera adjudication, live community-directory ingestion, Advanced Search/Baselin
 Nooz news pipeline; those remain documented roadmap work. The manual Fencing referee console is a
 separate next-target slice and is not a Recurve 0.6 release criterion.
 
+When exercising the optional beta Local Multiplayer or shared-performance build, verify the local
+Shared-Libraries-asoc checkout against `shared-libraries.lock` first:
+
+```bash
+python3 tools/shared/verify_shared_checkout.py /path/to/Shared-Libraries-asoc
+```
+
+Production builds remain self-contained and do not silently consume an unpinned shared checkout.
+
 ## Before triggering CI
 
 Configure these repository secrets from the production signing identity:
