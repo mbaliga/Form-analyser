@@ -10,13 +10,16 @@ emulator (`emulator-5554`) on 2026-09-27. An earlier Android compile caught a mi
 signing acceptance remain separate gates. The follow-up replay after deprecation cleanup also
 passed; no app-source Kotlin deprecation warnings were reported.
 
-The 2026-10-02 local contract replay passed shared-library lock verification (3/3), release
+The 2026-10-02 local contract replay passed shared-library lock verification (4/4), release
 contracts (6/6), and desktop viewer contracts (10/10). The locked Shared-Libraries-asoc
 checkout is `codex/evidence-schema-v1` at `da50c62dd93bb67d590584a788eb794a6b7b55ec`; the
 negative verifier test also confirms that a wrong checkout remote is rejected. The current
 environment has no JDK or Android SDK, so the Gradle and connected-device gates above are
 historical evidence from the 2026-09-27 replay and must be rerun in CI or a provisioned release
 environment before distribution.
+
+The CI and release workflows now clone the locked ref before their contract suites and invoke the
+same verifier against that checkout; this is guarded by the shared lock contract test.
 
 The same replay passed the combined Atelier asset suite (19/19), which includes the arrow
 library, arrow-reference library, and authored GLB asset checks under `tools/atelier`.
@@ -31,7 +34,7 @@ participants.
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
-| Local Multiplayer | UX walkthrough + beta transport boundary | The first-run/returning-user walkthrough is user-facing; the shared TCP/pairing core is published on Shared-Libraries-asoc `codex/evidence-schema-v1` at `da50c62` and Crocodyl now locks/verifies that revision for beta builds. Discovery, trust, reconnect, product event mapping and two-device acceptance remain. |
+| Local Multiplayer | UX walkthrough + beta transport boundary | The first-run/returning-user walkthrough is user-facing; the shared TCP/pairing core is published on Shared-Libraries-asoc `codex/evidence-schema-v1` at `da50c62`. Crocodyl locks that revision, and both CI and release workflows now fetch and verify the actual published checkout. Discovery, trust, reconnect, product event mapping and two-device acceptance remain. |
 | Desktop file fallback | Local integrity-checked read-only preview implemented; signed `.croc` verification added | `web-viewer/` opens `.crocbak` recovery archives and signed `.croc` sharing archives locally, verifies the declared SHA-256 payload checksum and manifest/table contract, and verifies the `.croc` P-256/ECDSA producer signature over the payload plus new consent-envelope fields before exposing bounded escaped row previews. Legacy checksum-only signatures remain readable. Full report/analysis rendering remains. |
 | Bocal interoperability | Beta compile integration | Bocal and Crocodyl consume the shared session boundary. No claim of production cross-device acceptance. |
 | Production distribution | Not yet releasable | Workflow actions are now immutably pinned and guarded. Production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance remain. |
