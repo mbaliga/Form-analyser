@@ -18,6 +18,8 @@ on:
       - "docs/crocodyl/community-directory/**"
       - "tools/community_directory/**"
       - "tools/release/**"
+      - "tools/shared/**"
+      - "shared-libraries.lock"
       - "tools/web_viewer/**"
       - "web-viewer/**"
       - ".github/workflows/**"
@@ -40,6 +42,8 @@ on:
       - "docs/crocodyl/community-directory/**"
       - "tools/community_directory/**"
       - "tools/release/**"
+      - "tools/shared/**"
+      - "shared-libraries.lock"
       - "tools/web_viewer/**"
       - "web-viewer/**"
       - ".github/workflows/**"
@@ -67,6 +71,8 @@ jobs:
         run: python3 tools/release/verify_workflow_actions.py
       - name: Validate release workflow security contract
         run: python3 -m unittest discover -s tools/release -p 'test_*.py'
+      - name: Validate shared-library lock contract
+        run: python3 -m unittest discover -s tools/shared -p 'test_*.py'
       - name: Validate offline desktop viewer contract
         run: python3 -m unittest discover -s tools/web_viewer -p 'test_*.py'
       - name: Verify .croc ECDSA interoperability
