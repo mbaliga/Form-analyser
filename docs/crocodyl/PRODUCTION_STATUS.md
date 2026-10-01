@@ -18,6 +18,9 @@ environment has no JDK or Android SDK, so the Gradle and connected-device gates 
 historical evidence from the 2026-09-27 replay and must be rerun in CI or a provisioned release
 environment before distribution.
 
+The same replay passed the combined Atelier asset suite (19/19), which includes the arrow
+library, arrow-reference library, and authored GLB asset checks under `tools/atelier`.
+
 This is the current release boundary for the Recurve Android app. It separates evidence-backed
 completion from gates that require a production signing environment, a connected device, or range
 participants.
