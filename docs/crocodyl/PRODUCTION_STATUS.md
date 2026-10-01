@@ -20,6 +20,8 @@ environment before distribution.
 
 The CI and release workflows now clone the locked ref before their contract suites and invoke the
 same verifier against that checkout; this is guarded by the shared lock contract test.
+The checkout shape was replayed locally as a shallow branch clone with the canonical GitHub origin,
+and the verifier accepted the exact locked revision.
 
 The same replay passed the combined Atelier asset suite (19/19), which includes the arrow
 library, arrow-reference library, and authored GLB asset checks under `tools/atelier`.
