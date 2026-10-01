@@ -20,13 +20,14 @@ participants.
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
-| Local Multiplayer | UX walkthrough + beta transport boundary | The first-run/returning-user walkthrough is user-facing; the shared TCP/pairing core is available in the local Shared-Libraries-asoc checkout. Its transport revision `6b54b98` is not yet present on the published branch used for reproducible checkout; discovery, trust, reconnect and two-device acceptance remain. |
+| Local Multiplayer | UX walkthrough + beta transport boundary | The first-run/returning-user walkthrough is user-facing; the shared TCP/pairing core is published on Shared-Libraries-asoc `codex/evidence-schema-v1` at `da50c62`. Discovery, trust, reconnect, product event mapping and two-device acceptance remain. |
 | Desktop file fallback | Local integrity-checked read-only preview implemented; signed `.croc` verification added | `web-viewer/` opens `.crocbak` recovery archives and signed `.croc` sharing archives locally, verifies the declared SHA-256 payload checksum and manifest/table contract, and verifies the `.croc` P-256/ECDSA producer signature over the payload plus new consent-envelope fields before exposing bounded escaped row previews. Legacy checksum-only signatures remain readable. Full report/analysis rendering remains. |
 | Bocal interoperability | Beta compile integration | Bocal and Crocodyl consume the shared session boundary. No claim of production cross-device acceptance. |
 | Production distribution | Not yet releasable | Workflow actions are now immutably pinned and guarded. Production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance remain. |
 
 ## Current commits
 
+- Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
 - Crocodyl: `481d3b3` — fail-fast release signing-input validation.
 - Crocodyl verification: 2026-09-27 — connected debug instrumentation passed 3/3 on API-35
   ARM64 emulator `alloy-api35-arm64` / `emulator-5554`.
@@ -98,11 +99,10 @@ The shared beta performance report was rerun on 2026-09-24 against Shared-Librar
 `6b54b980…`; the recorded search/session measurements are in
 `PERFORMANCE_REPORT_2026-09-24.md`.
 
-The 2026-09-27 dependency audit confirmed that the local transport revision `6b54b98` exists in
-the available development checkout, while the published `codex/evidence-schema-v1` branch points
-to a later history without `local-session-core`. Crocodyl therefore does not pin a submodule or
-claim a reproducible production multiplayer build until the transport commit is published in the
-shared repository's supported history.
+The 2026-10-02 dependency audit confirmed that the reconciled local transport history is now
+published on Shared-Libraries-asoc `codex/evidence-schema-v1` at `da50c62`. Crocodyl still does
+not claim production multiplayer: discovery, trust, reconnect, product event mapping and physical
+two-device acceptance remain open.
 
 Recovery hardening replay (2026-09-27): both Android unit-test variants, release lint, and
 connected debug instrumentation passed after checksum-manifested backups and the app-private

@@ -113,7 +113,9 @@ The build/release path is hardened with pinned toolchain/model inputs, fail-clos
   `performance-report` module completed its shared search/session benchmark at revision `6b54b98`;
   the current report is under `performance-report/build/reports/beta/`. The JSON is a beta
   diagnostic artifact, not a release-performance claim. The pairing revision adds the pairing gate
-  and a 64 KiB frame bound; Android compilation and physical two-device verification remain open.
+  and a 64 KiB frame bound. The reconciled transport history is now published at
+  Shared-Libraries-asoc `codex/evidence-schema-v1` revision `da50c62`; discovery, trust, reconnect,
+  product event mapping and physical two-device verification remain open.
 
 ## Important release boundary
 
