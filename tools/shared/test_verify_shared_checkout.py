@@ -19,6 +19,8 @@ class SharedCheckoutLockContract(unittest.TestCase):
         source = (ROOT / "tools/shared/verify_shared_checkout.py").read_text()
         self.assertIn('"rev-parse", "HEAD"', source)
         self.assertIn('"remote", "get-url", "origin"', source)
+        self.assertIn("refs/remotes/origin/", source)
+        self.assertIn("ref mismatch", source)
         self.assertIn("revision mismatch", source)
         self.assertIn("remote mismatch", source)
 

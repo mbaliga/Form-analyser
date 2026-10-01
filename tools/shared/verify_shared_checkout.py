@@ -35,6 +35,15 @@ def main() -> int:
         raise SystemExit(f"shared checkout remote mismatch: {actual_remote} != {expected_remote}")
     if actual_revision != lock["revision"]:
         raise SystemExit(f"shared checkout revision mismatch: {actual_revision} != {lock['revision']}")
+    ref = lock["ref"]
+    ref_candidates = []
+    for namespace in (f"refs/remotes/origin/{ref}", f"refs/heads/{ref}"):
+        try:
+            ref_candidates.append(git(checkout, "rev-parse", "--verify", namespace))
+        except subprocess.CalledProcessError:
+            pass
+    if lock["revision"] not in ref_candidates:
+        raise SystemExit(f"shared checkout ref mismatch: {ref} does not point to {lock['revision']}")
     print(f"Shared-Libraries-asoc lock verified: {lock['ref']} @ {actual_revision}")
     return 0
 
