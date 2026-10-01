@@ -3,7 +3,7 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
-## Current addendum — 2026-09-16
+## Current addendum — 2026-10-02
 
 The CI path filter includes `tools/release/**` and `tools/community_directory/**`, so changes to
 release preflight or directory provenance validation cannot silently bypass the ordinary repository
@@ -13,8 +13,8 @@ dataset before packaging.
 The notes below are the historical implementation log and contain superseded “pending” entries from
 before the Android layers landed. The authoritative current snapshot is [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md).
 
-Current work is on `codex/production-hardening`, based on `4c15c72`, with an unreleased
-`0.6.0-spec-dev` build. Since the historical entries below:
+Current work is on `codex/production-hardening`, with the latest committed audit at `6ecf2d6`.
+The Android artifacts remain QA-only and unreleased. Since the historical entries below:
 
 - the manual Recurve scoring wedge is implemented (numeric, plotted and observer input, WA/custom
   rounds, resume, grouping, PBs and scorecard retraction);
