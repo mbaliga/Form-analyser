@@ -214,6 +214,9 @@ and merges clean on top of `v0.5.1`.
 - Baseline repo: the Crocodyl spec + phase briefs are committed there (PR #5 on `baseline`, draft) —
   separate from this repo's own PR #5.
 
+### 4.8 Multi-platform porting (plan only)
+See [`docs/crocodyl/CROCODYL_PORTING_PLAN.md`](docs/crocodyl/CROCODYL_PORTING_PLAN.md): nothing is built; its proposals await the owner.
+
 ---
 
 ## 5. Known caveats
