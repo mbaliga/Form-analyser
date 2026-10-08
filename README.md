@@ -70,3 +70,9 @@ Requires JDK 21. The Android app requires the Android toolchain and is built thr
 ## Launch focus
 
 The first product to prove is not “generic form analysis.” It is **Crocodyl for Recurve athletes**: a range-usable performance system where scoring, camera-based technique evidence, equipment context, training/recovery context and coach feedback can eventually be understood together without giving up local data ownership.
+
+## Licence
+
+Source-available, free for noncommercial use under the [PolyForm Noncommercial License 1.0.0](LICENSE). If you make money with it, you need a commercial licence: see [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md).
+
+The app itself is freemium: free to install and use, with optional paid extras. The store listing covers the app; this licence covers the source.
