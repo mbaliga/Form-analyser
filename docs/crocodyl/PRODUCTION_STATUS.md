@@ -10,6 +10,13 @@ Android build/test replay remains the separately provisioned QA replay dated 202
 recheck does not claim a new build or test run. Production CI secrets are not observable from this
 local environment and must be confirmed in the repository's release settings before dispatch.
 
+Repository-side replay (2026-10-08): release workflow contracts passed 6/6, immutable action refs
+were verified across 7 workflow files, shared-checkout contracts passed 4/4, desktop viewer
+contracts passed 10/10, Community Directory contracts passed 4/4, and the Atelier asset suites
+passed 19/19 (authored assets 8/8, arrow library 4/4, arrow-reference library 7/7). The asset
+checks left the checkout unchanged. These checks do not substitute for Android build/test or device
+acceptance.
+
 Latest verification replay: on 2026-10-02, root JVM `test`, Android debug/release unit tests,
 and `lintRelease` passed with Temurin JDK 21, Gradle 8.14.3, API 35 and build-tools 35.0.0. The
 same replay built QA APK/AAB `0.6.0-qa-provisioned` (versionCode 640), passed the complete local

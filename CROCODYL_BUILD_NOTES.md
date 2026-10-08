@@ -13,6 +13,12 @@ recheck; the latest successful provisioned Android replay remains the QA-only 20
 were not inspected from this local environment. Production signing, physical-device/range
 acceptance, update verification, and owner distribution approval remain release gates.
 
+The host-independent repository replay passed release workflow contracts (6/6), immutable action
+pin validation (7 workflow files), shared-checkout contracts (4/4), desktop viewer contracts
+(10/10), Community Directory contracts (4/4), and Atelier asset suites (19/19). The tests did not
+modify generated assets. Android/JVM build tests were not rerun because this host has no Java
+runtime or Android SDK.
+
 The earlier addendum below records the previous implementation snapshot.
 
 ## Historical addendum — 2026-10-02
