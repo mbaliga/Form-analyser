@@ -1,6 +1,14 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-02
+Last reviewed: 2026-10-08
+
+Release-environment recheck (2026-10-08): the `codex/production-hardening` checkout is clean at
+`30f4cb9` (`docs(release): record provisioned android replay`). This host has a Java launcher but
+no installed Java runtime, `ANDROID_HOME` is unset, `adb` is unavailable, and the local production
+keystore and certificate-fingerprint environment variables are unset. The latest successful
+Android build/test replay remains the separately provisioned QA replay dated 2026-10-02 below; this
+recheck does not claim a new build or test run. Production CI secrets are not observable from this
+local environment and must be confirmed in the repository's release settings before dispatch.
 
 Latest verification replay: on 2026-10-02, root JVM `test`, Android debug/release unit tests,
 and `lintRelease` passed with Temurin JDK 21, Gradle 8.14.3, API 35 and build-tools 35.0.0. The
@@ -42,6 +50,7 @@ participants.
 
 ## Current commits
 
+- Crocodyl: `30f4cb9` — records the provisioned Android replay and current QA-only release boundary.
 - Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
 - Crocodyl: `2063e84` — shared-library lock verifier negative-path coverage.
 - Crocodyl: `1f0626c` — require the locked shared-library revision to be published on the locked ref.

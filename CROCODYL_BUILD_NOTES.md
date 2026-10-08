@@ -3,7 +3,19 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
-## Current addendum — 2026-10-02
+## Current addendum — 2026-10-08
+
+The current `codex/production-hardening` checkout was clean at `30f4cb9`. This host currently has
+no Java runtime, Android SDK (`ANDROID_HOME`), or ADB, and its production signing keystore and
+certificate-fingerprint environment variables are unset. No build or test was run during this
+recheck; the latest successful provisioned Android replay remains the QA-only 2026-10-02 run in
+[`docs/crocodyl/PRODUCTION_STATUS.md`](docs/crocodyl/PRODUCTION_STATUS.md). Repository CI secrets
+were not inspected from this local environment. Production signing, physical-device/range
+acceptance, update verification, and owner distribution approval remain release gates.
+
+The earlier addendum below records the previous implementation snapshot.
+
+## Historical addendum — 2026-10-02
 
 The CI path filter includes `tools/release/**` and `tools/community_directory/**`, so changes to
 release preflight or directory provenance validation cannot silently bypass the ordinary repository
@@ -13,7 +25,8 @@ dataset before packaging.
 The notes below are the historical implementation log and contain superseded “pending” entries from
 before the Android layers landed. The authoritative current snapshot is [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md).
 
-Current work is on `codex/production-hardening`, with the latest committed audit at `6ecf2d6`.
+The latest recorded checkout is `codex/production-hardening` at `30f4cb9`; older commit references
+and pending items below are historical implementation notes, not the current release ledger.
 The Android artifacts remain QA-only and unreleased. Since the historical entries below:
 
 - the manual Recurve scoring wedge is implemented (numeric, plotted and observer input, WA/custom
