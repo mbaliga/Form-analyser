@@ -23,20 +23,14 @@ dedicated local training journal.
 
 ## Visual assets
 
-The generated images are decorative UI artwork, not source material for training instruction:
+Both sport cards use real photographer-created Unsplash photographs, not generated artwork. They are
+decorative UI imagery only, not source material for training instruction. Attribution, source-page
+links, license records, processing notes, dimensions and SHA-256 hashes are kept in
+`app-android/src/main/assets/atelier/cinematic/sports-manifest.json`.
 
-- `app-android/src/main/assets/atelier/cinematic/muay-thai-training.jpg` — 1080 × 608, 121,996
-  bytes; warm, dusk-lit training gym with left-side text space.
-- `app-android/src/main/assets/atelier/cinematic/bouldering-session.jpg` — 1080 × 608, 157,371
-  bytes; cool, sculptural indoor wall with left-side text space.
-- `app-android/src/main/assets/atelier/cinematic/sports-manifest.json` records dimensions, hashes,
-  and the non-instructional usage boundary.
-
-Image generation used the built-in image-generation tool. The Muay Thai prompt requested a wide,
-editorial photograph-style gym scene with one athlete working a heavy bag, right-weighted framing,
-warm amber light, no text/logos and no injury or opponent. The bouldering prompt requested one
-adult climber on an indoor overhang, right-weighted framing, cool blue-violet light, no ropes,
-falling, injury, text or logos.
+- Muay Thai: Anastase Maragos, [“Man practicing muay thai kickboxing with a heavy bag”](https://unsplash.com/photos/man-practicing-muay-thai-kickboxing-with-a-heavy-bag-78Q5VKfedoc).
+- Bouldering: Kambria Trout, [“Man climbing an indoor rock climbing wall”](https://unsplash.com/photos/man-climbing-an-indoor-rock-climbing-wall-m2s5M6bMxs0).
+- Both photo pages mark the image as free to use under the [Unsplash License](https://unsplash.com/license). Credit is recorded and surfaced here even though the license does not require attribution. Neither image implies the pictured person or venue endorses Crocodyl.
 
 ## Not claimed by this slice
 

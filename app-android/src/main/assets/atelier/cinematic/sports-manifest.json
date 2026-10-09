@@ -1,33 +1,49 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "images": [
     {
       "id": "muay-thai-training",
       "file": "muay-thai-training.jpg",
-      "bytes": 121996,
-      "sha256": "d1792d370632f3cbe9c795d3902a6537b7407f9b403746b8bd4ed78f9fdde747",
-      "dimensions": [1080, 608],
-      "kind": "AI-generated cinematic training illustration",
+      "bytes": 192112,
+      "sha256": "f93f21013e50dabb297ef902c9e66893d6c67f5ea8b9ddf3f220609c98868cdd",
+      "dimensions": [1400, 788],
+      "kind": "Photograph",
+      "photographer": "Anastase Maragos (@visualsbyroyalz)",
+      "title": "Man practicing muay thai kickboxing with a heavy bag",
+      "sourcePage": "https://unsplash.com/photos/man-practicing-muay-thai-kickboxing-with-a-heavy-bag-78Q5VKfedoc",
+      "sourceImage": "https://images.unsplash.com/photo-1765303191119-89d0221d5c0b",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
       "usage": "Decorative Home card and sport journal hero",
       "accessibility": { "decorativeAlt": "" },
       "restrictions": [
+        "Unsplash license does not establish model or trademark endorsement.",
         "Not a technique, safety, equipment-fit or coaching reference.",
-        "Do not infer athlete identity, gym, affiliation or level from this illustration."
-      ]
+        "Do not infer athlete identity, gym, affiliation or level from the photograph."
+      ],
+      "processing": "Downloaded from Unsplash and center-cropped/resized to 1400 × 788 for the app."
     },
     {
       "id": "bouldering-session",
       "file": "bouldering-session.jpg",
-      "bytes": 157371,
-      "sha256": "bd50cb83bb9ab558853d83fce9ebfdb2d452c1becc70289f7e930e8978674c65",
-      "dimensions": [1080, 608],
-      "kind": "AI-generated cinematic training illustration",
+      "bytes": 240175,
+      "sha256": "31293d6b216aceb5b22b19e782d4a673fe1a65acfef12b23b6462b7dbcfc735a",
+      "dimensions": [1400, 788],
+      "kind": "Photograph",
+      "photographer": "Kambria Trout (@kambriatrout)",
+      "title": "Man climbing an indoor rock climbing wall",
+      "sourcePage": "https://unsplash.com/photos/man-climbing-an-indoor-rock-climbing-wall-m2s5M6bMxs0",
+      "sourceImage": "https://images.unsplash.com/photo-1754950917608-6595a0c28157",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
       "usage": "Decorative Home card and sport journal hero",
       "accessibility": { "decorativeAlt": "" },
       "restrictions": [
+        "Unsplash license does not establish model or trademark endorsement.",
         "Not a technique, safety, equipment-fit or coaching reference.",
-        "Do not infer athlete identity, gym, affiliation or level from this illustration."
-      ]
+        "Do not infer athlete identity, gym, affiliation or level from the photograph."
+      ],
+      "processing": "Downloaded from Unsplash and center-cropped/resized to 1400 × 788 for the app."
     }
   ]
 }
