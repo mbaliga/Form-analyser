@@ -51,11 +51,11 @@ Persistence dependency follow-up (2026-10-09): upgraded Room runtime/KTX/compile
 set to 2.7.2. Room KSP passed and produced no schema diff; root tests, both Android unit variants
 (21/21 each), and `lintRelease` passed. The lint report lists 21 dependency-update advisories and
 zero app-source findings. A minified QA APK/AAB, `0.6.0-room-272-qa` / versionCode 642, passed the
-release preflight. Connected rerun was attempted, but the emulator had disconnected; ADB confirmed
-no attached devices, and this temporary SDK has no emulator executable. Thus connected smoke remains
-to be repeated on the Room 2.7.2 tree. Room 2.8.5 was tested but its processor graph resolves Kotlin
-2.2.0 artifacts and KSP failed with `AbstractMethodError` under Kotlin/KSP 2.1.0; reverted to the
-compatible 2.7.2 stable release rather than widening the compiler/processor migration.
+release preflight. After the prior emulator disconnected, an API-35 ARM64 emulator was installed
+into the temporary SDK and started; current Room 2.7.2 connected debug and QA-signed minified-release
+smoke suites both passed 3/3. Room 2.8.5 was tested but its processor graph resolves Kotlin 2.2.0
+artifacts and KSP failed with `AbstractMethodError` under Kotlin/KSP 2.1.0; reverted to the compatible
+2.7.2 stable release rather than widening the compiler/processor migration.
 
 ## Current addendum — 2026-10-08
 

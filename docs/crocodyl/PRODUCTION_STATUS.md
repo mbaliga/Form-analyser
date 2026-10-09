@@ -37,12 +37,12 @@ production keystore and fingerprint are still required before distribution.
 Persistence dependency hardening (2026-10-09): Room runtime/KTX/compiler/testing were upgraded
 together from 2.6.1 to 2.7.2. Root tests, Android debug/release unit suites (21/21 each), and
 `lintRelease` passed; Room KSP generated no schema changes. QA APK/AAB `0.6.0-room-272-qa`
-(versionCode 642) built and passed release preflight. A connected rerun could not start because the
-API-35 emulator disconnected and ADB reported no attached devices; therefore the 3/3 connected
-results above are for the immediately previous Room 2.6.1 tree, not the Room 2.7.2 build. Room 2.8.5
-was evaluated but its compiler classpath requires Kotlin stdlib 2.2.0 and failed with an
-`AbstractMethodError` under this checkout's Kotlin/KSP 2.1 toolchain; the broader toolchain upgrade
-was deferred rather than weakening verification.
+(versionCode 642) built and passed release preflight. After the original emulator disconnected, an
+API-35 ARM64 emulator was provisioned in the temporary SDK; current Room 2.7.2 connected debug and
+QA-signed minified-release instrumentation then both passed 3/3. Room 2.8.5 was evaluated but its
+compiler classpath requires Kotlin stdlib 2.2.0 and failed with an `AbstractMethodError` under this
+checkout's Kotlin/KSP 2.1 toolchain; the broader toolchain upgrade was deferred rather than
+weakening verification.
 
 Release-environment recheck (2026-10-08): the `codex/production-hardening` checkout was clean at
 `30f4cb9` (`docs(release): record provisioned Android replay`). At that time the host had a Java
@@ -87,7 +87,7 @@ participants.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current Room 2.7.2 tree passes root JVM tests, Android debug/release unit tests, release lint and QA APK/AAB preflight. Connected debug/release evidence (3/3 each) is from the immediately previous Room 2.6.1 tree; re-run after an emulator/device is attached. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current Room 2.7.2 tree passes root JVM tests, Android debug/release unit tests, release lint, connected debug and QA-signed minified-release instrumentation (3/3 each), and QA APK/AAB preflight. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
