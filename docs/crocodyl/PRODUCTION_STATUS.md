@@ -3,25 +3,29 @@
 Last reviewed: 2026-10-09
 
 Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
-Home cards and local Room records are being added on this branch; see
+Home cards and local Room records are present on this branch; see
 [`MULTISPORT_JOURNAL.md`](MULTISPORT_JOURNAL.md). They are not part of the Recurve 0.6 release
-candidate. The Android schema generation and full Android verification for this addition are
-pending an available JDK/Android SDK.
+candidate. Their API-35 compile, debug/release unit tests and release lint have now passed, and the
+Room V9 schema snapshot has been generated. Connected instrumentation for the updated tree is still
+being verified separately.
 
-Host-independent replay (2026-10-09): `./gradlew test` passed (50 actionable tasks), including the
-new Muay Thai and bouldering module tests. Release contracts passed 6/6, immutable workflow pins
-were verified across 7 files, shared checkout contracts passed 4/4, desktop viewer contracts 10/10,
-Community Directory contracts 4/4, and Atelier assets 19/19. The two new cinematic image hashes and
-byte counts match their asset manifest. Android compilation, Room schema generation, lint and
-device checks are not included in this replay.
+Current-checkout replay (2026-10-09, follow-up to `0b5004f`): `./gradlew test` passed (50
+actionable tasks). Android debug and release unit tests passed 42/42; the migration chain, V8 → V9
+table creation and V9 privacy-schema test are included. `lintRelease` completed with no source-code
+lint findings but 20 GradleDependency update advisories. Release workflow contracts passed 6/6,
+immutable workflow pins were verified across 7 files, shared checkout contracts passed 4/4, desktop
+viewer contracts 10/10, Community Directory contracts 4/4, and Atelier assets 19/19. Both cinematic
+sport photo assets match manifest byte counts, dimensions and hashes, with photographer/source/license
+records present. Connected instrumentation has not yet completed on this current tree. The local
+sandbox initially blocked Gradle's worker socket; the Android verification was rerun with temporary
+state redirected and build-only escalation.
 
-Release-environment recheck (2026-10-08): the `codex/production-hardening` checkout is clean at
-`30f4cb9` (`docs(release): record provisioned android replay`). This host has a Java launcher but
-no installed Java runtime, `ANDROID_HOME` is unset, `adb` is unavailable, and the local production
-keystore and certificate-fingerprint environment variables are unset. The latest successful
-Android build/test replay remains the separately provisioned QA replay dated 2026-10-02 below; this
-recheck does not claim a new build or test run. Production CI secrets are not observable from this
-local environment and must be confirmed in the repository's release settings before dispatch.
+Release-environment recheck (2026-10-08): the `codex/production-hardening` checkout was clean at
+`30f4cb9` (`docs(release): record provisioned Android replay`). At that time the host had a Java
+launcher but no installed Java runtime, `ANDROID_HOME` was unset, and `adb` was unavailable. This
+historical recheck did not claim a new Android build or test run. Production CI secrets are not
+observable from this local environment and must be confirmed in repository release settings before
+dispatch.
 
 Repository-side replay (2026-10-08): release workflow contracts passed 6/6, immutable action refs
 were verified across 7 workflow files, shared-checkout contracts passed 4/4, desktop viewer

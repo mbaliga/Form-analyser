@@ -15,10 +15,24 @@ table, and consent-filtered `.croc` export omits retracted rows. See
 The host-independent `./gradlew test` replay passed with 50 actionable tasks, including the new
 sport-module suites. Release (6/6), shared checkout (4/4), viewer (10/10), community directory
 (4/4), and Atelier (19/19) contracts also passed; workflow action pins were verified across 7 files.
-The new Android screens and Room migration have not yet been compiled or exercised on this host
-because no Android SDK/license is available; the V9 Room schema snapshot has not yet been generated.
-Do not treat this addition as release-verified until the V9 schema and Android test/lint/build/device
-review are completed.
+At the time of this first addendum, the new Android screens and Room migration had not yet been
+compiled or exercised, and the V9 Room schema snapshot had not been generated. The follow-up replay
+below closes the schema/unit/lint checks; connected instrumentation remains unverified.
+
+Current replay after replacing the generated sport artwork with documented Unsplash photographs
+(commit `0b5004f`): root Gradle tests again passed (50 actionable tasks); release, shared-checkout,
+viewer, directory and Atelier contracts passed (6/6, 4/4, 10/10, 4/4 and 19/19). Photo checks
+verified manifest dimensions, byte counts, SHA-256 values, photographer attribution and source/license
+records.
+
+Android follow-up replay (2026-10-09): after explicit approval, Android SDK licenses were accepted
+and API 35, Build Tools 35.0.0 and platform-tools were installed in the temporary toolchain. Room
+generated and checked in the V9 schema snapshot. Android debug and release unit suites passed 21/21
+each, including the complete migration chain, sport-session table, privacy-registry schema check and
+both model install/privacy tests. `lintRelease` completed with zero app-source lint issues and 20
+GradleDependency update advisories. Connected emulator instrumentation was attempted, but the first
+online attempt stalled while Gradle hashed the Android test classpath; the offline retry is still in
+progress and has not yet produced instrumentation results.
 
 ## Current addendum — 2026-10-08
 
