@@ -30,10 +30,12 @@ and API 35, Build Tools 35.0.0 and platform-tools were installed in the temporar
 generated and checked in the V9 schema snapshot. Android debug and release unit suites passed 21/21
 each, including the complete migration chain, sport-session table, privacy-registry schema check and
 both model install/privacy tests. `lintRelease` completed with zero app-source lint issues and 20
-GradleDependency update advisories. Connected emulator instrumentation was attempted, but the first
-online attempt stalled while Gradle hashed the Android test classpath. The offline retry also stalled
-during Gradle input/classpath snapshotting before the instrumentation APK was produced, so it was
-cancelled; there are no connected-test results for this checkout yet.
+GradleDependency update advisories. The first connected-test attempt eventually reached D8 and
+exposed stale duplicate `.dex` entries in ignored generated output, including old files suffixed
+` 2.dex`. After Gradle `clean`, app and instrumentation APK assembly succeeded. The first connected
+retry could not resolve Android UTP's host-output artifact in offline mode; the online retry fetched
+it and passed 3/3 on the API-35 ARM64 emulator (`emulator-5554`). This is connected debug evidence;
+minified-release connected and physical-device acceptance remain separate gates.
 
 ## Current addendum — 2026-10-08
 

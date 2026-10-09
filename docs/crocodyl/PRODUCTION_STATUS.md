@@ -6,8 +6,8 @@ Product continuation (2026-10-09): Muay Thai and bouldering manual journals, spo
 Home cards and local Room records are present on this branch; see
 [`MULTISPORT_JOURNAL.md`](MULTISPORT_JOURNAL.md). They are not part of the Recurve 0.6 release
 candidate. Their API-35 compile, debug/release unit tests and release lint have now passed, and the
-Room V9 schema snapshot has been generated. Connected instrumentation for the updated tree is still
-being verified separately.
+Room V9 schema snapshot has been generated. Connected instrumentation for the updated tree is now
+verified separately below.
 
 Current-checkout replay (2026-10-09, follow-up to `0b5004f`): `./gradlew test` passed (50
 actionable tasks). Android debug and release unit tests passed 42/42; the migration chain, V8 → V9
@@ -16,9 +16,16 @@ lint findings but 20 GradleDependency update advisories. Release workflow contra
 immutable workflow pins were verified across 7 files, shared checkout contracts passed 4/4, desktop
 viewer contracts 10/10, Community Directory contracts 4/4, and Atelier assets 19/19. Both cinematic
 sport photo assets match manifest byte counts, dimensions and hashes, with photographer/source/license
-records present. Connected instrumentation has not yet completed on this current tree. The local
-sandbox initially blocked Gradle's worker socket; the Android verification was rerun with temporary
-state redirected and build-only escalation.
+records present. The local sandbox initially blocked Gradle's worker socket; the Android verification
+was rerun with temporary state redirected and build-only escalation.
+
+Connected-test follow-up (2026-10-09): `:app-android:connectedDebugAndroidTest` passed 3/3 on
+`emulator-5554` (API 35 ARM64). The first attempt exposed stale duplicate dex archives in ignored
+generated build output (original `.dex` files plus macOS-style ` 2.dex` copies); Gradle `clean`
+removed only generated outputs, after which the clean app and test APKs built. The first clean
+connected attempt lacked the Android UTP host-output artifact in offline cache; the online retry
+resolved it and passed all 3 tests. This closes current-tree debug emulator instrumentation only;
+minified-release connected, production signing, physical-device and range acceptance remain open.
 
 Release-environment recheck (2026-10-08): the `codex/production-hardening` checkout was clean at
 `30f4cb9` (`docs(release): record provisioned Android replay`). At that time the host had a Java
@@ -63,7 +70,7 @@ participants.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Root JVM tests and the unrestricted Android debug/release unit-test plus release-lint replay pass. Re-run the same gates in final CI before distribution. |
+| Recurve Android build | QA production candidate | Root JVM tests, Android debug/release unit tests, release lint, and current-tree connected debug instrumentation pass. Re-run the gates in final CI before distribution. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -74,6 +81,7 @@ participants.
 
 ## Current commits
 
+- Crocodyl: current-tree API-35 ARM64 connected debug instrumentation passed 3/3 on 2026-10-09 after clearing stale generated duplicate dex archives.
 - Crocodyl: `30f4cb9` — records the provisioned Android replay and current QA-only release boundary.
 - Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
 - Crocodyl: `2063e84` — shared-library lock verifier negative-path coverage.
