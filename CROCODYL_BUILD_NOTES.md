@@ -31,8 +31,9 @@ generated and checked in the V9 schema snapshot. Android debug and release unit 
 each, including the complete migration chain, sport-session table, privacy-registry schema check and
 both model install/privacy tests. `lintRelease` completed with zero app-source lint issues and 20
 GradleDependency update advisories. Connected emulator instrumentation was attempted, but the first
-online attempt stalled while Gradle hashed the Android test classpath; the offline retry is still in
-progress and has not yet produced instrumentation results.
+online attempt stalled while Gradle hashed the Android test classpath. The offline retry also stalled
+during Gradle input/classpath snapshotting before the instrumentation APK was produced, so it was
+cancelled; there are no connected-test results for this checkout yet.
 
 ## Current addendum — 2026-10-08
 
