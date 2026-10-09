@@ -144,6 +144,8 @@ dependencies {
     implementation(project(":engine"))
     implementation(project(":archery-module"))
     implementation(project(":fencing-module"))
+    implementation(project(":muaythai-module"))
+    implementation(project(":bouldering-module"))
     // Pure-JVM cores (Phase 1+): shared model + equipment/poundage/wellness/body math.
     implementation(project(":core-model"))
     implementation(project(":core-equipment"))

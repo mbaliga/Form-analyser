@@ -21,7 +21,7 @@ class PrivacyRegistryTest {
 
     @Test
     fun coreTablesShareable() {
-        listOf("athlete", "session", "shot", "rig", "checkin", "soreness").forEach {
+        listOf("athlete", "session", "shot", "rig", "checkin", "soreness", "sport_session").forEach {
             assertEquals(
                 PrivacyClass.SHAREABLE,
                 PrivacyRegistry.classOf(it),

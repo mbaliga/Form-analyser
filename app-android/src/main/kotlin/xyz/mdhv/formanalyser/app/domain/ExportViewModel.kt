@@ -328,6 +328,6 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
             mapOf("athlete" to "athletes", "session" to "sessions", "shot" to "shots")
 
         /** SQL tables carrying a `deletedAt` retraction column (see AppDatabase.MIGRATION_6_7). */
-        private val RETRACTABLE: Set<String> = setOf("sessions", "score_session")
+        private val RETRACTABLE: Set<String> = setOf("sessions", "score_session", "sport_session")
     }
 }

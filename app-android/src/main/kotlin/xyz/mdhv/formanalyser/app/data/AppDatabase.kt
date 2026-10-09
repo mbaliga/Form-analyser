@@ -51,8 +51,9 @@ class DatabaseRecoveryRequired(
             TrainingPlanEntity::class,
             ScoreCandidateEntity::class,
             ObserverScoreEventEntity::class,
+            SportSessionEntity::class,
         ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -71,6 +72,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun scoringDao(): ScoringDao
 
     abstract fun athleteFeatureDao(): AthleteFeatureDao
+
+    abstract fun sportSessionDao(): SportSessionDao
 
     companion object {
         private const val DB_NAME = "form-analyser.db"
@@ -92,6 +95,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_5_6,
                     MIGRATION_6_7,
                     MIGRATION_7_8,
+                    MIGRATION_8_9,
                 )
                 // No fallbackToDestructiveMigration: a missing migration path should surface as a
                 // thrown exception into the catch below (and get backed up + recorded), not vanish
@@ -467,6 +471,19 @@ abstract class AppDatabase : RoomDatabase() {
                     listOf("checkin", "pain_log", "injury").forEach {
                         db.execSQL("ALTER TABLE `$it` ADD COLUMN `deletedAt` INTEGER")
                     }
+                }
+            }
+
+        /** V8 → V9: add the shared, retractable manual training journal for non-archery sports. */
+        val MIGRATION_8_9 =
+            object : Migration(8, 9) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `sport_session` (`id` TEXT NOT NULL, `athleteId` TEXT NOT NULL, `sportId` TEXT NOT NULL, `startedAtEpochMs` INTEGER NOT NULL, `durationSeconds` INTEGER NOT NULL, `perceivedEffortRpe` INTEGER, `summary` TEXT NOT NULL, `detailsJson` TEXT NOT NULL, `featuresJson` TEXT NOT NULL, `deletedAt` INTEGER, PRIMARY KEY(`id`))"
+                    )
+                    db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_athleteId` ON `sport_session` (`athleteId`)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_sportId` ON `sport_session` (`sportId`)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_startedAtEpochMs` ON `sport_session` (`startedAtEpochMs`)")
                 }
             }
     }

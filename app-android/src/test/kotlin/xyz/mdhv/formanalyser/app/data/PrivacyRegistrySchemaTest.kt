@@ -22,8 +22,8 @@ class PrivacyRegistrySchemaTest {
     fun `every generated Room table has exactly one privacy classification`() {
         val schema =
             listOf(
-                    File("schemas/xyz.mdhv.formanalyser.app.data.AppDatabase/8.json"),
-                    File("app-android/schemas/xyz.mdhv.formanalyser.app.data.AppDatabase/8.json"),
+                    File("schemas/xyz.mdhv.formanalyser.app.data.AppDatabase/9.json"),
+                    File("app-android/schemas/xyz.mdhv.formanalyser.app.data.AppDatabase/9.json"),
                 )
                 .firstOrNull(File::isFile)
         assertTrue("Room schema snapshot is missing", schema != null)

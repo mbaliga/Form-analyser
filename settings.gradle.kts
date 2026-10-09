@@ -31,6 +31,8 @@ if (sharedLibrariesDir != null) {
 include(":engine")
 include(":archery-module")
 include(":fencing-module")
+include(":muaythai-module")
+include(":bouldering-module")
 include(":core-model")
 include(":core-equipment")
 include(":core-wellness")

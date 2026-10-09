@@ -1,6 +1,19 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-08
+Last reviewed: 2026-10-09
+
+Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
+Home cards and local Room records are being added on this branch; see
+[`MULTISPORT_JOURNAL.md`](MULTISPORT_JOURNAL.md). They are not part of the Recurve 0.6 release
+candidate. The Android schema generation and full Android verification for this addition are
+pending an available JDK/Android SDK.
+
+Host-independent replay (2026-10-09): `./gradlew test` passed (50 actionable tasks), including the
+new Muay Thai and bouldering module tests. Release contracts passed 6/6, immutable workflow pins
+were verified across 7 files, shared checkout contracts passed 4/4, desktop viewer contracts 10/10,
+Community Directory contracts 4/4, and Atelier assets 19/19. The two new cinematic image hashes and
+byte counts match their asset manifest. Android compilation, Room schema generation, lint and
+device checks are not included in this replay.
 
 Release-environment recheck (2026-10-08): the `codex/production-hardening` checkout is clean at
 `30f4cb9` (`docs(release): record provisioned android replay`). This host has a Java launcher but

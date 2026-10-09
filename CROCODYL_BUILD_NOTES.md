@@ -3,6 +3,23 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+## Product expansion addendum — 2026-10-09
+
+Added Muay Thai and bouldering as distinct pure-JVM sport modules and local manual training
+journals. The Home feed now opens cinematic, sport-specific experiences. Muay Thai captures focus,
+round/work/rest structure and effort; bouldering preserves the athlete's grade system and label,
+style, attempts and outcome. The Room V8 → V9 migration adds a shareable, retractable `sport_session`
+table, and consent-filtered `.croc` export omits retracted rows. See
+[`docs/crocodyl/MULTISPORT_JOURNAL.md`](docs/crocodyl/MULTISPORT_JOURNAL.md).
+
+The host-independent `./gradlew test` replay passed with 50 actionable tasks, including the new
+sport-module suites. Release (6/6), shared checkout (4/4), viewer (10/10), community directory
+(4/4), and Atelier (19/19) contracts also passed; workflow action pins were verified across 7 files.
+The new Android screens and Room migration have not yet been compiled or exercised on this host
+because no Android SDK/license is available; the V9 Room schema snapshot has not yet been generated.
+Do not treat this addition as release-verified until the V9 schema and Android test/lint/build/device
+review are completed.
+
 ## Current addendum — 2026-10-08
 
 The current `codex/production-hardening` checkout was clean at `30f4cb9`. This host currently has

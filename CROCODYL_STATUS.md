@@ -1,13 +1,15 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-08 · current branch: **codex/production-hardening** (latest commit `30f4cb9`; latest successful Android verification replay `7cf0324`, dated 2026-10-02) · release validation: **QA-only artifacts**_
+_Last reviewed: 2026-10-09 · current branch: **codex/production-hardening** (latest successful Android verification replay `7cf0324`, dated 2026-10-02) · release validation: **QA-only artifacts**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
 
-## Next milestone — Fencing and open ecosystem
+## Sport expansion — Fencing, Muay Thai and Bouldering
 
 The near-term follow-on is underway in [`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`](docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md): Sabre, Foil and Epee, a live manual two-fencer referee console for **Prêt**, **Allez**, **Halte** and point calls, visible equipment metadata before live capture, a provenance-aware directory, and a shared local-session contract for Bocal/Crocodyl beta builds. The sport module and Android entry points are present; referee vision, web ingestion, advanced-search adoption, Nooz news adapters and production local transport are not live yet.
+
+Muay Thai and bouldering now have separate manual training journals, pure sport modules, local session records and cinematic Home entry cards. This first slice records user-entered sessions only; it does not make camera-coaching, safety, grade-conversion or cross-sport performance claims. Details and release limitations are in [`docs/crocodyl/MULTISPORT_JOURNAL.md`](docs/crocodyl/MULTISPORT_JOURNAL.md).
 
 > **Product direction is now governed by `docs/crocodyl/blueprint/`** (Product Blueprint v2.1: 
 > [`01-product-direction.md`](docs/crocodyl/blueprint/01-product-direction.md),

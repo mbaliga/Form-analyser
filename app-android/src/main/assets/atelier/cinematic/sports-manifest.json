@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "images": [
+    {
+      "id": "muay-thai-training",
+      "file": "muay-thai-training.jpg",
+      "bytes": 121996,
+      "sha256": "d1792d370632f3cbe9c795d3902a6537b7407f9b403746b8bd4ed78f9fdde747",
+      "dimensions": [1080, 608],
+      "kind": "AI-generated cinematic training illustration",
+      "usage": "Decorative Home card and sport journal hero",
+      "accessibility": { "decorativeAlt": "" },
+      "restrictions": [
+        "Not a technique, safety, equipment-fit or coaching reference.",
+        "Do not infer athlete identity, gym, affiliation or level from this illustration."
+      ]
+    },
+    {
+      "id": "bouldering-session",
+      "file": "bouldering-session.jpg",
+      "bytes": 157371,
+      "sha256": "bd50cb83bb9ab558853d83fce9ebfdb2d452c1becc70289f7e930e8978674c65",
+      "dimensions": [1080, 608],
+      "kind": "AI-generated cinematic training illustration",
+      "usage": "Decorative Home card and sport journal hero",
+      "accessibility": { "decorativeAlt": "" },
+      "restrictions": [
+        "Not a technique, safety, equipment-fit or coaching reference.",
+        "Do not infer athlete identity, gym, affiliation or level from this illustration."
+      ]
+    }
+  ]
+}

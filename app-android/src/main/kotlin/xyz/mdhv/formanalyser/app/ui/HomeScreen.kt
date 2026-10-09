@@ -14,6 +14,8 @@ import xyz.mdhv.formanalyser.app.ui.components.AthleteActionTile
 import xyz.mdhv.formanalyser.app.ui.components.CrocodylHero
 import xyz.mdhv.formanalyser.app.ui.components.EquipmentAtelierCard
 import xyz.mdhv.formanalyser.app.ui.components.FencingStudiesCard
+import xyz.mdhv.formanalyser.app.ui.components.MuayThaiFacetCard
+import xyz.mdhv.formanalyser.app.ui.components.BoulderingFacetCard
 import xyz.mdhv.formanalyser.app.ui.components.CommunityDirectoryCard
 import xyz.mdhv.formanalyser.app.ui.components.PairedSessionCard
 import xyz.mdhv.formanalyser.app.ui.components.ScoreActionIcon
@@ -88,6 +90,8 @@ fun HomeScreen(
         }
         item { EquipmentAtelierCard() }
         item { FencingStudiesCard() }
+        item { MuayThaiFacetCard() }
+        item { BoulderingFacetCard() }
         item { PairedSessionCard(onClick = onPairedSession) }
         item { CommunityDirectoryCard() }
         item {

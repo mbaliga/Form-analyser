@@ -45,6 +45,7 @@ class AppDatabaseMigrationTest {
             AppDatabase.MIGRATION_5_6.migrate(db)
             AppDatabase.MIGRATION_6_7.migrate(db)
             AppDatabase.MIGRATION_7_8.migrate(db)
+            AppDatabase.MIGRATION_8_9.migrate(db)
 
             assertEquals("Legacy", scalar(db, "SELECT displayName FROM athletes WHERE id = 'a1'"))
             assertEquals("38.5", scalar(db, "SELECT drawWeightLbs FROM sessions WHERE id = 's1'"))
@@ -57,6 +58,8 @@ class AppDatabaseMigrationTest {
             assertTrue(tableExists(db, "score_session"))
             assertTrue(tableExists(db, "training_plan"))
             assertTrue(tableExists(db, "score_candidate"))
+            assertTrue(tableExists(db, "sport_session"))
+            assertTrue(columnExists(db, "sport_session", "deletedAt"))
             assertTrue(columnExists(db, "sessions", "deletedAt"))
             assertTrue(columnExists(db, "score_session", "deletedAt"))
             assertTrue(columnExists(db, "checkin", "deletedAt"))
