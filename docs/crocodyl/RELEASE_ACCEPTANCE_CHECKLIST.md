@@ -125,6 +125,13 @@ signer agreement and model/security/package checks. The release was signed with 
 debug/QA key, not a production key. Physical-device matrix, clean install/update, camera/range use,
 and production signing remain unchecked.
 
+Room upgrade follow-up: Room 2.7.2 tree passed root tests, Android debug/release unit tests (21/21
+each), `lintRelease`, and release preflight for QA APK/AAB `0.6.0-room-272-qa` (versionCode 642).
+The API-35 emulator disconnected before its connected-test run; connected 3/3 results above belong
+to the pre-upgrade Room 2.6.1 tree. Repeat connected debug and QA-signed minified-release smoke on
+the Room 2.7.2 tree when an emulator/device is available. Production signer and physical-device
+acceptance remain separate.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.
