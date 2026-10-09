@@ -42,6 +42,11 @@ manifest policy passed, the bundled model hash matched, and required backup reso
 of staging files were verified. This signer is not the production identity; production signing and
 physical-device acceptance remain separate gates.
 
+Post-clean consolidated replay (2026-10-09): root `test`, Android debug and release unit-test
+variants, and `lintRelease` all passed together (111 actionable Gradle tasks; 52 executed). The
+Android suites each passed 21/21. Lint reports 20 GradleDependency advisories and zero app-source
+findings.
+
 ## Current addendum — 2026-10-08
 
 The current `codex/production-hardening` checkout was clean at `30f4cb9`. This host currently has
