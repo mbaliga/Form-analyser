@@ -117,6 +117,14 @@ artifact preflight. Connected debug instrumentation passed 3/3 and connected min
 instrumentation passed 3/3 on `alloy-api35-arm64` / `emulator-5554`. The artifact uses the
 committed QA/debug key; this does not satisfy production-signing or physical-device acceptance.
 
+Current-tree Android replay: 2026-10-09, tester: Codex. After removing stale generated duplicate
+dex archives with Gradle `clean`, connected debug instrumentation passed 3/3 and QA-signed minified
+release instrumentation passed 3/3 on API-35 ARM64 `emulator-5554`. QA APK/AAB
+`0.6.0-qa-20261009` (versionCode 641) passed `tools/release/verify_android_release.sh`, including
+signer agreement and model/security/package checks. The release was signed with the committed
+debug/QA key, not a production key. Physical-device matrix, clean install/update, camera/range use,
+and production signing remain unchecked.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.

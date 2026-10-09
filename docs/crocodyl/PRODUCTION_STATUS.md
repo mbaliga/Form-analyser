@@ -25,7 +25,14 @@ generated build output (original `.dex` files plus macOS-style ` 2.dex` copies);
 removed only generated outputs, after which the clean app and test APKs built. The first clean
 connected attempt lacked the Android UTP host-output artifact in offline cache; the online retry
 resolved it and passed all 3 tests. This closes current-tree debug emulator instrumentation only;
-minified-release connected, production signing, physical-device and range acceptance remain open.
+production signing, physical-device and range acceptance remain open.
+
+Minified-release follow-up (2026-10-09): a QA-only release build signed with the committed debug
+keystore passed `:app-android:connectedReleaseAndroidTest` 3/3 on the same emulator. APK/AAB
+`0.6.0-qa-20261009` (versionCode 641) passed `tools/release/verify_android_release.sh`, including
+APK/AAB signature agreement, package/version, ZIP alignment, manifest security, model hash, backup
+resources and staging-file checks. The certificate is explicitly QA/debug, not a production signer;
+production keystore and fingerprint are still required before distribution.
 
 Release-environment recheck (2026-10-08): the `codex/production-hardening` checkout was clean at
 `30f4cb9` (`docs(release): record provisioned Android replay`). At that time the host had a Java
@@ -70,7 +77,7 @@ participants.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Root JVM tests, Android debug/release unit tests, release lint, and current-tree connected debug instrumentation pass. Re-run the gates in final CI before distribution. |
+| Recurve Android build | QA production candidate | Root JVM tests, Android debug/release unit tests, release lint, connected debug and QA-signed minified-release instrumentation, and QA APK/AAB preflight pass on the current tree. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -82,6 +89,7 @@ participants.
 ## Current commits
 
 - Crocodyl: current-tree API-35 ARM64 connected debug instrumentation passed 3/3 on 2026-10-09 after clearing stale generated duplicate dex archives.
+- Crocodyl: QA-signed minified release instrumentation passed 3/3 and versionCode 641 APK/AAB preflight passed on 2026-10-09; QA key only.
 - Crocodyl: `30f4cb9` — records the provisioned Android replay and current QA-only release boundary.
 - Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
 - Crocodyl: `2063e84` — shared-library lock verifier negative-path coverage.

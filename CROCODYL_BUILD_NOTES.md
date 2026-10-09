@@ -35,7 +35,12 @@ exposed stale duplicate `.dex` entries in ignored generated output, including ol
 ` 2.dex`. After Gradle `clean`, app and instrumentation APK assembly succeeded. The first connected
 retry could not resolve Android UTP's host-output artifact in offline mode; the online retry fetched
 it and passed 3/3 on the API-35 ARM64 emulator (`emulator-5554`). This is connected debug evidence;
-minified-release connected and physical-device acceptance remain separate gates.
+minified release was then signed only with the committed debug/QA keystore and also passed 3/3 on
+the same emulator. The matching QA APK/AAB `0.6.0-qa-20261009` (versionCode 641) passed the release
+preflight: APK v2 and AAB signatures agreed, version/package metadata matched, ZIP alignment and
+manifest policy passed, the bundled model hash matched, and required backup resources and absence
+of staging files were verified. This signer is not the production identity; production signing and
+physical-device acceptance remain separate gates.
 
 ## Current addendum — 2026-10-08
 
