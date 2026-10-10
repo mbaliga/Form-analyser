@@ -10,6 +10,17 @@ APK="$1"
 AAB="$2"
 POSE_SHA256='59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a'
 
+sha256_stream() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 | awk '{print $1}'
+  else
+    echo 'Neither sha256sum nor shasum is available.' >&2
+    return 1
+  fi
+}
+
 test -s "$APK"
 test -s "$AAB"
 test -n "$ANDROID_HOME"
@@ -48,8 +59,8 @@ grep -A8 -B3 'androidx.core.content.FileProvider' "$MANIFEST" | grep -Eq 'export
 
 unzip -l "$APK" | grep 'assets/pose_landmarker_lite.task' >/dev/null
 unzip -l "$AAB" | grep 'base/assets/pose_landmarker_lite.task' >/dev/null
-test "$(unzip -p "$APK" assets/pose_landmarker_lite.task | sha256sum | cut -d' ' -f1)" = "$POSE_SHA256"
-test "$(unzip -p "$AAB" base/assets/pose_landmarker_lite.task | sha256sum | cut -d' ' -f1)" = "$POSE_SHA256"
+test "$(unzip -p "$APK" assets/pose_landmarker_lite.task | sha256_stream)" = "$POSE_SHA256"
+test "$(unzip -p "$AAB" base/assets/pose_landmarker_lite.task | sha256_stream)" = "$POSE_SHA256"
 unzip -l "$AAB" | grep 'base/res/xml/backup_rules.xml' >/dev/null
 unzip -l "$AAB" | grep 'base/res/xml/data_extraction_rules.xml' >/dev/null
 

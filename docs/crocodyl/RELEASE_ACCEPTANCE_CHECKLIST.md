@@ -165,6 +165,15 @@ preflight and connected debug + minified-release instrumentation each passed 4/4
 `emulator-5554`. APK SHA-256 `97a9786b57ae58c6dc691d22e54859204a2db444aee52299b1dba8150faf1025`; AAB
 SHA-256 `a67a25de4eb4eaec24346d542e73cfae13abe10b7814667acdfddf3dded1a415`. QA signing only.
 
+Capture-window concurrency follow-up: 2026-10-10. Four synchronized-buffer tests cover frames
+already in flight at Start, late inference after Stop, starting a fresh generation, and frames
+outside a recording. Android debug/release unit tests pass 34/34 each, `lintRelease` passes, and
+connected debug plus QA-signed minified-release instrumentation pass 4/4 each on API-35 ARM64
+`emulator-5554`. QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact
+preflight. APK SHA-256 `a4c32676767e6fa2bac61cdabaa47ed8d9c18d3001c22c9aa33d47b0ecd4870d`; AAB SHA-256
+`89dac947a6f9234e7055e4ee60cd1702d64e74955b8b2e3f771d4b79144e3abb`. Not production signing or
+physical-device/range acceptance.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.
@@ -236,9 +245,9 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
-- [x] Current-tree QA APK/AAB (`0.6.0-scoring-repository-qa`, versionCode 645) passed release artifact
+- [x] Current-tree QA APK/AAB (`0.6.0-pose-capture-window-qa`, versionCode 646) passed release artifact
       preflight; connected debug and QA-signed minified-release instrumentation each passed 4/4 on
-      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 30/30 debug/release unit/lint
+      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 34/34 debug/release unit/lint
       evidence are recorded above. This is not production signing or physical-device matrix
       acceptance.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.

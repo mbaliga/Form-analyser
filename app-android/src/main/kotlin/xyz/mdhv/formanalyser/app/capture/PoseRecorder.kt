@@ -51,8 +51,7 @@ class PoseRecorder(
 
     val isAvailable: Boolean get() = landmarker != null
 
-    private val frames = ArrayList<PoseFrame>(4_000)
-    @Volatile private var recording = false
+    private val frameBuffer = PoseFrameBuffer()
 
     private val _liveTracking = MutableStateFlow(false)
     val liveTracking: StateFlow<Boolean> = _liveTracking
@@ -62,12 +61,14 @@ class PoseRecorder(
     val liveBowArmAngle: StateFlow<Double?> = _liveBowArmAngle
 
     fun start() {
-        frames.clear()
-        recording = true
+        frameBuffer.start()
     }
 
     /** Analyse one camera frame. Always closes [image]. */
     fun process(image: ImageProxy) {
+        // Capture this before inference: a frame already in flight when Start is pressed must not
+        // be attributed to the new recording window when its slower inference completes.
+        val frameGeneration = frameBuffer.generationForFrame()
         val lm = landmarker
         if (lm == null) { image.close(); return }
         var bitmap: Bitmap? = null
@@ -90,7 +91,7 @@ class PoseRecorder(
             _liveBowArmAngle.value = Geometry.angleDeg(
                 frame[arms.bowShoulder], frame[arms.bowElbow], frame[arms.bowWrist],
             )
-            if (recording) frames.add(frame)
+            frameBuffer.appendIfCurrent(frameGeneration, frame)
         } catch (_: Throwable) {
             _liveTracking.value = false
         } finally {
@@ -104,8 +105,7 @@ class PoseRecorder(
 
     /** Stop and return the captured window, or null if too little usable pose was seen. */
     fun stop(): PoseSequence? {
-        recording = false
-        val snapshot = ArrayList(frames)
+        val snapshot = frameBuffer.stop()
         if (snapshot.size < 2) return null
         val durationSec = (snapshot.last().tNanos - snapshot.first().tNanos) / 1e9
         val fps = if (durationSec > 0) (snapshot.size - 1) / durationSec else 30.0

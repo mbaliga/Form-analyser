@@ -74,6 +74,8 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("package: name='xyz.mdhv.formanalyser'", verifier)
         self.assertIn("certificate SHA-256 digest", verifier)
         self.assertIn("keytool -printcert -jarfile", verifier)
+        self.assertIn("sha256sum", verifier)
+        self.assertIn("shasum -a 256", verifier)
 
     def test_dependency_verification_metadata_requires_sha256_for_every_artifact(self) -> None:
         metadata = ET.parse(DEPENDENCY_METADATA).getroot()
