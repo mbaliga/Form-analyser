@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-pose-capture-window-qa` (versionCode 646), API-35 ARM64 debug and minified-release instrumentation 6/6 each · production release: **not approved**_
+_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-capture-startup-qa` (versionCode 648), API-35 ARM64 debug and minified-release instrumentation 6/6 each · production release: **not approved**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -220,15 +220,16 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`
 (all of the above in one APK) · `v0.5.1` (reconciled onto `main`'s `crocodyl.engine` package rename).
 The current hardening branch keeps the development default **`0.6.0-spec-dev`** metadata. Its latest
-QA-only minified package is **`0.6.0-pose-capture-window-qa`** (versionCode 646): APK/AAB preflight
-passed, debug/release unit tests passed 34/34 each, `lintRelease` passed, and connected debug plus
+QA-only minified package is **`0.6.0-capture-startup-qa`** (versionCode 648): APK/AAB preflight
+passed, debug/release unit tests passed 40/40 each, `lintRelease` passed, and connected debug plus
 minified-release instrumentation each passed 6/6 on API-35 ARM64, including visible-content checks
 while traversing every primary tab and the Score/round chooser; Quick Score enters a 10, updates the
-total/arrow count, undoes it, and resumes the empty card after Activity recreation. Recent hardening
-closes MediaPipe frame-image resources, serializes capture-window start/stop against in-flight
-inference, tests scoring repository persistence/invariants, and validates release version inputs
-before they reach shell commands. The package is signed with the QA/debug key, not the production
-identity.
+total/arrow count, undoes it, and resumes the empty card after Activity recreation. Capture waits
+for persisted-session readiness before enabling recording, and permanently denied camera permission
+offers Settings with a resume-time permission refresh. Recent hardening closes MediaPipe frame-image
+resources, serializes capture-window start/stop against in-flight inference, tests scoring
+repository persistence/invariants, and validates release version inputs before they reach shell
+commands. The package is signed with the QA/debug key, not the production identity.
 Public publishing still requires production signing and full physical-device/range acceptance.
 
 Going forward, releases track the Phased Implementation Plan's ladder (§5.1 of that doc): `0.6.0`

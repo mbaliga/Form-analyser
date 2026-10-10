@@ -48,4 +48,24 @@ class CameraPermissionPolicyTest {
             )
         )
     }
+
+    @Test
+    fun captureWaitsForPersistedSession() {
+        assertFalse(
+            captureCanStart(
+                hasCameraHardware = true,
+                permissionGranted = true,
+                poseModelAvailable = true,
+                sessionReady = false,
+            )
+        )
+    }
+
+    @Test
+    fun captureRequiresCameraPermissionModelHardwareAndSession() {
+        assertTrue(captureCanStart(true, true, true, true))
+        assertFalse(captureCanStart(false, true, true, true))
+        assertFalse(captureCanStart(true, false, true, true))
+        assertFalse(captureCanStart(true, true, false, true))
+    }
 }

@@ -6,3 +6,11 @@ internal fun cameraPermissionRequiresSettings(
     granted: Boolean,
     shouldShowRationale: Boolean,
 ): Boolean = requestCompleted && !granted && !shouldShowRationale
+
+/** Capture is safe to begin only after a persisted session and an available camera/model exist. */
+internal fun captureCanStart(
+    hasCameraHardware: Boolean,
+    permissionGranted: Boolean,
+    poseModelAvailable: Boolean,
+    sessionReady: Boolean,
+): Boolean = hasCameraHardware && permissionGranted && poseModelAvailable && sessionReady

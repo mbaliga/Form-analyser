@@ -177,10 +177,13 @@ The capture screen now directs permanently denied camera permission to App Setti
 on resume; the automated suite does not simulate the permission-dialog/settings round trip, so
 verify that behavior manually on the required device matrix. Unit tests cover the policy that
 distinguishes first request, retryable denial, permanent denial and granted state.
-QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact
-preflight. APK SHA-256 `a4c32676767e6fa2bac61cdabaa47ed8d9c18d3001c22c9aa33d47b0ecd4870d`; AAB SHA-256
-`89dac947a6f9234e7055e4ee60cd1702d64e74955b8b2e3f771d4b79144e3abb`. Not production signing or
-physical-device/range acceptance.
+Capture also waits for session persistence before enabling recording; the unit gate covers missing
+session, camera hardware, permission, and pose model.
+Current-tree QA APK/AAB `0.6.0-capture-startup-qa` / versionCode 648 passed artifact preflight.
+APK SHA-256 `db5a44c10350a339be3678bb348cf29d5ad299c6597345cb3aa2c38f0abde396`; AAB SHA-256
+`9273157d831cff3610f9e4b1872e09aa1011526f03fbb9c2ad2f785ad8d515ce`. Android debug/release unit
+tests pass 40/40 each and connected debug/QA-signed minified-release instrumentation pass 6/6 each.
+This is not production signing or physical-device/range acceptance.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
@@ -253,9 +256,9 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
-- [x] Current-tree QA APK/AAB (`0.6.0-pose-capture-window-qa`, versionCode 646) passed release artifact
+- [x] Current-tree QA APK/AAB (`0.6.0-capture-startup-qa`, versionCode 648) passed release artifact
       preflight; connected debug and QA-signed minified-release instrumentation each passed 6/6 on
-      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 34/34 debug/release unit/lint
+      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 40/40 debug/release unit/lint
       evidence are recorded above. This is not production signing or physical-device matrix
       acceptance.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.

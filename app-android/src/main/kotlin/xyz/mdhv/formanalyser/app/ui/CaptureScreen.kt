@@ -50,6 +50,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import java.util.concurrent.Executors
 import xyz.mdhv.formanalyser.app.capture.DeferredResourceBinding
+import xyz.mdhv.formanalyser.app.capture.captureCanStart
 import xyz.mdhv.formanalyser.app.capture.cameraPermissionRequiresSettings
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -115,6 +116,7 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
     }
 
     val recording by vm.isRecording.collectAsState()
+    val sessionReady by vm.sessionActive.collectAsState()
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     // Leaving mid-recording throws away the pose window the recorder is holding — it is only
     // segmented into shots by stopRecordingAndAnalyze, so a back gesture during a live capture
@@ -222,16 +224,29 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
             color = if (tracking) Hyle.RadiumGreen else Hyle.OnSurfaceDim,
         )
 
+        val canStartCapture =
+            captureCanStart(
+                hasCameraHardware = hasCameraHardware,
+                permissionGranted = granted,
+                poseModelAvailable = vm.recorder.isAvailable,
+                sessionReady = sessionReady,
+            )
         Button(
             onClick = { if (recording) vm.stopRecordingAndAnalyze() else vm.startRecording() },
-            enabled = hasCameraHardware && granted && vm.recorder.isAvailable,
+            enabled = canStartCapture,
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor = if (recording) Hyle.Danger else Hyle.Accent
                 ),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (recording) "Stop & analyze end" else "Start recording")
+            Text(
+                when {
+                    !sessionReady -> "Preparing session…"
+                    recording -> "Stop & analyze end"
+                    else -> "Start recording"
+                }
+            )
         }
 
         Text("Shots detected this session: ${shots.size}", color = Hyle.OnBackground)
