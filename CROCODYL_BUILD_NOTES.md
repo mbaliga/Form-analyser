@@ -24,6 +24,16 @@ workflows. Extended the release contract suite to require checksum verification 
 SHA-256 entry for every artifact and to protect those CI path filters. Release contracts now pass
 8/8 and immutable action refs remain valid across all 7 workflow files.
 
+Retained QA artifact preflight replay (2026-10-10): reran
+`tools/release/verify_android_release.sh` against the existing Room 2.7.2 QA outputs
+`0.6.0-room-272-qa` / versionCode 642. APK and AAB signatures matched the committed QA/debug
+certificate (`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`); the verifier
+passed v2 APK signature, AAB signature, ZIP alignment, package/version, manifest policy, bundled
+model digest, backup resources, and staging-file checks. APK SHA-256:
+`14cbc022254193d39e927155cc44b41b394e054c14619c0827e15609ed7d0f02`; AAB SHA-256:
+`c1ad9976b457d449ef3531be314b040245a238b7489036d04e1837fde798375e`. These are retained
+QA artifacts, not freshly rebuilt production artifacts; their signer is not a production identity.
+
 Added Muay Thai and bouldering as distinct pure-JVM sport modules and local manual training
 journals. The Home feed now opens cinematic, sport-specific experiences. Muay Thai captures focus,
 round/work/rest structure and effort; bouldering preserves the athlete's grade system and label,

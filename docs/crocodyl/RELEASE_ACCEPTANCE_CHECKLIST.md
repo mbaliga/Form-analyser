@@ -131,6 +131,11 @@ After the previous emulator disconnected, a temporary API-35 ARM64 emulator was 
 Current Room 2.7.2 connected debug and QA-signed minified-release smoke each passed 3/3 on
 `emulator-5554`. Production signer and physical-device acceptance remain separate.
 
+Retained artifact preflight replay: 2026-10-10. Rechecked the existing QA versionCode 642 APK/AAB;
+the verifier passed. APK SHA-256 `14cbc022254193d39e927155cc44b41b394e054c14619c0827e15609ed7d0f02`,
+AAB SHA-256 `c1ad9976b457d449ef3531be314b040245a238b7489036d04e1837fde798375e`. These retain the
+QA/debug signing identity and do not count as a production-signed build or new device run.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.

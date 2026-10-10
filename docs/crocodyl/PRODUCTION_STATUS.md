@@ -18,6 +18,15 @@ those paths. Contract tests lock the trigger coverage and require every pinned a
 SHA-256 value; the release contract suite passes 8/8 and all 7 workflow files retain immutable action
 refs.
 
+Retained artifact preflight replay (2026-10-10): revalidated the existing Room 2.7.2 QA APK/AAB
+`0.6.0-room-272-qa` / versionCode 642 with `tools/release/verify_android_release.sh`. The APK and
+AAB signatures matched the committed QA/debug certificate
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`; signature, ZIP alignment,
+package/version, manifest policy, model digest, backup resources, and staging-file checks passed.
+APK SHA-256 is `14cbc022254193d39e927155cc44b41b394e054c14619c0827e15609ed7d0f02`; AAB SHA-256 is
+`c1ad9976b457d449ef3531be314b040245a238b7489036d04e1837fde798375e`. This was a preflight replay
+of retained QA outputs, not a new production build; the signer is not production-approved.
+
 Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
 Home cards and local Room records are present on this branch; see
 [`MULTISPORT_JOURNAL.md`](MULTISPORT_JOURNAL.md). They are not part of the Recurve 0.6 release
