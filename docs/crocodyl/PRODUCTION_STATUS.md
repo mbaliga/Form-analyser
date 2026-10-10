@@ -28,6 +28,13 @@ YAML parsing, shell syntax, and immutable action refs across all 7 workflow file
 protects the release workflow from command injection through manually dispatched version inputs; it
 does not change the production-secret or human-approval gates.
 
+Repository regression replay (2026-10-10): root JVM tests passed (`50` actionable tasks; all
+up-to-date). Release contracts/resolver passed 14/14; Shared checkout passed 4/4; offline viewer
+passed 10/10 plus ECDSA interoperability; Community Directory passed 4/4 and its entries validated;
+Atelier assets passed 8/8, arrow-library tests 4/4, and arrow-reference tests 7/7. These checks
+replay existing scope and generated asset integrity; they do not close physical-device or production
+signing acceptance.
+
 Retained artifact preflight replay (2026-10-10): revalidated the existing Room 2.7.2 QA APK/AAB
 `0.6.0-room-272-qa` / versionCode 642 with `tools/release/verify_android_release.sh`. The APK and
 AAB signatures matched the committed QA/debug certificate
