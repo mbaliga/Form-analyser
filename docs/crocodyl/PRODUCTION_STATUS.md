@@ -61,10 +61,11 @@ collection and snapshots, tags frames with the capture generation at analysis st
 that began outside the active window, and prevents late inference completions from changing a
 stopped capture. Four deterministic boundary tests cover start, stop, restart and no-recording
 behavior. Android debug/release unit suites pass 34/34 each; `lintRelease` passes. Connected debug
-and QA-signed minified-release instrumentation now pass 5/5 each on API-35 ARM64 `emulator-5554`,
-including Home → Train → Progress → Body → Calendar → Home navigation, then Score → round chooser
-with screen-content assertions. The round chooser check is read-only and creates no scorecard. Fresh
-QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact
+and QA-signed minified-release instrumentation now pass 6/6 each on API-35 ARM64 `emulator-5554`,
+including Home → Train → Progress → Body → Calendar → Home navigation, the read-only Score/round
+chooser entry, and an empty Quick Score card that is closed and resumed in a new Activity. The test
+discards only the empty card it created and skips if a pre-existing active card is present. Fresh QA
+APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact
 preflight. APK SHA-256
 `a4c32676767e6fa2bac61cdabaa47ed8d9c18d3001c22c9aa33d47b0ecd4870d`; AAB SHA-256
 `89dac947a6f9234e7055e4ee60cd1702d64e74955b8b2e3f771d4b79144e3abb`. The preflight checksum
@@ -189,7 +190,7 @@ participants.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | VersionCode 646 QA APK/AAB preflight passed; Android debug/release unit tests pass 34/34, release lint passes, connected debug and QA-signed minified-release instrumentation pass 5/5 each, including all primary tabs and the read-only scorecard/round chooser entry. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | VersionCode 646 QA APK/AAB preflight passed; Android debug/release unit tests pass 34/34, release lint passes, connected debug and QA-signed minified-release instrumentation pass 6/6 each, including all primary tabs and Quick Score create/resume. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -201,9 +202,10 @@ participants.
 ## Current commits
 
 - Crocodyl: `7fddd4f` — primary-tab accessibility navigation smoke, verified 5/5 in debug and QA-signed minified release.
+- Crocodyl: Quick Score create/resume/cleanup emulator smoke passed in debug and minified release, 6/6 each; only the newly created empty card is discarded.
 - Crocodyl: `c00d4f7` — synchronized CameraX capture windows; Android unit tests 34/34 each, lint and versionCode 646 QA artifact preflight passed.
 - Crocodyl: `712f388` and `5afb897` — reject colliding semver/versionCode inputs and require explicit codes for suffixed labels.
-- Crocodyl: current versionCode 646 QA APK/AAB preflight passed; API-35 ARM64 connected debug and QA-signed minified-release instrumentation passed 5/5 each.
+- Crocodyl: current versionCode 646 QA APK/AAB preflight passed; API-35 ARM64 connected debug and QA-signed minified-release instrumentation passed 6/6 each.
 - Crocodyl: `30f4cb9` — records the provisioned Android replay and current QA-only release boundary.
 - Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
 - Crocodyl: `2063e84` — shared-library lock verifier negative-path coverage.
