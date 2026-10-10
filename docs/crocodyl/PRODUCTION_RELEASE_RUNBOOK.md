@@ -41,9 +41,10 @@ signing inputs or expected certificate fingerprint are absent.
 
 1. Create a release branch named `release/v<major>.<minor>.<patch>` or use the workflow dispatch
    input. Use a new, monotonically increasing Android `versionCode`; the workflow derives one only
-   for plain `major.minor.patch` releases. Prerelease/build labels (for example, `-rc.1` or `+build`)
-   require an explicit code so they cannot collide with the corresponding stable release. An
-   explicitly supplied positive code takes precedence over derivation and is range-checked.
+   for plain `major.minor.patch` releases (minor and patch must each be 0–99 so the mapping remains
+   unique). Prerelease/build labels (for example, `-rc.1` or `+build`) require an explicit code so
+   they cannot collide with the corresponding stable release. An explicitly supplied positive code
+   takes precedence over derivation and is range-checked.
 2. Require the release workflow to pass JVM tests, Android debug/release unit tests, release lint,
    debug connected smoke, signed minified release connected smoke, generated-asset drift checks,
    signed artifact preflight, and checksum publication.

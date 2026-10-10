@@ -21,9 +21,10 @@ hardening and expanded coverage recorded below. All 7 workflow files retain immu
 Release-input hardening (2026-10-10): the release workflow rejects names outside a 1–64 character
 shell-safe allowlist, bounds derived and user-supplied version codes using checked integer
 validation, and passes version outputs via environment variables instead of interpolating them into
-shell command source. Plain semver derives a code; semver prerelease/build labels require an explicit
-code, and an explicit code takes precedence for any label. This prevents prerelease/stable collisions
-and lets operators maintain monotonic numbering. The resolver is isolated in
+shell command source. Plain semver derives a code only when minor and patch are each below 100,
+keeping the encoding injective; prerelease/build labels require an explicit code. An explicit code
+takes precedence for any label. This prevents component and prerelease/stable collisions and lets
+operators maintain monotonic numbering. The resolver is isolated in
 `tools/release/resolve_version.sh`, with static workflow contracts and runtime tests for these rules,
 custom labels, injection strings and integer overflow. Release publication is isolated into a `contents: write` job while the
 signing/build/test job is `contents: read` and checkout credentials are not persisted. The combined
@@ -34,8 +35,8 @@ of build/test steps; it does not change the production-secret or human-approval 
 
 Repository regression replay (2026-10-10): root JVM tests passed (`50` actionable tasks; all
 up-to-date). At that replay, release contracts/resolver passed 14/14; a subsequent publication
-permission-isolation contract raised the release suite to 15/15, and version-code collision tests
-raised it to 17/17. Shared checkout passed 4/4;
+permission-isolation contract raised the release suite to 15/15, and prerelease/component collision
+tests raised it to 17/17. Shared checkout passed 4/4;
 offline viewer passed 10/10 plus ECDSA interoperability; Community Directory passed 4/4 and its
 entries validated; Atelier assets passed 8/8, arrow-library tests 4/4, and arrow-reference tests
 7/7. These checks replay existing scope and generated asset integrity; they do not close

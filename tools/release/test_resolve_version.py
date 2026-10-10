@@ -77,9 +77,11 @@ class ResolveVersionTest(unittest.TestCase):
             self.assertFalse(marker.exists())
             self.assertEqual(output, "")
 
-    def test_oversized_components_and_custom_version_codes_are_rejected(self) -> None:
+    def test_colliding_components_and_custom_version_codes_are_rejected(self) -> None:
         for version, version_code in (
             ("999999999999999999999999.0.0", ""),
+            ("0.100.0", ""),
+            ("0.0.100", ""),
             ("custom-build", "999999999999999999999999"),
         ):
             with self.subTest(version=version, version_code=version_code):

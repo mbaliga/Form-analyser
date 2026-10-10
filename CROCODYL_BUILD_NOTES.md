@@ -36,10 +36,10 @@ Both artifacts use the committed QA/debug identity, not the production signer.
 Release workflow input hardening (2026-10-10): extracted version resolution into
 `tools/release/resolve_version.sh`; only bounded shell-safe version labels are accepted, version-code
 arithmetic is range-checked, and workflow outputs are passed into commands through environment
-variables. Plain semver derives a versionCode, while prerelease/build suffixes require an explicit
-versionCode; an explicit positive value overrides derivation and is range-checked. This avoids
-prerelease/stable code collisions. Runtime tests reject shell substitutions, oversized numbers,
-suffix collisions and ignored invalid overrides. Release publication now
+variables. Plain semver derives a versionCode only for minor/patch values below 100, preventing
+component collisions; prerelease/build suffixes require an explicit versionCode. An explicit
+positive value overrides derivation and is range-checked. Runtime tests reject shell substitutions,
+oversized values, component/suffix collisions and ignored invalid overrides. Release publication now
 runs in a separate `contents: write` job; checkout/build/sign/test remain read-only and checkout
 credentials are not persisted. The release workflow and resolver suites pass 17/17 (10 + 7); YAML
 parsing, shell syntax and immutable action-pin checks pass. Version validation is in `01ce9b3`; the

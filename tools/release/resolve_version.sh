@@ -22,8 +22,8 @@ elif [[ "$version" =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+)([-+][A-Za-z0-9._+-]*)?$ ]]
     echo "Semver prerelease/build labels require an explicit versionCode." >&2
     exit 1
   fi
-  version_code="$(python3 -c 'import sys; major, minor, patch = map(int, sys.argv[1:]); code = major * 10000 + minor * 100 + patch; print(code) if 1 <= code <= 2100000000 else sys.exit(1)' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}")" || {
-    echo "Derived versionCode is outside Android's supported range." >&2
+  version_code="$(python3 -c 'import sys; major, minor, patch = map(int, sys.argv[1:]); code = major * 10000 + minor * 100 + patch; print(code) if 0 <= major <= 210000 and 0 <= minor <= 99 and 0 <= patch <= 99 and 1 <= code <= 2100000000 else sys.exit(1)' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}")" || {
+    echo "Semver components cannot map uniquely into Android's versionCode range (minor and patch must be below 100)." >&2
     exit 1
   }
 else
