@@ -29,6 +29,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - A shareable-only export saved through SAF as `crocodyl-export.crocbak`, opened as a valid archive,
   and contained no mood, life-event, or cycle table entries. This evidence does not cover the
   required physical-device matrix, real subject/range behavior, or 30-session volume.
+- API-35 ARM64 emulator permission recovery (2026-10-10): camera denied twice, Capture displayed
+  the blocked state and App Settings action; after granting camera in Android Settings and returning,
+  the preview resumed and recording became enabled. This manual emulator check is not physical-device
+  permission or range acceptance.
 - Final release-candidate run: API-35 ARM64 emulator, 2026-09-20, tester: Codex. The rebuilt
   debug APK (`a25c5ec863be8cbe731c508b94e2c9986c104b3574b849682b37e53729124461`) installed
   successfully; Home → Equipment Atelier → horizontal selector → Fletching rendered the complete

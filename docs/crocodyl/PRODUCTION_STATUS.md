@@ -198,9 +198,11 @@ This is scoring-flow emulator evidence, not physical-device, range, or productio
 Camera permission recovery follow-up (2026-10-10): CaptureScreen now offers an App Settings deep
 link after permanent denial and refreshes camera permission on Activity resume. Android debug and
 release unit suites include four explicit permission-policy cases; `lintRelease`, and connected
-debug plus QA-signed minified-release instrumentation pass on API-35 ARM64. The connected smoke does
-not simulate permission denial or the Settings round trip, so those still need manual acceptance on
-the required device matrix.
+debug plus QA-signed minified-release instrumentation pass on API-35 ARM64. Manual API-35 emulator
+round trip (2026-10-10): denied camera twice, verified the capture screen's blocked-state message
+and Open app settings action, granted camera in Android Settings, then returned to Capture and
+verified the preview resumed and Start recording became enabled. This emulator exercise does not
+replace permission/camera acceptance on the required physical-device matrix.
 
 Capture startup ordering follow-up (2026-10-10): the record control now remains disabled and says
 “Preparing session…” until the asynchronous session insert completes and the ViewModel publishes its

@@ -26,6 +26,12 @@ workflow action references verified across 7 workflow files, and the refreshed A
 preflight passed. Connected debug and minified-release instrumentation each passed 7/7 on API-35
 ARM64 `emulator-5554`.
 
+Camera permission recovery runtime replay (2026-10-10): manually denied camera permission twice on
+the API-35 ARM64 emulator, confirmed Capture switched to its permanent-denial explanation and opened
+Android App Info from its recovery action, granted Camera under Android Settings, and returned to
+Capture. Activity resume refreshed permission state, the emulator preview initialized, and recording
+became available. This is emulator evidence only; physical-device/range acceptance remains open.
+
 Capture-window concurrency hardening (2026-10-10): CameraX frame analysis and UI recording
 controls previously touched the same mutable pose list across threads. Added a synchronized
 `PoseFrameBuffer` with a per-recording generation token so pre-start frames and post-stop inference
