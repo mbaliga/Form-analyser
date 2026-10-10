@@ -84,6 +84,7 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Choose a round or enter distance to begin.")
 
                 clickBottomTabEventually(instrumentation, "Progress")
+                assertTextEventually(instrumentation, "Training, in context")
                 assertTextEventually(
                     instrumentation,
                     "Understand what changes performance. No projections, no causal shortcuts.",

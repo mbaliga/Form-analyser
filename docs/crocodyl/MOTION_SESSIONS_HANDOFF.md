@@ -355,7 +355,7 @@ Before implementation, record an owner decision for each:
   API-35 emulator captures in `docs/crocodyl/visuals/screenshots/`. Other destinations remain
   unfinished. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
   motion-analysis validity. Use licensed actual photography only; no AI-generated imagery.
-- Last recorded Recurve QA build: `0.6.0-train-guidance-qa`, versionCode 654, QA signer, not
+- Last recorded Recurve QA build: `0.6.0-progress-editorial-qa`, versionCode 655, QA signer, not
   production approved. Production keystore/CI signing, physical-device/range matrix and owner
   release sign-off remain outstanding.
 

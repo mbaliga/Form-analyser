@@ -3,19 +3,18 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
-2026-10-10 Train first-run guidance and visual evidence: the persistent disabled Start action now
-explains that a round or positive distance is required, uses higher-contrast Hyle text, and is
-covered by the connected accessibility smoke test. API-35 ARM64 connected debug and minified-release
-instrumentation pass 7/7 each; `lintVitalRelease` passed during artifact assembly. The API-35
-1080×1920 captures for Train and Progress are checked in under
-`docs/crocodyl/visuals/screenshots/`. QA APK/AAB `0.6.0-train-guidance-qa`, versionCode 654,
-passed release preflight; APK SHA-256
-`724fd8b748a0c7b23819790c5a32530926c2bb7dc03b48ae7e71096dbb2111c0`, AAB SHA-256
-`aa46f688479a9a4ad80f9c6807a3c95658bc692754a52957b17c493076307b5e`. QA/debug certificate
-only, not production signing or physical-device acceptance. See
-`docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+2026-10-11 Progress hierarchy follow-up: removed the duplicate “Progress” title from the hero card;
+it now reads “Training, in context,” with a connected accessibility assertion. The updated screenshot
+is archived at `docs/crocodyl/visuals/screenshots/progress-cinematic-refresh-api35.png`. Clean
+`./gradlew test -PwithAndroid`, `:app-android:lintRelease`, debug connected tests and QA-signed
+minified-release connected tests all passed (7/7 connected tests each). QA APK/AAB
+`0.6.0-progress-editorial-qa`, versionCode 655, passed release preflight; APK SHA-256
+`0fa63ab8e394664d423c6cc0e971febb2cc2c80222c7b083e16b66fe91f5e18a`, AAB SHA-256
+`5711f9e52c35ce2da2d5f8435603a1eeccdaed68a00cfbd2ca084f1b5fd832bd`. QA/debug certificate only,
+not production signing or physical-device acceptance. Full test/contract replay from this work
+session is recorded below; see `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
 
-2026-10-10 full-tree regression replay: `./gradlew test -PwithAndroid --offline --no-daemon` passed
+2026-10-11 full-tree regression replay: `./gradlew test -PwithAndroid --offline --no-daemon` passed
 (104 actionable tasks; root JVM and Android debug/release unit-test variants). A separate
 `:app-android:lintRelease` replay passed (54 actionable tasks). Repository contracts passed: release
 17/17, shared checkout 4/4, desktop viewer 10/10, Community Directory 4/4, Atelier authored assets

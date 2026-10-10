@@ -242,7 +242,11 @@ private fun ProgressHeader() {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text("THE LONG VIEW  /  LOCAL EVIDENCE", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelSmall)
-            Text("Progress", color = Hyle.OnBackground, style = MaterialTheme.typography.headlineMedium)
+            Text(
+                "Training, in context",
+                color = Hyle.OnBackground,
+                style = MaterialTheme.typography.headlineMedium,
+            )
             Text(
                 "Understand what changes performance. No projections, no causal shortcuts.",
                 color = Hyle.OnSurfaceDim,
