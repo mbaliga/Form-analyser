@@ -189,9 +189,13 @@ leaks private data, or leaves the user unable to recover without clearing app st
 
 ## 5. Release sign-off
 
+- [x] Gradle dependency verification is enabled and every locked artifact has a SHA-256 entry;
+      the offline JVM/Android unit/lint replay passed with verification active (2026-10-10).
+- [x] JVM and Android CI trigger on Gradle verification and all current sport-module changes;
+      release contract tests guard both path-filter coverage and checksum metadata (2026-10-10).
 - [x] `./gradlew test` passes (local verification recorded in the handoff/build notes).
 - [x] `:app-android:testDebugUnitTest` and `:app-android:testReleaseUnitTest` pass with `-PwithAndroid` (2026-09-20; includes analyzer persistence/baseline, manifest privacy, durable recovery-notice, encrypted-vault, and model-inventory tests).
-- [x] `:app-android:lintRelease` completed with zero app-source lint findings (2026-10-09); 20
+- [x] `:app-android:lintRelease` completed with zero app-source lint findings (2026-10-09); 21
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.

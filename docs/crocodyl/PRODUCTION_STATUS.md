@@ -12,7 +12,11 @@ the exercised dependencies match their lock entries and that Gradle required no 
 downloads. The baseline hashes bytes obtained from configured repositories; they are not independent
 publisher authentication. Treat future metadata changes as reviewed dependency updates, not routine
 generated churn. Existing GradleDependency update advisories remain; lint reported no app-source
-findings.
+findings. A CI trigger audit also found that Muay Thai, bouldering, and Gradle verification-file
+changes could miss some existing JVM/Android workflows; both push and pull-request filters now watch
+those paths. Contract tests lock the trigger coverage and require every pinned artifact to have a
+SHA-256 value; the release contract suite passes 8/8 and all 7 workflow files retain immutable action
+refs.
 
 Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
 Home cards and local Room records are present on this branch; see

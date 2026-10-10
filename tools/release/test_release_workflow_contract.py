@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Static contract tests for the production release workflow's security gates."""
 
-from pathlib import Path
+import re
 import unittest
+import xml.etree.ElementTree as ET
+from pathlib import Path
 
 
 ROOT = Path(__file__).parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
+DEPENDENCY_METADATA = ROOT / "gradle" / "verification-metadata.xml"
 
 
 class ReleaseWorkflowContract(unittest.TestCase):
@@ -45,6 +48,49 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("package: name='xyz.mdhv.formanalyser'", verifier)
         self.assertIn("certificate SHA-256 digest", verifier)
         self.assertIn("keytool -printcert -jarfile", verifier)
+
+    def test_dependency_verification_metadata_requires_sha256_for_every_artifact(self) -> None:
+        metadata = ET.parse(DEPENDENCY_METADATA).getroot()
+        namespace = metadata.tag.partition("}")[0].removeprefix("{")
+        qualified = lambda name: f"{{{namespace}}}{name}"
+        configuration = metadata.find(qualified("configuration"))
+        self.assertIsNotNone(configuration)
+        assert configuration is not None
+        self.assertEqual(configuration.findtext(qualified("verify-metadata")), "true")
+
+        components = metadata.findall(f"./{qualified('components')}/{qualified('component')}")
+        self.assertGreater(len(components), 0)
+        component_keys = [
+            (component.get("group"), component.get("name"), component.get("version"))
+            for component in components
+        ]
+        self.assertEqual(len(component_keys), len(set(component_keys)))
+
+        artifact_count = 0
+        for component in components:
+            artifacts = component.findall(qualified("artifact"))
+            self.assertGreater(len(artifacts), 0, ET.tostring(component, encoding="unicode"))
+            artifact_names = [artifact.get("name") for artifact in artifacts]
+            self.assertEqual(len(artifact_names), len(set(artifact_names)))
+            for artifact in artifacts:
+                hashes = artifact.findall(qualified("sha256"))
+                self.assertGreaterEqual(len(hashes), 1, ET.tostring(artifact, encoding="unicode"))
+                for digest in hashes:
+                    self.assertRegex(digest.get("value", ""), re.compile(r"^[0-9a-f]{64}$"))
+                artifact_count += 1
+        self.assertGreater(artifact_count, 0)
+
+    def test_ci_path_filters_watch_sport_modules_and_dependency_lock(self) -> None:
+        for workflow_name in ("ci.yml", "android.yml"):
+            workflow = (ROOT / ".github" / "workflows" / workflow_name).read_text()
+            for path in (
+                "muaythai-module/**",
+                "bouldering-module/**",
+                "gradle/**",
+            ):
+                with self.subTest(workflow=workflow_name, path=path):
+                    # Both push and pull_request path filters must include the contract.
+                    self.assertGreaterEqual(workflow.count(f'      - "{path}"'), 2)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,10 @@ on:
       - "engine/**"
       - "archery-module/**"
       - "fencing-module/**"
+      - "muaythai-module/**"
+      - "bouldering-module/**"
+      - "gradle/**"
+      - "gradle.properties"
       # `./gradlew test` covers every pure-JVM module, but this workflow only fired for the two
       # above — so the core-* suites (scoring, athlete, wellness, coach, equipment, exchange, body)
       # never ran in CI at all.
@@ -30,6 +34,10 @@ on:
       - "engine/**"
       - "archery-module/**"
       - "fencing-module/**"
+      - "muaythai-module/**"
+      - "bouldering-module/**"
+      - "gradle/**"
+      - "gradle.properties"
       # `./gradlew test` covers every pure-JVM module, but this workflow only fired for the two
       # above — so the core-* suites (scoring, athlete, wellness, coach, equipment, exchange, body)
       # never ran in CI at all.

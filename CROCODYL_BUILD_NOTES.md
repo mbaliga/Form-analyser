@@ -17,6 +17,13 @@ not independently authenticate artifact publishers. Dependency changes must upda
 lock metadata deliberately. Lint still reports its existing GradleDependency advisories; no
 app-source findings were reported.
 
+CI trigger audit (2026-10-10): the JVM and Android workflows did not watch the Muay Thai or
+bouldering module directories, and JVM CI did not watch Gradle verification metadata. Added both
+sport modules, `gradle/**`, and `gradle.properties` to push and pull-request filters in both
+workflows. Extended the release contract suite to require checksum verification metadata with a
+SHA-256 entry for every artifact and to protect those CI path filters. Release contracts now pass
+8/8 and immutable action refs remain valid across all 7 workflow files.
+
 Added Muay Thai and bouldering as distinct pure-JVM sport modules and local manual training
 journals. The Home feed now opens cinematic, sport-specific experiences. Muay Thai captures focus,
 round/work/rest structure and effort; bouldering preserves the athlete's grade system and label,
