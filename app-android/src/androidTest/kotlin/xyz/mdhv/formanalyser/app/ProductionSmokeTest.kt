@@ -106,6 +106,14 @@ class ProductionSmokeTest {
                 expectedSummary = "${created.card.total} · ${created.card.xCount} X · " +
                     "${created.card.arrowCount}/${created.card.round.maxArrows}"
                 assertTextEventually(instrumentation, expectedSummary!!)
+                // Exercise the actual numeric keypad and undo controls, not only the Room boundary.
+                clickTextEventually(instrumentation, "10")
+                assertTextEventually(
+                    instrumentation,
+                    "10 · 0 X · 1/${created.card.round.maxArrows}",
+                )
+                clickTextEventually(instrumentation, "Undo")
+                assertTextEventually(instrumentation, expectedSummary!!)
             }
 
             // A new Activity gets a new ViewModel; the screen must resume the persisted card.

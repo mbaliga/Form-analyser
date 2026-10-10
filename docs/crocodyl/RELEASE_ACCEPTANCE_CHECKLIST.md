@@ -171,7 +171,8 @@ outside a recording. Android debug/release unit tests pass 34/34 each, `lintRele
 connected debug plus QA-signed minified-release instrumentation pass 6/6 each on API-35 ARM64
 `emulator-5554`; the instrumentation also traverses all five primary tabs and checks visible screen
 content, opens the Score landing screen and WA Recurve round chooser, then exercises empty Quick Score
-create/resume and cleans up only its own untouched card (or skips if an active card pre-exists).
+numeric 10 entry, total/arrow-count update, undo back to empty, Activity-recreation resume, and
+cleanup of only its own untouched card (or skips if an active card pre-exists).
 QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact
 preflight. APK SHA-256 `a4c32676767e6fa2bac61cdabaa47ed8d9c18d3001c22c9aa33d47b0ecd4870d`; AAB SHA-256
 `89dac947a6f9234e7055e4ee60cd1702d64e74955b8b2e3f771d4b79144e3abb`. Not production signing or

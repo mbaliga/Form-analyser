@@ -14,7 +14,8 @@ release lint passes, and connected debug plus QA-signed minified-release instrum
 each on API-35 ARM64 `emulator-5554`. The connected suite walks the onboarded main shell through
 Home, Train, Progress, Body and Calendar, then opens Score and the built-in round chooser to verify
 the WA Recurve 70 m / 72-arrow option. It dismisses the chooser without creating or changing a
-scorecard. A separate case creates an empty Quick Score card, closes/relaunches MainActivity, verifies
+scorecard. A separate case creates an empty Quick Score card, records a 10 through the visible keypad,
+checks the total/arrow count, undoes back to the empty state, closes/relaunches MainActivity, verifies
 resume from Room, and discards only its own untouched card; it skips if an active card pre-exists.
 Visible screen content is checked using Android's built-in accessibility tree. QA APK/AAB
 `0.6.0-pose-capture-window-qa` / versionCode 646

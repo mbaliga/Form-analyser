@@ -188,9 +188,16 @@ This is the current release boundary for the Recurve Android app. It separates e
 completion from gates that require a production signing environment, a connected device, or range
 participants.
 
+Quick Score keypad/undo follow-up (2026-10-10): extended the connected smoke to add a 10 through
+the visible numeric keypad, assert `10 · 0 X · 1/72`, undo it to `0 · 0 X · 0/72`, then recreate
+the Activity and verify the empty card resumes before cleaning up only that test-created card. The
+current tree passes connected debug and minified-release instrumentation 6/6 each on API-35 ARM64
+`emulator-5554`; the minified run uses the committed QA/debug signing key, not a production identity.
+This is scoring-flow emulator evidence, not physical-device, range, or production-signing acceptance.
+
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | VersionCode 646 QA APK/AAB preflight passed; Android debug/release unit tests pass 34/34, release lint passes, connected debug and QA-signed minified-release instrumentation pass 6/6 each, including all primary tabs and Quick Score create/resume. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | VersionCode 646 QA APK/AAB preflight passed; Android debug/release unit tests pass 34/34, release lint passes, connected debug and QA-signed minified-release instrumentation pass 6/6 each, including all primary tabs, Quick Score numeric entry/undo, and resume. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -202,7 +209,7 @@ participants.
 ## Current commits
 
 - Crocodyl: `7fddd4f` — primary-tab accessibility navigation smoke, verified 5/5 in debug and QA-signed minified release.
-- Crocodyl: Quick Score create/resume/cleanup emulator smoke passed in debug and minified release, 6/6 each; only the newly created empty card is discarded.
+- Crocodyl: Quick Score keypad 10 → total update → undo → Activity recreation/resume/cleanup emulator smoke passed in debug and minified release, 6/6 each; only the newly created empty card is discarded.
 - Crocodyl: `c00d4f7` — synchronized CameraX capture windows; Android unit tests 34/34 each, lint and versionCode 646 QA artifact preflight passed.
 - Crocodyl: `712f388` and `5afb897` — reject colliding semver/versionCode inputs and require explicit codes for suffixed labels.
 - Crocodyl: current versionCode 646 QA APK/AAB preflight passed; API-35 ARM64 connected debug and QA-signed minified-release instrumentation passed 6/6 each.
