@@ -63,6 +63,13 @@ class ProductionSmokeTest {
 
                 clickBottomTabEventually(instrumentation, "Home")
                 assertTextEventually(instrumentation, "Crocodyl")
+
+                clickTextEventually(instrumentation, "Score")
+                assertTextEventually(instrumentation, "Quick score")
+                clickTextEventually(instrumentation, "Choose round")
+                assertTextEventually(instrumentation, "WA Recurve 70 m · 72 arrows")
+                instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+                assertTextEventually(instrumentation, "Quick score")
             }
         } finally {
             runBlocking { prefs.setOnboarded(wasOnboarded) }
@@ -166,6 +173,21 @@ class ProductionSmokeTest {
         throw AssertionError("Could not click bottom navigation tab: $label")
     }
 
+    private fun clickTextEventually(
+        instrumentation: android.app.Instrumentation,
+        label: String,
+    ) {
+        val deadline = SystemClock.uptimeMillis() + 8_000
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.waitForIdleSync()
+            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val target = root?.findClickableText(label)
+            if (target != null && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+            SystemClock.sleep(50)
+        }
+        throw AssertionError("Could not click visible UI text: $label")
+    }
+
     private fun containsText(node: AccessibilityNodeInfo, expected: String): Boolean {
         if (node.text?.toString() == expected || node.contentDescription?.toString() == expected) return true
         return (0 until node.childCount).any { index -> node.getChild(index)?.let { containsText(it, expected) } == true }
@@ -180,6 +202,14 @@ class ProductionSmokeTest {
         if (isClickable && bounds.bottom >= minBottom && containsText(this, expected)) return this
         for (index in 0 until childCount) {
             getChild(index)?.findClickableTextInBottomArea(expected, minBottom)?.let { return it }
+        }
+        return null
+    }
+
+    private fun AccessibilityNodeInfo.findClickableText(expected: String): AccessibilityNodeInfo? {
+        if (isClickable && containsText(this, expected)) return this
+        for (index in 0 until childCount) {
+            getChild(index)?.findClickableText(expected)?.let { return it }
         }
         return null
     }

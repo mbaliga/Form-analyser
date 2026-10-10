@@ -12,8 +12,10 @@ completions cannot contaminate or mutate a capture snapshot. Four boundary tests
 cases, restart, and calls outside recording. Android debug/release unit tests pass 34/34 each,
 release lint passes, and connected debug plus QA-signed minified-release instrumentation pass 5/5
 each on API-35 ARM64 `emulator-5554`. The connected suite walks the onboarded main shell through
-Home, Train, Progress, Body and Calendar, checking visible screen content using Android's built-in
-accessibility tree. QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646
+Home, Train, Progress, Body and Calendar, then opens Score and the built-in round chooser to verify
+the WA Recurve 70 m / 72-arrow option. It dismisses the chooser without creating or changing a
+scorecard. Visible screen content is checked using Android's built-in accessibility tree. QA APK/AAB
+`0.6.0-pose-capture-window-qa` / versionCode 646
 passed artifact preflight. APK SHA-256 `a4c32676767e6fa2bac61cdabaa47ed8d9c18d3001c22c9aa33d47b0ecd4870d`;
 AAB SHA-256 `89dac947a6f9234e7055e4ee60cd1702d64e74955b8b2e3f771d4b79144e3abb`. The verifier now
 hashes with either GNU `sha256sum` or macOS `shasum`; the artifacts remain QA-key-signed, not

@@ -223,7 +223,7 @@ The current hardening branch keeps the development default **`0.6.0-spec-dev`** 
 QA-only minified package is **`0.6.0-pose-capture-window-qa`** (versionCode 646): APK/AAB preflight
 passed, debug/release unit tests passed 34/34 each, `lintRelease` passed, and connected debug plus
 minified-release instrumentation each passed 5/5 on API-35 ARM64, including visible-content checks
-while traversing every primary tab. Recent hardening closes
+while traversing every primary tab and the read-only Score/round chooser flow. Recent hardening closes
 MediaPipe frame-image resources, serializes capture-window start/stop against in-flight inference,
 tests scoring repository persistence/invariants, and validates release version inputs before they
 reach shell commands. The package is signed with the QA/debug key, not the production identity.
