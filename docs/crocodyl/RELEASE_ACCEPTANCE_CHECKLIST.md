@@ -197,7 +197,8 @@ Photo refresh QA build (2026-10-10): `0.6.0-photo-assets-qa` / versionCode 652 p
 `e23975aa3032c3817441986919a7da05088cd8436889af1a6c95d39cd3abfad4`. Debug/release unit tests
 pass 44/44 each, release lint passes, and Atelier asset contracts pass 9/9. Connected debug and
 QA-signed minified-release instrumentation each pass 6/6 on API-35 ARM64 `emulator-5554`; the QA APK
-also installs and opens into onboarding. QA signer only; physical device/range acceptance remains.
+also installs, completes onboarding and opens Home; visual inspection confirms Recurve/Fencing photo
+cards render in the feed. QA signer only; physical device/range acceptance remains.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release

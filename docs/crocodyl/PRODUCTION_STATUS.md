@@ -224,7 +224,8 @@ SHA-256 `06f0a80ac496ee453fb5ff1a3262cd658cac5d2e0a86a98cd901d491cf75c334`; AAB 
 `e23975aa3032c3817441986919a7da05088cd8436889af1a6c95d39cd3abfad4`. Debug/release unit tests
 pass 44/44 each, release lint passes, and Atelier asset contracts pass 9/9. Connected debug and
 QA-signed minified-release instrumentation each pass 6/6 on API-35 ARM64 `emulator-5554` for this
-tree. The QA APK installs and opens into first-run onboarding on that emulator. This is QA-key
+tree. The QA APK installs, completes first-run onboarding, and opens Home on that emulator; visual
+inspection confirms the Recurve and Fencing photo cards render in the scroll feed. This is QA-key
 evidence only; production signing and physical-device/range acceptance remain open.
 
 | Area | Current status | Evidence / remaining gate |

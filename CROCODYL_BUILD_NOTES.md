@@ -13,8 +13,9 @@ debug/release unit suites pass 44/44 each; `lintRelease` passes. Both connected 
 API-35 ARM64: debug and QA-signed minified release. VersionCode 652 QA APK/AAB passed release
 preflight (APK SHA-256 `06f0a80ac496ee453fb5ff1a3262cd658cac5d2e0a86a98cd901d491cf75c334`; AAB
 SHA-256 `e23975aa3032c3817441986919a7da05088cd8436889af1a6c95d39cd3abfad4`). The APK was installed
-and launched into first-run onboarding. These remain QA-key/emulator evidence, not production signing
-or physical-device/range acceptance.
+and manually launched through first-run onboarding to Home; the Recurve/Fencing photo cards rendered
+in the feed. These remain QA-key/emulator evidence, not production signing or physical-device/range
+acceptance.
 
 Capture-window concurrency hardening (2026-10-10): CameraX frame analysis and UI recording
 controls previously touched the same mutable pose list across threads. Added a synchronized
