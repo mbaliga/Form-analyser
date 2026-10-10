@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -85,6 +86,35 @@ class ScoringRepositoryTest {
             val unchanged = repository.snapshot(started.session.id)
             assertEquals(1, unchanged.card.arrows.size)
             assertEquals(9, unchanged.card.total)
+        }
+    }
+
+    @Test
+    fun retractedCardLeavesHistoryViewsAndRestoresItsArrowsAndBest() = runBlocking {
+        withDatabase { database, _ ->
+            seedAthlete(database)
+            val repository = ScoringRepository(database)
+            val round = RoundPack.customPractice("retract-restore-test", "Practice", 18, 40, 1, 1)
+            val started = repository.start(round)
+            repository.recordNumeric(started.session.id, ArrowScore(9))
+            repository.finish(started.session.id)
+
+            val preview = repository.previewScorecardDeletion(started.session.id)
+            assertFalse(preview.permanent)
+            assertTrue(preview.detail.contains("1 arrow(s)"))
+
+            repository.deleteScorecard(started.session.id)
+            assertTrue(repository.recent().isEmpty())
+            assertTrue(repository.bestPerRound().isEmpty())
+            assertEquals(started.session.id, repository.retractedScorecards().single().id)
+
+            repository.restoreScorecard(started.session.id)
+            val restored = repository.snapshot(started.session.id)
+            assertNull(restored.session.deletedAt)
+            assertEquals(1, restored.card.arrows.size)
+            assertEquals(9, restored.card.total)
+            assertEquals(9, repository.bestPerRound().single().best)
+            assertEquals(started.session.id, repository.recent().single().id)
         }
     }
 

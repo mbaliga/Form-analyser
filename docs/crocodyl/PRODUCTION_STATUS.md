@@ -43,7 +43,7 @@ Scoring persistence coverage (2026-10-10): introduced an internal `AppDatabase` 
 tests. Three Robolectric integration tests verify an active scorecard and X persist across closing
 and reopening the database, impossible 1–5 rings are rejected on both numeric and observer paths for
 the vertical-triple face, and finished cards reject further scoring/undo without changing history.
-Android debug/release unit suites pass 28/28 each; `lintRelease` passes. These app-source changes are
+Android debug/release unit suites pass 29/29 each; `lintRelease` passes. These app-source changes are
 included in fresh QA package `0.6.0-scoring-repository-qa` / versionCode 645. Its APK/AAB passed the
 release preflight and connected debug and minified-release instrumentation each passed 4/4 on API-35
 ARM64 (`emulator-5554`). APK SHA-256 is

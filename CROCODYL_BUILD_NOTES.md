@@ -7,18 +7,18 @@ convention: this is one autonomous build across Phases 1–3, so notes are conso
 
 Scoring repository coverage (2026-10-10): `ScoringRepository` retains its public Context-based
 construction and now has an internal Room-database constructor for isolated repository integration
-tests. Three tests exercise close/reopen/resume of an active scorecard with an X, reject impossible
-triple-face rings on numeric and observer paths, and enforce that finished scorecards cannot be
-mutated. Android debug and release unit suites pass 28/28 each and `lintRelease` passes. Because this
-adds a constructor seam to the app source, versionCode 644 does not include the latest source; a
-fresh QA package is required before using those artifact hashes as current.
+tests. Four tests exercise close/reopen/resume of an active scorecard with an X, reject impossible
+triple-face rings on numeric and observer paths, enforce finished-card immutability, and retract/
+restore historical arrows without losing PB/trend accounting. Android debug and release unit suites
+pass 29/29 each and `lintRelease` passes. Because the constructor seam changed app source, versionCode
+644 did not include it; the versionCode 645 QA refresh is recorded below.
 
 VersionCode 645 refresh (2026-10-10): after the scoring repository tests landed in `5c99a86`, built
 fresh minified QA APK/AAB `0.6.0-scoring-repository-qa`. The release preflight passed; APK SHA-256
 `97a9786b57ae58c6dc691d22e54859204a2db444aee52299b1dba8150faf1025`; AAB SHA-256
 `a67a25de4eb4eaec24346d542e73cfae13abe10b7814667acdfddf3dded1a415`. Debug and minified-release
 connected instrumentation each passed 4/4 on API-35 ARM64 (`emulator-5554`). Android debug/release
-unit tests passed 28/28 and release lint passed. The bundle remains QA-key signed, not production-
+unit tests passed 29/29 and release lint passed. The bundle remains QA-key signed, not production-
 signed.
 
 Production-hardening continuation (2026-10-10): `PoseRecorder` now closes each synchronous
