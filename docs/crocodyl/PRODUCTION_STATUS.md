@@ -220,13 +220,14 @@ flight, and setup navigation occurs only for an accepted start.
 Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-photo-assets-qa`, versionCode
 652, includes the session hardening above and replaces generated Fencing card art with bundled,
 provenance-checked photographer-created Recurve/Fencing photographs. Release preflight passed. APK
-SHA-256 `06f0a80ac496ee453fb5ff1a3262cd658cac5d2e0a86a98cd901d491cf75c334`; AAB SHA-256
+SHA-256 `47a3f6f1ca320ecc7e9fd550e03e2ac12c98bc129b3edb98ea090949f2bf7649`; AAB SHA-256
 `e23975aa3032c3817441986919a7da05088cd8436889af1a6c95d39cd3abfad4`. Debug/release unit tests
-pass 44/44 each, release lint passes, and Atelier asset contracts pass 9/9. Connected debug and
-QA-signed minified-release instrumentation each pass 6/6 on API-35 ARM64 `emulator-5554` for this
-tree. The QA APK installs, completes first-run onboarding, and opens Home on that emulator; visual
-inspection confirms the Recurve and Fencing photo cards render in the scroll feed. This is QA-key
-evidence only; production signing and physical-device/range acceptance remain open.
+pass 44/44 each, release lint passes, Atelier asset contracts pass 9/9, and release workflow/version
+contracts pass 17/17. Connected debug and QA-signed minified-release instrumentation each pass 7/7
+on API-35 ARM64 `emulator-5554`, including Android decoding/dimension checks for all four sport
+photographs. The QA APK installs, completes first-run onboarding, and opens Home; visual inspection
+confirms the Recurve and Fencing photo cards render in the scroll feed. This is QA-key evidence only;
+production signing and physical-device/range acceptance remain open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|

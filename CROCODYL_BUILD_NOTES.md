@@ -9,12 +9,14 @@ Photo provenance refresh (2026-10-10): replaced the generated Fencing Home-card 
 photographer-created Recurve/Fencing card photos. The bundled-photo contract validates source page,
 photographer, license, dimensions, byte count and SHA-256 against `sports-manifest.json`; the old
 generated range image and its manifest were removed. Atelier asset contracts pass 9/9. Android
-debug/release unit suites pass 44/44 each; `lintRelease` passes. Both connected suites pass 6/6 on
-API-35 ARM64: debug and QA-signed minified release. VersionCode 652 QA APK/AAB passed release
-preflight (APK SHA-256 `06f0a80ac496ee453fb5ff1a3262cd658cac5d2e0a86a98cd901d491cf75c334`; AAB
-SHA-256 `e23975aa3032c3817441986919a7da05088cd8436889af1a6c95d39cd3abfad4`). The APK was installed
-and manually launched through first-run onboarding to Home; the Recurve/Fencing photo cards rendered
-in the feed. These remain QA-key/emulator evidence, not production signing or physical-device/range
+debug/release unit suites pass 44/44 each; `lintRelease` passes. Asset contracts pass 9/9 and
+release-workflow/version contracts pass 17/17. Both connected suites pass 7/7 on API-35 ARM64:
+debug and QA-signed minified release, including Android decoding/dimension checks for all four
+bundled sport photos. VersionCode 652 QA APK/AAB passed release preflight (APK SHA-256
+`47a3f6f1ca320ecc7e9fd550e03e2ac12c98bc129b3edb98ea090949f2bf7649`; AAB SHA-256
+`e23975aa3032c3817441986919a7da05088cd8436889af1a6c95d39cd3abfad4`). The APK was installed and
+manually launched through first-run onboarding to Home; the Recurve/Fencing photo cards rendered in
+the feed. These remain QA-key/emulator evidence, not production signing or physical-device/range
 acceptance.
 
 Capture-window concurrency hardening (2026-10-10): CameraX frame analysis and UI recording

@@ -193,12 +193,14 @@ instrumentation pass 6/6 each. This is not production signing or physical-device
 
 Photo refresh QA build (2026-10-10): `0.6.0-photo-assets-qa` / versionCode 652 passed
 `tools/release/verify_android_release.sh`. APK SHA-256
-`06f0a80ac496ee453fb5ff1a3262cd658cac5d2e0a86a98cd901d491cf75c334`; AAB SHA-256
+`47a3f6f1ca320ecc7e9fd550e03e2ac12c98bc129b3edb98ea090949f2bf7649`; AAB SHA-256
 `e23975aa3032c3817441986919a7da05088cd8436889af1a6c95d39cd3abfad4`. Debug/release unit tests
-pass 44/44 each, release lint passes, and Atelier asset contracts pass 9/9. Connected debug and
-QA-signed minified-release instrumentation each pass 6/6 on API-35 ARM64 `emulator-5554`; the QA APK
-also installs, completes onboarding and opens Home; visual inspection confirms Recurve/Fencing photo
-cards render in the feed. QA signer only; physical device/range acceptance remains.
+pass 44/44 each, release lint passes, Atelier asset contracts pass 9/9, and release workflow/version
+contracts pass 17/17. Connected debug and QA-signed minified-release instrumentation each pass 7/7
+on API-35 ARM64 `emulator-5554`, including Android decoding checks for the four bundled sport photos.
+The QA APK also installs, completes onboarding and opens Home; visual inspection confirms
+Recurve/Fencing photo cards render in the feed. QA signer only; physical device/range acceptance
+remains.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release

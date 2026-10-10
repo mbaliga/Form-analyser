@@ -1,6 +1,7 @@
 package xyz.mdhv.formanalyser.app
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.os.SystemClock
 import android.view.View
@@ -37,6 +38,32 @@ class ProductionSmokeTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity ->
                 assertTrue(activity.isFinishing.not())
+            }
+        }
+    }
+
+    @Test
+    fun bundledSportPhotographsArePackagedAndAndroidDecodable() {
+        val assets = InstrumentationRegistry.getInstrumentation().targetContext.assets
+        val expectedDimensions = mapOf(
+            "atelier/cinematic/muay-thai-training.jpg" to Pair(1400, 788),
+            "atelier/cinematic/bouldering-session.jpg" to Pair(1400, 788),
+            "atelier/cinematic/recurve-training.jpg" to Pair(1600, 900),
+            "atelier/cinematic/fencing-training.jpg" to Pair(1600, 900),
+        )
+
+        expectedDimensions.forEach { (path, expected) ->
+            val bitmap = assets.open(path).use(BitmapFactory::decodeStream)
+            assertNotNull("Android could not decode bundled photo $path", bitmap)
+            bitmap!!.let { decoded ->
+                try {
+                    assertTrue(
+                        "$path has unexpected dimensions ${decoded.width}x${decoded.height}",
+                        decoded.width to decoded.height == expected,
+                    )
+                } finally {
+                    decoded.recycle()
+                }
             }
         }
     }
