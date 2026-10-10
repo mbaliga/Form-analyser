@@ -1,6 +1,7 @@
 package xyz.mdhv.formanalyser.app.capture
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import com.google.mediapipe.framework.image.BitmapImageBuilder
@@ -69,9 +70,12 @@ class PoseRecorder(
     fun process(image: ImageProxy) {
         val lm = landmarker
         if (lm == null) { image.close(); return }
+        var bitmap: Bitmap? = null
+        var mp: com.google.mediapipe.framework.image.MPImage? = null
         try {
-            val bitmap = image.toBitmap()
-            val mp = BitmapImageBuilder(bitmap).build()
+            val frameBitmap = image.toBitmap()
+            bitmap = frameBitmap
+            mp = BitmapImageBuilder(frameBitmap).build()
             val opts = ImageProcessingOptions.builder()
                 .setRotationDegrees(image.imageInfo.rotationDegrees)
                 .build()
@@ -90,6 +94,10 @@ class PoseRecorder(
         } catch (_: Throwable) {
             _liveTracking.value = false
         } finally {
+            // MPImage owns the BitmapImageContainer (whose close recycles the bitmap).
+            // If MPImage construction failed, reclaim the still-unowned bitmap directly.
+            runCatching { mp?.close() }
+            if (mp == null) runCatching { bitmap?.recycle() }
             image.close()
         }
     }

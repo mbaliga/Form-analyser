@@ -37,6 +37,14 @@ variants (25/25 each), and release lint passes with no app-source findings. Fres
 committed QA/debug key. No connected run was completed for the fix because the temporary API-35
 system image download stalled; the October 9 emulator result predates this code change.
 
+MediaPipe frame ownership follow-up (2026-10-10): `PoseRecorder.process` now closes each synchronous
+`MPImage` after detection; MediaPipe's bitmap container recycles its owned bitmap on close. If MPImage
+construction itself fails, the still-unowned bitmap is recycled directly. This closes a per-frame
+native bitmap retention path while preserving CameraX `ImageProxy` cleanup. Android debug/release
+unit tests and `lintRelease` pass on this checkout with Gradle dependency verification enabled and
+offline; this source-only follow-up was not rebuilt into a QA APK/AAB and has no new connected-device
+run. The previously recorded hashes therefore do not describe this change.
+
 Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
 Home cards and local Room records are present on this branch; see
 [`MULTISPORT_JOURNAL.md`](MULTISPORT_JOURNAL.md). They are not part of the Recurve 0.6 release
