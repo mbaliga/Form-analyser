@@ -19,6 +19,13 @@ manually launched through first-run onboarding to Home; the Recurve/Fencing phot
 the feed. These remain QA-key/emulator evidence, not production signing or physical-device/range
 acceptance.
 
+Full regression replay after the Android photo-decoding contract (2026-10-10): `./gradlew test
+-PwithAndroid --offline --no-daemon` passed (104 actionable tasks), covering the root JVM modules
+and Android debug/release unit suites. Release workflow/version contracts passed 17/17, immutable
+workflow action references verified across 7 workflow files, and the refreshed APK/AAB release
+preflight passed. Connected debug and minified-release instrumentation each passed 7/7 on API-35
+ARM64 `emulator-5554`.
+
 Capture-window concurrency hardening (2026-10-10): CameraX frame analysis and UI recording
 controls previously touched the same mutable pose list across threads. Added a synchronized
 `PoseFrameBuffer` with a per-recording generation token so pre-start frames and post-stop inference
