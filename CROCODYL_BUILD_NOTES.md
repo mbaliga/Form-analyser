@@ -22,6 +22,24 @@ reconnect was sandbox-restricted during the first capture attempt, and the subse
 reinstall returned to first-run onboarding, so no Train screenshot is claimed. See
 `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is not physical-device acceptance.
 
+2026-10-10 Progress visual pass: reshaped the Progress surface into a local-evidence ledger with a
+code-drawn editorial header, consistent Hyle cards/rows, and explicit no-data explanations for
+score trends, form repeatability, and equipment context. Metric calculations and causal caveats are
+unchanged. Debug/release unit tests and `lintRelease` completed; connected debug and QA/debug-signed
+minified-release instrumentation pass 7/7 each, including exact accessibility checks for the new
+header and empty states. No new Progress screenshot is claimed; visual photo provenance remains
+Home-only. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+
+Fresh visual-refresh QA artifact (2026-10-10): minified APK/AAB `0.6.0-progress-cinematic-qa`,
+versionCode 653, signed with the committed QA/debug key (certificate SHA-256
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`). The release preflight
+passed APK v2 signing, APK/AAB signer match, package/version, manifest security, ZIP alignment,
+BlazePose model digest, backup resources, and staging-file checks. APK SHA-256
+`34246c0fb6f618441dea54accf9dbefbe7c045513926b5ebcc14ba954bef7079`; AAB SHA-256
+`33ac507e8152aaf79c3e0530443d8eecea47f653e294e9bcb607e2d51a57bc65`. Connected debug and
+QA/debug-signed minified-release suites pass 7/7 on API-35 ARM64 `emulator-5554`. QA-only; not a
+production signer or physical-device acceptance.
+
 ## Product expansion addendum — 2026-10-09
 
 Photo provenance refresh (2026-10-10): replaced the generated Fencing Home-card image and added

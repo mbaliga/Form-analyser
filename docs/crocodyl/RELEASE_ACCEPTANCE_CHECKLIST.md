@@ -206,6 +206,15 @@ The QA APK also installs, completes onboarding and opens Home; visual inspection
 Recurve/Fencing photo cards render in the feed. QA signer only; physical device/range acceptance
 remains.
 
+Current visual-refresh QA build (2026-10-10): `0.6.0-progress-cinematic-qa` / versionCode 653.
+The minified APK/AAB passed `tools/release/verify_android_release.sh` with QA/debug certificate
+SHA-256 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. APK SHA-256
+`34246c0fb6f618441dea54accf9dbefbe7c045513926b5ebcc14ba954bef7079`; AAB SHA-256
+`33ac507e8152aaf79c3e0530443d8eecea47f653e294e9bcb607e2d51a57bc65`. Connected debug and
+QA/debug-signed minified-release instrumentation pass 7/7 each, including visible Progress
+empty-state/accessibility checks. The QA key is not the production signer; physical-device/range
+acceptance remains open.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.
@@ -277,11 +286,12 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
-- [x] Current-tree QA APK/AAB (`0.6.0-photo-assets-qa`, versionCode 652) passed release artifact
-      preflight; connected debug and QA-signed minified-release instrumentation each passed 7/7 on
-      API-35 ARM64 `emulator-5554` (2026-10-10), including Android decoding checks for bundled sport
-      photos. APK/AAB digests and 44/44 debug/release unit-test evidence are recorded above. This is
-      not production signing or physical-device matrix acceptance.
+- [x] Current-tree QA APK/AAB (`0.6.0-progress-cinematic-qa`, versionCode 653) passed release artifact
+      preflight; connected debug and QA/debug-signed minified-release instrumentation each passed
+      7/7 on API-35 ARM64 `emulator-5554` (2026-10-10). This includes Android decoding checks for
+      sport photos and Progress evidence-empty-state accessibility checks. APK/AAB digests and
+      44/44 debug/release unit-test evidence are recorded above. QA signing is not production
+      signing or physical-device matrix acceptance.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, absence of staging files, and the expected production

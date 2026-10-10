@@ -71,15 +71,19 @@ The Train setup screen now carries that visual grammar into a quieter range work
 code-drawn range panel (no repeated photo), horizontally browsable round choices, grouped editable
 session parameters, clearer practice-detail sections, and a persistent bottom start action. Rig
 management, autofill, pinning, handedness, pre-check-in, and session-start behavior remain intact.
+Progress now reads as a local training ledger: an editorial code-drawn header, consistent evidence
+cards and rows, and explicit explanations when score, pose-repeatability, or equipment comparisons
+do not yet have sufficient data. It preserves current calculations, normalized-score labeling,
+sample counts, and non-causal interpretation.
 This does not yet refresh every screen; continue from real emulator captures.
 
 2026-10-10 validation: Android debug and release unit-test tasks, `lintRelease`, and connected debug
-instrumentation passed (7/7) after the Home and Train Compose changes. The connected suite covers all
-five primary tabs and Quick Score. `tools/atelier/test_assets.py` passes 9/9, including the
-source/license and checksum contract for the Home hero photograph. These are emulator and
-local-build results, not physical-device visual acceptance. The emulator's ADB server could not be
-restarted in the current sandbox to capture a second Train screenshot, so only the existing Home
-after-shot is currently checked in.
+instrumentation passed (7/7) after these Compose changes. The connected suite covers all five
+primary tabs, Quick Score, and accessible Progress empty-state copy. QA/debug-signed minified-release
+instrumentation also passed (7/7); its signer is not the production signer. `tools/atelier/test_assets.py`
+passes 9/9, including the source/license and checksum contract for the Home hero photograph. These
+are emulator and local-build results, not physical-device visual acceptance. Only the Home
+after-shot is checked in; separate Train and Progress screenshots remain to be captured and reviewed.
 
 ## Screen-by-screen target direction
 
@@ -121,14 +125,16 @@ simple accurate dock.
 
 ## Suggested next design/implementation sequence
 
-1. Validate the updated Home hero and condensed actions on emulator; tune gradient/crop using actual
-   screenshot evidence.
-2. Replace the standard bottom navigation with a compact inset/floating Crocodyl dock; preserve all
-   existing destinations and accessibility.
-3. Apply the same card, eyebrow, type and spacing grammar to Train setup and Progress.
-4. Refresh Score/Review as separate range and reflection modes, with visual continuity but different
-   interaction density.
-5. Take before/after screenshots for the remaining screens and iterate from actual devices.
+1. Capture and review Train and Progress after-shots, including keyboard-visible Train setup and
+   small-screen/large-font layouts; current checked-in visual evidence is Home-only.
+2. Refresh Score and Review as separate range-entry and reflection modes, with visual continuity but
+   different interaction density and strict numeric/accessibility validation.
+3. Revisit Capture with range ergonomics first: outdoor contrast, one-handed pause/stop, session
+   persistence and permission recovery must remain explicit.
+4. Apply the visual system to Body/recovery, Calendar/log, Coach and settings without obscuring
+   privacy, medical caveats, empty states, or the existing local-first data boundaries.
+5. Run before/after screenshots across compact and standard screens, large font scaling, landscape
+   where supported, and physical devices; iterate from those captures rather than previews.
 
 The active screenless motion-session product spec is separate:
 [`../MOTION_SESSIONS_HANDOFF.md`](../MOTION_SESSIONS_HANDOFF.md). Do not use its future sport cards

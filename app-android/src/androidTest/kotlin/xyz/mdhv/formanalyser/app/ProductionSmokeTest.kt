@@ -83,7 +83,12 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "New session")
 
                 clickBottomTabEventually(instrumentation, "Progress")
-                assertTextEventually(instrumentation, "Understand what changes performance · local evidence only")
+                assertTextEventually(
+                    instrumentation,
+                    "Understand what changes performance. No projections, no causal shortcuts.",
+                )
+                assertTextEventually(instrumentation, "A complete scored round will establish your first baseline.")
+                assertTextEventually(instrumentation, "No comparable capture series yet.")
 
                 clickBottomTabEventually(instrumentation, "Body")
                 assertTextEventually(instrumentation, "Context")
@@ -243,7 +248,10 @@ class ProductionSmokeTest {
             if (root != null && containsText(root, expected)) return
             SystemClock.sleep(50)
         }
-        throw AssertionError("Timed out waiting for visible UI text: $expected")
+        val visibleText = instrumentation.uiAutomation.rootInActiveWindow
+            ?.let(::collectVisibleText)
+            .orEmpty()
+        throw AssertionError("Timed out waiting for visible UI text: $expected. Visible: $visibleText")
     }
 
     private fun clickBottomTabEventually(
@@ -299,6 +307,13 @@ class ProductionSmokeTest {
     private fun containsText(node: AccessibilityNodeInfo, expected: String): Boolean {
         if (node.text?.toString() == expected || node.contentDescription?.toString() == expected) return true
         return (0 until node.childCount).any { index -> node.getChild(index)?.let { containsText(it, expected) } == true }
+    }
+
+    private fun collectVisibleText(node: AccessibilityNodeInfo): List<String> {
+        val own = listOfNotNull(node.text?.toString(), node.contentDescription?.toString())
+        return own + (0 until node.childCount).flatMap { index ->
+            node.getChild(index)?.let(::collectVisibleText).orEmpty()
+        }
     }
 
     private fun AccessibilityNodeInfo.findClickableTextInBottomArea(
