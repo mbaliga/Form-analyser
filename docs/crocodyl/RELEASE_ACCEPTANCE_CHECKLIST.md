@@ -136,6 +136,13 @@ the verifier passed. APK SHA-256 `14cbc022254193d39e927155cc44b41b394e054c14619c
 AAB SHA-256 `c1ad9976b457d449ef3531be314b040245a238b7489036d04e1837fde798375e`. These retain the
 QA/debug signing identity and do not count as a production-signed build or new device run.
 
+Capture lifecycle follow-up: 2026-10-10. The late CameraX provider/disposal race fix passed debug
+and release Android unit-test suites (25/25 each), release lint, and a fresh minified QA APK/AAB
+preflight (`0.6.0-camera-lifecycle-qa`, versionCode 643). APK SHA-256
+`33362f35c58d330e5fa503ff1b0501478d910d697f674f9284b0068d65d85cc8`; AAB SHA-256
+`1ee7e696dc1080b54382a3fc8c4c1ff538e4c88c28e15a1da222b481253a9024`. This does not satisfy
+connected instrumentation for the changed code, production signing, or physical-device acceptance.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.

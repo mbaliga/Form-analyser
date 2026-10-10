@@ -27,6 +27,16 @@ APK SHA-256 is `14cbc022254193d39e927155cc44b41b394e054c14619c0827e15609ed7d0f02
 `c1ad9976b457d449ef3531be314b040245a238b7489036d04e1837fde798375e`. This was a preflight replay
 of retained QA outputs, not a new production build; the signer is not production-approved.
 
+Capture lifecycle follow-up (2026-10-10): hardened the asynchronous CameraX provider callback so
+it cannot bind use-cases after `CaptureScreen` is disposed. The binding owner serializes late
+completion, in-progress binding and disposal; its four unit tests pass in both debug and release
+variants (25/25 each), and release lint passes with no app-source findings. Fresh minified QA APK/AAB
+`0.6.0-camera-lifecycle-qa` / versionCode 643 passed release preflight. APK SHA-256 is
+`33362f35c58d330e5fa503ff1b0501478d910d697f674f9284b0068d65d85cc8`; AAB SHA-256 is
+`1ee7e696dc1080b54382a3fc8c4c1ff538e4c88c28e15a1da222b481253a9024`. This artifact uses the
+committed QA/debug key. No connected run was completed for the fix because the temporary API-35
+system image download stalled; the October 9 emulator result predates this code change.
+
 Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
 Home cards and local Room records are present on this branch; see
 [`MULTISPORT_JOURNAL.md`](MULTISPORT_JOURNAL.md). They are not part of the Recurve 0.6 release

@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import java.util.concurrent.Executors
+import xyz.mdhv.formanalyser.app.capture.DeferredResourceBinding
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.provenanceGlow
@@ -190,9 +191,6 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
     // carries a rotation or a window resize. Reading it here is the subscription.
     LocalConfiguration.current
 
-    // Held so the use cases can be unbound precisely on dispose without blocking the main thread
-    // re-resolving the provider future.
-    var provider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     val preview = remember { Preview.Builder().build() }
     val analysis = remember {
         ImageAnalysis.Builder()
@@ -201,6 +199,14 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
             .build()
             .also { it.setAnalyzer(executor) { img -> vm.recorder.process(img) } }
     }
+    // Provider acquisition is asynchronous: the composable may be disposed before its future
+    // completes. This owner serializes late binding against disposal and unbinds only our use cases.
+    val binding = remember(lifecycleOwner, preview, analysis) {
+        DeferredResourceBinding<ProcessCameraProvider> {
+            runCatching { it.unbind(preview, analysis) }
+        }
+    }
+    DisposableEffect(binding) { onDispose { binding.close() } }
 
     AndroidView(
         modifier = modifier,
@@ -209,26 +215,26 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
             val future = ProcessCameraProvider.getInstance(ctx)
             future.addListener(
                 {
-                    val p = future.get()
-                    provider = p
-                    preview.setSurfaceProvider(previewView.surfaceProvider)
-                    // Back camera preferred — the athlete films side-on with the phone facing them
-                    // — but a Chromebook or tablet may only have a front one, and hardcoding BACK
-                    // meant bindToLifecycle simply threw there.
-                    val selector =
-                        when {
-                            p.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) ->
-                                CameraSelector.DEFAULT_BACK_CAMERA
-                            p.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) ->
-                                CameraSelector.DEFAULT_FRONT_CAMERA
-                            else -> null
-                        }
-                    if (selector != null) {
-                        runCatching {
-                            // Unbind only OUR use cases. unbindAll() is process-global and would
-                            // tear down another window's camera on a foldable or desktop.
-                            p.unbind(preview, analysis)
-                            p.bindToLifecycle(lifecycleOwner, selector, preview, analysis)
+                    val p = runCatching { future.get() }.getOrNull() ?: return@addListener
+                    runCatching {
+                        binding.bindIfOpen(p) {
+                            preview.setSurfaceProvider(previewView.surfaceProvider)
+                            // Back camera preferred — the athlete films side-on with the phone
+                            // facing them — but a Chromebook or tablet may only have a front one.
+                            val selector =
+                                when {
+                                    p.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) ->
+                                        CameraSelector.DEFAULT_BACK_CAMERA
+                                    p.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) ->
+                                        CameraSelector.DEFAULT_FRONT_CAMERA
+                                    else -> null
+                                }
+                            if (selector != null) {
+                                // Unbind only OUR use cases. unbindAll() is process-global and
+                                // could tear down another window's camera on a foldable/desktop.
+                                p.unbind(preview, analysis)
+                                p.bindToLifecycle(lifecycleOwner, selector, preview, analysis)
+                            }
                         }
                     }
                 },
@@ -246,5 +252,4 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
         },
     )
 
-    DisposableEffect(Unit) { onDispose { runCatching { provider?.unbind(preview, analysis) } } }
 }

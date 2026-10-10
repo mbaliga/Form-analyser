@@ -34,6 +34,18 @@ model digest, backup resources, and staging-file checks. APK SHA-256:
 `c1ad9976b457d449ef3531be314b040245a238b7489036d04e1837fde798375e`. These are retained
 QA artifacts, not freshly rebuilt production artifacts; their signer is not a production identity.
 
+Capture lifecycle hardening (2026-10-10): `CaptureScreen` now serializes asynchronous CameraX provider
+binding against composition disposal. A provider that completes after screen disposal is rejected;
+an in-progress bind is released on close, and cleanup remains scoped to this screen's Preview and
+ImageAnalysis use cases. Four deterministic tests cover late completion, one-time release, racing
+close/bind, and release after a bind failure. Android debug and release unit-test variants each
+passed 25/25; `lintRelease` passed with no app-source findings. A fresh minified QA build
+`0.6.0-camera-lifecycle-qa` / versionCode 643 passed `tools/release/verify_android_release.sh`.
+APK SHA-256: `33362f35c58d330e5fa503ff1b0501478d910d697f674f9284b0068d65d85cc8`; AAB SHA-256:
+`1ee7e696dc1080b54382a3fc8c4c1ff538e4c88c28e15a1da222b481253a9024`. It uses the committed QA
+debug key and is not production-signed. The temporary API-35 emulator image could not be completed,
+so connected instrumentation for this particular fix remains outstanding.
+
 Added Muay Thai and bouldering as distinct pure-JVM sport modules and local manual training
 journals. The Home feed now opens cinematic, sport-specific experiences. Muay Thai captures focus,
 round/work/rest structure and effort; bouldering preserves the athlete's grade system and label,
