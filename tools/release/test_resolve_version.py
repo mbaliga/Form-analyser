@@ -31,12 +31,30 @@ class ResolveVersionTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(output, "version=v1.2.3\nversion_code=10203\n")
 
-    def test_semver_suffix_is_preserved(self) -> None:
+    def test_semver_suffix_requires_explicit_version_code(self) -> None:
         result, output = self.resolve(
             {"INPUT_VERSION": "0.6.0-beta+2", "INPUT_VERSION_CODE": "", "REF_NAME": "dispatch"}
         )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(output, "version=0.6.0-beta+2\nversion_code=600\n")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("require an explicit versionCode", result.stderr)
+        self.assertEqual(output, "")
+
+    def test_explicit_version_code_overrides_semver_derived_value(self) -> None:
+        for version in ("0.6.0", "0.6.0-beta+2"):
+            with self.subTest(version=version):
+                result, output = self.resolve(
+                    {"INPUT_VERSION": version, "INPUT_VERSION_CODE": "601", "REF_NAME": "dispatch"}
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(output, f"version={version}\nversion_code=601\n")
+
+    def test_invalid_explicit_version_code_is_not_ignored_for_semver(self) -> None:
+        result, output = self.resolve(
+            {"INPUT_VERSION": "0.6.0", "INPUT_VERSION_CODE": "0", "REF_NAME": "dispatch"}
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("versionCode must be a positive integer", result.stderr)
+        self.assertEqual(output, "")
 
     def test_custom_release_name_requires_a_positive_version_code(self) -> None:
         result, output = self.resolve(

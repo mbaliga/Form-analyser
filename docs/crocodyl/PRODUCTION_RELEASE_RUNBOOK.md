@@ -40,8 +40,10 @@ signing inputs or expected certificate fingerprint are absent.
 ## Trigger and verify
 
 1. Create a release branch named `release/v<major>.<minor>.<patch>` or use the workflow dispatch
-   input. Use a new, monotonically increasing Android `versionCode`; the semver workflow derives one
-   for ordinary `major.minor.patch` releases.
+   input. Use a new, monotonically increasing Android `versionCode`; the workflow derives one only
+   for plain `major.minor.patch` releases. Prerelease/build labels (for example, `-rc.1` or `+build`)
+   require an explicit code so they cannot collide with the corresponding stable release. An
+   explicitly supplied positive code takes precedence over derivation and is range-checked.
 2. Require the release workflow to pass JVM tests, Android debug/release unit tests, release lint,
    debug connected smoke, signed minified release connected smoke, generated-asset drift checks,
    signed artifact preflight, and checksum publication.

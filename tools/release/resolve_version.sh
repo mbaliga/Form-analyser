@@ -11,15 +11,23 @@ if [[ ! "$version" =~ ^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$ ]]; then
   exit 1
 fi
 
-if [[ "$version" =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+)([-+][A-Za-z0-9._+-]*)?$ ]]; then
+if [[ -n "${INPUT_VERSION_CODE:-}" ]]; then
+  if [[ ! "$INPUT_VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then
+    echo "versionCode must be a positive integer." >&2
+    exit 1
+  fi
+  version_code="$INPUT_VERSION_CODE"
+elif [[ "$version" =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+)([-+][A-Za-z0-9._+-]*)?$ ]]; then
+  if [[ -n "${BASH_REMATCH[4]:-}" ]]; then
+    echo "Semver prerelease/build labels require an explicit versionCode." >&2
+    exit 1
+  fi
   version_code="$(python3 -c 'import sys; major, minor, patch = map(int, sys.argv[1:]); code = major * 10000 + minor * 100 + patch; print(code) if 1 <= code <= 2100000000 else sys.exit(1)' "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}")" || {
     echo "Derived versionCode is outside Android's supported range." >&2
     exit 1
   }
-elif [[ "${INPUT_VERSION_CODE:-}" =~ ^[1-9][0-9]*$ ]]; then
-  version_code="$INPUT_VERSION_CODE"
 else
-  echo "A semver release name or a positive versionCode input is required." >&2
+  echo "A plain semver release name or a positive versionCode input is required." >&2
   exit 1
 fi
 

@@ -18,21 +18,24 @@ those paths. Contract tests lock the trigger coverage and require every pinned a
 SHA-256 value; the release workflow contract suite initially passed 8/8, before the version-input
 hardening and expanded coverage recorded below. All 7 workflow files retain immutable action refs.
 
-Release-input hardening (2026-10-10): the release workflow now rejects names outside a 1–64 character
-shell-safe allowlist, bounds semver-derived and user-supplied version codes using checked integer
+Release-input hardening (2026-10-10): the release workflow rejects names outside a 1–64 character
+shell-safe allowlist, bounds derived and user-supplied version codes using checked integer
 validation, and passes version outputs via environment variables instead of interpolating them into
-shell command source. The resolver is isolated in `tools/release/resolve_version.sh`, with static
-workflow contracts and runtime tests for semver, custom labels, injection strings and integer
-overflow. Release publication is isolated into a `contents: write` job while the
+shell command source. Plain semver derives a code; semver prerelease/build labels require an explicit
+code, and an explicit code takes precedence for any label. This prevents prerelease/stable collisions
+and lets operators maintain monotonic numbering. The resolver is isolated in
+`tools/release/resolve_version.sh`, with static workflow contracts and runtime tests for these rules,
+custom labels, injection strings and integer overflow. Release publication is isolated into a `contents: write` job while the
 signing/build/test job is `contents: read` and checkout credentials are not persisted. The combined
-release suite passes 15/15 (10 workflow contracts + 5 resolver tests). YAML parsing, shell syntax, and
+release suite passes 17/17 (10 workflow contracts + 7 resolver tests). YAML parsing, shell syntax, and
 immutable action refs across all 7 workflow files also pass. This protects the release workflow from
 command injection through manually dispatched version inputs and keeps release-write authority out
 of build/test steps; it does not change the production-secret or human-approval gates.
 
 Repository regression replay (2026-10-10): root JVM tests passed (`50` actionable tasks; all
 up-to-date). At that replay, release contracts/resolver passed 14/14; a subsequent publication
-permission-isolation contract raised the current release suite to 15/15. Shared checkout passed 4/4;
+permission-isolation contract raised the release suite to 15/15, and version-code collision tests
+raised it to 17/17. Shared checkout passed 4/4;
 offline viewer passed 10/10 plus ECDSA interoperability; Community Directory passed 4/4 and its
 entries validated; Atelier assets passed 8/8, arrow-library tests 4/4, and arrow-reference tests
 7/7. These checks replay existing scope and generated asset integrity; they do not close

@@ -43,6 +43,8 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("bash tools/release/resolve_version.sh", self.workflow)
         self.assertIn("^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$", resolver)
         self.assertIn("version_code=\"$(python3 -c", resolver)
+        self.assertIn("Semver prerelease/build labels require an explicit versionCode.", resolver)
+        self.assertLess(resolver.index('if [[ -n "${INPUT_VERSION_CODE:-}" ]]'), resolver.index("elif [[ \"$version\" =~"))
         self.assertIn("RELEASE_VERSION: ${{ steps.ver.outputs.version }}", self.workflow)
         self.assertIn('"$RELEASE_VERSION"', self.workflow)
         self.assertNotIn('run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid --no-daemon -PcrocodylVersionName="${{', self.workflow)
