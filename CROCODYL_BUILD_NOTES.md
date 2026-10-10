@@ -18,9 +18,11 @@ identity, not the production signer.
 Release workflow input hardening (2026-10-10): extracted version resolution into
 `tools/release/resolve_version.sh`; only bounded shell-safe version labels are accepted, version-code
 arithmetic is range-checked, and workflow outputs are passed into commands through environment
-variables. Runtime tests reject shell substitutions and oversized numbers. The release contract and
-resolver suite passes 14/14; YAML parsing, shell syntax and immutable action-pin checks pass. The
-change and tests are in `01ce9b3`.
+variables. Runtime tests reject shell substitutions and oversized numbers. Release publication now
+runs in a separate `contents: write` job; checkout/build/sign/test remain read-only and checkout
+credentials are not persisted. The release workflow and resolver suites pass 15/15 (10 + 5); YAML
+parsing, shell syntax and immutable action-pin checks pass. Version validation is in `01ce9b3`; the
+write-permission split is the current uncommitted follow-up as of this note.
 
 Dependency integrity follow-up (2026-10-10): added `gradle/verification-metadata.xml` with
 SHA-256 pins for the current resolved build graph (556 components, 1,007 artifact hashes;

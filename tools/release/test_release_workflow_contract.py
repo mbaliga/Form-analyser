@@ -48,6 +48,20 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertNotIn('run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid --no-daemon -PcrocodylVersionName="${{', self.workflow)
         self.assertNotIn('script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon -PcrocodylVersionName="${{', self.workflow)
 
+    def test_release_write_permission_is_isolated_to_publication_job(self) -> None:
+        build_job, publish_job = self.workflow.split("\n  publish:", maxsplit=1)
+        self.assertIn("permissions:\n  contents: read", self.workflow)
+        self.assertIn("permissions:\n      contents: read", build_job)
+        self.assertIn("persist-credentials: false", build_job)
+        self.assertNotIn("contents: write", build_job)
+        self.assertIn("permissions:\n      contents: write", publish_job)
+        self.assertEqual(self.workflow.count("contents: write"), 1)
+        self.assertLess(
+            self.workflow.index("actions/upload-artifact@"),
+            self.workflow.index("actions/download-artifact@"),
+        )
+        self.assertGreater(publish_job.index("softprops/action-gh-release@"), 0)
+
     def test_release_runs_both_android_unit_variants_and_lint(self) -> None:
         self.assertIn(":app-android:testDebugUnitTest", self.workflow)
         self.assertIn(":app-android:testReleaseUnitTest", self.workflow)

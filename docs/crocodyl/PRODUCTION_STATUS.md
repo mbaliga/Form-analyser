@@ -23,17 +23,20 @@ shell-safe allowlist, bounds semver-derived and user-supplied version codes usin
 validation, and passes version outputs via environment variables instead of interpolating them into
 shell command source. The resolver is isolated in `tools/release/resolve_version.sh`, with static
 workflow contracts and runtime tests for semver, custom labels, injection strings and integer
-overflow. The combined release test suite passes 14/14 (9 workflow contracts + 5 resolver tests);
-YAML parsing, shell syntax, and immutable action refs across all 7 workflow files also pass. This
-protects the release workflow from command injection through manually dispatched version inputs; it
-does not change the production-secret or human-approval gates.
+overflow. Release publication is isolated into a `contents: write` job while the
+signing/build/test job is `contents: read` and checkout credentials are not persisted. The combined
+release suite passes 15/15 (10 workflow contracts + 5 resolver tests). YAML parsing, shell syntax, and
+immutable action refs across all 7 workflow files also pass. This protects the release workflow from
+command injection through manually dispatched version inputs and keeps release-write authority out
+of build/test steps; it does not change the production-secret or human-approval gates.
 
 Repository regression replay (2026-10-10): root JVM tests passed (`50` actionable tasks; all
-up-to-date). Release contracts/resolver passed 14/14; Shared checkout passed 4/4; offline viewer
-passed 10/10 plus ECDSA interoperability; Community Directory passed 4/4 and its entries validated;
-Atelier assets passed 8/8, arrow-library tests 4/4, and arrow-reference tests 7/7. These checks
-replay existing scope and generated asset integrity; they do not close physical-device or production
-signing acceptance.
+up-to-date). At that replay, release contracts/resolver passed 14/14; a subsequent publication
+permission-isolation contract raised the current release suite to 15/15. Shared checkout passed 4/4;
+offline viewer passed 10/10 plus ECDSA interoperability; Community Directory passed 4/4 and its
+entries validated; Atelier assets passed 8/8, arrow-library tests 4/4, and arrow-reference tests
+7/7. These checks replay existing scope and generated asset integrity; they do not close
+physical-device or production signing acceptance.
 
 Retained artifact preflight replay (2026-10-10): revalidated the existing Room 2.7.2 QA APK/AAB
 `0.6.0-room-272-qa` / versionCode 642 with `tools/release/verify_android_release.sh`. The APK and
