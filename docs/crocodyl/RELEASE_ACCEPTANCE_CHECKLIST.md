@@ -277,11 +277,11 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
-- [x] Current-tree QA APK/AAB (`0.6.0-session-idempotency-qa`, versionCode 651) passed release artifact
-      preflight; connected debug and QA-signed minified-release instrumentation each passed 6/6 on
-      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 44/44 debug/release unit/lint
-      evidence are recorded above. This is not production signing or physical-device matrix
-      acceptance.
+- [x] Current-tree QA APK/AAB (`0.6.0-photo-assets-qa`, versionCode 652) passed release artifact
+      preflight; connected debug and QA-signed minified-release instrumentation each passed 7/7 on
+      API-35 ARM64 `emulator-5554` (2026-10-10), including Android decoding checks for bundled sport
+      photos. APK/AAB digests and 44/44 debug/release unit-test evidence are recorded above. This is
+      not production signing or physical-device matrix acceptance.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, absence of staging files, and the expected production
