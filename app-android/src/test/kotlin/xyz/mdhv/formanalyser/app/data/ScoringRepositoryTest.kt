@@ -118,6 +118,26 @@ class ScoringRepositoryTest {
         }
     }
 
+    @Test
+    fun onlyAnEmptyUntouchedCardUsesThePermanentDiscardPath() = runBlocking {
+        withDatabase { database, _ ->
+            seedAthlete(database)
+            val repository = ScoringRepository(database)
+            val started = repository.start(RoundPack.WA_RECURVE_70M_72)
+
+            val preview = repository.previewScorecardDeletion(started.session.id)
+            assertTrue(preview.permanent)
+            assertTrue(preview.detail.contains("cannot be restored"))
+
+            repository.deleteScorecard(started.session.id)
+            assertTrue(repository.retractedScorecards().isEmpty())
+            assertTrue(repository.recent().isEmpty())
+            assertThrows(IllegalStateException::class.java) {
+                runBlocking { repository.snapshot(started.session.id) }
+            }
+        }
+    }
+
     private suspend fun withDatabase(block: suspend (AppDatabase, String) -> Unit) {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val name = "scoring-repository-${System.nanoTime()}.db"

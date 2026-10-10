@@ -155,10 +155,11 @@ passed 4/4 on API-35 ARM64 `emulator-5556`, including MPImage bitmap-release beh
 QA-key artifacts and emulator evidence only; production signing and physical-device/range acceptance
 remain open.
 
-Scoring persistence follow-up: 2026-10-10. Four Room-backed repository tests cover active-card
+Scoring persistence follow-up: 2026-10-10. Five Room-backed repository tests cover active-card
 reopen/resume with a retained X, invalid low rings on numeric and observer inputs for the vertical
 triple, finished-card immutability, and retract/restore behavior with history/PB preservation.
-Android debug/release unit tests pass 29/29 each and
+The permanent-delete path is also confirmed to apply only to an untouched empty card. Android
+debug/release unit tests pass 30/30 each and
 `lintRelease` passes. Fresh QA APK/AAB `0.6.0-scoring-repository-qa` / versionCode 645 passed release
 preflight and connected debug + minified-release instrumentation each passed 4/4 on API-35 ARM64
 `emulator-5554`. APK SHA-256 `97a9786b57ae58c6dc691d22e54859204a2db444aee52299b1dba8150faf1025`; AAB
@@ -237,7 +238,7 @@ leaks private data, or leaves the user unable to recover without clearing app st
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
 - [x] Current-tree QA APK/AAB (`0.6.0-scoring-repository-qa`, versionCode 645) passed release artifact
       preflight; connected debug and QA-signed minified-release instrumentation each passed 4/4 on
-      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 29/29 debug/release unit/lint
+      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 30/30 debug/release unit/lint
       evidence are recorded above. This is not production signing or physical-device matrix
       acceptance.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
