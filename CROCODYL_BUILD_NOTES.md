@@ -41,16 +41,16 @@ readiness predicate is unit-tested along with the camera/model/permission requir
 Session startup recovery (2026-10-10): starting a new session immediately closes the prior capture
 gate, reports required-session creation failures with a route back to setup, and treats optional
 context/refresh failures as warnings without making a persisted session unusable. Session and
-pre-check-in/soreness rows are now inserted in one Room transaction; a failure-injection test proves
-rollback leaves neither partial check-in nor session rows. The UI distinguishes preparing, ready,
-warning and failed states.
+pre-check-in/soreness rows are now inserted in one Room transaction; failure-injection tests abort
+both during pre-check-in work and at the final session insert, proving rollback leaves no partial
+check-in, soreness or session rows. The UI distinguishes preparing, ready, warning and failed states.
 
 Current source QA package (2026-10-10): `0.6.0-session-transaction-qa`, versionCode 650, includes
 camera-permission recovery, the persisted-session capture gate and transactional/recoverable session
 startup. Fresh minified QA APK/AAB passed `tools/release/verify_android_release.sh`; APK SHA-256
 `8cf003d043218b744a7bb54febdfb5961f1a6569490c3ba63d7175646a7bacb9`, AAB SHA-256
 `2bda0988fde64fa3f3c99d79a738ea0949588bba0cd742f9b539f27ea60980e0`. Android debug/release unit
-tests pass 42/42 each, `lintRelease` passes, and connected debug plus QA-signed minified-release
+tests pass 43/43 each, `lintRelease` passes, and connected debug plus QA-signed minified-release
 instrumentation pass 6/6 each on API-35 ARM64. The QA key is not the production signer.
 
 Scoring repository coverage (2026-10-10): `ScoringRepository` retains its public Context-based

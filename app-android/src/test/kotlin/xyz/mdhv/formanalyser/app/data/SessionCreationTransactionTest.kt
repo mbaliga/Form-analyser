@@ -71,6 +71,39 @@ class SessionCreationTransactionTest {
         }
     }
 
+    @Test
+    fun failedSessionInsertRollsBackPrecheckinAndSoreness() = runBlocking {
+        withDatabase { database ->
+            database.athleteDao().upsert(AthleteEntity("athlete", "Test Athlete", 70.0))
+            database.openHelper.writableDatabase.execSQL(
+                "CREATE TRIGGER reject_session BEFORE INSERT ON sessions " +
+                    "BEGIN SELECT RAISE(ABORT, 'injected session failure'); END"
+            )
+            val repository = Repository(database)
+            val checkin = CheckinEntity("pre", "athlete", 100L, "PRE", skipped = false)
+            val session =
+                SessionEntity(
+                    "session",
+                    "athlete",
+                    100L,
+                    drawWeightLbs = 0.0,
+                    distanceMeters = 18,
+                    preCheckinId = checkin.id,
+                )
+            val soreness = listOf(SorenessEntity(checkin.id, "shoulder"))
+
+            assertThrows(RuntimeException::class.java) {
+                runBlocking {
+                    repository.createSessionWithPreCheckin(session, checkin, soreness)
+                }
+            }
+
+            assertNull(database.sessionDao().byId(session.id))
+            assertNull(database.wellnessDao().checkinById(checkin.id))
+            assertEquals(emptyList<String>(), database.wellnessDao().sorenessFor(checkin.id))
+        }
+    }
+
     private suspend fun withDatabase(block: suspend (AppDatabase) -> Unit) {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val name = "session-transaction-${System.nanoTime()}.db"
