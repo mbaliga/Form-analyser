@@ -44,8 +44,12 @@ tests. Three Robolectric integration tests verify an active scorecard and X pers
 and reopening the database, impossible 1–5 rings are rejected on both numeric and observer paths for
 the vertical-triple face, and finished cards reject further scoring/undo without changing history.
 Android debug/release unit suites pass 28/28 each; `lintRelease` passes. These app-source changes are
-not included in QA package versionCode 644; the artifact will be rebuilt before treating it as
-current evidence.
+included in fresh QA package `0.6.0-scoring-repository-qa` / versionCode 645. Its APK/AAB passed the
+release preflight and connected debug and minified-release instrumentation each passed 4/4 on API-35
+ARM64 (`emulator-5554`). APK SHA-256 is
+`97a9786b57ae58c6dc691d22e54859204a2db444aee52299b1dba8150faf1025`; AAB SHA-256 is
+`a67a25de4eb4eaec24346d542e73cfae13abe10b7814667acdfddf3dded1a415`. Artifacts are QA-key signed,
+not production-signed; physical-device and range acceptance remain open.
 
 Retained artifact preflight replay (2026-10-10): revalidated the existing Room 2.7.2 QA APK/AAB
 `0.6.0-room-272-qa` / versionCode 642 with `tools/release/verify_android_release.sh`. The APK and

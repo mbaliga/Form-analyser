@@ -13,6 +13,14 @@ mutated. Android debug and release unit suites pass 28/28 each and `lintRelease`
 adds a constructor seam to the app source, versionCode 644 does not include the latest source; a
 fresh QA package is required before using those artifact hashes as current.
 
+VersionCode 645 refresh (2026-10-10): after the scoring repository tests landed in `5c99a86`, built
+fresh minified QA APK/AAB `0.6.0-scoring-repository-qa`. The release preflight passed; APK SHA-256
+`97a9786b57ae58c6dc691d22e54859204a2db444aee52299b1dba8150faf1025`; AAB SHA-256
+`a67a25de4eb4eaec24346d542e73cfae13abe10b7814667acdfddf3dded1a415`. Debug and minified-release
+connected instrumentation each passed 4/4 on API-35 ARM64 (`emulator-5554`). Android debug/release
+unit tests passed 28/28 and release lint passed. The bundle remains QA-key signed, not production-
+signed.
+
 Production-hardening continuation (2026-10-10): `PoseRecorder` now closes each synchronous
 MediaPipe `MPImage` after detection, allowing its bitmap container to recycle the owned frame;
 bitmap construction failure also cleans up the unowned bitmap. Android debug/release unit tests

@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-mediapipe-image-qa` (versionCode 644), API-35 ARM64 debug and minified-release instrumentation 4/4 each · production release: **not approved**_
+_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-scoring-repository-qa` (versionCode 645), API-35 ARM64 debug and minified-release instrumentation 4/4 each · production release: **not approved**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -220,10 +220,10 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`
 (all of the above in one APK) · `v0.5.1` (reconciled onto `main`'s `crocodyl.engine` package rename).
 The current hardening branch keeps the development default **`0.6.0-spec-dev`** metadata. Its latest
-QA-only minified package is **`0.6.0-mediapipe-image-qa`** (versionCode 644): APK/AAB preflight passed,
-debug/release unit tests and `lintRelease` passed, and connected debug plus minified-release
-instrumentation each passed 4/4 on API-35 ARM64 emulators. Recent hardening also closes MediaPipe
-frame-image resources and validates
+QA-only minified package is **`0.6.0-scoring-repository-qa`** (versionCode 645): APK/AAB preflight
+passed, debug/release unit tests passed 28/28 each, `lintRelease` passed, and connected debug plus
+minified-release instrumentation each passed 4/4 on API-35 ARM64. Recent hardening also closes
+MediaPipe frame-image resources, tests scoring repository persistence/invariants, and validates
 release version inputs before they reach shell commands. The package is signed with the QA/debug key,
 not the production identity. Public publishing still requires production signing and full
 physical-device/range acceptance.
@@ -315,9 +315,9 @@ recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 
 ## 5. Known caveats
 - **Android release boundary:** the current tree has passed Android debug/release unit tests, release
-  lint, QA artifact preflight and API-35 ARM64 minified-release connected smoke. Treat the QA-signed
-  `0.6.0-mediapipe-image-qa` package as validation evidence, not a shipped release, until production
-  signing and physical-device gates are complete.
+  lint, QA artifact preflight and API-35 ARM64 debug/minified-release connected smoke. Treat the
+  QA-signed `0.6.0-scoring-repository-qa` package as validation evidence, not a shipped release, until
+  production signing and physical-device gates are complete.
 - **Dependency pins:** the Android/MediaPipe stack is intentionally held for this release; upgrade
   it as a compatibility-tested maintenance change, not opportunistically during release hardening.
 - **BYOK required for cloud "Ask":** the offline rule-coach needs nothing; cloud insights need a key,
@@ -334,7 +334,7 @@ recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 
 ## 6. TL;DR
 Phases 1–3 + the AI coach + Phase-4 tuning + Phase-5 export + the manual scoring wedge are **built and
-pure-JVM/Android-test green**, with a fresh QA-validated **0.6.0-mediapipe-image-qa** artifact. What
+pure-JVM/Android-test green**, with a fresh QA-validated **0.6.0-scoring-repository-qa** artifact. What
 remains before public release is **production-key signing, physical-device/accessibility/thermal/
 battery verification, camera/interruption/range acceptance, and owner sign-off**. Guided on-device-model distribution, the
 real Hyle dependency, and the deferred/future-phase work above are explicitly post-RC roadmap items,
