@@ -66,9 +66,10 @@ offline. Fresh minified QA APK/AAB `0.6.0-mediapipe-image-qa` / versionCode 644 
 preflight. APK SHA-256 is
 `2e71ad2eecb6f19d67bcdf1286e1c23af308da693b2494ccadf6044da49f2bef`; AAB SHA-256 is
 `bc7ada1bf9ec3507e22da5b38756fcd479e7f1f523a9e134cc820b2efb8ded8f`. The minified release
-instrumentation suite passed 4/4 on API-35 ARM64 `emulator-5556`, including a runtime assertion that
-closing the MediaPipe image recycles its owned bitmap. Both artifacts use the committed QA/debug
-signing identity; none of this substitutes for production signing or physical device/range acceptance.
+debug and minified-release instrumentation both passed 4/4 on API-35 ARM64 emulators (debug
+`emulator-5554`, release `emulator-5556`), including a runtime assertion that closing the MediaPipe
+image recycles its owned bitmap. Both artifacts use the committed QA/debug signing identity; none of
+this substitutes for production signing or physical device/range acceptance.
 
 Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
 Home cards and local Room records are present on this branch; see

@@ -150,9 +150,10 @@ construction fails, the still-unowned bitmap is recycled directly. Debug/release
 `0.6.0-mediapipe-image-qa` / versionCode 644 passed release preflight: APK SHA-256
 `2e71ad2eecb6f19d67bcdf1286e1c23af308da693b2494ccadf6044da49f2bef`; AAB SHA-256
 `bc7ada1bf9ec3507e22da5b38756fcd479e7f1f523a9e134cc820b2efb8ded8f`. Minified release
-instrumentation passed 4/4 on API-35 ARM64 `emulator-5556`, including MPImage bitmap-release
-behavior. These are QA-key artifacts and emulator evidence only; production signing and
-physical-device/range acceptance remain open.
+debug instrumentation passed 4/4 on API-35 ARM64 `emulator-5554` and minified-release instrumentation
+passed 4/4 on API-35 ARM64 `emulator-5556`, including MPImage bitmap-release behavior. These are
+QA-key artifacts and emulator evidence only; production signing and physical-device/range acceptance
+remain open.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
@@ -226,9 +227,10 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
 - [x] Current-tree QA APK/AAB (`0.6.0-mediapipe-image-qa`, versionCode 644) passed release artifact
-      preflight; the QA-signed minified-release instrumentation suite passed 4/4 on API-35 ARM64
-      `emulator-5556` (2026-10-10). Artifact digests and debug/release unit/lint evidence are
-      recorded above. This is not production signing or physical-device matrix acceptance.
+      preflight; connected debug and QA-signed minified-release instrumentation each passed 4/4 on
+      API-35 ARM64 (`emulator-5554` and `emulator-5556`, 2026-10-10). Artifact digests and
+      debug/release unit/lint evidence are recorded above. This is not production signing or
+      physical-device matrix acceptance.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, absence of staging files, and the expected production

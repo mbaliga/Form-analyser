@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-mediapipe-image-qa` (versionCode 644), minified release instrumentation 4/4 on API-35 ARM64 · production release: **not approved**_
+_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-mediapipe-image-qa` (versionCode 644), API-35 ARM64 debug and minified-release instrumentation 4/4 each · production release: **not approved**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -221,8 +221,9 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 (all of the above in one APK) · `v0.5.1` (reconciled onto `main`'s `crocodyl.engine` package rename).
 The current hardening branch keeps the development default **`0.6.0-spec-dev`** metadata. Its latest
 QA-only minified package is **`0.6.0-mediapipe-image-qa`** (versionCode 644): APK/AAB preflight passed,
-debug/release unit tests and `lintRelease` passed, and minified release instrumentation passed 3/3 on
-an API-35 ARM64 emulator. Recent hardening also closes MediaPipe frame-image resources and validates
+debug/release unit tests and `lintRelease` passed, and connected debug plus minified-release
+instrumentation each passed 4/4 on API-35 ARM64 emulators. Recent hardening also closes MediaPipe
+frame-image resources and validates
 release version inputs before they reach shell commands. The package is signed with the QA/debug key,
 not the production identity. Public publishing still requires production signing and full
 physical-device/range acceptance.
