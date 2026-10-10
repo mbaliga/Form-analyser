@@ -155,6 +155,12 @@ passed 4/4 on API-35 ARM64 `emulator-5556`, including MPImage bitmap-release beh
 QA-key artifacts and emulator evidence only; production signing and physical-device/range acceptance
 remain open.
 
+Scoring persistence follow-up: 2026-10-10. Three Room-backed repository tests cover active-card
+reopen/resume with a retained X, invalid low rings on numeric and observer inputs for the vertical
+triple, and finished-card immutability. Android debug/release unit tests pass 28/28 each and
+`lintRelease` passes. This source update is not yet in versionCode 644; refresh the QA artifact before
+using it as evidence for this latest tree.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.

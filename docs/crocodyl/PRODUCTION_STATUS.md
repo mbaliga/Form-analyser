@@ -38,6 +38,15 @@ entries validated; Atelier assets passed 8/8, arrow-library tests 4/4, and arrow
 7/7. These checks replay existing scope and generated asset integrity; they do not close
 physical-device or production signing acceptance.
 
+Scoring persistence coverage (2026-10-10): introduced an internal `AppDatabase` constructor seam for
+`ScoringRepository` while retaining its existing Context constructor, enabling isolated Room-backed
+tests. Three Robolectric integration tests verify an active scorecard and X persist across closing
+and reopening the database, impossible 1–5 rings are rejected on both numeric and observer paths for
+the vertical-triple face, and finished cards reject further scoring/undo without changing history.
+Android debug/release unit suites pass 28/28 each; `lintRelease` passes. These app-source changes are
+not included in QA package versionCode 644; the artifact will be rebuilt before treating it as
+current evidence.
+
 Retained artifact preflight replay (2026-10-10): revalidated the existing Room 2.7.2 QA APK/AAB
 `0.6.0-room-272-qa` / versionCode 642 with `tools/release/verify_android_release.sh`. The APK and
 AAB signatures matched the committed QA/debug certificate

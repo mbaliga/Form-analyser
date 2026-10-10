@@ -5,6 +5,14 @@ convention: this is one autonomous build across Phases 1–3, so notes are conso
 
 ## Product expansion addendum — 2026-10-09
 
+Scoring repository coverage (2026-10-10): `ScoringRepository` retains its public Context-based
+construction and now has an internal Room-database constructor for isolated repository integration
+tests. Three tests exercise close/reopen/resume of an active scorecard with an X, reject impossible
+triple-face rings on numeric and observer paths, and enforce that finished scorecards cannot be
+mutated. Android debug and release unit suites pass 28/28 each and `lintRelease` passes. Because this
+adds a constructor seam to the app source, versionCode 644 does not include the latest source; a
+fresh QA package is required before using those artifact hashes as current.
+
 Production-hardening continuation (2026-10-10): `PoseRecorder` now closes each synchronous
 MediaPipe `MPImage` after detection, allowing its bitmap container to recycle the owned frame;
 bitmap construction failure also cleans up the unowned bitmap. Android debug/release unit tests

@@ -5,8 +5,9 @@ import androidx.room.withTransaction
 import java.util.UUID
 import xyz.mdhv.formanalyser.scoring.*
 
-class ScoringRepository(context: Context) {
-    private val db = AppDatabase.get(context.applicationContext)
+class ScoringRepository internal constructor(private val db: AppDatabase) {
+    constructor(context: Context) : this(AppDatabase.get(context.applicationContext))
+
     private val scoring = db.scoringDao()
     private val features = db.athleteFeatureDao()
     private val athletes = db.athleteDao()

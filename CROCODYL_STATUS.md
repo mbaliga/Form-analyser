@@ -261,8 +261,10 @@ sign-off criteria.
 
 ### 4.4 Deferred within Phases 1–3 (logged; out of scope for 0.6 release acceptance)
 - Hilt DI (kept manual to de-risk blind compilation).
-- Broader ViewModel/UI suites remain open; the generated Room-schema/privacy boundary is now covered
-  by `PrivacyRegistrySchemaTest`, and migration/recovery by `AppDatabaseMigrationTest`.
+- Broader ViewModel/UI suites remain open. Room-backed scoring now has focused repository tests for
+  reopen/resume persistence, triple-face validation and immutable finished scorecards; the generated
+  Room-schema/privacy boundary is covered by `PrivacyRegistrySchemaTest`, and migration/recovery by
+  `AppDatabaseMigrationTest`.
 - Accessibility and visual polish beyond the current streak glyph strip and sRPE secondary load lane.
 
 ### 4.5 Future phases (roadmap, not yet built)
