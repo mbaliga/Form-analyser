@@ -188,7 +188,7 @@ participants.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current Room 2.7.2 tree passes root JVM tests, Android debug/release unit tests, release lint, connected debug and QA-signed minified-release instrumentation (3/3 each), and QA APK/AAB preflight. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | VersionCode 646 QA APK/AAB preflight passed; Android debug/release unit tests pass 34/34, release lint passes, connected debug and QA-signed minified-release instrumentation pass 5/5 each, including all primary-tab navigation. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -199,8 +199,10 @@ participants.
 
 ## Current commits
 
-- Crocodyl: current-tree API-35 ARM64 connected debug instrumentation passed 3/3 on 2026-10-09 after clearing stale generated duplicate dex archives.
-- Crocodyl: QA-signed minified release instrumentation passed 3/3 and versionCode 641 APK/AAB preflight passed on 2026-10-09; QA key only.
+- Crocodyl: `7fddd4f` — primary-tab accessibility navigation smoke, verified 5/5 in debug and QA-signed minified release.
+- Crocodyl: `c00d4f7` — synchronized CameraX capture windows; Android unit tests 34/34 each, lint and versionCode 646 QA artifact preflight passed.
+- Crocodyl: `712f388` and `5afb897` — reject colliding semver/versionCode inputs and require explicit codes for suffixed labels.
+- Crocodyl: current versionCode 646 QA APK/AAB preflight passed; API-35 ARM64 connected debug and QA-signed minified-release instrumentation passed 5/5 each.
 - Crocodyl: `30f4cb9` — records the provisioned Android replay and current QA-only release boundary.
 - Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
 - Crocodyl: `2063e84` — shared-library lock verifier negative-path coverage.
