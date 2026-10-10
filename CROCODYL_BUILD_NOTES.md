@@ -45,12 +45,18 @@ pre-check-in/soreness rows are now inserted in one Room transaction; failure-inj
 both during pre-check-in work and at the final session insert, proving rollback leaves no partial
 check-in, soreness or session rows. The UI distinguishes preparing, ready, warning and failed states.
 
-Current source QA package (2026-10-10): `0.6.0-session-transaction-qa`, versionCode 650, includes
-camera-permission recovery, the persisted-session capture gate and transactional/recoverable session
-startup. Fresh minified QA APK/AAB passed `tools/release/verify_android_release.sh`; APK SHA-256
-`8cf003d043218b744a7bb54febdfb5961f1a6569490c3ba63d7175646a7bacb9`, AAB SHA-256
-`2bda0988fde64fa3f3c99d79a738ea0949588bba0cd742f9b539f27ea60980e0`. Android debug/release unit
-tests pass 43/43 each, `lintRelease` passes, and connected debug plus QA-signed minified-release
+Duplicate session-start protection (2026-10-10): SessionViewModel now accepts a start request only
+when neither another start nor a capture is in flight. The setup route navigates only when the request
+was accepted, preventing repeated taps during slow persistence from creating duplicate sessions.
+The acceptance policy has a four-state unit test.
+
+Current source QA package (2026-10-10): `0.6.0-session-idempotency-qa`, versionCode 651, includes
+camera-permission recovery, the persisted-session capture gate, transactional/recoverable session
+startup and duplicate-start protection. Fresh minified QA APK/AAB passed
+`tools/release/verify_android_release.sh`; APK SHA-256
+`9938ff7038a0a1c21043423eb29e2dcae7f2feebeafdfa1e7bed96987c3fce73`, AAB SHA-256
+`f0b4a05ce8e042b203f34610c7fd691f667c86f2f73a00a54fdfe28bb503edb8`. Android debug/release unit
+tests pass 44/44 each, `lintRelease` passes, and connected debug plus QA-signed minified-release
 instrumentation pass 6/6 each on API-35 ARM64. The QA key is not the production signer.
 
 Scoring repository coverage (2026-10-10): `ScoringRepository` retains its public Context-based

@@ -73,8 +73,7 @@ fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: 
                 preGate = false
                 val d = currentDefaults()
                 contextVm.remember(d, pinSetup)
-                vm.startSession(d.distanceMeters ?: 18, override, pre, d)
-                onStarted()
+                if (vm.startSession(d.distanceMeters ?: 18, override, pre, d)) onStarted()
             },
             onDismiss = { preGate = false },
         )

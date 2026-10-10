@@ -49,6 +49,9 @@ data class BaselineInfo(val ready: Boolean, val repCount: Long) {
         get() = (8L - repCount).coerceAtLeast(0)
 }
 
+internal fun canAcceptSessionStart(sessionStarting: Boolean, recording: Boolean): Boolean =
+    !sessionStarting && !recording
+
 /**
  * Drives the IMU-first MVP loop (handoff §11): capture → segment → features → baseline → deviation
  * → fatigue + signal↔score. Uses manual refresh after each mutation (simple and predictable) rather
@@ -122,7 +125,8 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         handednessOverride: Handedness? = null,
         pre: PreCheckinData? = null,
         context: SessionDefaults? = null,
-    ) {
+    ): Boolean {
+        if (!canAcceptSessionStart(_sessionStarting.value, _isRecording.value)) return false
         // A prior session may still be loaded in this ViewModel. Close its capture gate before
         // launching the new asynchronous insert so Capture cannot accidentally record against it.
         currentSessionId = null
@@ -225,6 +229,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                     "Session saved, but recent form data couldn't be loaded. Capture can continue."
             }
         }
+        return true
     }
 
     /** Reopen an existing session (e.g. from Home's recent list) into Review. */
