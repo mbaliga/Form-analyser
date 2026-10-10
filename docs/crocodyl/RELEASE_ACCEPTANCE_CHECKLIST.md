@@ -168,8 +168,9 @@ SHA-256 `a67a25de4eb4eaec24346d542e73cfae13abe10b7814667acdfddf3dded1a415`. QA s
 Capture-window concurrency follow-up: 2026-10-10. Four synchronized-buffer tests cover frames
 already in flight at Start, late inference after Stop, starting a fresh generation, and frames
 outside a recording. Android debug/release unit tests pass 34/34 each, `lintRelease` passes, and
-connected debug plus QA-signed minified-release instrumentation pass 4/4 each on API-35 ARM64
-`emulator-5554`. QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact
+connected debug plus QA-signed minified-release instrumentation pass 5/5 each on API-35 ARM64
+`emulator-5554`; the instrumentation also traverses all five primary tabs and checks visible screen
+content. QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact
 preflight. APK SHA-256 `a4c32676767e6fa2bac61cdabaa47ed8d9c18d3001c22c9aa33d47b0ecd4870d`; AAB SHA-256
 `89dac947a6f9234e7055e4ee60cd1702d64e74955b8b2e3f771d4b79144e3abb`. Not production signing or
 physical-device/range acceptance.
@@ -246,7 +247,7 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
 - [x] Current-tree QA APK/AAB (`0.6.0-pose-capture-window-qa`, versionCode 646) passed release artifact
-      preflight; connected debug and QA-signed minified-release instrumentation each passed 4/4 on
+      preflight; connected debug and QA-signed minified-release instrumentation each passed 5/5 on
       API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 34/34 debug/release unit/lint
       evidence are recorded above. This is not production signing or physical-device matrix
       acceptance.

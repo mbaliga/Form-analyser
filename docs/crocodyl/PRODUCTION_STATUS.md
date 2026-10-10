@@ -60,9 +60,11 @@ the UI can start/stop recording during an in-flight frame. `PoseFrameBuffer` now
 collection and snapshots, tags frames with the capture generation at analysis start, rejects frames
 that began outside the active window, and prevents late inference completions from changing a
 stopped capture. Four deterministic boundary tests cover start, stop, restart and no-recording
-behavior. Android debug/release unit suites pass 34/34 each; `lintRelease` passes; connected debug
-and QA-signed minified-release instrumentation each pass 4/4 on API-35 ARM64 `emulator-5554`. Fresh
-QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact preflight. APK SHA-256
+behavior. Android debug/release unit suites pass 34/34 each; `lintRelease` passes. Connected debug
+and QA-signed minified-release instrumentation now pass 5/5 each on API-35 ARM64 `emulator-5554`,
+including Home → Train → Progress → Body → Calendar → Home navigation with screen-content
+assertions. Fresh QA APK/AAB `0.6.0-pose-capture-window-qa` / versionCode 646 passed artifact
+preflight. APK SHA-256
 `a4c32676767e6fa2bac61cdabaa47ed8d9c18d3001c22c9aa33d47b0ecd4870d`; AAB SHA-256
 `89dac947a6f9234e7055e4ee60cd1702d64e74955b8b2e3f771d4b79144e3abb`. The preflight checksum
 helper now supports both Linux `sha256sum` and macOS `shasum`. QA identity only; no production
