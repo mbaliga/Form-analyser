@@ -93,16 +93,15 @@ example target face, and a differentiated Quick score primary action; score crea
 unchanged.
 This does not yet refresh every screen; continue from real emulator captures.
 
-2026-10-10 validation: Android debug and release unit-test tasks, `lintRelease`, and connected debug
-instrumentation passed (7/7) after these Compose changes. The connected suite covers all five
-primary tabs, Quick Score, and accessible Progress empty-state copy. QA/debug-signed minified-release
-instrumentation also passed (7/7); its signer is not the production signer. `tools/atelier/test_assets.py`
-passes 9/9, including the source/license and checksum contract for the Home hero photograph. A
-follow-up Train setup change explains the disabled Start action until a round/distance is selected;
-connected debug instrumentation passed 7/7 with an accessibility assertion for that guidance.
+2026-10-11 validation: Android debug/release unit tests, `lintRelease`, and connected debug
+instrumentation passed (7/7). The suite covers all five primary tabs, Quick Score, accessible
+Progress empty-state/title copy, Train's disabled-action guidance, and the exact multiline Score
+headline. QA/debug-signed minified-release instrumentation also passed 7/7; its signer is not the
+production signer. `tools/atelier/test_assets.py` passes 9/9, including the source/license and
+checksum contract for the Home hero photograph. Version 656 QA APK/AAB passed release preflight.
 These are emulator and local-build results, not physical-device visual acceptance. The checked-in
-screenshots cover Home, Train, Progress and Score entry; the other primary destinations remain visually
-unfinished and are still part of the refresh.
+screenshots cover Home, Train, Progress and Score entry; the other primary destinations remain
+visually unfinished and are still part of the refresh.
 
 ## Screen-by-screen target direction
 
