@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-09 · current branch: **codex/production-hardening** (latest successful Android verification replay recorded at `30f4cb9`, dated 2026-10-02) · release validation: **QA-only artifacts**_
+_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-mediapipe-image-qa` (versionCode 644), minified release instrumentation 3/3 on API-35 ARM64 · production release: **not approved**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -219,11 +219,13 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 ### 3.5 Releases
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`
 (all of the above in one APK) · `v0.5.1` (reconciled onto `main`'s `crocodyl.engine` package rename).
-The current hardening branch keeps the development default **`0.6.0-spec-dev`** metadata, with a
-QA-validated release candidate **`0.6.0-rc.2`** (versionCode 602) recorded above. The manual scoring
-wedge is implemented, release signing is fail-closed, Room schemas are exportable, and the recovery
-flow is explicit. Public publishing still requires the production signing identity and full
-device/range acceptance.
+The current hardening branch keeps the development default **`0.6.0-spec-dev`** metadata. Its latest
+QA-only minified package is **`0.6.0-mediapipe-image-qa`** (versionCode 644): APK/AAB preflight passed,
+debug/release unit tests and `lintRelease` passed, and minified release instrumentation passed 3/3 on
+an API-35 ARM64 emulator. Recent hardening also closes MediaPipe frame-image resources and validates
+release version inputs before they reach shell commands. The package is signed with the QA/debug key,
+not the production identity. Public publishing still requires production signing and full
+physical-device/range acceptance.
 
 Going forward, releases track the Phased Implementation Plan's ladder (§5.1 of that doc): `0.6.0`
 manual-scoring wedge → `0.7.x` form/End-Scan/Live-Observer → `0.8.0` exchange → `0.9.0` Coach →
@@ -309,10 +311,10 @@ recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 ---
 
 ## 5. Known caveats
-- **Android release boundary:** the current tree has passed root JVM tests, Android debug/release
-  unit tests, release lint and API-35 ARM64 connected smoke. Treat the QA-signed `0.6.0-rc.2` as
-  validation evidence, not a shipped release, until the production key and physical-device gates
-  are complete.
+- **Android release boundary:** the current tree has passed Android debug/release unit tests, release
+  lint, QA artifact preflight and API-35 ARM64 minified-release connected smoke. Treat the QA-signed
+  `0.6.0-mediapipe-image-qa` package as validation evidence, not a shipped release, until production
+  signing and physical-device gates are complete.
 - **Dependency pins:** the Android/MediaPipe stack is intentionally held for this release; upgrade
   it as a compatibility-tested maintenance change, not opportunistically during release hardening.
 - **BYOK required for cloud "Ask":** the offline rule-coach needs nothing; cloud insights need a key,
@@ -329,9 +331,9 @@ recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 
 ## 6. TL;DR
 Phases 1–3 + the AI coach + Phase-4 tuning + Phase-5 export + the manual scoring wedge are **built and
-pure-JVM/Android-test green**, with a QA-validated **0.6.0-rc.2** artifact. What remains before public
-release is **production-key signing, physical-device/accessibility/thermal/battery verification,
-camera/interruption/range acceptance, and owner sign-off**. Guided on-device-model distribution, the
+pure-JVM/Android-test green**, with a fresh QA-validated **0.6.0-mediapipe-image-qa** artifact. What
+remains before public release is **production-key signing, physical-device/accessibility/thermal/
+battery verification, camera/interruption/range acceptance, and owner sign-off**. Guided on-device-model distribution, the
 real Hyle dependency, and the deferred/future-phase work above are explicitly post-RC roadmap items,
 not hidden release blockers. The paid Baseline channels (EEG, bow-IMU, advanced analytics)
 stay out of Crocodyl's git history — that separation is unchanged — though Baseline itself is now

@@ -5,6 +5,23 @@ convention: this is one autonomous build across Phases 1–3, so notes are conso
 
 ## Product expansion addendum — 2026-10-09
 
+Production-hardening continuation (2026-10-10): `PoseRecorder` now closes each synchronous
+MediaPipe `MPImage` after detection, allowing its bitmap container to recycle the owned frame;
+bitmap construction failure also cleans up the unowned bitmap. Android debug/release unit tests
+passed 25/25 each and release lint passed. A fresh minified QA APK/AAB `0.6.0-mediapipe-image-qa`
+(versionCode 644) passed artifact preflight (APK SHA-256
+`2e71ad2eecb6f19d67bcdf1286e1c23af308da693b2494ccadf6044da49f2bef`; AAB SHA-256
+`bc7ada1bf9ec3507e22da5b38756fcd479e7f1f523a9e134cc820b2efb8ded8f`) and minified release
+instrumentation passed 3/3 on API-35 ARM64 `emulator-5556`. Both artifacts use the committed QA/debug
+identity, not the production signer.
+
+Release workflow input hardening (2026-10-10): extracted version resolution into
+`tools/release/resolve_version.sh`; only bounded shell-safe version labels are accepted, version-code
+arithmetic is range-checked, and workflow outputs are passed into commands through environment
+variables. Runtime tests reject shell substitutions and oversized numbers. The release contract and
+resolver suite passes 14/14; YAML parsing, shell syntax and immutable action-pin checks pass. The
+change and tests are in `01ce9b3`.
+
 Dependency integrity follow-up (2026-10-10): added `gradle/verification-metadata.xml` with
 SHA-256 pins for the current resolved build graph (556 components, 1,007 artifact hashes;
 `verify-metadata=true`, signature verification disabled). An initial enforcement replay caught 23
@@ -44,7 +61,8 @@ passed 25/25; `lintRelease` passed with no app-source findings. A fresh minified
 APK SHA-256: `33362f35c58d330e5fa503ff1b0501478d910d697f674f9284b0068d65d85cc8`; AAB SHA-256:
 `1ee7e696dc1080b54382a3fc8c4c1ff538e4c88c28e15a1da222b481253a9024`. It uses the committed QA
 debug key and is not production-signed. The temporary API-35 emulator image could not be completed,
-so connected instrumentation for this particular fix remains outstanding.
+so connected instrumentation for this particular fix was initially outstanding; the later
+production-hardening continuation at the top of this addendum records the completed emulator replay.
 
 Added Muay Thai and bouldering as distinct pure-JVM sport modules and local manual training
 journals. The Home feed now opens cinematic, sport-specific experiences. Muay Thai captures focus,
