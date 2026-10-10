@@ -11,9 +11,12 @@ training-ledger hierarchy and explicit evidence-aware empty states while preserv
 API-35 screenshot evidence and the screen-by-screen plan are in
 [`visuals/CINEMATIC_APP_REFRESH.md`](visuals/CINEMATIC_APP_REFRESH.md). Android debug/release unit
 tests, release lint, connected debug and QA/debug-signed minified-release smoke (7/7 each), and
-Atelier photo/asset contracts (9/9) pass. The QA/debug key is not the production signer. This refresh
-is partial; only Home has a checked-in screenshot, and other surfaces and physical-device acceptance
-remain open.
+Atelier photo/asset contracts (9/9) pass. Home, Train and Progress emulator screenshots are checked
+in. A later full-tree replay passed `./gradlew test -PwithAndroid` (104 actionable tasks),
+`:app-android:lintRelease` (54 actionable tasks), release 17/17, shared checkout 4/4, offline viewer
+10/10 plus ECDSA interoperability, Community Directory 4/4, Atelier 9/9, arrow library 4/4 and
+arrow-reference 7/7. The QA/debug key is not the production signer. This refresh is partial; other
+surfaces and physical-device acceptance remain open.
 
 Dependency-integrity follow-up (2026-10-10): added Gradle SHA-256 dependency verification for the
 resolved build graph (`gradle/verification-metadata.xml`: 556 components, 1,007 artifact hashes;

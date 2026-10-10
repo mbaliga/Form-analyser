@@ -15,6 +15,15 @@ passed release preflight; APK SHA-256
 only, not production signing or physical-device acceptance. See
 `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
 
+2026-10-10 full-tree regression replay: `./gradlew test -PwithAndroid --offline --no-daemon` passed
+(104 actionable tasks; root JVM and Android debug/release unit-test variants). A separate
+`:app-android:lintRelease` replay passed (54 actionable tasks). Repository contracts passed: release
+17/17, shared checkout 4/4, desktop viewer 10/10, Community Directory 4/4, Atelier authored assets
+9/9, arrow library 4/4, arrow-reference library 7/7, and ECDSA `.croc` signature interoperability.
+Immutable workflow action refs verified across all 7 workflow files; community entries validate.
+This broad replay does not replace the already recorded connected emulator checks, production
+signing, physical-device matrix, or owner acceptance.
+
 2026-10-10 cinematic Home refresh: replaced the empty Hyle target-ring hero with the licensed
 photographer-created Recurve range photo, a high-contrast editorial scrim, and a non-repeating
 code-drawn Atelier motif; condensed Home action cards and replaced the full-width Material tab bar
