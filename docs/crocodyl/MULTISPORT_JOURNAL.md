@@ -23,14 +23,17 @@ dedicated local training journal.
 
 ## Visual assets
 
-Both sport cards use real photographer-created Unsplash photographs, not generated artwork. They are
-decorative UI imagery only, not source material for training instruction. Attribution, source-page
-links, license records, processing notes, dimensions and SHA-256 hashes are kept in
+Sport cards and the Recurve/Fencing Home cards use real photographer-created Unsplash photographs,
+not generated artwork. They are decorative UI imagery only, not source material for training
+instruction. Attribution, source-page links, license records, processing notes, dimensions and
+SHA-256 hashes are kept in
 `app-android/src/main/assets/atelier/cinematic/sports-manifest.json`.
 
 - Muay Thai: Anastase Maragos, [“Man practicing muay thai kickboxing with a heavy bag”](https://unsplash.com/photos/man-practicing-muay-thai-kickboxing-with-a-heavy-bag-78Q5VKfedoc).
 - Bouldering: Kambria Trout, [“Man climbing an indoor rock climbing wall”](https://unsplash.com/photos/man-climbing-an-indoor-rock-climbing-wall-m2s5M6bMxs0).
-- Both photo pages mark the image as free to use under the [Unsplash License](https://unsplash.com/license). Credit is recorded and surfaced here even though the license does not require attribution. Neither image implies the pictured person or venue endorses Crocodyl.
+- Recurve: Phil Hearing, [“A woman is aiming a bow at a target”](https://unsplash.com/photos/a-woman-is-aiming-a-bow-at-a-target-9xcQ-KpxV8E).
+- Fencing: Nathanaël Desmeules, [“Two men in fencing gear practicing their moves”](https://unsplash.com/photos/two-men-in-fencing-gear-practicing-their-moves-fY-gU30ciIo).
+- Each photo page marks the image as free to use under the [Unsplash License](https://unsplash.com/license). Credit is recorded even though attribution is not required. No image implies that the pictured person, venue or brand endorses Crocodyl. The Recurve/Fencing component-specific 3D renders remain separately available as visualization-only equipment studies.
 
 ## Not claimed by this slice
 

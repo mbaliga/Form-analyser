@@ -31,9 +31,10 @@ fun EquipmentAtelierCard() {
     LaunchedEffect(dark) {
         posterState.value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             val theme = if (dark) "dark" else "light"
-            // Prefer the art-only GLB render, never a diagnostic screenshot containing UI.
-            // Keep the earlier poster path as a fallback for source-only development builds.
+            // Use the licensed, photographer-created training photo for the cinematic feed card.
+            // Keep the original-geometry render and poster as source-only fallbacks.
             listOf(
+                "atelier/cinematic/recurve-training.jpg",
                 "atelier/cinematic/recurve-$theme.jpg",
                 "atelier/posters/recurve-$theme.jpg",
             ).firstNotNullOfOrNull { path ->

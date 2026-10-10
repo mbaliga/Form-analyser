@@ -31,7 +31,7 @@ fun FencingStudiesCard() {
     LaunchedEffect(Unit) {
         poster.value = withContext(Dispatchers.IO) {
             runCatching {
-                context.assets.open("atelier/art/range-dawn.webp").use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
+                context.assets.open("atelier/cinematic/fencing-training.jpg").use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
             }.getOrNull()
         }
     }

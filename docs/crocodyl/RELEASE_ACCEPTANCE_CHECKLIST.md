@@ -191,6 +191,14 @@ APK SHA-256 `9938ff7038a0a1c21043423eb29e2dcae7f2feebeafdfa1e7bed96987c3fce73`; 
 tests pass 44/44 each, release lint passes, and connected debug/QA-signed minified-release
 instrumentation pass 6/6 each. This is not production signing or physical-device/range acceptance.
 
+Photo refresh QA build (2026-10-10): `0.6.0-photo-assets-qa` / versionCode 652 passed
+`tools/release/verify_android_release.sh`. APK SHA-256
+`d5e0713922153145f77f436f9f2fcd716ae0abfead32e9c94599428ef15ad84a`; AAB SHA-256
+`3663b40f535ce6e2d83e681d33e3e9275b0510f69daf0875cf0cab9ebe7f6f80`. Debug/release unit tests
+pass 44/44 each, release lint passes, and Atelier asset contracts pass 9/9. Connected tests were
+not available in this invocation because Gradle did not expose `connectedDebugAndroidTest`; the
+previous versionCode 651 device result predates the updated photo assets. QA signer only.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.

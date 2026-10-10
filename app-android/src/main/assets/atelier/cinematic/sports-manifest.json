@@ -44,6 +44,50 @@
         "Do not infer athlete identity, gym, affiliation or level from the photograph."
       ],
       "processing": "Downloaded from Unsplash and center-cropped/resized to 1400 × 788 for the app."
+    },
+    {
+      "id": "recurve-training",
+      "file": "recurve-training.jpg",
+      "bytes": 146927,
+      "sha256": "153ad4ffcfccbc150047c8a99c1c1baee65e4267554c37128b1c9ee4692ab0ff",
+      "dimensions": [1600, 900],
+      "kind": "Photograph",
+      "photographer": "Phil Hearing (@philhearing)",
+      "title": "A woman is aiming a bow at a target",
+      "sourcePage": "https://unsplash.com/photos/a-woman-is-aiming-a-bow-at-a-target-9xcQ-KpxV8E",
+      "sourceImage": "https://images.unsplash.com/photo-1712350840799-eed8c91053ce",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "usage": "Decorative Recurve Equipment Atelier feed card",
+      "accessibility": { "decorativeAlt": "" },
+      "restrictions": [
+        "Unsplash license does not establish model, venue or trademark endorsement.",
+        "Not a technique, safety, equipment-fit or coaching reference.",
+        "Do not infer athlete identity, venue, affiliation or level from the photograph."
+      ],
+      "processing": "Downloaded from Unsplash and cropped/resized to 1600 × 900 for the app."
+    },
+    {
+      "id": "fencing-training",
+      "file": "fencing-training.jpg",
+      "bytes": 276828,
+      "sha256": "6298b316966c7a9240619f5a36ce57b245299e2380a71b894e583599eb3c7bc9",
+      "dimensions": [1600, 900],
+      "kind": "Photograph",
+      "photographer": "Nathanaël Desmeules (@nathanael240606)",
+      "title": "Two men in fencing gear practicing their moves",
+      "sourcePage": "https://unsplash.com/photos/two-men-in-fencing-gear-practicing-their-moves-fY-gU30ciIo",
+      "sourceImage": "https://images.unsplash.com/photo-1648484859331-bd85bf2238d5",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "usage": "Decorative Home Fencing studies card",
+      "accessibility": { "decorativeAlt": "" },
+      "restrictions": [
+        "Unsplash license does not establish model, venue or trademark endorsement.",
+        "Not a technique, safety, equipment-fit or coaching reference.",
+        "Do not infer athlete identity, venue, affiliation or level from the photograph."
+      ],
+      "processing": "Downloaded from Unsplash and cropped/resized to 1600 × 900 for the app."
     }
   ]
 }

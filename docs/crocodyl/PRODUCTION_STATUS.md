@@ -217,17 +217,19 @@ final session insert, including removal of already-inserted soreness rows. Debug
 pass 44/44 each. Session startup also rejects duplicate requests while a start or capture is in
 flight, and setup navigation occurs only for an accepted start.
 
-Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-session-idempotency-qa`, versionCode
-651, includes permission recovery, failure-safe transactional session startup and duplicate-start
-protection. Artifact preflight passed. APK SHA-256
-`9938ff7038a0a1c21043423eb29e2dcae7f2feebeafdfa1e7bed96987c3fce73`; AAB SHA-256
-`f0b4a05ce8e042b203f34610c7fd691f667c86f2f73a00a54fdfe28bb503edb8`. Debug/release unit tests
-pass 44/44 each, release lint passes, and connected debug plus QA-signed minified-release smoke
-passes 6/6 each on API-35 ARM64 `emulator-5554`. This is QA-key evidence only.
+Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-photo-assets-qa`, versionCode
+652, includes the session hardening above and replaces generated Fencing card art with bundled,
+provenance-checked photographer-created Recurve/Fencing photographs. Release preflight passed. APK
+SHA-256 `d5e0713922153145f77f436f9f2fcd716ae0abfead32e9c94599428ef15ad84a`; AAB SHA-256
+`3663b40f535ce6e2d83e681d33e3e9275b0510f69daf0875cf0cab9ebe7f6f80`. Debug/release unit tests
+pass 44/44 each, release lint passes, and the Atelier asset suite passes 9/9. Connected instrumentation
+was not rerun: the current Gradle invocation does not configure the requested connected-test task.
+The previous versionCode 651 connected result remains historical and does not validate these images
+on-device. This package is QA-key evidence only.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 651 QA APK/AAB preflight passed; debug/release unit tests pass 44/44, release lint passes, connected debug and QA-signed minified-release instrumentation pass 6/6 each. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 652 QA APK/AAB preflight passed; debug/release unit tests pass 44/44, release lint and Atelier assets 9/9 pass. Latest connected smoke is versionCode 651, before the photo-only asset update. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

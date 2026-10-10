@@ -36,4 +36,11 @@ Tube-cap orientation was corrected in b6c5f6e and protected by the regression in
 - Correctness of every wider-repository workflow or any unmerged competing feature branch.
 - Physical-device GPU compatibility, TalkBack, thermal/battery behavior, rotation and range use.
 
-Keep the newer arrow-first art direction intact. Treat the atmospheric generated range image as atmosphere only, and do not use the rejected generated anatomy/UI composite as instruction. Claude can continue integration and repository work without rebuilding these source assets from scratch, but should not promote unapproved generic geometry as a verified equipment replica.
+Historical note (superseded 2026-10-10): the atmospheric generated range image referenced in this
+verification record was subsequently removed from the app. Current Fencing and Recurve Home-card
+photography is sourced from photographer-created Unsplash images and checked against
+`app-android/src/main/assets/atelier/cinematic/sports-manifest.json`; see the current
+[`ASSET_HANDOFF.md`](ASSET_HANDOFF.md). The rejected generated anatomy/UI composite remains
+unapproved and must not be used as instruction. This change affects Home-card photography only; it
+does not alter the arrow-first art direction or claim generic equipment geometry is a verified
+replica.
