@@ -220,16 +220,16 @@ flight, and setup navigation occurs only for an accepted start.
 Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-photo-assets-qa`, versionCode
 652, includes the session hardening above and replaces generated Fencing card art with bundled,
 provenance-checked photographer-created Recurve/Fencing photographs. Release preflight passed. APK
-SHA-256 `d5e0713922153145f77f436f9f2fcd716ae0abfead32e9c94599428ef15ad84a`; AAB SHA-256
-`3663b40f535ce6e2d83e681d33e3e9275b0510f69daf0875cf0cab9ebe7f6f80`. Debug/release unit tests
-pass 44/44 each, release lint passes, and the Atelier asset suite passes 9/9. Connected instrumentation
-was not rerun: the current Gradle invocation does not configure the requested connected-test task.
-The previous versionCode 651 connected result remains historical and does not validate these images
-on-device. This package is QA-key evidence only.
+SHA-256 `06f0a80ac496ee453fb5ff1a3262cd658cac5d2e0a86a98cd901d491cf75c334`; AAB SHA-256
+`e23975aa3032c3817441986919a7da05088cd8436889af1a6c95d39cd3abfad4`. Debug/release unit tests
+pass 44/44 each, release lint passes, and Atelier asset contracts pass 9/9. Connected debug and
+QA-signed minified-release instrumentation each pass 6/6 on API-35 ARM64 `emulator-5554` for this
+tree. The QA APK installs and opens into first-run onboarding on that emulator. This is QA-key
+evidence only; production signing and physical-device/range acceptance remain open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 652 QA APK/AAB preflight passed; debug/release unit tests pass 44/44, release lint and Atelier assets 9/9 pass. Latest connected smoke is versionCode 651, before the photo-only asset update. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 652 QA APK/AAB preflight passed; debug/release unit tests pass 44/44, release lint and Atelier assets 9/9 pass, connected debug and QA-signed minified-release smoke each pass 6/6 on API-35 ARM64. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

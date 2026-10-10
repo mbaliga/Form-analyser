@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-photo-assets-qa` (versionCode 652), artifact preflight passed · production release: **not approved**_
+_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-photo-assets-qa` (versionCode 652), preflight passed, connected smoke 6/6 debug + 6/6 minified release on API 35 · production release: **not approved**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
