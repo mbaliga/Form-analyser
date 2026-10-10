@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-capture-startup-qa` (versionCode 648), API-35 ARM64 debug and minified-release instrumentation 6/6 each · production release: **not approved**_
+_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-session-transaction-qa` (versionCode 650), API-35 ARM64 debug and minified-release instrumentation 6/6 each · production release: **not approved**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -220,8 +220,8 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 `v0.4.2` (DB fix) · `v0.4.3` (nav fix) · `v0.4.4` (install/signing fix) · `v0.5.0-everything`
 (all of the above in one APK) · `v0.5.1` (reconciled onto `main`'s `crocodyl.engine` package rename).
 The current hardening branch keeps the development default **`0.6.0-spec-dev`** metadata. Its latest
-QA-only minified package is **`0.6.0-capture-startup-qa`** (versionCode 648): APK/AAB preflight
-passed, debug/release unit tests passed 40/40 each, `lintRelease` passed, and connected debug plus
+QA-only minified package is **`0.6.0-session-transaction-qa`** (versionCode 650): APK/AAB preflight
+passed, debug/release unit tests passed 42/42 each, `lintRelease` passed, and connected debug plus
 minified-release instrumentation each passed 6/6 on API-35 ARM64, including visible-content checks
 while traversing every primary tab and the Score/round chooser; Quick Score enters a 10, updates the
 total/arrow count, undoes it, and resumes the empty card after Activity recreation. Capture waits
@@ -230,7 +230,11 @@ offers Settings with a resume-time permission refresh. Recent hardening closes M
 resources, serializes capture-window start/stop against in-flight inference, tests scoring
 repository persistence/invariants, and validates release version inputs before they reach shell
 commands. The package is signed with the QA/debug key, not the production identity.
-Public publishing still requires production signing and full physical-device/range acceptance.
+Session creation now commits the session and pre-check-in/soreness rows atomically; creation failures
+return the user to setup, while optional-context failures leave the session available with a warning.
+The QA artifact SHA-256 is APK `8cf003d043218b744a7bb54febdfb5961f1a6569490c3ba63d7175646a7bacb9`,
+AAB `2bda0988fde64fa3f3c99d79a738ea0949588bba0cd742f9b539f27ea60980e0`. Public publishing still
+requires production signing and full physical-device/range acceptance.
 
 Going forward, releases track the Phased Implementation Plan's ladder (§5.1 of that doc): `0.6.0`
 manual-scoring wedge → `0.7.x` form/End-Scan/Live-Observer → `0.8.0` exchange → `0.9.0` Coach →

@@ -57,7 +57,7 @@ import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.provenanceGlow
 
 @Composable
-fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
+fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit, onBackToSetup: () -> Unit) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     // Two different questions that were previously conflated under one `hasCamera` flag: does this
@@ -117,6 +117,9 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
 
     val recording by vm.isRecording.collectAsState()
     val sessionReady by vm.sessionActive.collectAsState()
+    val sessionStarting by vm.sessionStarting.collectAsState()
+    val sessionStartError by vm.sessionStartError.collectAsState()
+    val sessionStartWarning by vm.sessionStartWarning.collectAsState()
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     // Leaving mid-recording throws away the pose window the recorder is holding — it is only
     // segmented into shots by stopRecordingAndAnalyze, so a back gesture during a live capture
@@ -224,6 +227,19 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
             color = if (tracking) Hyle.RadiumGreen else Hyle.OnSurfaceDim,
         )
 
+        if (!sessionReady && !sessionStarting) {
+            Text(
+                sessionStartError ?: "No session is ready to capture. Return to setup and try again.",
+                color = Hyle.Danger,
+            )
+            OutlinedButton(onClick = onBackToSetup, modifier = Modifier.fillMaxWidth()) {
+                Text("Back to session setup")
+            }
+        }
+        if (sessionReady && sessionStartWarning != null) {
+            Text(sessionStartWarning!!, color = Hyle.OnSurfaceDim)
+        }
+
         val canStartCapture =
             captureCanStart(
                 hasCameraHardware = hasCameraHardware,
@@ -242,7 +258,8 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
         ) {
             Text(
                 when {
-                    !sessionReady -> "Preparing session…"
+                    !sessionReady && sessionStarting -> "Preparing session…"
+                    !sessionReady -> "Session unavailable"
                     recording -> "Stop & analyze end"
                     else -> "Start recording"
                 }

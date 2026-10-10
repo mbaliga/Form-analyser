@@ -7,8 +7,9 @@ import xyz.mdhv.crocodyl.engine.model.Rep
 import xyz.mdhv.formanalyser.app.domain.ArcheryAnalyzer
 
 /** Thin persistence facade over the Room DAOs, with mapping to engine [Rep]s. */
-class Repository(context: Context) {
-    private val db = AppDatabase.get(context)
+class Repository internal constructor(private val db: AppDatabase) {
+    constructor(context: Context) : this(AppDatabase.get(context))
+
     private val athletes = db.athleteDao()
     private val sessions = db.sessionDao()
     private val rigs = db.rigDao()
@@ -68,6 +69,19 @@ class Repository(context: Context) {
     suspend fun currentAthlete(): AthleteEntity? = athletes.firstOrNull()
 
     suspend fun createSession(session: SessionEntity) = sessions.insert(session)
+
+    /** Persist the required capture session and its pre-check-in as one all-or-nothing operation. */
+    suspend fun createSessionWithPreCheckin(
+        session: SessionEntity,
+        checkin: CheckinEntity?,
+        soreness: List<SorenessEntity>,
+    ) = db.withTransaction {
+        if (checkin != null) {
+            wellness.insertCheckin(checkin)
+            if (soreness.isNotEmpty()) wellness.insertSoreness(soreness)
+        }
+        sessions.insert(session)
+    }
 
     fun sessionsFor(athleteId: String): Flow<List<SessionEntity>> = sessions.forAthlete(athleteId)
 

@@ -38,13 +38,20 @@ session…” label until the ViewModel confirms the session has been persisted,
 start a recorder without a session ID and silently discard the resulting frame window. The capture
 readiness predicate is unit-tested along with the camera/model/permission requirements.
 
-Current source QA package (2026-10-10): `0.6.0-capture-startup-qa`, versionCode 648, includes the
-camera-permission recovery and persisted-session capture gate. Fresh minified QA APK/AAB passed
-`tools/release/verify_android_release.sh`; APK SHA-256
-`db5a44c10350a339be3678bb348cf29d5ad299c6597345cb3aa2c38f0abde396`, AAB SHA-256
-`9273157d831cff3610f9e4b1872e09aa1011526f03fbb9c2ad2f785ad8d515ce`. This source revision passes
-Android debug/release unit tests 40/40 each, `lintRelease`, and connected debug plus QA-signed
-minified-release instrumentation 6/6 each on API-35 ARM64. The QA key is not the production signer.
+Session startup recovery (2026-10-10): starting a new session immediately closes the prior capture
+gate, reports required-session creation failures with a route back to setup, and treats optional
+context/refresh failures as warnings without making a persisted session unusable. Session and
+pre-check-in/soreness rows are now inserted in one Room transaction; a failure-injection test proves
+rollback leaves neither partial check-in nor session rows. The UI distinguishes preparing, ready,
+warning and failed states.
+
+Current source QA package (2026-10-10): `0.6.0-session-transaction-qa`, versionCode 650, includes
+camera-permission recovery, the persisted-session capture gate and transactional/recoverable session
+startup. Fresh minified QA APK/AAB passed `tools/release/verify_android_release.sh`; APK SHA-256
+`8cf003d043218b744a7bb54febdfb5961f1a6569490c3ba63d7175646a7bacb9`, AAB SHA-256
+`2bda0988fde64fa3f3c99d79a738ea0949588bba0cd742f9b539f27ea60980e0`. Android debug/release unit
+tests pass 42/42 each, `lintRelease` passes, and connected debug plus QA-signed minified-release
+instrumentation pass 6/6 each on API-35 ARM64. The QA key is not the production signer.
 
 Scoring repository coverage (2026-10-10): `ScoringRepository` retains its public Context-based
 construction and now has an internal Room-database constructor for isolated repository integration

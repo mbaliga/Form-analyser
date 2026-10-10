@@ -208,16 +208,23 @@ ready state. This closes the fast-tap window in which CameraX could record befor
 existed. The readiness predicate is covered for missing session, camera, permission and model cases;
 full recording/range acceptance remains on the device checklist.
 
-Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-capture-startup-qa`, versionCode
-648, includes the permission-recovery and session-readiness fixes. Artifact preflight passed. APK
-SHA-256 `db5a44c10350a339be3678bb348cf29d5ad299c6597345cb3aa2c38f0abde396`; AAB SHA-256
-`9273157d831cff3610f9e4b1872e09aa1011526f03fbb9c2ad2f785ad8d515ce`. Debug/release unit tests
-pass 40/40 each, release lint passes, and connected debug plus QA-signed minified-release smoke
+Failure-safe session startup (2026-10-10): a new session clears the old session capture gate before
+asynchronous creation. Required persistence errors are shown with a back-to-setup action; optional
+context and list-refresh errors are surfaced as warnings while preserving the successfully created
+session. Session, pre-check-in and soreness records are persisted within one Room transaction. A
+SQLite trigger failure-injection test proves the transaction rolls back both check-in and session.
+Debug/release unit tests pass 42/42 each.
+
+Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-session-transaction-qa`, versionCode
+650, includes permission recovery and failure-safe, transactional session startup. Artifact preflight
+passed. APK SHA-256 `8cf003d043218b744a7bb54febdfb5961f1a6569490c3ba63d7175646a7bacb9`; AAB SHA-256
+`2bda0988fde64fa3f3c99d79a738ea0949588bba0cd742f9b539f27ea60980e0`. Debug/release unit tests
+pass 42/42 each, release lint passes, and connected debug plus QA-signed minified-release smoke
 passes 6/6 each on API-35 ARM64 `emulator-5554`. This is QA-key evidence only.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 648 QA APK/AAB preflight passed; debug/release unit tests pass 40/40, release lint passes, connected debug and QA-signed minified-release instrumentation pass 6/6 each. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 650 QA APK/AAB preflight passed; debug/release unit tests pass 42/42, release lint passes, connected debug and QA-signed minified-release instrumentation pass 6/6 each. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -232,7 +239,7 @@ passes 6/6 each on API-35 ARM64 `emulator-5554`. This is QA-key evidence only.
 - Crocodyl: Quick Score keypad 10 → total update → undo → Activity recreation/resume/cleanup emulator smoke passed in debug and minified release, 6/6 each; only the newly created empty card is discarded.
 - Crocodyl: `c00d4f7` — synchronized CameraX capture windows; Android unit tests 34/34 each, lint and versionCode 646 QA artifact preflight passed.
 - Crocodyl: `712f388` and `5afb897` — reject colliding semver/versionCode inputs and require explicit codes for suffixed labels.
-- Crocodyl: current versionCode 648 QA APK/AAB preflight passed; API-35 ARM64 connected debug and QA-signed minified-release instrumentation passed 6/6 each; unit suites pass 40/40 and `lintRelease` passes.
+- Crocodyl: current versionCode 650 QA APK/AAB preflight passed; API-35 ARM64 connected debug and QA-signed minified-release instrumentation passed 6/6 each; unit suites pass 42/42 and `lintRelease` passes.
 - Crocodyl: `30f4cb9` — records the provisioned Android replay and current QA-only release boundary.
 - Shared-Libraries-asoc: `da50c62` — reconciled and published evidence-schema plus local-session transport history.
 - Crocodyl: `2063e84` — shared-library lock verifier negative-path coverage.

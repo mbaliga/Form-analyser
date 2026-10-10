@@ -178,12 +178,15 @@ on resume; the automated suite does not simulate the permission-dialog/settings 
 verify that behavior manually on the required device matrix. Unit tests cover the policy that
 distinguishes first request, retryable denial, permanent denial and granted state.
 Capture also waits for session persistence before enabling recording; the unit gate covers missing
-session, camera hardware, permission, and pose model.
-Current-tree QA APK/AAB `0.6.0-capture-startup-qa` / versionCode 648 passed artifact preflight.
-APK SHA-256 `db5a44c10350a339be3678bb348cf29d5ad299c6597345cb3aa2c38f0abde396`; AAB SHA-256
-`9273157d831cff3610f9e4b1872e09aa1011526f03fbb9c2ad2f785ad8d515ce`. Android debug/release unit
-tests pass 40/40 each and connected debug/QA-signed minified-release instrumentation pass 6/6 each.
-This is not production signing or physical-device/range acceptance.
+session, camera hardware, permission, and pose model. Session creation clears any previous capture
+target, persists session and pre-check-in/soreness rows atomically, presents a setup recovery route on
+required-write failure, and shows optional-context failures as warnings. A database-trigger rollback
+test verifies no partial rows remain.
+Current-tree QA APK/AAB `0.6.0-session-transaction-qa` / versionCode 650 passed artifact preflight.
+APK SHA-256 `8cf003d043218b744a7bb54febdfb5961f1a6569490c3ba63d7175646a7bacb9`; AAB SHA-256
+`2bda0988fde64fa3f3c99d79a738ea0949588bba0cd742f9b539f27ea60980e0`. Android debug/release unit
+tests pass 42/42 each, release lint passes, and connected debug/QA-signed minified-release
+instrumentation pass 6/6 each. This is not production signing or physical-device/range acceptance.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
@@ -256,9 +259,9 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
-- [x] Current-tree QA APK/AAB (`0.6.0-capture-startup-qa`, versionCode 648) passed release artifact
+- [x] Current-tree QA APK/AAB (`0.6.0-session-transaction-qa`, versionCode 650) passed release artifact
       preflight; connected debug and QA-signed minified-release instrumentation each passed 6/6 on
-      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 40/40 debug/release unit/lint
+      API-35 ARM64 `emulator-5554` (2026-10-10). Artifact digests and 42/42 debug/release unit/lint
       evidence are recorded above. This is not production signing or physical-device matrix
       acceptance.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.

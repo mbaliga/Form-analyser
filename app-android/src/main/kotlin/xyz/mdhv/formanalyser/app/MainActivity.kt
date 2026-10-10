@@ -316,7 +316,13 @@ private fun MainShell() {
                     { nav.navigate(Routes.S_RIGS) },
                 )
             }
-            composable(Routes.CAPTURE) { CaptureScreen(sessionVm) { nav.navigate(Routes.REVIEW) } }
+            composable(Routes.CAPTURE) {
+                CaptureScreen(
+                    sessionVm,
+                    onReview = { nav.navigate(Routes.REVIEW) },
+                    onBackToSetup = { nav.popBackStack() },
+                )
+            }
             // A deleted session has nothing left to review, so the screen cannot stay open on it.
             composable(Routes.REVIEW) { ReviewScreen(sessionVm) { nav.popBackStack() } }
             composable(Routes.SCORE) {
