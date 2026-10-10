@@ -3,6 +3,16 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-10 cinematic Home refresh: replaced the empty Hyle target-ring hero with the licensed
+photographer-created Recurve range photo, a high-contrast editorial scrim, and a non-repeating
+code-drawn Atelier motif; condensed Home action cards and replaced the full-width Material tab bar
+plus floating plus button with an inset dock preserving all five destinations and Quick Actions.
+Debug/release Android unit tests, release lint and connected debug smoke pass (7/7); Atelier asset
+contracts pass 9/9. Emulator evidence:
+`docs/crocodyl/visuals/screenshots/home-cinematic-refresh-api35.png`. Broader screen-by-screen visual
+work remains; this is not physical-device acceptance. Product direction and acceptance checks are in
+`docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+
 ## Product expansion addendum — 2026-10-09
 
 Photo provenance refresh (2026-10-10): replaced the generated Fencing Home-card image and added

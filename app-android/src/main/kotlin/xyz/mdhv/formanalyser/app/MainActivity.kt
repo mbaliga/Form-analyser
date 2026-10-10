@@ -5,6 +5,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -13,9 +22,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.*
@@ -278,9 +291,8 @@ private fun MainShell() {
             // exactly what popBackStack() did.
             else DetailBar(detailTitle(route)) { backDispatcher?.onBackPressed() }
         },
-        bottomBar = { if (onTab) BottomBar(route, injuries > 0) { navigateTab(nav, it) } },
-        floatingActionButton = {
-            if (onTab) FloatingActionButton(onClick = { quick = true }) { Text("+") }
+        bottomBar = {
+            if (onTab) BottomBar(route, injuries > 0, { quick = true }) { navigateTab(nav, it) }
         },
     ) { pad ->
         // imePadding() once here rather than on eleven screens: every text field in the app lives
@@ -452,7 +464,12 @@ private fun TopRow(title: String, onSettings: () -> Unit) {
 }
 
 @Composable
-private fun BottomBar(current: String?, badge: Boolean, onSelect: (String) -> Unit) {
+private fun BottomBar(
+    current: String?,
+    badge: Boolean,
+    onAdd: () -> Unit,
+    onSelect: (String) -> Unit,
+) {
     val items =
         listOf(
             Routes.HOME to (Icons.Filled.Home to "Home"),
@@ -461,19 +478,54 @@ private fun BottomBar(current: String?, badge: Boolean, onSelect: (String) -> Un
             Routes.BODY to (Icons.Filled.Accessibility to "Body"),
             Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
         )
-    NavigationBar(containerColor = Hyle.Surface) {
-        items.forEach { (dest, p) ->
-            val (icon: ImageVector, label) = p
-            NavigationBarItem(
-                current == dest,
-                { onSelect(dest) },
-                icon = {
-                    if (dest == Routes.BODY && badge)
-                        BadgedBox({ Badge { Text("!") } }) { Icon(icon, label) }
-                    else Icon(icon, label)
-                },
-                label = { Text(label) },
-            )
+    Row(
+        Modifier.fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(25.dp))
+            .background(Hyle.Surface.copy(alpha = .97f))
+            .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(25.dp))
+            .padding(5.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        items.forEach { (dest, pair) ->
+            val (icon: ImageVector, label) = pair
+            val selected = current == dest
+            Column(
+                Modifier.weight(1f).heightIn(min = 52.dp)
+                    .clip(RoundedCornerShape(19.dp))
+                    .background(if (selected) Hyle.Accent.copy(alpha = .18f) else Hyle.Surface.copy(alpha = 0f))
+                    .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(dest) })
+                    .padding(horizontal = 2.dp, vertical = 5.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                if (dest == Routes.BODY && badge) {
+                    BadgedBox({ Badge { Text("!") } }) {
+                        Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim)
+                    }
+                } else {
+                    Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim)
+                }
+                Text(
+                    label,
+                    color = if (selected) Hyle.OnBackground else Hyle.OnSurfaceDim,
+                    fontSize = 9.sp,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                    maxLines = 1,
+                )
+            }
+        }
+        Column(
+            Modifier.size(48.dp).clip(CircleShape)
+                .background(Hyle.Accent.copy(alpha = .17f))
+                .clickable(onClickLabel = "Open quick actions", role = Role.Button, onClick = onAdd),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Icon(Icons.Filled.Add, "Quick actions", tint = Hyle.AccentBright)
+            Text("Add", color = Hyle.OnBackground, fontSize = 9.sp, fontWeight = FontWeight.Medium)
         }
     }
 }

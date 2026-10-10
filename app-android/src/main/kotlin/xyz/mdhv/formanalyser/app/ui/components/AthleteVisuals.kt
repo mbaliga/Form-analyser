@@ -1,5 +1,7 @@
 package xyz.mdhv.formanalyser.app.ui.components
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,19 +14,26 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.domain.ShotView
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
@@ -38,62 +47,87 @@ fun CrocodylHero(
     streak: Int?,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val photograph = remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    LaunchedEffect(Unit) {
+        photograph.value = withContext(Dispatchers.IO) {
+            runCatching {
+                context.assets.open("atelier/cinematic/recurve-training.jpg").use {
+                    BitmapFactory.decodeStream(it)?.asImageBitmap()
+                }
+            }.getOrNull()
+        }
+    }
     Box(
         modifier
             .fillMaxWidth()
-            .height(224.dp)
+            .height(216.dp)
             .clip(RoundedCornerShape(30.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(Hyle.SurfaceRich, Hyle.Surface, Hyle.SurfaceDeep),
-                    start = Offset.Zero,
-                    end = Offset(1100f, 700f),
-                )
-            )
+            .background(Hyle.SurfaceDeep)
             .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),
     ) {
-        TargetConstellation(Modifier.fillMaxSize().align(Alignment.CenterEnd))
+        photograph.value?.let {
+            Image(
+                bitmap = it,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        }
+        Box(
+            Modifier.fillMaxSize().background(
+                Brush.horizontalGradient(
+                    colorStops = arrayOf(
+                        0f to Color(0xff08090d).copy(alpha = .94f),
+                        .48f to Color(0xff08090d).copy(alpha = .72f),
+                        1f to Color(0xff08090d).copy(alpha = .16f),
+                    ),
+                )
+            )
+        )
+        Box(
+            Modifier.fillMaxSize().background(
+                Brush.verticalGradient(
+                    0f to Color.Transparent,
+                    .58f to Color.Transparent,
+                    1f to Color(0xff08090d).copy(alpha = .72f),
+                )
+            )
+        )
         Column(
-            Modifier.fillMaxHeight().padding(22.dp),
+            Modifier.fillMaxHeight().fillMaxWidth(.78f).padding(horizontal = 20.dp, vertical = 18.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text("TODAY · ATHLETE", color = Hyle.OnSurfaceDim, fontSize = 11.sp, letterSpacing = 1.7.sp)
-                Text(athleteName, style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("CROCODYL  /  RECURVE", color = Hyle.RadiumGreen, fontSize = 10.sp, letterSpacing = 1.7.sp)
+                Text(athleteName, style = MaterialTheme.typography.headlineMedium, color = Color.White)
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    Modifier.clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = .42f))
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Box(
                         Modifier.size(9.dp).clip(CircleShape)
                             .background(if (ready) Hyle.RadiumGreen else Hyle.Warning)
                     )
-                    Text(readinessLabel, style = MaterialTheme.typography.titleLarge, color = Hyle.OnBackground)
+                    Text(readinessLabel, style = MaterialTheme.typography.labelLarge, color = Color.White)
                 }
-                readinessDetail?.let {
-                    Text(it, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.bodyMedium)
+                readinessDetail?.takeIf { !it.equals(readinessLabel, ignoreCase = true) }?.let {
+                    Text(
+                        it,
+                        color = Color.White.copy(alpha = .82f),
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                    )
                 }
-                streak?.let {
+                streak?.takeIf { it > 0 }?.let {
                     Text("$it day rhythm", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun TargetConstellation(modifier: Modifier = Modifier) {
-    Canvas(modifier) {
-        val center = Offset(size.width * .82f, size.height * .43f)
-        listOf(.37f, .28f, .19f, .10f).forEachIndexed { index, fraction ->
-            drawCircle(
-                color = if (index == 3) Hyle.RadiumGreen.copy(alpha = .32f) else Hyle.Accent.copy(alpha = .16f - index * .02f),
-                radius = size.minDimension * fraction,
-                center = center,
-                style = if (index == 3) Stroke(3f) else Stroke(1.5f),
-            )
-        }
-        drawLine(Hyle.OnBackground.copy(alpha = .22f), Offset(center.x - 120f, center.y + 112f), Offset(center.x + 42f, center.y - 34f), 2f)
-        drawCircle(Hyle.OnBackground.copy(alpha = .6f), 4f, center)
     }
 }
 
@@ -108,7 +142,7 @@ fun AthleteActionTile(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.height(126.dp),
+        modifier = modifier.height(108.dp),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = Hyle.Surface),
         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = .18f)),
