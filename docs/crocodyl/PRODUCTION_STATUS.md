@@ -15,8 +15,18 @@ generated churn. Existing GradleDependency update advisories remain; lint report
 findings. A CI trigger audit also found that Muay Thai, bouldering, and Gradle verification-file
 changes could miss some existing JVM/Android workflows; both push and pull-request filters now watch
 those paths. Contract tests lock the trigger coverage and require every pinned artifact to have a
-SHA-256 value; the release contract suite passes 8/8 and all 7 workflow files retain immutable action
-refs.
+SHA-256 value; the release workflow contract suite initially passed 8/8, before the version-input
+hardening and expanded coverage recorded below. All 7 workflow files retain immutable action refs.
+
+Release-input hardening (2026-10-10): the release workflow now rejects names outside a 1–64 character
+shell-safe allowlist, bounds semver-derived and user-supplied version codes using checked integer
+validation, and passes version outputs via environment variables instead of interpolating them into
+shell command source. The resolver is isolated in `tools/release/resolve_version.sh`, with static
+workflow contracts and runtime tests for semver, custom labels, injection strings and integer
+overflow. The combined release test suite passes 14/14 (9 workflow contracts + 5 resolver tests);
+YAML parsing, shell syntax, and immutable action refs across all 7 workflow files also pass. This
+protects the release workflow from command injection through manually dispatched version inputs; it
+does not change the production-secret or human-approval gates.
 
 Retained artifact preflight replay (2026-10-10): revalidated the existing Room 2.7.2 QA APK/AAB
 `0.6.0-room-272-qa` / versionCode 642 with `tools/release/verify_android_release.sh`. The APK and

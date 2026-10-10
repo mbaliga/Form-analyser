@@ -38,6 +38,16 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("CROCODYL_RELEASE_CERT_SHA256", self.workflow)
         self.assertIn("tools/release/verify_android_release.sh", self.workflow)
 
+    def test_release_version_is_bounded_and_not_interpolated_into_shell_source(self) -> None:
+        resolver = (ROOT / "tools" / "release" / "resolve_version.sh").read_text()
+        self.assertIn("bash tools/release/resolve_version.sh", self.workflow)
+        self.assertIn("^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$", resolver)
+        self.assertIn("version_code=\"$(python3 -c", resolver)
+        self.assertIn("RELEASE_VERSION: ${{ steps.ver.outputs.version }}", self.workflow)
+        self.assertIn('"$RELEASE_VERSION"', self.workflow)
+        self.assertNotIn('run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid --no-daemon -PcrocodylVersionName="${{', self.workflow)
+        self.assertNotIn('script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon -PcrocodylVersionName="${{', self.workflow)
+
     def test_release_runs_both_android_unit_variants_and_lint(self) -> None:
         self.assertIn(":app-android:testDebugUnitTest", self.workflow)
         self.assertIn(":app-android:testReleaseUnitTest", self.workflow)
