@@ -1,5 +1,6 @@
 package xyz.mdhv.formanalyser.app
 
+import android.graphics.Bitmap
 import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
@@ -7,6 +8,7 @@ import android.webkit.WebView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.google.mediapipe.framework.image.BitmapImageBuilder
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -39,6 +41,16 @@ class ProductionSmokeTest {
         ActivityScenario.launch(CommunityDirectoryActivity::class.java).use { directory ->
             directory.onActivity { activity -> assertTrue(activity.isFinishing.not()) }
         }
+    }
+
+    @Test
+    fun closingMediaPipeImageReleasesItsOwnedBitmap() {
+        val bitmap = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888)
+        val image = BitmapImageBuilder(bitmap).build()
+
+        assertFalse("The test bitmap should be live before MPImage close", bitmap.isRecycled)
+        image.close()
+        assertTrue("MPImage close should recycle the BitmapImageContainer's bitmap", bitmap.isRecycled)
     }
 
     @Test

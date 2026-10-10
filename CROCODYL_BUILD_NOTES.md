@@ -12,8 +12,9 @@ passed 25/25 each and release lint passed. A fresh minified QA APK/AAB `0.6.0-me
 (versionCode 644) passed artifact preflight (APK SHA-256
 `2e71ad2eecb6f19d67bcdf1286e1c23af308da693b2494ccadf6044da49f2bef`; AAB SHA-256
 `bc7ada1bf9ec3507e22da5b38756fcd479e7f1f523a9e134cc820b2efb8ded8f`) and minified release
-instrumentation passed 3/3 on API-35 ARM64 `emulator-5556`. Both artifacts use the committed QA/debug
-identity, not the production signer.
+instrumentation passed 4/4 on API-35 ARM64 `emulator-5556`, including a runtime assertion that
+`MPImage.close()` recycles its owned bitmap. Both artifacts use the committed QA/debug identity, not
+the production signer.
 
 Release workflow input hardening (2026-10-10): extracted version resolution into
 `tools/release/resolve_version.sh`; only bounded shell-safe version labels are accepted, version-code

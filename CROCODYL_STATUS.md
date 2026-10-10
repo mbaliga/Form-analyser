@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-mediapipe-image-qa` (versionCode 644), minified release instrumentation 3/3 on API-35 ARM64 · production release: **not approved**_
+_Last reviewed: 2026-10-10 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-mediapipe-image-qa` (versionCode 644), minified release instrumentation 4/4 on API-35 ARM64 · production release: **not approved**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
