@@ -3,6 +3,17 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-11 cinematic scoring entry: replaced the repeated “Score” heading and generic button stack
+with an editorial “Every arrow, accounted for” panel, an explicitly labelled code-drawn example
+ten-ring target, and a strong Quick score action. Scorecard creation, input modes and persistence are
+unchanged. A connected accessibility assertion checks the exact multiline headline. Updated screenshot:
+`docs/crocodyl/visuals/screenshots/score-cinematic-refresh-api35.png`. Android unit tests and release
+lint passed; connected debug and QA-signed minified-release suites passed 7/7 each on API-35 ARM64.
+QA APK/AAB `0.6.0-score-editorial-qa`, versionCode 656, passed release preflight; APK SHA-256
+`d55704359703ae8eb75171fa7bfb25d7be010a3d5bff850508758ead9c23c7f6`, AAB SHA-256
+`c9a99ec37874d47aea5961257f296967cdeb0f03bb63bc5238d9494cde7b80d6`. QA/debug certificate only,
+not production signing or physical-device acceptance. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+
 2026-10-11 Progress hierarchy follow-up: removed the duplicate “Progress” title from the hero card;
 it now reads “Training, in context,” with a connected accessibility assertion. The updated screenshot
 is archived at `docs/crocodyl/visuals/screenshots/progress-cinematic-refresh-api35.png`. Clean
@@ -11,8 +22,7 @@ minified-release connected tests all passed (7/7 connected tests each). QA APK/A
 `0.6.0-progress-editorial-qa`, versionCode 655, passed release preflight; APK SHA-256
 `0fa63ab8e394664d423c6cc0e971febb2cc2c80222c7b083e16b66fe91f5e18a`, AAB SHA-256
 `5711f9e52c35ce2da2d5f8435603a1eeccdaed68a00cfbd2ca084f1b5fd832bd`. QA/debug certificate only,
-not production signing or physical-device acceptance. Full test/contract replay from this work
-session is recorded below; see `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+not production signing or physical-device acceptance. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
 
 2026-10-11 full-tree regression replay: `./gradlew test -PwithAndroid --offline --no-daemon` passed
 (104 actionable tasks; root JVM and Android debug/release unit-test variants). A separate

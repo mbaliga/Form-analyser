@@ -24,6 +24,11 @@ shows WA Recurve 70 m selected and the primary action enabled; it is a visual re
 that a session was recorded. The Progress image shows the evidence-led empty state. No AI-generated
 visual assets were used.
 
+The Score landing visual is captured at
+[`screenshots/score-cinematic-refresh-api35.png`](screenshots/score-cinematic-refresh-api35.png),
+also at 1080×1920 on API 35 with the QA profile. It uses the real target-face renderer in noninteractive
+example mode and does not claim a round has been selected or scored.
+
 Home problems visible in Crocodyl's screenshot:
 
 - The hero occupies about one-third of the usable screen but is only a blank gradient with target
@@ -82,7 +87,10 @@ management, autofill, pinning, handedness, pre-check-in, and session-start behav
 Progress now reads as a local training ledger: an editorial code-drawn header, consistent evidence
 cards and rows, and explicit explanations when score, pose-repeatability, or equipment comparisons
 do not yet have sufficient data. It preserves current calculations, normalized-score labeling,
-sample counts, and non-causal interpretation.
+sample counts, and non-causal interpretation. The Progress hero heading is distinct from its tab
+title. The Score landing now has a compact editorial panel, an explicitly labelled code-drawn
+example target face, and a differentiated Quick score primary action; score creation and inputs are
+unchanged.
 This does not yet refresh every screen; continue from real emulator captures.
 
 2026-10-10 validation: Android debug and release unit-test tasks, `lintRelease`, and connected debug
@@ -93,7 +101,7 @@ passes 9/9, including the source/license and checksum contract for the Home hero
 follow-up Train setup change explains the disabled Start action until a round/distance is selected;
 connected debug instrumentation passed 7/7 with an accessibility assertion for that guidance.
 These are emulator and local-build results, not physical-device visual acceptance. The checked-in
-screenshots cover Home, Train and Progress only; the other primary destinations remain visually
+screenshots cover Home, Train, Progress and Score entry; the other primary destinations remain visually
 unfinished and are still part of the refresh.
 
 ## Screen-by-screen target direction

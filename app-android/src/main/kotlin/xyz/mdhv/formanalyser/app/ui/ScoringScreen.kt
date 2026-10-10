@@ -6,11 +6,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.ZoneId
@@ -24,6 +27,7 @@ import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.rememberHaptics
 import xyz.mdhv.formanalyser.scoring.RoundPack
+import xyz.mdhv.formanalyser.scoring.FaceLayout
 import xyz.mdhv.formanalyser.scoring.ScoreInput
 import xyz.mdhv.formanalyser.scoring.SetMatchSummary
 
@@ -57,20 +61,52 @@ fun ScoringScreen(vm: ScoringViewModel) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                Text(
-                    "Score",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Hyle.OnBackground,
-                )
+                Card(
+                    shape = RoundedCornerShape(26.dp),
+                    colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceRich),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.HairlineStrong),
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 16.dp),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Column(
+                            Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                "ON THE LINE  /  LOCAL SCORE",
+                                color = Hyle.RadiumGreen,
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                            Text(
+                                "Every arrow,\naccounted for.",
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = Hyle.OnBackground,
+                            )
+                            Text(
+                                "Manual scoring stays on this device and resumes safely.",
+                                color = Hyle.OnSurfaceDim,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        TargetFaceCanvas(
+                            arrows = emptyList(),
+                            layout = FaceLayout.SINGLE,
+                            enabled = false,
+                            onPlot = {},
+                            modifier = Modifier.size(104.dp)
+                                .semantics { contentDescription = "Example ten-ring target face" },
+                        )
+                    }
+                }
             }
             item {
-                Text(
-                    "Manual scoring is local and interruption-safe. Numeric, plot and observer inputs share one authoritative scorecard.",
-                    color = Hyle.OnSurfaceDim,
-                )
-            }
-            item {
-                Button(onClick = vm::quickStart, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = vm::quickStart,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                ) {
                     Text("Quick score")
                 }
             }

@@ -102,6 +102,7 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Crocodyl")
 
                 clickTextEventually(instrumentation, "Score")
+                assertTextEventually(instrumentation, "Every arrow,\naccounted for.")
                 assertTextEventually(instrumentation, "Quick score")
                 clickTextEventually(instrumentation, "Choose round")
                 assertTextEventually(instrumentation, "WA Recurve 70 m · 72 arrows")
@@ -133,6 +134,7 @@ class ProductionSmokeTest {
                 assumeTrue("Quick Score smoke requires no pre-existing active scorecard", runBlocking { repository.resumeActive() == null })
 
                 clickTextEventually(instrumentation, "Score")
+                assertTextEventually(instrumentation, "Every arrow,\naccounted for.")
                 clickTextEventually(instrumentation, "Quick score")
                 quickScoreRequested = true
                 val created = waitForActiveScorecard(repository)

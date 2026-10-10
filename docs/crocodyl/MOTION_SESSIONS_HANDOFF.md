@@ -351,11 +351,11 @@ Before implementation, record an owner decision for each:
   lifecycle principles, not camera records or scoring assumptions.
 - Sports currently visible in Home include Recurve, Fencing (manual referee/scaffold), Muay Thai and
   Bouldering journals. Their visible cards do not mean motion capture is implemented or validated.
-- The app's Home, Train setup and Progress now have initial cinematic/Hyle refresh passes, with
-  API-35 emulator captures in `docs/crocodyl/visuals/screenshots/`. Other destinations remain
+- The app's Home, Train setup, Progress and Score entry now have initial cinematic/Hyle refresh
+  passes, with API-35 emulator captures in `docs/crocodyl/visuals/screenshots/`. Other destinations remain
   unfinished. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
   motion-analysis validity. Use licensed actual photography only; no AI-generated imagery.
-- Last recorded Recurve QA build: `0.6.0-progress-editorial-qa`, versionCode 655, QA signer, not
+- Last recorded Recurve QA build: `0.6.0-score-editorial-qa`, versionCode 656, QA signer, not
   production approved. Production keystore/CI signing, physical-device/range matrix and owner
   release sign-off remain outstanding.
 
