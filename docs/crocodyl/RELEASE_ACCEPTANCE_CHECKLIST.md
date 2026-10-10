@@ -143,6 +143,16 @@ preflight (`0.6.0-camera-lifecycle-qa`, versionCode 643). APK SHA-256
 `1ee7e696dc1080b54382a3fc8c4c1ff538e4c88c28e15a1da222b481253a9024`. This does not satisfy
 connected instrumentation for the changed code, production signing, or physical-device acceptance.
 
+MediaPipe frame ownership follow-up: 2026-10-10. `PoseRecorder.process` now closes each synchronous
+`MPImage` after detection; MediaPipe's bitmap container recycles its owned bitmap on close. If MPImage
+construction fails, the still-unowned bitmap is recycled directly. Debug/release unit tests and
+`lintRelease` pass offline with Gradle dependency verification enabled. Fresh minified QA APK/AAB
+`0.6.0-mediapipe-image-qa` / versionCode 644 passed release preflight: APK SHA-256
+`2e71ad2eecb6f19d67bcdf1286e1c23af308da693b2494ccadf6044da49f2bef`; AAB SHA-256
+`bc7ada1bf9ec3507e22da5b38756fcd479e7f1f523a9e134cc820b2efb8ded8f`. Minified release
+instrumentation passed 3/3 on API-35 ARM64 `emulator-5556`. These are QA-key artifacts and emulator
+evidence only; production signing and physical-device/range acceptance remain open.
+
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
 Android unit-test suites plus release lint passed with this test included.

@@ -42,8 +42,13 @@ MediaPipe frame ownership follow-up (2026-10-10): `PoseRecorder.process` now clo
 construction itself fails, the still-unowned bitmap is recycled directly. This closes a per-frame
 native bitmap retention path while preserving CameraX `ImageProxy` cleanup. Android debug/release
 unit tests and `lintRelease` pass on this checkout with Gradle dependency verification enabled and
-offline; this source-only follow-up was not rebuilt into a QA APK/AAB and has no new connected-device
-run. The previously recorded hashes therefore do not describe this change.
+offline. Fresh minified QA APK/AAB `0.6.0-mediapipe-image-qa` / versionCode 644 then passed release
+preflight. APK SHA-256 is
+`2e71ad2eecb6f19d67bcdf1286e1c23af308da693b2494ccadf6044da49f2bef`; AAB SHA-256 is
+`bc7ada1bf9ec3507e22da5b38756fcd479e7f1f523a9e134cc820b2efb8ded8f`. The minified release
+instrumentation suite also passed 3/3 on API-35 ARM64 `emulator-5556`. Both artifacts use the
+committed QA/debug signing identity; none of this substitutes for production signing or physical
+device/range acceptance.
 
 Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
 Home cards and local Room records are present on this branch; see
