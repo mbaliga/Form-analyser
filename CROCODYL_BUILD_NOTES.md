@@ -27,9 +27,10 @@ production-signed.
 Camera permission recovery (2026-10-10): CaptureScreen now offers an App Settings deep link after a
 permanent camera-permission denial instead of repeating a request that Android will not show, and
 rechecks permission on Activity resume after the athlete returns from Settings. Debug/release unit
-suites, `lintRelease`, and connected debug plus QA-signed minified-release instrumentation pass on
-API-35 ARM64. The emulator suite does not automate the permission prompt/settings round trip; manual
-matrix acceptance remains required.
+suites include four tests for initial request, retryable denial, permanent denial and granted state;
+`lintRelease`, and connected debug plus QA-signed minified-release instrumentation pass on API-35
+ARM64. The emulator suite does not automate the permission prompt/settings round trip; manual matrix
+acceptance remains required.
 
 Scoring repository coverage (2026-10-10): `ScoringRepository` retains its public Context-based
 construction and now has an internal Room-database constructor for isolated repository integration

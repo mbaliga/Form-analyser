@@ -50,6 +50,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import java.util.concurrent.Executors
 import xyz.mdhv.formanalyser.app.capture.DeferredResourceBinding
+import xyz.mdhv.formanalyser.app.capture.cameraPermissionRequiresSettings
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.provenanceGlow
@@ -80,7 +81,12 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
             granted = it
             permissionRequested = true
             permissionDeniedPermanently =
-                !it && context.findActivity()?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == false
+                cameraPermissionRequiresSettings(
+                    requestCompleted = true,
+                    granted = it,
+                    shouldShowRationale =
+                        context.findActivity()?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == true,
+                )
         }
     DisposableEffect(lifecycleOwner, context, permissionRequested) {
         val observer = LifecycleEventObserver { _, event ->
@@ -90,7 +96,12 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
                         PackageManager.PERMISSION_GRANTED
                 if (permissionRequested && !granted) {
                     permissionDeniedPermanently =
-                        context.findActivity()?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == false
+                        cameraPermissionRequiresSettings(
+                            requestCompleted = true,
+                            granted = false,
+                            shouldShowRationale =
+                                context.findActivity()?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == true,
+                        )
                 } else if (granted) {
                     permissionDeniedPermanently = false
                 }
