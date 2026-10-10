@@ -195,6 +195,12 @@ current tree passes connected debug and minified-release instrumentation 6/6 eac
 `emulator-5554`; the minified run uses the committed QA/debug signing key, not a production identity.
 This is scoring-flow emulator evidence, not physical-device, range, or production-signing acceptance.
 
+Camera permission recovery follow-up (2026-10-10): CaptureScreen now offers an App Settings deep
+link after permanent denial and refreshes camera permission on Activity resume. Android debug and
+release unit suites, `lintRelease`, and connected debug plus QA-signed minified-release
+instrumentation pass on API-35 ARM64. The connected smoke does not simulate permission denial or the
+Settings round trip, so those still need manual acceptance on the required device matrix.
+
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
 | Recurve Android build | QA production candidate | VersionCode 646 QA APK/AAB preflight passed; Android debug/release unit tests pass 34/34, release lint passes, connected debug and QA-signed minified-release instrumentation pass 6/6 each, including all primary tabs, Quick Score numeric entry/undo, and resume. Production signer and physical acceptance remain open. |

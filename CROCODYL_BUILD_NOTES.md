@@ -24,6 +24,13 @@ AAB SHA-256 `89dac947a6f9234e7055e4ee60cd1702d64e74955b8b2e3f771d4b79144e3abb`. 
 hashes with either GNU `sha256sum` or macOS `shasum`; the artifacts remain QA-key-signed, not
 production-signed.
 
+Camera permission recovery (2026-10-10): CaptureScreen now offers an App Settings deep link after a
+permanent camera-permission denial instead of repeating a request that Android will not show, and
+rechecks permission on Activity resume after the athlete returns from Settings. Debug/release unit
+suites, `lintRelease`, and connected debug plus QA-signed minified-release instrumentation pass on
+API-35 ARM64. The emulator suite does not automate the permission prompt/settings round trip; manual
+matrix acceptance remains required.
+
 Scoring repository coverage (2026-10-10): `ScoringRepository` retains its public Context-based
 construction and now has an internal Room-database constructor for isolated repository integration
 tests. Five tests exercise close/reopen/resume of an active scorecard with an X, reject impossible

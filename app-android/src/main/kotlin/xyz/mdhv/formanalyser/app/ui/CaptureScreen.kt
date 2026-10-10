@@ -1,7 +1,13 @@
 package xyz.mdhv.formanalyser.app.ui
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,6 +43,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -49,6 +57,7 @@ import xyz.mdhv.formanalyser.app.ui.theme.provenanceGlow
 @Composable
 fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     // Two different questions that were previously conflated under one `hasCamera` flag: does this
     // device HAVE a camera, and have we been GRANTED it. The manifest no longer requires camera
     // hardware (that made the app un-installable on camera-less Chromebooks), so the app must now
@@ -64,10 +73,32 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
                 PackageManager.PERMISSION_GRANTED
         )
     }
+    var permissionRequested by rememberSaveable { mutableStateOf(false) }
+    var permissionDeniedPermanently by rememberSaveable { mutableStateOf(false) }
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
             granted = it
+            permissionRequested = true
+            permissionDeniedPermanently =
+                !it && context.findActivity()?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == false
         }
+    DisposableEffect(lifecycleOwner, context, permissionRequested) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                granted =
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                        PackageManager.PERMISSION_GRANTED
+                if (permissionRequested && !granted) {
+                    permissionDeniedPermanently =
+                        context.findActivity()?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == false
+                } else if (granted) {
+                    permissionDeniedPermanently = false
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     LaunchedEffect(hasCameraHardware) {
         if (hasCameraHardware && !granted) launcher.launch(Manifest.permission.CAMERA)
     }
@@ -146,9 +177,27 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
                 Modifier.fillMaxWidth().height(360.dp).provenanceGlow(Hyle.RadiumGreen),
             )
         } else {
-            Text("Camera permission is required to analyse form.", color = Hyle.Danger)
-            Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) {
-                Text("Grant camera")
+            Text(
+                if (permissionDeniedPermanently)
+                    "Camera access is blocked. Allow it in app settings to analyse form."
+                else "Camera permission is required to analyse form.",
+                color = Hyle.Danger,
+            )
+            Button(
+                onClick = {
+                    if (permissionDeniedPermanently) {
+                        context.startActivity(
+                            Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", context.packageName, null),
+                            )
+                        )
+                    } else {
+                        launcher.launch(Manifest.permission.CAMERA)
+                    }
+                }
+            ) {
+                Text(if (permissionDeniedPermanently) "Open app settings" else "Grant camera")
             }
         }
 
@@ -180,6 +229,13 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
         }
     }
 }
+
+private tailrec fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
 
 @Composable
 private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
