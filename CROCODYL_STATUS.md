@@ -221,7 +221,7 @@ app-android/       the app: Compose UI, Room, CameraX, MediaPipe, providers, vau
 (all of the above in one APK) · `v0.5.1` (reconciled onto `main`'s `crocodyl.engine` package rename).
 The current hardening branch keeps the development default **`0.6.0-spec-dev`** metadata. Its latest
 QA-only minified package is **`0.6.0-scoring-repository-qa`** (versionCode 645): APK/AAB preflight
-passed, debug/release unit tests passed 28/28 each, `lintRelease` passed, and connected debug plus
+passed, debug/release unit tests passed 30/30 each, `lintRelease` passed, and connected debug plus
 minified-release instrumentation each passed 4/4 on API-35 ARM64. Recent hardening also closes
 MediaPipe frame-image resources, tests scoring repository persistence/invariants, and validates
 release version inputs before they reach shell commands. The package is signed with the QA/debug key,
