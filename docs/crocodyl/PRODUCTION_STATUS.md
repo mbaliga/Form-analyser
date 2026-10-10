@@ -4,11 +4,14 @@ Last reviewed: 2026-10-10
 
 Visual-system follow-up (2026-10-10): Home now uses the bundled, provenance-checked Recurve photo
 with an editorial scrim; action cards are more compact, repeated readiness copy is removed, the
-Atelier motif avoids repeating the same photograph, and primary navigation is an inset dock.
+Atelier motif avoids repeating the same photograph, and primary navigation is an inset dock. Train
+setup now has a range-specific setup panel, horizontal round picker, grouped editable parameters,
+and persistent start action while retaining existing session setup behavior.
 API-35 screenshot evidence and the screen-by-screen plan are in
 [`visuals/CINEMATIC_APP_REFRESH.md`](visuals/CINEMATIC_APP_REFRESH.md). Android debug/release unit
 tests, release lint, connected debug smoke (7/7), and Atelier photo/asset contracts (9/9) pass. This
-refresh is partial; other surfaces and physical-device acceptance remain open.
+refresh is partial; Train has not yet received its own checked-in screenshot, and other surfaces and
+physical-device acceptance remain open.
 
 Dependency-integrity follow-up (2026-10-10): added Gradle SHA-256 dependency verification for the
 resolved build graph (`gradle/verification-metadata.xml`: 556 components, 1,007 artifact hashes;

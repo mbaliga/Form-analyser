@@ -13,6 +13,15 @@ contracts pass 9/9. Emulator evidence:
 work remains; this is not physical-device acceptance. Product direction and acceptance checks are in
 `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
 
+2026-10-10 Train setup visual pass: added a compact code-drawn range setup panel, horizontal built-in
+round picker, grouped editable distance/face/arrow fields, clearer practice-detail hierarchy, and a
+persistent Start recording action. Kept active-rig management, smart defaults, pinned setup,
+handedness override, pre-check-in and session creation behavior. Debug/release unit-test tasks and
+`lintRelease` completed in the verification run; connected debug instrumentation passed 7/7. ADB
+reconnect was sandbox-restricted during the first capture attempt, and the subsequent emulator
+reinstall returned to first-run onboarding, so no Train screenshot is claimed. See
+`docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is not physical-device acceptance.
+
 ## Product expansion addendum — 2026-10-09
 
 Photo provenance refresh (2026-10-10): replaced the generated Fencing Home-card image and added

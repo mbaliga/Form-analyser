@@ -67,13 +67,19 @@ training image already bundled in the app, preserves a strong left-side text scr
 Score cards, suppresses duplicate readiness copy and hides a zero-day streak. The Equipment Atelier
 card now uses a code-drawn target motif instead of repeating the same photo; the motif is decoration,
 not a target/equipment reference. The standard bottom bar is replaced with an inset floating dock.
+The Train setup screen now carries that visual grammar into a quieter range workflow: a compact,
+code-drawn range panel (no repeated photo), horizontally browsable round choices, grouped editable
+session parameters, clearer practice-detail sections, and a persistent bottom start action. Rig
+management, autofill, pinning, handedness, pre-check-in, and session-start behavior remain intact.
 This does not yet refresh every screen; continue from real emulator captures.
 
 2026-10-10 validation: Android debug and release unit-test tasks, `lintRelease`, and connected debug
-instrumentation passed (7/7) after these Compose changes. The connected suite covers all five
-primary tabs and Quick Score. `tools/atelier/test_assets.py` passes 9/9, including the source/license
-and checksum contract for the Home hero photograph. These are emulator and local-build results, not
-physical-device visual acceptance.
+instrumentation passed (7/7) after the Home and Train Compose changes. The connected suite covers all
+five primary tabs and Quick Score. `tools/atelier/test_assets.py` passes 9/9, including the
+source/license and checksum contract for the Home hero photograph. These are emulator and
+local-build results, not physical-device visual acceptance. The emulator's ADB server could not be
+restarted in the current sandbox to capture a second Train screenshot, so only the existing Home
+after-shot is currently checked in.
 
 ## Screen-by-screen target direction
 
