@@ -5,6 +5,18 @@ convention: this is one autonomous build across Phases 1–3, so notes are conso
 
 ## Product expansion addendum — 2026-10-09
 
+Dependency integrity follow-up (2026-10-10): added `gradle/verification-metadata.xml` with
+SHA-256 pins for the current resolved build graph (556 components, 1,007 artifact hashes;
+`verify-metadata=true`, signature verification disabled). An initial enforcement replay caught 23
+missing hashes in the detached Android lint toolchain; those were captured and reviewed as part of
+the same pinned graph. The final Gradle replay, with metadata writing disabled and Gradle offline,
+passed root JVM tests, Android debug/release unit-test variants, and `lintRelease` (111 actionable
+tasks; 4 executed, 107 up-to-date). This proves the exercised cached artifacts match the recorded
+hashes and no unpinned download was needed. The pins record the locally resolved baseline; they do
+not independently authenticate artifact publishers. Dependency changes must update and review the
+lock metadata deliberately. Lint still reports its existing GradleDependency advisories; no
+app-source findings were reported.
+
 Added Muay Thai and bouldering as distinct pure-JVM sport modules and local manual training
 journals. The Home feed now opens cinematic, sport-specific experiences. Muay Thai captures focus,
 round/work/rest structure and effort; bouldering preserves the athlete's grade system and label,

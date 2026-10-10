@@ -1,6 +1,18 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-09
+Last reviewed: 2026-10-10
+
+Dependency-integrity follow-up (2026-10-10): added Gradle SHA-256 dependency verification for the
+resolved build graph (`gradle/verification-metadata.xml`: 556 components, 1,007 artifact hashes;
+metadata verification enabled, signature verification disabled). An initial enforcement replay
+found 23 missing hashes in Android's detached lint configuration; after completing the baseline,
+the full Gradle test + Android debug/release unit-test + `lintRelease` replay passed with metadata
+writing disabled and `--offline` (111 actionable tasks, 4 executed, 107 up-to-date). This confirms
+the exercised dependencies match their lock entries and that Gradle required no unpinned artifact
+downloads. The baseline hashes bytes obtained from configured repositories; they are not independent
+publisher authentication. Treat future metadata changes as reviewed dependency updates, not routine
+generated churn. Existing GradleDependency update advisories remain; lint reported no app-source
+findings.
 
 Product continuation (2026-10-09): Muay Thai and bouldering manual journals, sport-module seams,
 Home cards and local Room records are present on this branch; see
