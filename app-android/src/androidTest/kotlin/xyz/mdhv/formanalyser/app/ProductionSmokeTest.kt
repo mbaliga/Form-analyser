@@ -81,6 +81,7 @@ class ProductionSmokeTest {
 
                 clickBottomTabEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "New session")
+                assertTextEventually(instrumentation, "Choose a round or enter distance to begin.")
 
                 clickBottomTabEventually(instrumentation, "Progress")
                 assertTextEventually(

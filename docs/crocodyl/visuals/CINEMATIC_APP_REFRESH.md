@@ -16,6 +16,14 @@ Post-refresh emulator evidence is checked in at
 API-35 ARM64 emulator, QA profile `QA`, 1080×1920. It shows the Recurve hero, primary actions,
 non-photographic Atelier motif, and inset dock in one viewport.
 
+Additional real-render evidence is checked in at
+[`screenshots/train-setup-cinematic-refresh-api35.png`](screenshots/train-setup-cinematic-refresh-api35.png)
+and [`screenshots/progress-cinematic-refresh-api35.png`](screenshots/progress-cinematic-refresh-api35.png).
+Both are API-35 ARM64 emulator captures at 1080×1920 with a temporary `QA` profile. The Train image
+shows WA Recurve 70 m selected and the primary action enabled; it is a visual review aid, not proof
+that a session was recorded. The Progress image shows the evidence-led empty state. No AI-generated
+visual assets were used.
+
 Home problems visible in Crocodyl's screenshot:
 
 - The hero occupies about one-third of the usable screen but is only a blank gradient with target
@@ -81,9 +89,12 @@ This does not yet refresh every screen; continue from real emulator captures.
 instrumentation passed (7/7) after these Compose changes. The connected suite covers all five
 primary tabs, Quick Score, and accessible Progress empty-state copy. QA/debug-signed minified-release
 instrumentation also passed (7/7); its signer is not the production signer. `tools/atelier/test_assets.py`
-passes 9/9, including the source/license and checksum contract for the Home hero photograph. These
-are emulator and local-build results, not physical-device visual acceptance. Only the Home
-after-shot is checked in; separate Train and Progress screenshots remain to be captured and reviewed.
+passes 9/9, including the source/license and checksum contract for the Home hero photograph. A
+follow-up Train setup change explains the disabled Start action until a round/distance is selected;
+connected debug instrumentation passed 7/7 with an accessibility assertion for that guidance.
+These are emulator and local-build results, not physical-device visual acceptance. The checked-in
+screenshots cover Home, Train and Progress only; the other primary destinations remain visually
+unfinished and are still part of the refresh.
 
 ## Screen-by-screen target direction
 

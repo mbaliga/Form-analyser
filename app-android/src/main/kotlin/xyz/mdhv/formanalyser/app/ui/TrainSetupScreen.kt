@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
@@ -75,6 +76,7 @@ fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: 
             selectedRound,
             intent.trim().takeIf { it.isNotEmpty() },
         )
+    val canStart = distance.toIntOrNull()?.let { it > 0 } == true
     if (preGate)
         PreCheckinSheet(
             handedness = override ?: handedness,
@@ -201,10 +203,19 @@ fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: 
             Modifier.fillMaxWidth().background(Hyle.Background)
                 .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 8.dp),
         ) {
+            if (!canStart) {
+                Text(
+                    "Choose a round or enter distance to begin.",
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    color = Hyle.OnBackground,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                )
+            }
             Button(
                 onClick = { preGate = true },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
-                enabled = distance.toIntOrNull()?.let { it > 0 } == true,
+                enabled = canStart,
             ) {
                 Text("Start recording")
             }

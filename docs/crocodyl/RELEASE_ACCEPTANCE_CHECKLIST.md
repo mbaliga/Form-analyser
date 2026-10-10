@@ -206,14 +206,14 @@ The QA APK also installs, completes onboarding and opens Home; visual inspection
 Recurve/Fencing photo cards render in the feed. QA signer only; physical device/range acceptance
 remains.
 
-Current visual-refresh QA build (2026-10-10): `0.6.0-progress-cinematic-qa` / versionCode 653.
-The minified APK/AAB passed `tools/release/verify_android_release.sh` with QA/debug certificate
-SHA-256 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. APK SHA-256
-`34246c0fb6f618441dea54accf9dbefbe7c045513926b5ebcc14ba954bef7079`; AAB SHA-256
-`33ac507e8152aaf79c3e0530443d8eecea47f653e294e9bcb607e2d51a57bc65`. Connected debug and
-QA/debug-signed minified-release instrumentation pass 7/7 each, including visible Progress
-empty-state/accessibility checks. The QA key is not the production signer; physical-device/range
-acceptance remains open.
+Current visual-refresh QA build (2026-10-10): `0.6.0-train-guidance-qa` / versionCode 654. The
+minified APK/AAB passed `tools/release/verify_android_release.sh` with QA/debug certificate SHA-256
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. APK SHA-256
+`724fd8b748a0c7b23819790c5a32530926c2bb7dc03b48ae7e71096dbb2111c0`; AAB SHA-256
+`aa46f688479a9a4ad80f9c6807a3c95658bc692754a52957b17c493076307b5e`. Connected debug and
+QA/debug-signed minified-release instrumentation pass 7/7 each, including Train guidance and
+Progress empty-state accessibility checks. The QA key is not the production signer;
+physical-device/range acceptance remains open.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
@@ -286,7 +286,7 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
-- [x] Current-tree QA APK/AAB (`0.6.0-progress-cinematic-qa`, versionCode 653) passed release artifact
+- [x] Current-tree QA APK/AAB (`0.6.0-train-guidance-qa`, versionCode 654) passed release artifact
       preflight; connected debug and QA/debug-signed minified-release instrumentation each passed
       7/7 on API-35 ARM64 `emulator-5554` (2026-10-10). This includes Android decoding checks for
       sport photos and Progress evidence-empty-state accessibility checks. APK/AAB digests and

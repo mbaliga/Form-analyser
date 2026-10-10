@@ -232,21 +232,20 @@ final session insert, including removal of already-inserted soreness rows. Debug
 pass 44/44 each. Session startup also rejects duplicate requests while a start or capture is in
 flight, and setup navigation occurs only for an accepted start.
 
-Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-progress-cinematic-qa`, versionCode
-653, includes the current Recurve source and Progress visual/evidence-empty-state refresh. Release
-preflight passed. APK SHA-256
-`34246c0fb6f618441dea54accf9dbefbe7c045513926b5ebcc14ba954bef7079`; AAB SHA-256
-`33ac507e8152aaf79c3e0530443d8eecea47f653e294e9bcb607e2d51a57bc65`. APK and AAB share the
+Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-train-guidance-qa`, versionCode
+654, includes the current Recurve source, Progress evidence-empty-state refresh, and higher-contrast
+Train setup guidance when the primary action is disabled. Release preflight passed. APK SHA-256
+`724fd8b748a0c7b23819790c5a32530926c2bb7dc03b48ae7e71096dbb2111c0`; AAB SHA-256
+`aa46f688479a9a4ad80f9c6807a3c95658bc692754a52957b17c493076307b5e`. APK and AAB share the
 committed QA/debug signing certificate `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`.
-Debug/release unit tests pass 44/44 each, release lint passes, Atelier asset contracts pass 9/9, and
-release workflow/version contracts pass 17/17. Connected debug and QA-signed minified-release
-instrumentation each pass 7/7 on API-35 ARM64 `emulator-5554`, including sport-photo decoding,
-Quick Score resume/undo, primary-tab navigation and Progress empty-state accessibility. QA signing
-only; production signing and physical-device/range acceptance remain open.
+Connected debug and QA-signed minified-release instrumentation each pass 7/7 on API-35 ARM64
+`emulator-5554`, including accessibility checks for the Train first-run guidance and Progress
+empty states. These results are emulator/build evidence, not physical-device/range acceptance.
+QA signing only; production signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 653 QA APK/AAB preflight passed; debug/release unit tests pass 44/44, release lint and Atelier assets 9/9 pass, connected debug and QA-signed minified-release instrumentation each pass 7/7 on API-35 ARM64. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 654 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 7/7 each on API-35 ARM64. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

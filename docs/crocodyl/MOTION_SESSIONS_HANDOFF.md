@@ -351,11 +351,26 @@ Before implementation, record an owner decision for each:
   lifecycle principles, not camera records or scoring assumptions.
 - Sports currently visible in Home include Recurve, Fencing (manual referee/scaffold), Muay Thai and
   Bouldering journals. Their visible cards do not mean motion capture is implemented or validated.
-- The current app's Home visuals are being refreshed to align more closely with Bocal's cinematic
-  Hyle expression. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
-  motion-analysis validity.
-- Last recorded Recurve QA build: versionCode 652, QA signer, not production approved. Production
-  keystore/CI signing, physical-device/range matrix and owner release sign-off remain outstanding.
+- The app's Home, Train setup and Progress now have initial cinematic/Hyle refresh passes, with
+  API-35 emulator captures in `docs/crocodyl/visuals/screenshots/`. Other destinations remain
+  unfinished. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
+  motion-analysis validity. Use licensed actual photography only; no AI-generated imagery.
+- Last recorded Recurve QA build: `0.6.0-train-guidance-qa`, versionCode 654, QA signer, not
+  production approved. Production keystore/CI signing, physical-device/range matrix and owner
+  release sign-off remain outstanding.
+
+### Parallel work-session protocol
+
+ChatGPT Work and Claude sessions should treat this document as the shared source of truth, but each
+should return a proposal rather than independently committing conflicting architecture. Ask each
+session to include: (a) the exact protocol and placement it recommends, (b) explicit assumptions and
+conflicts with this document, (c) named source links and access dates for platform/research claims,
+(d) measurable acceptance thresholds and reference instrumentation, (e) safety/privacy failure
+cases, and (f) decisions that only the owner can make. Preserve the two outputs verbatim in the
+project task or attach them as review notes, then reconcile them into this file with an owner decision
+log before any implementation. Do not copy unreviewed external code or generated assets into the
+repository. Once a pilot protocol is approved, implementation work should use a separate branch and
+the commit/context-documentation discipline already used for the Recurve release.
 
 ## 13. Sources and platform verification
 

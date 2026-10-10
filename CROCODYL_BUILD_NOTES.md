@@ -3,6 +3,18 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-10 Train first-run guidance and visual evidence: the persistent disabled Start action now
+explains that a round or positive distance is required, uses higher-contrast Hyle text, and is
+covered by the connected accessibility smoke test. API-35 ARM64 connected debug and minified-release
+instrumentation pass 7/7 each; `lintVitalRelease` passed during artifact assembly. The API-35
+1080×1920 captures for Train and Progress are checked in under
+`docs/crocodyl/visuals/screenshots/`. QA APK/AAB `0.6.0-train-guidance-qa`, versionCode 654,
+passed release preflight; APK SHA-256
+`724fd8b748a0c7b23819790c5a32530926c2bb7dc03b48ae7e71096dbb2111c0`, AAB SHA-256
+`aa46f688479a9a4ad80f9c6807a3c95658bc692754a52957b17c493076307b5e`. QA/debug certificate
+only, not production signing or physical-device acceptance. See
+`docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+
 2026-10-10 cinematic Home refresh: replaced the empty Hyle target-ring hero with the licensed
 photographer-created Recurve range photo, a high-contrast editorial scrim, and a non-repeating
 code-drawn Atelier motif; condensed Home action cards and replaced the full-width Material tab bar
@@ -18,8 +30,9 @@ round picker, grouped editable distance/face/arrow fields, clearer practice-deta
 persistent Start recording action. Kept active-rig management, smart defaults, pinned setup,
 handedness override, pre-check-in and session creation behavior. Debug/release unit-test tasks and
 `lintRelease` completed in the verification run; connected debug instrumentation passed 7/7. ADB
-reconnect was sandbox-restricted during the first capture attempt, and the subsequent emulator
-reinstall returned to first-run onboarding, so no Train screenshot is claimed. See
+reconnect was sandbox-restricted during the first capture attempt, so the contemporaneous note did
+not claim a Train screenshot; the later successful capture is documented in the current visual
+evidence entry above. See
 `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is not physical-device acceptance.
 
 2026-10-10 Progress visual pass: reshaped the Progress surface into a local-evidence ledger with a
@@ -27,8 +40,8 @@ code-drawn editorial header, consistent Hyle cards/rows, and explicit no-data ex
 score trends, form repeatability, and equipment context. Metric calculations and causal caveats are
 unchanged. Debug/release unit tests and `lintRelease` completed; connected debug and QA/debug-signed
 minified-release instrumentation pass 7/7 each, including exact accessibility checks for the new
-header and empty states. No new Progress screenshot is claimed; visual photo provenance remains
-Home-only. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+header and empty states. The later Progress capture is now checked in; licensed-photo provenance
+remains Home-only. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
 
 Fresh visual-refresh QA artifact (2026-10-10): minified APK/AAB `0.6.0-progress-cinematic-qa`,
 versionCode 653, signed with the committed QA/debug key (certificate SHA-256
