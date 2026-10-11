@@ -8,6 +8,32 @@ those proposals here before committing to architecture or user-facing measuremen
 **Scope boundary:** this is a future cross-sport capability. It is not a prerequisite to the current
 Recurve Android production release and must not destabilize or silently widen that release.
 
+## Start here — brief for a fresh work session
+
+The owner is exploring this idea in ChatGPT Work and Claude work sessions before committing to a
+pilot. Treat this file as the shared brief, not as approval to ship a feature. Read it end to end,
+then return a proposal that can be reviewed alongside the other session's proposal. Do not make
+independent product decisions, create competing implementations, claim unvalidated metrics, or
+change the current Recurve release scope.
+
+The concept is a hands-free **Motion Session**: prepare a securely mounted phone, explicitly start
+capture, put the display away, train, then review a transparent account of the phone's sensor data
+and its limitations. “Pocket mode” is only one placement, not the product name or a promise that
+every sport can be measured from a pocket. Running, archery, bouldering and fencing have different
+safe placements, measurable events, and validation needs; none should be enabled by analogy alone.
+
+The first decision is the pilot protocol (sport + exact placement + allowed drill), followed by a
+small measurement contract with a reference method and numeric acceptance thresholds. Until these
+are approved, keep work at concept, UX, safety, and architecture-review level. The capture
+implementation, data model, screen-off service and metric algorithms in this file are proposals,
+not authorization or established design.
+
+Related visual/product context: [`visuals/CINEMATIC_APP_REFRESH.md`](visuals/CINEMATIC_APP_REFRESH.md)
+and the checked-in emulator captures under [`visuals/screenshots/`](visuals/screenshots/). Preserve
+the cinematic Hyle/Bocal-inspired art direction, use only actual photography with recorded
+royalty-free licensing, and never use AI-generated imagery. Motion-session visuals must not suggest
+that a metric is more certain than its evidence.
+
 ## 1. Product idea
 
 Let an athlete prepare the phone, place it in a supported position (pocket, armband, belt, or another
@@ -355,7 +381,7 @@ Before implementation, record an owner decision for each:
   passes, with API-35 emulator captures in `docs/crocodyl/visuals/screenshots/`. Other destinations remain
   unfinished. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
   motion-analysis validity. Use licensed actual photography only; no AI-generated imagery.
-- Last recorded Recurve QA build: `0.6.0-score-editorial-qa`, versionCode 656, QA signer, not
+- Last recorded Recurve QA build: `0.6.0-body-recovery-cinematic-qa`, versionCode 657, QA signer, not
   production approved. Production keystore/CI signing, physical-device/range matrix and owner
   release sign-off remain outstanding.
 
@@ -371,6 +397,33 @@ project task or attach them as review notes, then reconcile them into this file 
 log before any implementation. Do not copy unreviewed external code or generated assets into the
 repository. Once a pilot protocol is approved, implementation work should use a separate branch and
 the commit/context-documentation discipline already used for the Recurve release.
+
+### Proposal record template
+
+Each session should return this compact record (the detailed rationale can follow it) so the result
+can be reconciled without losing provenance:
+
+```text
+Session / model / date:
+Recommended pilot (sport, drill, exact mount and orientation):
+Athlete problem solved; why screenless rather than ordinary session logging:
+Observed signals vs derived metrics vs coaching interpretation:
+Reference method, sample/device matrix, and proposed numeric acceptance thresholds:
+Known failure cases and how the UI reports invalid/incomplete data:
+Safety review (mount retention, activity/rules, cues, stop path):
+Privacy/storage/export/consent recommendation:
+Android lifecycle and foreground-service implications (sources + checked date):
+Room / .croc impact, if any:
+Smallest prototype and what it explicitly will not claim:
+Conflicts with this handoff / assumptions needing owner decision:
+Owner-only decisions:
+```
+
+Preserve each returned proposal verbatim in task notes or a dated review file; then record accepted,
+rejected and unresolved points in a reconciliation with an owner decision log. Do not let a
+confident-sounding response become a product requirement without evidence or owner approval. If
+the sessions disagree, report the disagreement and the evidence needed to resolve it rather than
+averaging the recommendations.
 
 ## 13. Sources and platform verification
 

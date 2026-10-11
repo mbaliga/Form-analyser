@@ -94,6 +94,13 @@ class ProductionSmokeTest {
 
                 clickBottomTabEventually(instrumentation, "Body")
                 assertTextEventually(instrumentation, "Context")
+                clickTextEventually(instrumentation, "Today")
+                clickTextEventually(instrumentation, "Choose region from list")
+                assertTextEventually(instrumentation, "Choose body region")
+                clickTextEventually(instrumentation, "Back of neck")
+                assertTextEventually(instrumentation, "Intensity")
+                clickTextEventually(instrumentation, "Cancel")
+                assertTextEventually(instrumentation, "Choose region from list")
 
                 clickBottomTabEventually(instrumentation, "Calendar")
                 assertTextEventually(instrumentation, "← prev")

@@ -206,14 +206,14 @@ The QA APK also installs, completes onboarding and opens Home; visual inspection
 Recurve/Fencing photo cards render in the feed. QA signer only; physical device/range acceptance
 remains.
 
-Current visual-refresh QA build (2026-10-11): `0.6.0-score-editorial-qa` / versionCode 656. The
-minified APK/AAB passed `tools/release/verify_android_release.sh` with QA/debug certificate SHA-256
-`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. APK SHA-256
-`d55704359703ae8eb75171fa7bfb25d7be010a3d5bff850508758ead9c23c7f6`; AAB SHA-256
-`c9a99ec37874d47aea5961257f296967cdeb0f03bb63bc5238d9494cde7b80d6`. Connected debug and
-QA/debug-signed minified-release instrumentation pass 7/7 each, including Train guidance, Progress
-empty-state/title and Score editorial-headline accessibility checks. The QA key is not the production signer;
-physical-device/range acceptance remains open.
+Current visual-refresh QA build (2026-10-11): `0.6.0-body-recovery-cinematic-qa` / versionCode
+657. The minified APK/AAB passed `tools/release/verify_android_release.sh` with QA/debug certificate
+SHA-256 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. APK SHA-256
+`9c440099dbcc1fda8548a05a6948569121f1f7316cec7d0f374f51cc9db4e47c`; AAB SHA-256
+`4c1f57e1d386b5e645f23d95a613754adbcff24817796550ea9a2f627ff96324`. Connected debug and
+QA/debug-signed minified-release instrumentation pass 7/7 each, including the Body named-region
+selection path. The QA key is not the production signer; physical-device/range acceptance remains
+open.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release

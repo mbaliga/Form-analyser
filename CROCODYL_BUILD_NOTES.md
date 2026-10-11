@@ -3,6 +3,17 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-11 Body/recovery and motion handoff: added an editorial non-diagnostic Body header, an
+accessible named-region picker for Today atlas logging, and scroll-to-top behavior when switching
+Body subviews. Added a proposal record template and a clear concept-only/owner-approval boundary to
+the screenless Motion Sessions handoff for parallel ChatGPT Work and Claude sessions. Root/Android
+tests and `lintRelease` pass (104/54 actionable tasks); connected debug and QA-signed minified-release
+instrumentation each pass 7/7 on API-35 ARM64, including Body region selection. Version 657 QA APK/AAB
+passed release preflight; APK SHA-256 `9c440099dbcc1fda8548a05a6948569121f1f7316cec7d0f374f51cc9db4e47c`,
+AAB SHA-256 `4c1f57e1d386b5e645f23d95a613754adbcff24817796550ea9a2f627ff96324`. QA/debug identity
+only; no physical-device/range or production-signing acceptance is implied. See
+`docs/crocodyl/MOTION_SESSIONS_HANDOFF.md` and `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+
 2026-10-11 cinematic scoring entry: replaced the repeated “Score” heading and generic button stack
 with an editorial “Every arrow, accounted for” panel, an explicitly labelled code-drawn example
 ten-ring target, and a strong Quick score action. Scorecard creation, input modes and persistence are

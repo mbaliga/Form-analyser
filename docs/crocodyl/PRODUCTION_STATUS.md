@@ -235,22 +235,22 @@ final session insert, including removal of already-inserted soreness rows. Debug
 pass 44/44 each. Session startup also rejects duplicate requests while a start or capture is in
 flight, and setup navigation occurs only for an accepted start.
 
-Current-tree QA artifact (2026-10-10): minified APK/AAB `0.6.0-train-guidance-qa`, versionCode
-Current-tree QA artifact (2026-10-11): minified APK/AAB `0.6.0-score-editorial-qa`, versionCode
-656, includes the current Recurve source, Train readiness guidance, Progress title hierarchy, and
-cinematic Score entry. Release preflight passed. APK SHA-256
-`d55704359703ae8eb75171fa7bfb25d7be010a3d5bff850508758ead9c23c7f6`; AAB SHA-256
-`c9a99ec37874d47aea5961257f296967cdeb0f03bb63bc5238d9494cde7b80d6`. APK and AAB share the
+Current-tree QA artifact (2026-10-11): minified APK/AAB `0.6.0-body-recovery-cinematic-qa`,
+versionCode 657, includes the current Recurve source, cinematic Home/Train/Progress/Score work,
+and the editorial Body/recovery header plus accessible named-region picker. Release preflight
+passed. APK SHA-256
+`9c440099dbcc1fda8548a05a6948569121f1f7316cec7d0f374f51cc9db4e47c`; AAB SHA-256
+`4c1f57e1d386b5e645f23d95a613754adbcff24817796550ea9a2f627ff96324`. APK and AAB share the
 committed QA/debug signing certificate `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`.
 Connected debug and QA-signed minified-release instrumentation each pass 7/7 on API-35 ARM64
-`emulator-5554`, including accessibility checks for the Train first-run guidance, Progress empty
-states/title, and Score editorial headline. Clean root/Android tests pass in 104 actionable tasks;
-full release lint passes in 54 tasks. These results are emulator/build evidence, not
-physical-device/range acceptance. QA signing only; production signing remains open.
+`emulator-5554`, including switching Body views, choosing a back-atlas region by name and opening
+the pain dial. Root/Android tests pass (104 actionable tasks) and release lint passes (54 tasks).
+These are emulator/build results, not physical-device/range acceptance. QA signing only; production
+signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 656 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 7/7 each on API-35 ARM64. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 657 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 7/7 each on API-35 ARM64. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

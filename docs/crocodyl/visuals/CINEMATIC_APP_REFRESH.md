@@ -103,6 +103,15 @@ These are emulator and local-build results, not physical-device visual acceptanc
 screenshots cover Home, Train, Progress and Score entry; the other primary destinations remain
 visually unfinished and are still part of the refresh.
 
+2026-10-11 Body slice: added a restrained editorial “Body & recovery” header in the Hyle palette,
+explicitly framing the journal as non-diagnostic. The Today atlas now offers a named, scrollable
+region chooser as an accessible alternative to map hit-testing; switching Body subviews resets the
+shared scroll position so the selected view's controls return above the fold. The existing atlas,
+pain dial, logging and history behavior are preserved. Connected debug and QA/debug-signed
+minified-release instrumentation pass 7/7 each on API-35 ARM64, including named region selection.
+Version 657 QA APK/AAB passed release preflight. No Body screenshot is checked in yet; the API-35
+emulator result is interaction evidence, not a completed visual review or physical-device acceptance.
+
 ## Screen-by-screen target direction
 
 | Surface | Direction | Functional constraint |
@@ -113,7 +122,7 @@ visually unfinished and are still part of the refresh.
 | Review | Make one session narrative: score/context, shot timeline, validated form cues and trends; differentiate observation from inference. | No unsupported detector or causal claims; correction/retraction remains easy. |
 | Score | Warm paper/target-face moment against dark shell; dominant numeric score and a tactile keypad; minimize chrome. | Input accuracy, undo/correction, autosave/resume and accessibility remain paramount. |
 | Progress | A small number of evidence-rich trends with date range, sample count and baseline quality; avoid a wall of charts. | Sparse evidence stays visibly sparse; no invented interpolations. |
-| Body/recovery | Calm editorial atlas and actionable recovery context, with privacy and non-diagnostic wording. | Never turn readiness into diagnosis or a gate against training. |
+| Body/recovery | Editorial non-diagnostic header and named atlas-region selection are in place; next refine atlas framing, history/injury/physio hierarchy and compact-screen presentation from captures. | Never turn readiness into diagnosis or a gate against training. |
 | Calendar/log | A clean training ledger with visual rhythm and compact event chips; retain humane empty states. | Local events, time zones, editing and deletion behavior unchanged. |
 | Atelier | Keep the cinematic reference-led 3D/equipment experience; improve entry preview/framing only from the approved geometry/asset workflow. | Arrow components and variants stay separately inspectable; no fabricated reference accuracy. |
 | Fencing/Muay Thai/Bouldering | Sport-specific real/licensed image cards with clear beta/scaffold status; mature screens get a bespoke hero only as the feature merits it. | A beautiful card must not imply unimplemented analysis/adjudication. |
