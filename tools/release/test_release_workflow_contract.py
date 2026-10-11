@@ -82,6 +82,42 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn('dump xmltree "$APK" --file AndroidManifest.xml > "$MANIFEST"', verifier)
         self.assertIn('verify_manifest_contract.py "$MANIFEST"', verifier)
 
+    def test_connected_debug_and_minified_results_are_retained_on_failure(self) -> None:
+        for artifact_name, report_path, log_path in (
+            (
+                "crocodyl-release-debug-test-reports",
+                "app-android/build/reports/androidTests/connected/debug/**",
+                "app-android/build/diagnostics/release-debug-logcat.txt",
+            ),
+            (
+                "crocodyl-release-minified-test-reports",
+                "app-android/build/reports/androidTests/connected/release/**",
+                "app-android/build/diagnostics/release-minified-logcat.txt",
+            ),
+        ):
+            with self.subTest(artifact=artifact_name):
+                start = self.workflow.index(f"name: {artifact_name}")
+                upload = self.workflow.rfind("- name: Upload", 0, start)
+                next_step = self.workflow.find("\n      - name:", upload + 1)
+                step = self.workflow[upload:next_step if next_step != -1 else None]
+                self.assertIn("if: always()", step)
+                self.assertIn(report_path, step)
+                self.assertIn(log_path, step)
+
+        android_workflow = (ROOT / ".github" / "workflows" / "android.yml").read_text()
+        self.assertIn("adb logcat -d -v threadtime > app-android/build/diagnostics/debug-logcat.txt", android_workflow)
+        self.assertIn("crocodyl-android-debug-test-reports", android_workflow)
+        self.assertIn("app-android/build/reports/androidTests/connected/debug/**", android_workflow)
+        upload_start = android_workflow.index("- name: Upload Android debug test reports and diagnostics")
+        self.assertIn("if: always()", android_workflow[upload_start:])
+
+        android_workflow = (ROOT / ".github" / "workflows" / "android.yml").read_text()
+        self.assertIn("adb logcat -d -v threadtime > app-android/build/diagnostics/debug-logcat.txt", android_workflow)
+        self.assertIn("crocodyl-android-debug-test-reports", android_workflow)
+        self.assertIn("app-android/build/reports/androidTests/connected/debug/**", android_workflow)
+        upload_start = android_workflow.index("- name: Upload Android debug test reports and diagnostics")
+        self.assertIn("if: always()", android_workflow[upload_start:])
+
     def test_dependency_verification_metadata_requires_sha256_for_every_artifact(self) -> None:
         metadata = ET.parse(DEPENDENCY_METADATA).getroot()
         namespace = metadata.tag.partition("}")[0].removeprefix("{")

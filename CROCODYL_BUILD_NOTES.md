@@ -12,6 +12,11 @@ components, removed receiver protection and launcher drift. The existing version
 APK/AAB passes the strengthened preflight. This reduces dependency-merger drift risk but is not a
 full platform penetration test or production signing/device acceptance.
 
+2026-10-11 CI diagnostics hardening: Android CI and the release workflow now retain connected
+instrumentation XML/HTML reports and emulator logcat on both success and failure, for debug and
+minified release. Contract tests ensure those always-run uploads remain wired. This makes emulator
+smoke failures diagnosable; it does not expand emulator coverage into physical-device acceptance.
+
 2026-10-11 Home cinematic integration: moved active-rig editing and Train/Score into the licensed
 Recurve photo hero and removed the separate large rig/action rows. This addresses the visual feedback
 that the initial app screenshot still looked generic; it is a deliberate incremental direction, not

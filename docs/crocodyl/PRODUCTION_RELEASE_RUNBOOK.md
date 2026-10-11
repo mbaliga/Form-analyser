@@ -47,7 +47,9 @@ signing inputs or expected certificate fingerprint are absent.
    takes precedence over derivation and is range-checked.
 2. Require the release workflow to pass JVM tests, Android debug/release unit tests, release lint,
    debug connected smoke, signed minified release connected smoke, generated-asset drift checks,
-   signed artifact preflight, and checksum publication.
+   signed artifact preflight, and checksum publication. The CI now retains connected-test XML/HTML
+   reports and emulator logcat for debug and minified-release runs even when a smoke step fails;
+   download those diagnostics before triaging an intermittent instrumentation failure.
    The workflow also runs the release-workflow contract tests, which fail if signing-material
    permissions/cleanup or the release verification steps are removed.
 3. Confirm the preflight output verifies APK v2 signing, AAB signing, ZIP alignment, expected

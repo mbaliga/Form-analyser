@@ -62,6 +62,22 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon
+      - name: Collect Android debug instrumentation diagnostics
+        if: always()
+        run: |
+          mkdir -p app-android/build/diagnostics
+          adb logcat -d -v threadtime > app-android/build/diagnostics/debug-logcat.txt 2>&1 || true
+      - name: Upload Android debug test reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crocodyl-android-debug-test-reports
+          path: |
+            app-android/build/test-results/**
+            app-android/build/outputs/androidTest-results/connected/debug/**
+            app-android/build/reports/androidTests/connected/debug/**
+            app-android/build/diagnostics/debug-logcat.txt
+          if-no-files-found: warn
       - name: Assemble debug APK
         run: ./gradlew :app-android:assembleDebug -PwithAndroid --no-daemon
       - name: Upload Android test results

@@ -9,6 +9,11 @@ cover the accepted surface and fail-closed cases. The current QA-signed versionC
 passed the strengthened verifier. This is additional packaging evidence; production signing,
 physical-device/range acceptance and owner release approval remain open.
 
+CI failure diagnostics update (2026-10-11): Android CI and release workflows upload connected
+instrumentation XML/HTML reports and emulator logcat with `always()` semantics for debug and
+minified-release smoke runs. Static contracts verify report/log retention steps. This is a CI
+triage safeguard, not extra device-matrix or physical acceptance evidence.
+
 Home + Fencing visual update (2026-10-11): Home now integrates the active rig and Train/Score
 actions into the licensed Recurve photo hero, and Fencing has the sport-specific photo, weapon
 reference and manual referee console documented below. Both connected debug and QA/debug-signed
