@@ -378,7 +378,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 668 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 9/9 each on API-35 ARM64 and API-36 16 KB ARM64. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA-only, not production releasable | Current-tree v678 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 10/10 on API-35 ARM64 and API-36 16 KB ARM64. Production signer, hosted CI, physical acceptance and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -389,6 +389,9 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `15f686b` — record the final QA gate status and 76 Python contract tests after v678.
+- Crocodyl: `b8501f2` — capture v678 (10/10 debug and minified-release suites across API 35 and 16 KB API 36, unit tests, lint, preflight and artifact digests).
+- Crocodyl: `ff4a0a5` — refine the cinematic Home/Atelier composition and add the Train-session persistence smoke.
 - Crocodyl: `7fddd4f` — primary-tab accessibility navigation smoke, verified 5/5 in debug and QA-signed minified release.
 - Crocodyl: Quick Score keypad 10 → total update → undo → Activity recreation/resume/cleanup emulator smoke passed in debug and minified release, 6/6 each; only the newly created empty card is discarded.
 - Crocodyl: `c00d4f7` — synchronized CameraX capture windows; Android unit tests 34/34 each, lint and versionCode 646 QA artifact preflight passed.
