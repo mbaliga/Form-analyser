@@ -17,9 +17,9 @@ artifact, pose-model hash and backup resources. APK SHA-256
 artifacts, not production release candidates. Production credentials, hosted CI, physical-device/
 range acceptance, the 30-session gate and owner approval remain open.
 
-Additional source-tree contracts (2026-10-11): release 38/38, shared-checkout 4/4, web-viewer
-39/39, shared-checkout 4/4, web-viewer 10/10, community-directory 4/4, and Atelier plus arrow
-libraries 20/20 pass. The release workflow now rejects the committed QA/debug signer fingerprint
+Additional source-tree contracts (2026-10-11): release 39/39, shared-checkout 4/4, web-viewer
+10/10, community-directory 4/4, and Atelier plus arrow libraries 20/20 pass. The release workflow
+now rejects the committed QA/debug signer fingerprint
 before it materializes signing material; tests cover QA rejection, malformed fingerprints and a
 well-formed non-QA value. This prevents an accidental QA-key release but does not establish the
 missing production signing identity. The production
@@ -393,6 +393,7 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `5623cfe` — reject the committed QA/debug signer for production and execute fingerprint-policy negative tests.
 - Crocodyl: `15f686b` — record the final QA gate status and 76 Python contract tests after v678.
 - Crocodyl: `b8501f2` — capture v678 (10/10 debug and minified-release suites across API 35 and 16 KB API 36, unit tests, lint, preflight and artifact digests).
 - Crocodyl: `ff4a0a5` — refine the cinematic Home/Atelier composition and add the Train-session persistence smoke.
