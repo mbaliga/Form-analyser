@@ -105,7 +105,10 @@ class SafExportPublisherTest {
                 SafExportPublisher.publish(
                     stagingFile = staging,
                     openDestination = { brokenDestination },
-                    removeIncompleteDestination = { cleanupCalled = true },
+                    removeIncompleteDestination = {
+                        cleanupCalled = true
+                        error("simulated SAF delete failure")
+                    },
                     writeArchive = { output ->
                         output.write("complete archive".toByteArray())
                         "signed"
@@ -115,6 +118,10 @@ class SafExportPublisherTest {
 
         assertTrue(failure is IOException)
         assertTrue(cleanupCalled)
+        assertTrue(
+            "SAF cleanup failure should be retained as suppressed diagnostic",
+            failure!!.suppressed.any { it.message == "simulated SAF delete failure" },
+        )
         assertFalse(staging.exists())
         assertTrue(Files.list(directory).use { it.toList().isEmpty() })
     }
