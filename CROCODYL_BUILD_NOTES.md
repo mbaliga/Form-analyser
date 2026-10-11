@@ -3,6 +3,43 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-11 Home cinematic integration: moved active-rig editing and Train/Score into the licensed
+Recurve photo hero and removed the separate large rig/action rows. This addresses the visual feedback
+that the initial app screenshot still looked generic; it is a deliberate incremental direction, not
+an app-wide Bocal-equivalent redesign. Added the 1080×1920 API-35 capture
+`docs/crocodyl/visuals/screenshots/home-immersive-api35.png`. The detail, licensing and redesign
+backlog are in `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+
+Current combined QA artifact: `0.6.0-home-immersive-qa`, versionCode 664. APK SHA-256
+`2ee1b5d1bc5c91dacef5194b33ca1acb0996074014ee018c86e05c9bb0dfef74`; AAB SHA-256
+`bd18106eb9f182712aeddc0b3dd1f80d14f8433bf9ac89268ac5abd74ff9f938`. APK/AAB release preflight
+passed using the committed QA/debug signer (certificate SHA-256
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`); this is not the production
+signing identity. Root tests (104 actionable tasks), Android unit tests, release lint, connected
+debug instrumentation 9/9 and QA/debug-signed minified-release instrumentation 9/9 passed. One
+combined Gradle rerun experienced an instrumentation process crash before tests started (0/0); the
+isolated debug rerun passed all nine tests. Physical device/range acceptance remains open.
+
+2026-10-11 Fencing cinematic UI: rebuilt the existing Fencing activity around the licensed photo
+manifest, sport-specific weapon reference, score-led bout panel and a clearly manual referee deck;
+referee logic is unchanged and camera adjudication remains off. Added connected accessibility
+assertions and archived two 1080×1920 API-35 screenshots. Android debug/release unit tests,
+`lintRelease`, connected debug instrumentation and QA/debug-signed minified-release instrumentation
+passed; root `./gradlew test -PwithAndroid --offline --no-daemon` passed (104 actionable tasks),
+Atelier photo/asset contracts passed 9/9, and both connected variants passed 9/9. The unsigned release instrumentation attempt was
+rejected by Android as expected; rerunning with the repository's committed debug key as an explicitly
+QA-only signer passed. One combined rerun had an emulator instrumentation process crash before tests
+started (0/0); the isolated debug rerun passed 9/9. The QA artifact `0.6.0-cinematic-home-qa` /
+versionCode 662 predates this Fencing source change. New QA artifacts `0.6.0-fencing-cinematic-qa` /
+versionCode 663 passed `tools/release/verify_android_release.sh`: APK SHA-256
+`279907f08c1ec972d931f2ee1861b59d81df156a8ea9b79e7238d09a5970bf2c`; AAB SHA-256
+`17685bdfcb7f717146b717af6a6b94b45d9b1f0c9fa343b8181b701eacbf2ce9`; signer certificate SHA-256
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. This is the committed QA
+debug identity, not a production key. No physical-device/range validation or automated fencing
+adjudication is implied.
+See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md` and
+`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`.
+
 2026-10-11 current-tree release replay: Home visual refinement and SAF cleanup diagnostics are
 included in commits `2efe6e7` and `ceef0a0`. Root `./gradlew test -PwithAndroid --offline --no-daemon`
 passed (104 actionable tasks); debug+release Android unit suites passed 96/96 combined, release

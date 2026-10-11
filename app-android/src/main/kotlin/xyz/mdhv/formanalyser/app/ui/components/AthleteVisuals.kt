@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +46,10 @@ fun CrocodylHero(
     readinessDetail: String?,
     ready: Boolean,
     streak: Int?,
+    rigName: String,
+    onManageRigs: () -> Unit,
+    onStartSession: () -> Unit,
+    onScore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -60,7 +66,7 @@ fun CrocodylHero(
     Box(
         modifier
             .fillMaxWidth()
-            .height(216.dp)
+            .height(310.dp)
             .clip(RoundedCornerShape(30.dp))
             .background(Hyle.SurfaceDeep)
             .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),
@@ -94,10 +100,10 @@ fun CrocodylHero(
             )
         )
         Column(
-            Modifier.fillMaxHeight().fillMaxWidth(.78f).padding(horizontal = 20.dp, vertical = 18.dp),
+            Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(Modifier.fillMaxWidth(.88f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("CROCODYL  /  RECURVE", color = Hyle.RadiumGreen, fontSize = 10.sp, letterSpacing = 1.7.sp)
                 Text(
                     "Find your rhythm.",
@@ -105,7 +111,7 @@ fun CrocodylHero(
                     color = Color.White,
                 )
             }
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     Modifier.clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = .42f))
                         .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -128,6 +134,46 @@ fun CrocodylHero(
                 }
                 streak?.takeIf { it > 0 }?.let {
                     Text("$it day rhythm", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelMedium)
+                }
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.Black.copy(alpha = .48f))
+                        .clickable(
+                            role = Role.Button,
+                            onClickLabel = "Edit active equipment setup",
+                            onClick = onManageRigs,
+                        )
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                        Text("ACTIVE RIG", color = Color.White.copy(alpha = .72f), style = MaterialTheme.typography.labelSmall)
+                        Text(rigName, color = Color.White, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                    }
+                    Text("EDIT  →", color = Hyle.AccentBright, style = MaterialTheme.typography.labelMedium)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = onStartSession,
+                        modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                        shape = RoundedCornerShape(18.dp),
+                    ) {
+                        Icon(Icons.Filled.CameraAlt, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Train")
+                    }
+                    OutlinedButton(
+                        onClick = onScore,
+                        modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    ) {
+                        Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Score")
+                    }
                 }
             }
         }

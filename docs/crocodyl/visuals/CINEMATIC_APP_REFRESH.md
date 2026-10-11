@@ -5,6 +5,13 @@ the owner saw the October 10 emulator screenshots and said the app looked poor. 
 properly licensed photography only. No AI-generated imagery.** Preserve Crocodyl's Hyle token rules,
 privacy/local-first content, accessibility and all current functional behavior.
 
+The owner has since said the first visual pass still falls short. Treat this as an active, phased
+redesign—not a finished app-wide art pass. Home, Train, Progress and Score have initial treatments;
+Body has an editorial header/region-picker pass; Fencing now has its first bespoke cinematic screen.
+The remaining destinations still need coherent, screenshot-reviewed work, and the screen-by-screen
+table below is the next design backlog. Do not call a polished Fencing screen or a checked-in
+screenshot “production-grade visual QA.”
+
 ## Evidence and diagnosis
 
 Reviewed the October 10 QA Home screenshot at `/private/tmp/crocodyl-photo-assets-home.png` and the
@@ -34,7 +41,27 @@ The first-run entry is now captured at
 1080×1920 on API-35 ARM64 using QA build 658. It uses the already-bundled, licensed Recurve training
 photograph with a dark Hyle scrim; the photo is atmospheric and is not presented as form guidance.
 
-Home problems visible in Crocodyl's screenshot:
+The Fencing visual pass is captured in two states:
+[`screenshots/fencing-cinematic-api35.png`](screenshots/fencing-cinematic-api35.png) shows the real
+photo hero, Sabre/Foil/Epee selector, weapon reference and bout setup;
+[`screenshots/fencing-referee-console-api35.png`](screenshots/fencing-referee-console-api35.png)
+shows the live score, manual referee calls, point controls and call-history area. Both are 1080×1920
+API-35 ARM64 emulator captures from the QA/debug-signed minified release. The photograph is
+`fencing-training.jpg`, by Nathanaël Desmeules (`@nathanael240606`), under the Unsplash License; its
+source, checksum and restrictions are recorded in
+`app-android/src/main/assets/atelier/cinematic/sports-manifest.json`. It is atmosphere only, not a
+technique or adjudication reference.
+
+The October 11 Home refinement is captured at
+[`screenshots/home-immersive-api35.png`](screenshots/home-immersive-api35.png), a 1080×1920 render
+from the QA/debug-signed minified release on API-35 ARM64. The licensed Recurve image now carries
+the editorial headline, readiness, active bow and Train/Score controls in one deliberate hero;
+the duplicated standalone rig strip and oversized action row have been removed. The equipment,
+Fencing and subsequent facet cards remain in the scroll feed. This is an incremental visual
+improvement, not a claim that the whole app now matches Bocal or has passed device acceptance.
+
+Initial Home problems visible in the October 10 pre-refresh screenshot (historical baseline; some
+were addressed by the subsequent Home/Train/Progress/Score passes):
 
 - The hero occupies about one-third of the usable screen but is only a blank gradient with target
   line art; it wastes the real photography already bundled and approved for Recurve.
@@ -105,7 +132,7 @@ headline. QA/debug-signed minified-release instrumentation also passed 7/7; its 
 production signer. `tools/atelier/test_assets.py` passes 9/9, including the source/license and
 checksum contract for the Home hero photograph. Version 658 QA APK/AAB passed release preflight.
 These are emulator and local-build results, not physical-device visual acceptance. The checked-in
-screenshots cover Home, Train, Progress, Score entry and first-run onboarding; other primary
+screenshots now cover Home, Train, Progress, Score entry, onboarding and Fencing; other primary
 destinations remain visually unfinished and are still part of the refresh.
 
 2026-10-11 Body slice: added a restrained editorial “Body & recovery” header in the Hyle palette,
@@ -125,12 +152,26 @@ starts successfully and the checked-in 1080×1920 screenshot confirms the first-
 658 APK/AAB passed release preflight. This screenshot is emulator evidence, not device acceptance.
 
 2026-10-11 Home refinement: retained the same licensed Recurve hero photograph and Hyle dark scrim,
-replaced the temporary profile name as the oversized headline with “Find your rhythm.”, and tightened
-the active-rig strip and Train/Score action tiles so the hero and next actions establish the hierarchy.
-Rig editing, Train, Score, readiness state, and navigation are unchanged. The fresh 1080×1920 API-35
-ARM64 render is [`screenshots/home-cinematic-handoff-api35.png`](screenshots/home-cinematic-handoff-api35.png).
-No generated imagery was introduced. Debug/release unit tests and release lint passed for the code
-slice; emulator screenshot is visual evidence only, not physical-device acceptance.
+replaced the temporary profile name as the oversized headline with “Find your rhythm.”, and moved
+active-rig editing and Train/Score into the photo hero as a compact action shelf. The previous
+standalone rig strip and oversized action row were removed. Rig editing, Train, Score, readiness,
+and navigation are unchanged. The fresh 1080×1920 API-35 ARM64 render is
+[`screenshots/home-immersive-api35.png`](screenshots/home-immersive-api35.png). No generated imagery
+was introduced. Debug and minified-release connected instrumentation pass 9/9 each; unit tests and
+release lint passed. QA APK/AAB version `0.6.0-home-immersive-qa` (versionCode 664) passed release
+preflight. The artifacts use the QA/debug signing identity, not the production signer. Screenshot
+and emulator results are not physical-device acceptance.
+
+2026-10-11 Fencing visual pass: replaced the live referee screen's plain, text-first layout with a
+licensed-photo piste hero, a horizontal Sabre/Foil/Epee selector, a weapon-specific target/priority/
+equipment reference, named-bout setup, high-contrast scoreboard and dedicated manual-referee command
+deck. Small-label/supporting-text contrast was increased without changing Hyle token values. The
+referee state machine, calls, point gating, undo/reset and history are unchanged; camera adjudication
+remains explicitly not connected. Instrumentation checks the hero and visible manual call controls.
+API-35 debug and QA/debug-signed minified-release connected suites passed 9/9 each; debug/release
+unit tests and `lintRelease` passed. No new or generated image was added. This is one focused Fencing
+slice, not a completed visual refresh of every Crocodyl destination. The emulator captures are not
+physical-device/range acceptance.
 
 ## Screen-by-screen target direction
 

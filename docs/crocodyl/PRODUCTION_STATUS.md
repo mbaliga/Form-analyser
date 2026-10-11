@@ -2,6 +2,30 @@
 
 Last reviewed: 2026-10-11
 
+Home + Fencing visual update (2026-10-11): Home now integrates the active rig and Train/Score
+actions into the licensed Recurve photo hero, and Fencing has the sport-specific photo, weapon
+reference and manual referee console documented below. Both connected debug and QA/debug-signed
+minified-release suites pass 9/9 on API-35 ARM64; release lint, root tests and asset provenance
+checks pass. QA artifact `0.6.0-home-immersive-qa`, versionCode 664, passed APK/AAB preflight.
+APK SHA-256 `2ee1b5d1bc5c91dacef5194b33ca1acb0996074014ee018c86e05c9bb0dfef74`; AAB SHA-256
+`bd18106eb9f182712aeddc0b3dd1f80d14f8433bf9ac89268ac5abd74ff9f938`. The artifacts use the
+committed QA/debug signer, not the production identity. See
+[`visuals/screenshots/home-immersive-api35.png`](visuals/screenshots/home-immersive-api35.png)
+and [`visuals/CINEMATIC_APP_REFRESH.md`](visuals/CINEMATIC_APP_REFRESH.md). The refresh is still
+partial; physical-device/range acceptance and production signing remain open.
+
+Fencing visual update (2026-10-11): Fencing now uses the existing provenance-checked Unsplash photo
+as atmosphere, a weapon selector/reference, bout scoreboard and manual referee command deck. This
+UI-only change preserves manual referee behavior; camera adjudication is still not connected. The
+connected debug and QA/debug-signed minified-release tests each pass 9/9; root tests (104 actionable
+tasks), debug/release unit tests, `lintRelease` and Atelier photo/asset checks (9/9) pass. QA artifact
+`0.6.0-fencing-cinematic-qa`, versionCode 663, passed APK/AAB preflight. APK SHA-256
+`279907f08c1ec972d931f2ee1861b59d81df156a8ea9b79e7238d09a5970bf2c`; AAB SHA-256
+`17685bdfcb7f717146b717af6a6b94b45d9b1f0c9fa343b8181b701eacbf2ce9`. The certificate is the
+committed QA/debug signer, not the production identity. Screenshots and design limits are in
+[`visuals/CINEMATIC_APP_REFRESH.md`](visuals/CINEMATIC_APP_REFRESH.md). Physical-device/range
+acceptance remains separate.
+
 Current-tree release replay (2026-10-11): the latest visual Home and SAF diagnostic commits are
 `2efe6e7` and `ceef0a0`. Root `./gradlew test -PwithAndroid --offline --no-daemon` passed (104
 actionable tasks); Android debug/release unit tests passed 96/96 combined, `lintRelease` passed,

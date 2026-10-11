@@ -18,20 +18,24 @@ currently defines:
 
 The Android app now shows a Fencing Studies card on Home and a Fencing console with all three
 weapons, weapon-specific equipment metadata, named fencers, Prêt/Allez/Halte controls, point-left/
-point-right controls, score, auditable call history, undo and reset. Cinematic/equipment information
-is visible before live capture work begins. The next visual slice should add dedicated Sabre/Foil/Epee
-cinematic imagery without disturbing the arrow reference studio.
+point-right controls, score, auditable call history, undo and reset. The console now has a licensed-
+photo piste hero, weapon reference panel and dedicated manual-referee command deck. Two API-35
+screenshots are checked in at `docs/crocodyl/visuals/screenshots/fencing-cinematic-api35.png` and
+`fencing-referee-console-api35.png`. The source photo provenance is in
+`app-android/src/main/assets/atelier/cinematic/sports-manifest.json`. This is visual framing only:
+automatic/camera adjudication is not connected. See
+`docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md` for the system and acceptance gates.
 
 The console state is lifecycle-scoped in `FencingViewModel`: rotation/recomposition does not erase
 the selected weapon, fencer labels, score or call history. Fencer labels are capped at 40 characters
 for predictable narrow-screen layout. Selecting another weapon intentionally starts a fresh match while
 preserving the entered names.
 
-Local API-35 smoke evidence: the Home accessibility tree exposed `Sabre · Foil · Epee` and
-`COMMUNITY DIRECTORY`; opening Fencing exposed all three weapon cards and the rendered `Prêt · Allez ·
-Point — left fencer · Point — right fencer` vocabulary. This is scaffold visibility evidence only.
-The Android instrumentation contract now also launches both the Fencing and Community Directory
-activities so a future UI change cannot silently break either entry point.
+Local API-35 smoke evidence: the Fencing instrumentation contract verifies the piste hero, manual
+referee label and Prêt/Allez controls after scrolling the actual accessible layout. Debug and
+QA/debug-signed minified-release connected suites passed 9/9 on API-35 for this UI pass. The Android
+instrumentation contract also launches the Community Directory activity. This confirms rendering and
+entry-point visibility only; it does not validate physical-device ergonomics or camera adjudication.
 
 Release-variant scaffold audit: QA build `0.6.0-fencing-scaffold` (versionCode 603) passed
 `bundleRelease`, `assembleRelease`, `testReleaseUnitTest` and `lintRelease`, plus APK v2 signature,

@@ -3,16 +3,11 @@ package xyz.mdhv.formanalyser.app.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import xyz.mdhv.formanalyser.app.domain.HomeViewModel
-import xyz.mdhv.formanalyser.app.ui.components.AthleteActionTile
 import xyz.mdhv.formanalyser.app.ui.components.CrocodylHero
 import xyz.mdhv.formanalyser.app.ui.components.EquipmentAtelierCard
 import xyz.mdhv.formanalyser.app.ui.components.FencingStudiesCard
@@ -20,7 +15,6 @@ import xyz.mdhv.formanalyser.app.ui.components.MuayThaiFacetCard
 import xyz.mdhv.formanalyser.app.ui.components.BoulderingFacetCard
 import xyz.mdhv.formanalyser.app.ui.components.CommunityDirectoryCard
 import xyz.mdhv.formanalyser.app.ui.components.PairedSessionCard
-import xyz.mdhv.formanalyser.app.ui.components.ScoreActionIcon
 import xyz.mdhv.formanalyser.app.ui.theme.*
 
 @Composable
@@ -53,6 +47,7 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         item {
+            val rigName = vm.rigLabel() ?: activeRig?.name ?: "No rig yet"
             CrocodylHero(
                 readinessLabel = readinessLabel,
                 readinessDetail = readiness?.reasons?.firstOrNull()
@@ -60,49 +55,11 @@ fun HomeScreen(
                     ?: "Log sleep, energy and soreness for a useful training signal.",
                 ready = readiness?.level == xyz.mdhv.formanalyser.wellness.ReadinessLevel.READY,
                 streak = streak?.length,
+                rigName = rigName,
+                onManageRigs = onManageRigs,
+                onStartSession = onStartSession,
+                onScore = onScore,
             )
-        }
-        item {
-            val rigName = vm.rigLabel() ?: activeRig?.name ?: "No rig yet"
-            Card(
-                onClick = onManageRigs,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                colors = CardDefaults.cardColors(containerColor = Hyle.Surface),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.HairlineStrong),
-            ) {
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("ACTIVE RIG", color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelSmall)
-                        Text(rigName, color = Hyle.OnBackground, style = MaterialTheme.typography.titleMedium)
-                    }
-                    Text("EDIT  →", color = Hyle.AccentBright, style = MaterialTheme.typography.labelMedium)
-                }
-            }
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                AthleteActionTile(
-                    "Train",
-                    "Capture & analyse",
-                    Icons.Filled.CameraAlt,
-                    if (quiet) Hyle.OnSurfaceDim else Hyle.AccentBright,
-                    onStartSession,
-                    Modifier.weight(1f),
-                )
-                AthleteActionTile(
-                    "Score",
-                    "Fast arrow entry",
-                    ScoreActionIcon,
-                    Hyle.RadiumGreen,
-                    onScore,
-                    Modifier.weight(1f),
-                )
-            }
         }
         item { EquipmentAtelierCard() }
         item { FencingStudiesCard() }

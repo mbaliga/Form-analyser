@@ -8,6 +8,74 @@ those proposals here before committing to architecture or user-facing measuremen
 **Scope boundary:** this is a future cross-sport capability. It is not a prerequisite to the current
 Recurve Android production release and must not destabilize or silently widen that release.
 
+## Portable handoff snapshot — 11 October 2026
+
+This is the shared product/engineering brief for the owner's parallel ChatGPT Work and Claude Work
+sessions. It is intentionally a proposal/research handoff, not a feature ticket and not permission to
+start recording sensor data. The owner wants to develop the concept in those sessions and reconcile
+the outputs before choosing an implementation. Keep this file as the canonical spec; do not let
+parallel copies diverge into separate requirements.
+
+### Current baseline and project map
+
+- Crocodyl repository: `work/crocodyl-current`, branch `codex/production-hardening` in the current
+  local checkout. Re-check the actual checkout and branch when opening a fresh work session.
+- Recurve QA baseline: version `0.6.0-home-immersive-qa`, version code **664**. It is QA/debug
+  signed, not a production release. Production signing inputs/CI, physical-device and range
+  acceptance, the 30-real-session gate, and owner release approval remain open.
+- Runtime: native Android, Kotlin + Jetpack Compose, Room/local-first persistence, current
+  camera/pose capture for Recurve. Existing capture reliability examples are in
+  `app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/domain/SessionViewModel.kt` and the
+  camera lifecycle/buffer implementation; inspect current source rather than assuming paths or
+  behavior from this brief.
+- Current product truth: Recurve camera capture and manual scoring are live. Fencing's referee
+  console is human-operated; camera adjudication is not live. Muay Thai and bouldering have manual
+  training journals. None of those facts means screen-off IMU capture exists.
+- Main architecture map: `docs/architecture.md`, `app-android/src/main/kotlin/`,
+  `app-android/src/main/assets/atelier/cinematic/sports-manifest.json`, existing Android release
+  checklist and `CROCODYL_BUILD_NOTES.md`.
+- Design context: `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md` and Bocal's Android 0.5 UI
+  reference (`android/docs/Bocal_0.5_UI_System.md` in the Bocal repository). The app uses the Hyle
+  design tokens; the visual direction is cinematic/editorial, but Hyle owns accent/provenance
+  semantics. Use actual, royalty-free photography with a checked-in source/license/checksum record;
+  no AI-generated imagery.
+
+### What to bring back from each session
+
+Return a proposal, not a code change. Include a recommended first sport + exact placement + drill,
+the minimum useful screenless journey, observable versus derived outputs, a measurement/validation
+contract, safety/privacy review, Android service/lifecycle design, and explicit decisions still
+needed from the owner. Cite current primary sources with access dates for Android/platform or
+research claims. State where your recommendation changes this handoff. Do not present model output,
+research, or your own workout logs as owner-approved requirements or validation evidence.
+
+ChatGPT Work should lead with the athlete problem, product boundaries and study design; Claude Work
+should independently audit the repository and propose a source-grounded architecture/migration/test
+plan. Ask each session to preserve its proposal verbatim in that task's notes. The owner can then
+bring both proposals back here for a decision log. If they disagree, preserve the disagreement and
+name the experiment/evidence that resolves it—do not average or silently pick one.
+
+### Copy-ready session starter
+
+> I'm exploring Crocodyl's future screenless Motion Sessions. Read the repository's
+> `docs/crocodyl/MOTION_SESSIONS_HANDOFF.md` and `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`
+> before proposing anything. This is concept and design work only: do not edit code, create a branch,
+> collect sensor data, select a production protocol on my behalf, or claim validated metrics. Develop
+> an independent, evidence-backed proposal for one safe first sport / exact phone placement / drill,
+> including the athlete problem, setup-to-screen-off-to-review journey, observed vs derived vs
+> interpreted outputs, reference method and numerical acceptance thresholds, failure/uncertainty
+> presentation, mount and activity risks, privacy/retention/export, Android lifecycle/foreground
+> service implications, Room and `.croc` impact, and smallest honest prototype. Inspect current
+> repository facts if you have access; distinguish checked facts from assumptions. Cite primary
+> sources with access dates. Finish with (1) your recommendation, (2) conflicts with the handoff,
+> (3) owner-only decisions, and (4) explicit out-of-scope items. Return the proposal in the template
+> in section 12 so it can be reconciled against another work session.
+
+For Claude Code with repository access, append: “Inspect current Room entities, capture lifecycle,
+Android target/manifest, signing/release boundaries and exchange schema before commenting on
+migrations or service types. Do not implement until the owner reconciles the parallel proposals and
+approves a sport-specific measurement contract.”
+
 ## Start here — brief for a fresh work session
 
 The owner is exploring this idea in ChatGPT Work and Claude work sessions before committing to a
@@ -340,7 +408,7 @@ Before implementation, record an owner decision for each:
 
 ## 11. Parallel-agent prompts
 
-### ChatGPT Work / product and research
+### ChatGPT Work / product and research proposal
 
 > Read `docs/crocodyl/MOTION_SESSIONS_HANDOFF.md` first. Develop the product/measurement proposal,
 > safety and privacy review, sport-placement hypotheses, competitor/research questions, and a
@@ -348,14 +416,19 @@ Before implementation, record an owner decision for each:
 > implement code or change Crocodyl scope; return explicit decisions, open questions and testable
 > acceptance criteria for reconciliation into the handoff.
 
-### Claude Code / repository architecture
+### Claude Work / independent product and architecture proposal
 
-> Read `docs/crocodyl/MOTION_SESSIONS_HANDOFF.md`, `docs/architecture.md`, current Room entities,
-> capture lifecycle code and release checklist before proposing implementation. Inspect actual
-> current source; do not rely on old handoff claims. Produce an architecture/design review and
-> migration/test plan for one sport + one mount only. Do not add placeholder metrics, use AI images,
-> or weaken release gates. Do not implement until the owner selects the protocol and approves the
-> measurement contract.
+> Read the supplied `docs/crocodyl/MOTION_SESSIONS_HANDOFF.md` end to end and compare it with the
+> ChatGPT Work proposal if available. Independently recommend one pilot sport, exact phone placement
+> and drill; then audit the current Android/Room/capture architecture if you can access the
+> repository. If you cannot inspect the repository, say what remains unverified instead of guessing.
+> Return an architecture/design review and migration/test plan for one sport + one mount only. Cover
+> start/pause/resume/stop, screen-off service and notification constraints, timestamped sample
+> storage/recovery, permission and process-death paths, privacy/`.croc` implications, and measurable
+> validation thresholds. Do not add placeholder metrics, use AI images, collect sensor data, or
+> weaken release gates. Do not implement until the owner reconciles the proposals and approves the
+> measurement contract. Explicitly list agreements and disagreements with the other session; preserve
+> unresolved disagreements and name the evidence or experiment that would resolve each one.
 
 ### Codex / implementation after owner approval
 
@@ -378,25 +451,27 @@ Before implementation, record an owner decision for each:
 - Sports currently visible in Home include Recurve, Fencing (manual referee/scaffold), Muay Thai and
   Bouldering journals. Their visible cards do not mean motion capture is implemented or validated.
 - The app's Home, Train setup, Progress and Score entry now have initial cinematic/Hyle refresh
-  passes, with API-35 emulator captures in `docs/crocodyl/visuals/screenshots/`. Other destinations remain
-  unfinished. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
+  passes; Body has an editorial/region-picker pass; Fencing has a licensed-photo hero and manual
+  referee console. API-35 emulator captures are in `docs/crocodyl/visuals/screenshots/`. Other
+  destinations remain unfinished. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
   motion-analysis validity. Use licensed actual photography only; no AI-generated imagery.
-- Last recorded Recurve QA build: `0.6.0-saf-orphan-startup-qa`, versionCode 661, QA signer, not
-  production approved. Production keystore/CI signing, physical-device/range matrix and owner
-  release sign-off remain outstanding.
+- Current recorded Recurve QA build: `0.6.0-home-immersive-qa`, versionCode 664, QA/debug signer,
+  not production approved. Production signing inputs/CI, physical-device/range matrix, the 30-real-
+  session acceptance gate and owner release sign-off remain outstanding. Re-check the production
+  status and current artifact notes before quoting these values in a later session.
 
-### Parallel work-session protocol
+### Owner's reconciliation sequence
 
-ChatGPT Work and Claude sessions should treat this document as the shared source of truth, but each
-should return a proposal rather than independently committing conflicting architecture. Ask each
-session to include: (a) the exact protocol and placement it recommends, (b) explicit assumptions and
-conflicts with this document, (c) named source links and access dates for platform/research claims,
-(d) measurable acceptance thresholds and reference instrumentation, (e) safety/privacy failure
-cases, and (f) decisions that only the owner can make. Preserve the two outputs verbatim in the
-project task or attach them as review notes, then reconcile them into this file with an owner decision
-log before any implementation. Do not copy unreviewed external code or generated assets into the
-repository. Once a pilot protocol is approved, implementation work should use a separate branch and
-the commit/context-documentation discipline already used for the Recurve release.
+1. Run one independent proposal in ChatGPT Work and one in Claude Work; use this same canonical
+   handoff so neither session treats a copied summary as the source of truth.
+2. Keep each output verbatim in its originating task/chat, with model/session and date. Do not paste
+   private workout or sensor recordings into either session.
+3. Bring both recommendations back to Crocodyl. Compare pilot, mount, output claims, thresholds,
+   service/lifecycle, retention and safety assumptions against section 10's owner decisions.
+4. Record a dated decision log here: accepted, rejected, deferred, rationale, evidence, owner and
+   revisit trigger. Only then create an implementation task/branch for the approved single protocol.
+5. Keep rejected or unresolved claims out of the app, public roadmap and beta metrics. A cinematic
+   hero cannot imply sensor validation.
 
 ### Proposal record template
 

@@ -228,7 +228,14 @@ class ProductionSmokeTest {
     @Test
     fun sportAndDirectoryShellsLaunchWithoutProcessFailure() {
         ActivityScenario.launch(FencingActivity::class.java).use { fencing ->
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
             fencing.onActivity { activity -> assertTrue(activity.isFinishing.not()) }
+            assertTextEventually(instrumentation, "FENCING  /  THE PISTE")
+            assertTextEventually(instrumentation, "Read the moment.")
+            scrollForwardUntilText(instrumentation, "MANUAL REFEREE")
+            assertTextEventually(instrumentation, "MANUAL REFEREE")
+            assertTextEventually(instrumentation, "Prêt")
+            assertTextEventually(instrumentation, "Allez")
         }
         ActivityScenario.launch(CommunityDirectoryActivity::class.java).use { directory ->
             directory.onActivity { activity -> assertTrue(activity.isFinishing.not()) }
@@ -338,6 +345,29 @@ class ProductionSmokeTest {
             SystemClock.sleep(50)
         }
         throw AssertionError("Could not click visible UI text: $label")
+    }
+
+    private fun scrollForwardUntilText(
+        instrumentation: android.app.Instrumentation,
+        expected: String,
+    ) {
+        val deadline = SystemClock.uptimeMillis() + 8_000
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.waitForIdleSync()
+            val root = instrumentation.uiAutomation.rootInActiveWindow
+            if (root != null && containsText(root, expected)) return
+            if (root != null) root.scrollForwardOnce()
+            SystemClock.sleep(100)
+        }
+        throw AssertionError("Could not scroll to visible UI text: $expected")
+    }
+
+    private fun AccessibilityNodeInfo.scrollForwardOnce(): Boolean {
+        if (isScrollable && performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)) return true
+        for (index in 0 until childCount) {
+            if (getChild(index)?.scrollForwardOnce() == true) return true
+        }
+        return false
     }
 
     private fun waitForAthlete(repository: ScoringRepository) {
