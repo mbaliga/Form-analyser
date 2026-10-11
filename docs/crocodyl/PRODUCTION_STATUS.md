@@ -2,6 +2,16 @@
 
 Last reviewed: 2026-10-11
 
+Incremental verification after the v669 artifact (2026-10-11): added connected coverage for the
+complete Train → selected round → skipped pre-check-in → persisted session path, including the
+camera-denied and no-camera states, with cleanup that restores prior emulator records/defaults.
+The new test passes individually on API-35 ARM64 and API-36 ARM64 16 KB; the scorecard-resume test
+also passes individually on both. `lintRelease` passes with the current UI source. A full connected
+debug suite after the permission-copy compatibility fix has not yet been rerun; the first API-35
+full-suite attempt had two failures (the Android curly-apostrophe permission label and a downstream
+scorecard timeout), both affected tests now pass in isolation. The v669 APK/AAB hashes below refer
+to the earlier artifact and do not include this source change.
+
 Current-tree Recurve QA replay (2026-10-11): version `0.6.0-current-tree-qa`, versionCode 669.
 Root/JVM tests, Android debug/release unit tests, and `lintRelease` pass (`./gradlew test
 :app-android:testDebugUnitTest :app-android:testReleaseUnitTest :app-android:lintRelease

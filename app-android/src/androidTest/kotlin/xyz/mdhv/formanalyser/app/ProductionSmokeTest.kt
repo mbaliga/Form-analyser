@@ -1,5 +1,7 @@
 package xyz.mdhv.formanalyser.app
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
@@ -12,18 +14,21 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.room.withTransaction
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.UUID
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import xyz.mdhv.formanalyser.app.data.ScoringRepository
+import xyz.mdhv.formanalyser.app.data.Repository
 
 /**
  * Small on-device contract for the release-critical app boundary.
@@ -161,6 +166,123 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Quick score")
             }
         } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
+    fun startingTrainingPersistsTheSelectedRoundAndSkippedPrecheckin() {
+        val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
+        val scoringRepository = ScoringRepository(appContext)
+        val repository = Repository(appContext)
+        val database = xyz.mdhv.formanalyser.app.data.AppDatabase.get(appContext)
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        var athleteId: String? = null
+        var preexistingSessionIds = emptySet<String>()
+        var preexistingTrainingDefaults: xyz.mdhv.formanalyser.app.data.SessionDefaultEntity? = null
+        var startedAt = 0L
+        try {
+            runBlocking { prefs.setOnboarded(true) }
+            ActivityScenario.launch(MainActivity::class.java).use {
+                assertTextEventually(instrumentation, "Crocodyl")
+                waitForAthlete(scoringRepository)
+                val athlete = runBlocking { repository.currentAthlete() }
+                assertNotNull("The main shell did not initialize a training profile", athlete)
+                athleteId = athlete!!.id
+                preexistingTrainingDefaults =
+                    runBlocking { database.athleteFeatureDao().defaults(athlete.id) }
+                preexistingSessionIds =
+                    runBlocking { repository.allSessions(athlete.id) }.map { it.id }.toSet()
+                startedAt = System.currentTimeMillis()
+
+                clickBottomTabEventually(instrumentation, "Train")
+                clickTextEventually(instrumentation, "WA Recurve 70 m · 72 arrows")
+                clickTextEventually(instrumentation, "Start recording")
+                assertTextEventually(instrumentation, "Quick check-in")
+                clickTextEventually(instrumentation, "Skip")
+                if (appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) &&
+                    appContext.checkSelfPermission(Manifest.permission.CAMERA) !=
+                        PackageManager.PERMISSION_GRANTED
+                ) {
+                    dismissCameraPermissionPromptIfShown(instrumentation)
+                    assertAnyTextEventually(
+                        instrumentation,
+                        listOf(
+                            "Camera permission is required to analyse form.",
+                            "Camera access is blocked. Allow it in app settings to analyse form.",
+                        ),
+                    )
+                } else if (!appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+                    assertTextEventually(
+                        instrumentation,
+                        "This device has no camera, so form capture is unavailable here. Scoring, training logs and everything else still work.",
+                    )
+                }
+                assertTextEventually(instrumentation, "Film side-on (sagittal)")
+            }
+
+            val deadline = SystemClock.uptimeMillis() + 8_000
+            var created = runBlocking {
+                repository.allSessions(requireNotNull(athleteId))
+                    .firstOrNull { it.id !in preexistingSessionIds && it.startedAtEpochMs >= startedAt }
+            }
+            while (created == null && SystemClock.uptimeMillis() < deadline) {
+                SystemClock.sleep(50)
+                created = runBlocking {
+                    repository.allSessions(requireNotNull(athleteId))
+                        .firstOrNull { it.id !in preexistingSessionIds && it.startedAtEpochMs >= startedAt }
+                }
+            }
+            assertNotNull("Starting the training flow did not persist its session", created)
+            assertEquals(70, created!!.distanceMeters)
+            val precheckinId = created.preCheckinId
+            assertNotNull("Skipped pre-session check-in must remain linked to the session", precheckinId)
+            val precheckin = runBlocking { repository.wellness.checkinById(precheckinId!!) }
+            assertNotNull("Skipped pre-session check-in row was not persisted", precheckin)
+            assertEquals("PRE", precheckin!!.kind)
+            assertTrue("The check-in skip must be recorded", precheckin.skipped)
+        } finally {
+            athleteId?.let { id ->
+                val createdSessions = runBlocking {
+                    repository.allSessions(id).filter {
+                        it.id !in preexistingSessionIds && it.startedAtEpochMs >= startedAt
+                    }
+                }
+                runBlocking {
+                    database.withTransaction {
+                        createdSessions.forEach { session ->
+                            database.openHelper.writableDatabase.execSQL(
+                                "DELETE FROM session_context WHERE sessionId = ?",
+                                arrayOf(session.id),
+                            )
+                            session.preCheckinId?.let { checkinId ->
+                                database.openHelper.writableDatabase.execSQL(
+                                    "DELETE FROM soreness WHERE checkinId = ?",
+                                    arrayOf(checkinId),
+                                )
+                                database.openHelper.writableDatabase.execSQL(
+                                    "DELETE FROM checkin WHERE id = ?",
+                                    arrayOf(checkinId),
+                                )
+                            }
+                            database.openHelper.writableDatabase.execSQL(
+                                "DELETE FROM sessions WHERE id = ?",
+                                arrayOf(session.id),
+                            )
+                        }
+                        if (preexistingTrainingDefaults == null) {
+                            database.openHelper.writableDatabase.execSQL(
+                                "DELETE FROM session_default WHERE athleteId = ?",
+                                arrayOf(id),
+                            )
+                        } else {
+                            database.athleteFeatureDao().upsertDefaults(preexistingTrainingDefaults!!)
+                        }
+                    }
+                }
+            }
             runBlocking { prefs.setOnboarded(wasOnboarded) }
         }
     }
@@ -316,6 +438,23 @@ class ProductionSmokeTest {
         throw AssertionError("Timed out waiting for visible UI text: $expected. Visible: $visibleText")
     }
 
+    private fun assertAnyTextEventually(
+        instrumentation: android.app.Instrumentation,
+        expected: List<String>,
+    ) {
+        val deadline = SystemClock.uptimeMillis() + 8_000
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.waitForIdleSync()
+            val root = instrumentation.uiAutomation.rootInActiveWindow
+            if (root != null && expected.any { containsText(root, it) }) return
+            SystemClock.sleep(50)
+        }
+        val visibleText = instrumentation.uiAutomation.rootInActiveWindow
+            ?.let(::collectVisibleText)
+            .orEmpty()
+        throw AssertionError("Timed out waiting for any of $expected. Visible: $visibleText")
+    }
+
     private fun clickBottomTabEventually(
         instrumentation: android.app.Instrumentation,
         label: String,
@@ -346,6 +485,32 @@ class ProductionSmokeTest {
             SystemClock.sleep(50)
         }
         throw AssertionError("Could not click visible UI text: $label")
+    }
+
+    private fun dismissCameraPermissionPromptIfShown(
+        instrumentation: android.app.Instrumentation,
+    ) {
+        val deadline = SystemClock.uptimeMillis() + 8_000
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.waitForIdleSync()
+            val root = instrumentation.uiAutomation.rootInActiveWindow
+            if (root == null) {
+                SystemClock.sleep(50)
+                continue
+            }
+            val deny = listOf("Don't allow", "Don’t allow")
+                .firstNotNullOfOrNull { root.findClickableText(it) }
+            if (deny != null && deny.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+            if (
+                containsText(root, "Grant camera") ||
+                containsText(root, "Camera access is blocked.") ||
+                containsText(root, "Camera permission is required to analyse form.") ||
+                containsText(root, "This device has no camera")
+            ) return
+            SystemClock.sleep(50)
+        }
+        val visible = instrumentation.uiAutomation.rootInActiveWindow?.let(::collectVisibleText).orEmpty()
+        throw AssertionError("Camera prompt or safe denial/no-camera UI was not visible: $visible")
     }
 
     private fun scrollForwardUntilText(

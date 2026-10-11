@@ -251,3 +251,24 @@ simple accurate dock.
 The active screenless motion-session product spec is separate:
 [`../MOTION_SESSIONS_HANDOFF.md`](../MOTION_SESSIONS_HANDOFF.md). Do not use its future sport cards
 to widen current Recurve release acceptance.
+
+## 2026-10-11 owner-review correction pass
+
+After the owner said the screenshots still looked poor, the Home composition received a focused
+correction: the Home wordmark is smaller, the Recurve hero is shorter, and its horizontal scrim is
+less opaque so more of the licensed athlete/range photograph reads. The Atelier card's scrim was
+also reduced to reveal the existing arrow study render more clearly. The arrow itself, its
+separately explorable components/variants, routing and all feature behavior are unchanged. No new
+imagery was introduced. The updated render is
+[`screenshots/home-cinematic-october-api35.png`](screenshots/home-cinematic-october-api35.png),
+captured on API-35 ARM64 at 1080×1920 using a disposable QA profile. The Recurve photograph remains
+the already-attributed, licensed asset documented in `sports-manifest.json`.
+
+Verification for this correction: release lint passed; the session-start/check-in/permission-fallback
+instrumentation test passed in isolation on API 35 and API 36 16 KB; the scorecard-resume test passed
+in isolation on both devices. The first full debug rerun exposed platform-dialog wording variation
+and a downstream scorecard timeout on API 35; after making the permission assertions cover both
+first-denial and permanently-denied copy, the two affected tests passed individually. A full suite
+rerun after that harness correction is still outstanding, so this capture is visual evidence, not
+full-suite or physical-device acceptance. This is a first correction slice only: the wider screen-by-
+screen redesign and compact/large-font/device reviews below remain open.

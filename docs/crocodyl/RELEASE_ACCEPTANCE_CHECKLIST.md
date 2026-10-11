@@ -15,6 +15,18 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [ ] At least one clean install and one update over the previous production APK.
 - [ ] If a supported x86 emulator is used, repeat the non-camera flows and record the emulator image.
 
+### Incremental evidence after the current QA artifact (2026-10-11)
+
+- [x] The new Train → selected round → skipped pre-check-in → persisted session smoke passes
+      individually on API-35 ARM64 and API-36 ARM64 16 KB emulators. It covers permission-denied /
+      permanently-blocked and camera-less messaging and cleans up only its own records.
+- [x] Quick-score activity-recreation/resume smoke passes individually on both emulators.
+- [x] `lintRelease` passes against the current visual/source tree.
+- [ ] Rerun the complete connected debug suite after the Android permission-copy compatibility
+      fix; its first API-35 attempt had two failures, while both affected tests passed individually.
+- [ ] Build and preflight a new QA APK/AAB for this source tree. Existing v669 hashes below refer to
+      the earlier artifact and do not include these changes.
+
 ### 1.1 Current local evidence (not release sign-off)
 
 - Current-tree Recurve QA candidate (2026-10-11): `0.6.0-current-tree-qa` / versionCode 669.

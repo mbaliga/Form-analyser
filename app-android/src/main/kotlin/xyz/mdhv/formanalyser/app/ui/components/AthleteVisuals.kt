@@ -66,7 +66,7 @@ fun CrocodylHero(
     Box(
         modifier
             .fillMaxWidth()
-            .height(284.dp)
+            .height(260.dp)
             .clip(RoundedCornerShape(30.dp))
             .background(Hyle.SurfaceDeep)
             .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),
@@ -83,9 +83,9 @@ fun CrocodylHero(
             Modifier.fillMaxSize().background(
                 Brush.horizontalGradient(
                     colorStops = arrayOf(
-                        0f to Color(0xff08090d).copy(alpha = .94f),
-                        .48f to Color(0xff08090d).copy(alpha = .72f),
-                        1f to Color(0xff08090d).copy(alpha = .16f),
+                        0f to Color(0xff08090d).copy(alpha = .86f),
+                        .48f to Color(0xff08090d).copy(alpha = .57f),
+                        1f to Color(0xff08090d).copy(alpha = .10f),
                     ),
                 )
             )
@@ -100,7 +100,7 @@ fun CrocodylHero(
             )
         )
         Column(
-            Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 16.dp),
+            Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(Modifier.fillMaxWidth(.88f), verticalArrangement = Arrangement.spacedBy(6.dp)) {

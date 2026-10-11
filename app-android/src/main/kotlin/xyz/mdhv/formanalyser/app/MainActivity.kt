@@ -454,7 +454,7 @@ private fun TopRow(title: String, onSettings: () -> Unit) {
     ) {
         Text(
             title,
-            style = MaterialTheme.typography.titleLarge,
+            style = if (title == "Crocodyl") MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
             color = Hyle.OnBackground,
             modifier = Modifier.weight(1f),
         )

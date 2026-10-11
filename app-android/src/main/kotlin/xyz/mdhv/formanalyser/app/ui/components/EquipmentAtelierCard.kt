@@ -51,8 +51,8 @@ fun EquipmentAtelierCard() {
         Box(
             Modifier.fillMaxSize().background(
                 androidx.compose.ui.graphics.Brush.horizontalGradient(
-                    0f to Color(0xff101016).copy(alpha = .98f),
-                    .55f to Color(0xff101016).copy(alpha = .83f),
+                    0f to Color(0xff101016).copy(alpha = .56f),
+                    .55f to Color(0xff101016).copy(alpha = .24f),
                     1f to Color.Transparent,
                 )
             )
