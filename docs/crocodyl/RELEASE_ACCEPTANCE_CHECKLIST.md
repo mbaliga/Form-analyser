@@ -17,6 +17,19 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### 1.1 Current local evidence (not release sign-off)
 
+- API 36-target QA replay with connected smoke (2026-10-11): `0.6.0-api36-qa2` / versionCode 666
+  supersedes the versionCode 665 artifact below. Root JVM, Android debug/release unit tests, and
+  `lintRelease` passed. Connected debug and minified-release instrumentation each passed 9/9 on the
+  API-35 ARM64 `alloy-api35-arm64` emulator. A test failure in the prior replay exposed that the
+  round chooser lacked a visible cancel action; it now has “Cancel”, and the smoke test opens and
+  dismisses the chooser through that UI. APK/AAB passed the full release preflight with targetSdk
+  36, merged-manifest contract, QA signature agreement, ZIP alignment, model hash, and backup
+  resources. MediaPipe Tasks Vision 0.10.26 has no 16 KB load-segment lint finding. API-36 and
+  16-KB-page-size emulator/device runs remain outstanding. This is debug-key QA, not production
+  signing. APK SHA-256
+  `75d35a71cf14cd382306af3658885d96ec1c6e710cc03d2707aa81f5a918fe3c`; AAB SHA-256
+  `db6934358a19d387cd565e624edb71972428250e853830c68f13c17ee0a1147a`.
+
 - API 36 target migration replay (2026-10-11): `0.6.0-api36-qa` / versionCode 665. Root JVM,
   Android debug/release unit tests, and `lintRelease` passed after upgrading the Android/Kotlin
   build plugins and SDK target; offline release APK/AAB packaging succeeded. The minified APK and

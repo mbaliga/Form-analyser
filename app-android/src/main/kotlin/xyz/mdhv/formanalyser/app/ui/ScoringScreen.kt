@@ -345,6 +345,9 @@ fun ScoringScreen(vm: ScoringViewModel) {
                 }
             },
             confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { chooser = false }) { Text("Cancel") }
+            },
         )
     state.deletionPreview?.let { p ->
         AlertDialog(

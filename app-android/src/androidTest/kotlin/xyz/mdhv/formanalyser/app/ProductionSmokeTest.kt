@@ -115,7 +115,7 @@ class ProductionSmokeTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         try {
             runBlocking { prefs.setOnboarded(true) }
-            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            ActivityScenario.launch(MainActivity::class.java).use {
                 assertTextEventually(instrumentation, "Crocodyl")
                 assertTextEventually(instrumentation, "Find your rhythm.")
                 assertTextEventually(instrumentation, "ACTIVE RIG")
@@ -156,9 +156,7 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Quick score")
                 clickTextEventually(instrumentation, "Choose round")
                 assertTextEventually(instrumentation, "WA Recurve 70 m · 72 arrows")
-                // Dispatch through the modern back dispatcher: target API 36 no longer promises
-                // that a legacy KEYCODE_BACK event reaches the Activity callback chain.
-                scenario.onActivity { activity -> activity.onBackPressedDispatcher.onBackPressed() }
+                clickTextEventually(instrumentation, "Cancel")
                 assertTextEventually(instrumentation, "Quick score")
             }
         } finally {
