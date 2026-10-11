@@ -10,7 +10,6 @@ import androidx.lifecycle.viewModelScope
 import java.io.File
 import java.io.OutputStream
 import java.security.MessageDigest
-import java.util.UUID
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.Dispatchers
@@ -183,7 +182,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun writeArchive(uri: Uri, signed: Boolean): String {
         val app = getApplication<Application>()
-        val stagingFile = File(app.cacheDir, ".croc-export-${UUID.randomUUID()}.partial")
+        val stagingFile = SafExportPublisher.newStagingFile(app.cacheDir)
         return SafExportPublisher.publish(
             stagingFile = stagingFile,
             openDestination = { app.contentResolver.openOutputStream(uri) },

@@ -118,4 +118,33 @@ class SafExportPublisherTest {
         assertFalse(staging.exists())
         assertTrue(Files.list(directory).use { it.toList().isEmpty() })
     }
+
+    @Test
+    fun `startup removes orphaned staging but preserves active in-process export`() {
+        val cache = directory.toFile()
+        val orphan = File(cache, ".croc-export-orphan.partial").apply { writeText("stale") }
+        val staging = SafExportPublisher.newStagingFile(cache)
+        val destination = ByteArrayOutputStream()
+
+        val message =
+            SafExportPublisher.publish(
+                stagingFile = staging,
+                openDestination = {
+                    SafExportPublisher.clearOrphanedStaging(cache)
+                    assertFalse(orphan.exists())
+                    assertTrue(staging.exists())
+                    destination
+                },
+                removeIncompleteDestination = {},
+                writeArchive = { output ->
+                    output.write("complete".toByteArray())
+                    "signed"
+                },
+            )
+
+        assertEquals("signed", message)
+        assertArrayEquals("complete".toByteArray(), destination.toByteArray())
+        assertFalse(staging.exists())
+        assertTrue(Files.list(directory).use { it.toList().isEmpty() })
+    }
 }

@@ -206,15 +206,16 @@ The QA APK also installs, completes onboarding and opens Home; visual inspection
 Recurve/Fencing photo cards render in the feed. QA signer only; physical device/range acceptance
 remains.
 
-Current visual-refresh QA build (2026-10-11): `0.6.0-saf-export-staging-qa` / versionCode 659.
+Current visual-refresh QA build (2026-10-11): `0.6.0-saf-orphan-startup-qa` / versionCode 661.
 The minified APK/AAB passed `tools/release/verify_android_release.sh` with QA/debug certificate
 SHA-256 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. APK SHA-256
-`c322af59ee9060d0aeabedd0ad1f73a49800c98b5ebd0b99fda59f83ddd20dac`; AAB SHA-256
-`ab40ca771384f1530d988fdf5c41d29c51c0628d6984ad2cfde1241fdce09cd8`. Connected debug and
-QA/debug-signed minified-release instrumentation pass 8/8 each. The QA key is not the production
-signer; physical-device/range acceptance remains open. SAF archives are now generated in private
-cache before opening the selected document; copy failures trigger a document-delete attempt. A
-force-stop during provider copy still requires real-provider acceptance.
+`22ed20a0ccdde1eb409f4114b356114057d9e3aad6638186d34de3a1e3ae2ed4`; AAB SHA-256
+`2de813e95705b5cee35f8070a55cf3179467606aec0d5e4c80ec723fea7369ac`. Connected debug and
+QA/debug-signed minified-release instrumentation pass 9/9 each, including startup cleanup of an
+orphan staging file. The QA key is not the production signer; physical-device/range acceptance
+remains open. SAF archives are generated in private cache before opening the selected document;
+copy failures trigger a document-delete attempt. A force-stop during provider copy still requires
+real-provider acceptance.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release

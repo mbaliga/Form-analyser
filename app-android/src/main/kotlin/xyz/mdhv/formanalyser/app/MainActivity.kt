@@ -89,6 +89,7 @@ class MainActivity : ComponentActivity() {
         // screen is rendered, including after a process death during document viewing/capture.
         Vault.wipeViewCache(applicationContext)
         runCatching { File(applicationContext.cacheDir, "camera").deleteRecursively() }
+        SafExportPublisher.clearOrphanedStaging(applicationContext.cacheDir)
         setContent {
             FormAnalyserTheme {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {

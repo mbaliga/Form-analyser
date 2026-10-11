@@ -3,6 +3,17 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-11 SAF staging restart recovery: register each active private export staging path, clear
+orphaned `.croc-export-*.partial` files at Crocodyl startup, and preserve current-process staging
+during Activity recreation. Added a connected startup check proving stale Crocodyl files are removed
+while unrelated cache files remain, plus a unit test that active staging survives cleanup. The four
+SAF unit tests and root/Android tests pass; release lint passes; connected debug and QA minified
+release instrumentation pass 9/9 each on API-35 ARM64. QA APK/AAB
+`0.6.0-saf-orphan-startup-qa` / versionCode 661 passed release preflight. APK SHA-256
+`22ed20a0ccdde1eb409f4114b356114057d9e3aad6638186d34de3a1e3ae2ed4`; AAB SHA-256
+`2de813e95705b5cee35f8070a55cf3179467606aec0d5e4c80ec723fea7369ac`. The QA signer and emulator
+do not prove behavior across external SAF providers or production devices.
+
 2026-10-11 SAF export failure hardening: saved `.croc` archives are now fully assembled in private
 app cache before the SAF destination is opened. If the completed-archive copy fails, the provider
 delete operation is attempted; the private staging file is removed in every handled outcome. Three

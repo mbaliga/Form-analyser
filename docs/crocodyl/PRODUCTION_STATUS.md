@@ -241,25 +241,26 @@ final session insert, including removal of already-inserted soreness rows. Debug
 pass 44/44 each. Session startup also rejects duplicate requests while a start or capture is in
 flight, and setup navigation occurs only for an accepted start.
 
-Current-tree QA artifact (2026-10-11): minified APK/AAB `0.6.0-saf-export-staging-qa`,
-versionCode 659, includes the current Recurve source, cinematic screen work, and SAF export staging
-with failure cleanup. Release preflight passed. APK SHA-256
-`c322af59ee9060d0aeabedd0ad1f73a49800c98b5ebd0b99fda59f83ddd20dac`; AAB SHA-256
-`ab40ca771384f1530d988fdf5c41d29c51c0628d6984ad2cfde1241fdce09cd8`. APK and AAB share the
+Current-tree QA artifact (2026-10-11): minified APK/AAB `0.6.0-saf-orphan-startup-qa`,
+versionCode 661, includes SAF export staging, provider-failure cleanup, and startup pruning of
+orphaned private staging files. Release preflight passed. APK SHA-256
+`22ed20a0ccdde1eb409f4114b356114057d9e3aad6638186d34de3a1e3ae2ed4`; AAB SHA-256
+`2de813e95705b5cee35f8070a55cf3179467606aec0d5e4c80ec723fea7369ac`. APK and AAB share the
 committed QA/debug signing certificate `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`.
-Connected debug and QA-signed minified-release instrumentation each pass 8/8 on API-35 ARM64
-`emulator-5554`, including first-run onboarding copy and Body region selection. Root/Android tests
-and release lint pass (160 actionable tasks in the combined replay), including three new SAF staging
-tests for writer failure, destination ordering and copy-failure cleanup. The installed 658 QA APK
-rendered first-run onboarding at 1080×1920; screenshot evidence is checked in under
-`visuals/screenshots/onboarding-cinematic-refresh-api35.png`. Provider behavior after force-stop
-during the final SAF copy remains a physical/provider acceptance item.
+Connected debug and QA-signed minified-release instrumentation each pass 9/9 on API-35 ARM64
+`emulator-5554`, including first-run onboarding, Body region selection, and app-start removal of an
+orphaned export staging file while retaining an unrelated cache file. Root/Android tests and release
+lint pass (160 actionable tasks in the combined replay). Four SAF publisher tests cover writer
+failure, successful staged copy, copy-failure cleanup, and orphan-versus-active staging behavior.
+The installed 658 QA APK rendered first-run onboarding at 1080×1920; screenshot evidence is checked
+in under `visuals/screenshots/onboarding-cinematic-refresh-api35.png`. Provider behavior after
+force-stop during the final SAF copy remains a physical/provider acceptance item.
 These are emulator/build results, not physical-device/range acceptance. QA signing only; production
 signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 659 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 8/8 each on API-35 ARM64. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 661 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 9/9 each on API-35 ARM64. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

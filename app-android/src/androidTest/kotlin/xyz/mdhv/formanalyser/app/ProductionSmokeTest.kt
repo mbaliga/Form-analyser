@@ -15,6 +15,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.util.UUID
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -39,6 +40,24 @@ class ProductionSmokeTest {
             scenario.onActivity { activity ->
                 assertTrue(activity.isFinishing.not())
             }
+        }
+    }
+
+    @Test
+    fun mainActivityRemovesOrphanedSafExportStagingOnStartup() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val orphan = File(context.cacheDir, ".croc-export-interrupted.partial")
+        val unrelated = File(context.cacheDir, "unrelated.partial")
+        orphan.writeText("incomplete private archive")
+        unrelated.writeText("unrelated cache file")
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use {
+                assertFalse("Orphaned SAF export staging survived startup", orphan.exists())
+                assertTrue("Startup cleanup touched an unrelated cache file", unrelated.exists())
+            }
+        } finally {
+            orphan.delete()
+            unrelated.delete()
         }
     }
 
