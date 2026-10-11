@@ -121,6 +121,7 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "ACTIVE RIG")
                 assertTextEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "Score")
+                assertTextEventually(instrumentation, "Arrow, down to each part.")
 
                 clickBottomTabEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "New session")

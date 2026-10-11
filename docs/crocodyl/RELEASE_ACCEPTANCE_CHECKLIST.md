@@ -27,7 +27,8 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
   no fatal app-process/native-load error appeared in the checked logcat window. Connected
   instrumentation was attempted but Gradle/ADB returned `java.io.IOException: Operation not
   permitted`, including retry with elevated local execution; no test result is claimed. This uses
-  the committed debug identity solely for QA, not production signing. APK SHA-256
+  the committed debug identity solely for QA, not production signing. The Home smoke assertion for
+  the Atelier component entry compiles, but still requires a connected CI/device run. APK SHA-256
   `7ed468bf3e8bc96cb01897755ff28cc1d19ecac31ed18811892b2a9f944c80f0`; AAB SHA-256
   `b3b688e104b29f23816b7cb3cc357e3d4b47e0940447a4605db56e0e907b6597`. Production signing,
   physical-device/range acceptance, the 30-session gate and owner approval remain open.

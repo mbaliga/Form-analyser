@@ -13,7 +13,9 @@ instrumentation could not report results: Gradle/ADB returned `java.io.IOExcepti
 permitted` even on retry with elevated local execution. APK SHA-256
 `7ed468bf3e8bc96cb01897755ff28cc1d19ecac31ed18811892b2a9f944c80f0`; AAB SHA-256
 `b3b688e104b29f23816b7cb3cc357e3d4b47e0940447a4605db56e0e907b6597`. The committed debug key is
-QA-only; production signing, physical-device/range, 30-session and owner-approval gates remain open.
+QA-only; the updated Home smoke assertion for the Atelier component entry compiles but needs a
+connected run. Production signing, physical-device/range, 30-session and owner-approval gates remain
+open.
 
 16 KB App Bundle safeguard (2026-10-11): release preflight now parses `BundleConfig.pb` and
 requires uncompressed native libraries with `PAGE_ALIGNMENT_16K`, in addition to checking every
