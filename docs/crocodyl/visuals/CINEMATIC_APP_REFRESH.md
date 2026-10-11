@@ -60,6 +60,16 @@ the duplicated standalone rig strip and oversized action row have been removed. 
 Fencing and subsequent facet cards remain in the scroll feed. This is an incremental visual
 improvement, not a claim that the whole app now matches Bocal or has passed device acceptance.
 
+The October 11 Home/Atelier follow-up is captured at
+[`screenshots/home-atelier-refresh-api35.png`](screenshots/home-atelier-refresh-api35.png), a
+1080×1920 API-35 ARM64 emulator render. It replaces the abstract concentric-ring equipment tile
+with the already provenance-checked dark arrow render, and changes the promise to the real arrow
+library capability: independently explore components and variants. The Atelier tile and sport
+facet cards are shorter, while the hero is modestly more compact, allowing more of the fencing
+entry to appear before the floating dock. No new imagery or generated media was introduced. The
+capture is visual review evidence only; it is not a device-acceptance result. This is one focused
+Home composition iteration, not completion of the app-wide cinematic refresh.
+
 Initial Home problems visible in the October 10 pre-refresh screenshot (historical baseline; some
 were addressed by the subsequent Home/Train/Progress/Score passes):
 
@@ -172,6 +182,19 @@ API-35 debug and QA/debug-signed minified-release connected suites passed 9/9 ea
 unit tests and `lintRelease` passed. No new or generated image was added. This is one focused Fencing
 slice, not a completed visual refresh of every Crocodyl destination. The emulator captures are not
 physical-device/range acceptance.
+
+2026-10-11 Home/Atelier follow-up: reduced hero height from 310dp to 284dp; the arrow tile now uses
+the existing checksum-verified `arrow-dark.jpg` render and a direct, capability-accurate headline
+instead of decorative target rings. The arrow library itself remains separately navigable, with
+its existing component and variant inspection. Atelier and sport cards were shortened to improve
+the first-screen rhythm without concealing their full copy or changing feature routing. Home was
+rebuilt and visually inspected on API-35 ARM64 at 1080×1920; the screenshot is linked above. Debug
+unit tests and release lint passed. Production signing, compact-screen/large-font checks, remaining
+destination refreshes and physical-device visual acceptance remain open. Connected instrumentation
+was attempted but Gradle/ADB returned `java.io.IOException: Operation not permitted`, including on
+retry with elevated local execution; therefore this slice has no fresh connected-test pass. The shared
+[`../MOTION_SESSIONS_HANDOFF.md`](../MOTION_SESSIONS_HANDOFF.md) was refreshed to use current QA
+baseline v666; screenless motion capture remains a separate proposal pending owner reconciliation.
 
 ## Screen-by-screen target direction
 

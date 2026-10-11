@@ -66,7 +66,7 @@ fun CrocodylHero(
     Box(
         modifier
             .fillMaxWidth()
-            .height(310.dp)
+            .height(284.dp)
             .clip(RoundedCornerShape(30.dp))
             .background(Hyle.SurfaceDeep)
             .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),

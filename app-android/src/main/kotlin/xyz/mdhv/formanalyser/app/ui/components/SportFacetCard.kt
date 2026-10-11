@@ -75,7 +75,7 @@ private fun SportFacetCard(
     }
     val base = Color(0xff111016)
     Box(
-        Modifier.fillMaxWidth().height(184.dp).clip(RoundedCornerShape(24.dp))
+        Modifier.fillMaxWidth().height(154.dp).clip(RoundedCornerShape(24.dp))
             .background(base).clickable(role = Role.Button, onClickLabel = "Open $eyebrow training journal") {
                 onClick(context)
             },

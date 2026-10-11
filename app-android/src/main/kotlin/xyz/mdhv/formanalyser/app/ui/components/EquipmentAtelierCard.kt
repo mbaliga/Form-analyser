@@ -1,9 +1,9 @@
 package xyz.mdhv.formanalyser.app.ui.components
 
 import android.content.Intent
-import androidx.compose.foundation.Canvas
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,13 +12,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.EquipmentAtelierActivity
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 
@@ -26,42 +27,46 @@ import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 @Composable
 fun EquipmentAtelierCard() {
     val context = LocalContext.current
+    val poster = remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    LaunchedEffect(Unit) {
+        poster.value = withContext(Dispatchers.IO) {
+            runCatching {
+                context.assets.open("atelier/cinematic/arrow-dark.jpg").use {
+                    BitmapFactory.decodeStream(it)?.asImageBitmap()
+                }
+            }.getOrNull()
+        }
+    }
     val bg = Color(0xff111018)
-    val fg = Hyle.OnBackground
     Box(
-        Modifier.fillMaxWidth().height(174.dp).clip(RoundedCornerShape(22.dp))
-            .background(
-                Brush.linearGradient(listOf(Color(0xff1b1925), Color(0xff101513), Color(0xff111018)))
-            )
-            .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(22.dp))
+        Modifier.fillMaxWidth().height(142.dp).clip(RoundedCornerShape(24.dp))
+            .background(bg)
             .clickable(role = Role.Button, onClickLabel = "Open 3D equipment studio") {
                 context.startActivity(Intent(context, EquipmentAtelierActivity::class.java))
             }
     ) {
-        Canvas(Modifier.fillMaxSize()) {
-            val center = Offset(size.width * .82f, size.height * .5f)
-            listOf(.62f, .46f, .3f, .14f).forEachIndexed { index, radius ->
-                drawCircle(
-                    color = if (index == 3) Hyle.RadiumGreen.copy(alpha = .22f)
-                    else Hyle.Accent.copy(alpha = .16f - index * .025f),
-                    radius = size.minDimension * radius,
-                    center = center,
-                    style = Stroke(if (index == 3) 2.5f else 1.5f),
-                )
-            }
-            drawLine(
-                Hyle.OnBackground.copy(alpha = .34f),
-                Offset(center.x - 90f, center.y + 72f),
-                Offset(center.x + 45f, center.y - 52f),
-                2f,
-            )
+        poster.value?.let {
+            Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         }
-        Column(Modifier.padding(20.dp).widthIn(max = 220.dp)) {
-            Text("EQUIPMENT STUDIES", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelSmall)
-            Spacer(Modifier.height(11.dp))
-            Text("Explore the details.", color = fg, style = MaterialTheme.typography.titleLarge)
-            Spacer(Modifier.height(10.dp))
-            Text("Open the 3D studio", color = fg, style = MaterialTheme.typography.bodyMedium)
+        Box(
+            Modifier.fillMaxSize().background(
+                androidx.compose.ui.graphics.Brush.horizontalGradient(
+                    0f to Color(0xff101016).copy(alpha = .98f),
+                    .55f to Color(0xff101016).copy(alpha = .83f),
+                    1f to Color.Transparent,
+                )
+            )
+        )
+        Column(
+            Modifier.fillMaxHeight().padding(horizontal = 18.dp, vertical = 15.dp)
+                .widthIn(max = 265.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("THE ATELIER  /  RECURVE", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelSmall)
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text("Arrow, down to each part.", color = Hyle.OnBackground, style = MaterialTheme.typography.titleMedium)
+                Text("Explore components and variants  →", color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }

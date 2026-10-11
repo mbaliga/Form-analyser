@@ -37,7 +37,7 @@ fun FencingStudiesCard() {
     }
     val bg = Color(0xff17212b)
     Box(
-        Modifier.fillMaxWidth().height(174.dp).clip(RoundedCornerShape(22.dp))
+        Modifier.fillMaxWidth().height(154.dp).clip(RoundedCornerShape(22.dp))
             .background(bg).clickable(role = Role.Button, onClickLabel = "Open Fencing studies") {
                 context.startActivity(Intent(context, FencingActivity::class.java))
             },
