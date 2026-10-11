@@ -17,6 +17,18 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### 1.1 Current local evidence (not release sign-off)
 
+- Current-tree Recurve QA candidate (2026-10-11): `0.6.0-current-tree-qa` / versionCode 669.
+  Root/JVM tests, Android debug/release unit tests, and release lint passed (113 Gradle tasks).
+  Connected `ProductionSmokeTest` passed 9/9 with zero failures/errors/skips on API-35 ARM64 and
+  API-36 ARM64 16 KB-page emulators for both debug and minified release. The QA-signed APK/AAB
+  passed integrated preflight: matching QA signer, targetSdk 36, merged-manifest contract, APK ZIP
+  alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries per artifact, model hash,
+  and backup-resource checks. APK SHA-256
+  `9d3bf449fe3f15459808c6348ff86f57f7bfd8577248a73cbe5778029ff0bba0`; AAB SHA-256
+  `2c58df44bd8ca015c21bd22079957b060925fe8fe3ae8ae3411ac4a7c15fd780`. QA signing is not
+  production signing or physical-device/range acceptance; hosted CI, the 30-session gate, and
+  owner approval remain open.
+
 - API-36 Home/Atelier QA candidate (2026-10-11): `0.6.0-home-smoke-qa` / versionCode 668.
   Android debug/release unit tests, `lintRelease`, and connected `ProductionSmokeTest` each pass
   9/9 on API-35 ARM64 and API-36 ARM64 16 KB-page emulator (`getconf PAGE_SIZE` = 16384). This

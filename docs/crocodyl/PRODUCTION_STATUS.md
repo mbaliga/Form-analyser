@@ -2,6 +2,19 @@
 
 Last reviewed: 2026-10-11
 
+Current-tree Recurve QA replay (2026-10-11): version `0.6.0-current-tree-qa`, versionCode 669.
+Root/JVM tests, Android debug/release unit tests, and `lintRelease` pass (`./gradlew test
+:app-android:testDebugUnitTest :app-android:testReleaseUnitTest :app-android:lintRelease
+-PwithAndroid --offline --no-daemon`; 113 actionable tasks). Connected `ProductionSmokeTest` passes
+9/9 with zero failures/errors/skips on both API-35 ARM64 and API-36 ARM64 16 KB-page emulators for
+both debug and minified release. The signed APK/AAB pass integrated preflight: matching committed
+debug QA identity, targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB
+`PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries in each artifact, pose-model hash and backup
+resources. APK SHA-256 `9d3bf449fe3f15459808c6348ff86f57f7bfd8577248a73cbe5778029ff0bba0`; AAB SHA-256
+`2c58df44bd8ca015c21bd22079957b060925fe8fe3ae8ae3411ac4a7c15fd780`. This is a QA/debug-signed
+candidate only, not production signing or release approval. Production credentials, hosted CI,
+physical-device/range acceptance, the 30-session gate and owner approval remain open.
+
 16 KB emulator CI lane (2026-10-11): Android CI now includes a Google APIs 16 KB page-size
 emulator run for connected debug smoke tests; the release workflow adds the same check for the
 signed, minified release APK. Both assert `getconf PAGE_SIZE` is exactly 16384 before testing.
@@ -13,10 +26,12 @@ Post-CI safeguard verification (2026-10-11): release workflow contract suite pas
 shared checkout 4/4, offline viewer 10/10, community directory 4/4, Atelier asset/photo contracts
 9/9, arrow library 4/4, arrow reference library 7/7, and immutable action refs across all 7
 workflows pass. The retained local connected-test XML reports show 9/9 for each debug and
-minified-release suite on API-35 ARM64 and API-36 16 KB ARM64. A fresh Gradle replay was attempted
-but could not start: this checkout environment has no Java runtime. The current branch is not
-present on GitHub, so the new hosted 16 KB lanes cannot be run until the branch is pushed; no hosted
-pass is claimed. No product/app source changed in the CI-safeguard commit.
+minified-release suite on API-35 ARM64 and API-36 16 KB ARM64. The temporary JDK/Android toolchain
+was located and used for a fresh full Gradle replay; root/JVM tests, Android debug/release unit tests,
+and `lintRelease` passed (113 actionable tasks), followed by connected debug and minified-release
+smoke passes on both emulators. The current branch is not present on GitHub, so the new hosted 16 KB
+lanes cannot be run until the branch is pushed; no hosted pass is claimed. No product/app source
+changed in the CI-safeguard commit.
 
 Current-tree QA release replay (2026-10-11): Home/Atelier visual changes are packaged in QA
 candidate `0.6.0-home-smoke-qa` / versionCode 668. Android debug/release unit tests, `lintRelease`,
