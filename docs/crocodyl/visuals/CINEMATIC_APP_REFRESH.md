@@ -12,6 +12,27 @@ The remaining destinations still need coherent, screenshot-reviewed work, and th
 table below is the next design backlog. Do not call a polished Fencing screen or a checked-in
 screenshot “production-grade visual QA.”
 
+The owner has now explicitly rejected the current overall look as falling short of the Bocal
+standard. The October 11 capture confirms why: the app still has a tall generic title bar, Home is a
+vertical inventory of similarly weighted cards, the first-useful continuation is below feature
+promos, and the lower navigation visually competes with the imagery. The next pass is therefore a
+composition redesign, not a claim that the previous polished individual screens are sufficient.
+The current implementation moves recent practice directly after the Recurve hero, introduces quiet
+editorial section markers, and turns the top row into a compact Crocodyl range identity with a
+contained settings control. It reuses existing licensed sports photography and does not generate or
+download imagery. Treat this as the first renewed slice: capture and review it on emulator/device,
+then continue the same art direction across all primary and secondary destinations.
+
+2026-10-11 renewed Home composition pass: recent practice (up to two sessions) or the honest empty
+state now follows the Recurve hero before secondary destinations; editorial labels group the
+Atelier, other disciplines and training-together/community entries. The primary order and all
+existing routes/actions are preserved. The tab header is now a compact range/training identity with
+a contained settings affordance. Static diff validation passed. Android compile, lint,
+instrumentation and a refreshed screenshot could not be run in this environment because no Java
+runtime, Android SDK `adb`, or connected emulator is installed/available; do not treat this pass as
+visually accepted until a fresh emulator/device screenshot is reviewed. The previously checked-in
+screenshots show the pre-pass state.
+
 ## Evidence and diagnosis
 
 Reviewed the October 10 QA Home screenshot at `/private/tmp/crocodyl-photo-assets-home.png` and the

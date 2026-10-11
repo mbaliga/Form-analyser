@@ -2,11 +2,11 @@ package xyz.mdhv.formanalyser.app.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import xyz.mdhv.formanalyser.app.domain.HomeViewModel
 import xyz.mdhv.formanalyser.app.ui.components.CrocodylHero
 import xyz.mdhv.formanalyser.app.ui.components.EquipmentAtelierCard
@@ -61,10 +61,34 @@ fun HomeScreen(
                 onScore = onScore,
             )
         }
+        item {
+            HomeSectionLabel("YOUR PRACTICE")
+        }
+        item {
+            if (recent.isEmpty()) {
+                HyleEmptyState(
+                    "🎯",
+                    listOf("No sessions yet.", "Your first recorded end will show up here."),
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    recent.take(2).forEach { s ->
+                        HyleListRow(
+                            "Session · ${s.distanceMeters} m",
+                            subtitle = "Review session  →",
+                            onClick = { onOpenReview(s.id) },
+                        )
+                    }
+                }
+            }
+        }
+        item { HomeSectionLabel("EQUIPMENT ATELIER") }
         item { EquipmentAtelierCard() }
+        item { HomeSectionLabel("EXPLORE OTHER DISCIPLINES") }
         item { FencingStudiesCard() }
         item { MuayThaiFacetCard() }
         item { BoulderingFacetCard() }
+        item { HomeSectionLabel("TRAIN TOGETHER") }
         item { PairedSessionCard(onClick = onPairedSession) }
         item { CommunityDirectoryCard() }
         item {
@@ -79,27 +103,15 @@ fun HomeScreen(
                 onClick = onCoach,
             )
         }
-        item {
-            Text(
-                "Recent sessions",
-                style = MaterialTheme.typography.titleLarge,
-                color = Hyle.OnBackground,
-            )
-        }
-        if (recent.isEmpty())
-            item {
-                HyleEmptyState(
-                    "🎯",
-                    listOf("No sessions yet.", "Your first recorded end will show up here."),
-                )
-            }
-        else
-            items(recent, key = { it.id }) { s ->
-                HyleListRow(
-                    "Session · ${s.distanceMeters} m",
-                    subtitle = "tap to review",
-                    onClick = { onOpenReview(s.id) },
-                )
-            }
     }
+}
+
+@Composable
+private fun HomeSectionLabel(label: String) {
+    Text(
+        label,
+        style = MaterialTheme.typography.labelMedium,
+        color = Hyle.RadiumGreen,
+        letterSpacing = 1.5.sp,
+    )
 }

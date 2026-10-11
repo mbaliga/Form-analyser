@@ -449,17 +449,24 @@ private fun NavGraphBuilder.settingsGraph(
 @Composable
 private fun TopRow(title: String, onSettings: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp),
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 7.dp, bottom = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            title,
-            style = if (title == "Crocodyl") MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
-            color = Hyle.OnBackground,
-            modifier = Modifier.weight(1f),
-        )
-        IconButton(onClick = onSettings) {
-            Icon(Icons.Filled.Settings, "Settings", tint = Hyle.OnSurfaceDim)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Text(
+                if (title == "Crocodyl") "CROCODYL  /  RANGE" else "CROCODYL  /  TRAINING",
+                color = Hyle.RadiumGreen,
+                fontSize = 9.sp,
+                letterSpacing = 1.6.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(title, style = MaterialTheme.typography.titleMedium, color = Hyle.OnBackground)
+        }
+        IconButton(
+            onClick = onSettings,
+            modifier = Modifier.size(42.dp).clip(CircleShape).background(Hyle.SurfaceVariant.copy(alpha = .72f)),
+        ) {
+            Icon(Icons.Filled.Settings, "Settings", tint = Hyle.OnBackground, modifier = Modifier.size(19.dp))
         }
     }
 }

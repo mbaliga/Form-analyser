@@ -20,9 +20,12 @@ parallel copies diverge into separate requirements.
 
 - Crocodyl repository: `work/crocodyl-current`, branch `codex/production-hardening` in the current
   local checkout. Re-check the actual checkout and branch when opening a fresh work session.
-- Recurve QA baseline: version `0.6.0-api36-qa2`, version code **666**. It is QA/debug
-  signed, not a production release. Production signing inputs/CI, physical-device and range
-  acceptance, the 30-real-session gate, and owner release approval remain open.
+- Recurve QA baseline when this handoff was first authored: version `0.6.0-api36-qa2`, version
+  code **666**. The current production-hardening checkout has since advanced; consult
+  `docs/crocodyl/PRODUCTION_STATUS.md` and `docs/crocodyl/RELEASE_ACCEPTANCE_CHECKLIST.md` for the
+  latest tested QA artifact (v678 at the 11 October 2026 handoff refresh). All local artifacts
+  remain QA/debug signed, not production releases. Production signing inputs/CI, physical-device
+  and range acceptance, the 30-real-session gate, and owner release approval remain open.
 - Runtime: native Android, Kotlin + Jetpack Compose, Room/local-first persistence, current
   camera/pose capture for Recurve. Existing capture reliability examples are in
   `app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/domain/SessionViewModel.kt` and the
@@ -455,10 +458,11 @@ Before implementation, record an owner decision for each:
   referee console. API-35 emulator captures are in `docs/crocodyl/visuals/screenshots/`. Other
   destinations remain unfinished. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
   motion-analysis validity. Use licensed actual photography only; no AI-generated imagery.
-- Current recorded Recurve QA build: `0.6.0-api36-qa2`, versionCode 666, QA/debug signer,
-  not production approved. Production signing inputs/CI, physical-device/range matrix, the 30-real-
-  session acceptance gate and owner release sign-off remain outstanding. Re-check the production
-  status and current artifact notes before quoting these values in a later session.
+- Current recorded Recurve QA build at this handoff refresh: `0.6.0-session-smoke-qa`, versionCode
+  678, QA/debug signer, not production approved. The signed artifact and test evidence are local QA
+  evidence only. Production signing inputs/CI, physical-device/range matrix, the 30-real-session
+  acceptance gate and owner release sign-off remain outstanding. Re-check the production status and
+  current artifact notes before quoting these values in a later session.
 
 ### Owner's reconciliation sequence
 
