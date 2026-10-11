@@ -53,12 +53,15 @@ signing inputs or expected certificate fingerprint are absent.
    The workflow also runs the release-workflow contract tests, which fail if signing-material
    permissions/cleanup or the release verification steps are removed.
 3. Confirm the preflight output verifies APK v2 signing, AAB signing, 16 KB APK ZIP alignment,
-   16 KB ELF load-segment alignment for every `arm64-v8a` and `x86_64` shared library in both
-   artifacts, expected version metadata, cleartext/backup/FileProvider policy, the merged
+   `BundleConfig.pb` requesting uncompressed native libraries with `PAGE_ALIGNMENT_16K`, and 16 KB
+   ELF load-segment alignment for every `arm64-v8a` and `x86_64` shared library in both artifacts,
+   expected version metadata, cleartext/backup/FileProvider policy, the merged
    manifest's permission allowlist and exported-component contract, BlazePose hash, backup
    resources, no staging files, and the expected signer fingerprint in both artifacts. The
    manifest allowlist is intentionally exact; any new app/library permission or exported
-   component requires review and an explicit, tested contract update.
+   component requires review and an explicit, tested contract update. Android documents this
+   bundle setting as the check for 16 KB ZIP alignment in Play-generated APKs: [16 KB page-size
+   guidance](https://developer.android.com/guide/practices/page-sizes).
 4. Download the APK/AAB and `*-SHA256SUMS.txt` from the GitHub Release and independently run:
 
 ```bash

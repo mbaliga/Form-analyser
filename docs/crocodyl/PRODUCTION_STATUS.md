@@ -2,6 +2,15 @@
 
 Last reviewed: 2026-10-11
 
+16 KB App Bundle safeguard (2026-10-11): release preflight now parses `BundleConfig.pb` and
+requires uncompressed native libraries with `PAGE_ALIGNMENT_16K`, in addition to checking every
+arm64-v8a/x86_64 ELF `PT_LOAD` segment in both APK and AAB and the APK ZIP alignment. The v666 QA
+APK/AAB passed the integrated release verifier; release contract/regression tests pass 37/37. The
+parser is schema-grounded in Google's bundletool `config.proto`, and its purpose matches Android's
+[16 KB page-size guidance](https://developer.android.com/guide/practices/page-sizes). This closes a
+packaging-verification gap only; it does not replace Play-generated APK testing, physical-device
+acceptance, production signing or owner release approval.
+
 Release security gate update (2026-10-11): release artifact preflight now parses the merged binary
 manifest and fails on unreviewed permissions or exported components; the sole non-launcher export
 allowed today is AndroidX ProfileInstaller behind `android.permission.DUMP`. Five regression tests

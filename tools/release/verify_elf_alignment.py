@@ -12,10 +12,89 @@ from pathlib import Path
 PAGE_ALIGNMENT = 16 * 1024
 ABI_64 = {"arm64-v8a", "x86_64"}
 PT_LOAD = 1
+BUNDLE_CONFIG = "BundleConfig.pb"
 
 
 class ElfAlignmentError(ValueError):
     """An ELF shared library is malformed or not compatible with 16 KB pages."""
+
+
+def _protobuf_fields(message: bytes) -> list[tuple[int, int, int | bytes]]:
+    """Read protobuf wire fields without depending on generated bundletool classes."""
+    fields: list[tuple[int, int, int | bytes]] = []
+    offset = 0
+
+    def varint() -> int:
+        nonlocal offset
+        value = 0
+        for shift in range(0, 70, 7):
+            if offset >= len(message):
+                raise ElfAlignmentError("truncated BundleConfig protobuf varint")
+            byte = message[offset]
+            offset += 1
+            value |= (byte & 0x7F) << shift
+            if byte < 0x80:
+                return value
+        raise ElfAlignmentError("invalid BundleConfig protobuf varint")
+
+    while offset < len(message):
+        tag = varint()
+        number, wire_type = tag >> 3, tag & 7
+        if number == 0:
+            raise ElfAlignmentError("invalid BundleConfig protobuf field number")
+        if wire_type == 0:
+            value: int | bytes = varint()
+        elif wire_type == 1:
+            end = offset + 8
+            if end > len(message):
+                raise ElfAlignmentError("truncated BundleConfig fixed64 field")
+            value = message[offset:end]
+            offset = end
+        elif wire_type == 2:
+            length = varint()
+            end = offset + length
+            if end > len(message):
+                raise ElfAlignmentError("truncated BundleConfig message field")
+            value = message[offset:end]
+            offset = end
+        elif wire_type == 5:
+            end = offset + 4
+            if end > len(message):
+                raise ElfAlignmentError("truncated BundleConfig fixed32 field")
+            value = message[offset:end]
+            offset = end
+        else:
+            raise ElfAlignmentError(f"unsupported BundleConfig protobuf wire type {wire_type}")
+        fields.append((number, wire_type, value))
+    return fields
+
+
+def _single_field(fields: list[tuple[int, int, int | bytes]], number: int, wire: int, label: str):
+    matches = [(field_wire, value) for field_number, field_wire, value in fields if field_number == number]
+    if len(matches) != 1 or matches[0][0] != wire:
+        raise ElfAlignmentError(f"BundleConfig is missing or has ambiguous {label}")
+    return matches[0][1]
+
+
+def verify_bundle_config(config: bytes) -> None:
+    """Require App Bundle native-library packaging to request 16 KB APK ZIP alignment."""
+    try:
+        root_fields = _protobuf_fields(config)
+        optimizations = _single_field(root_fields, 2, 2, "optimizations")
+        native_fields = _protobuf_fields(optimizations)
+        native = _single_field(native_fields, 2, 2, "uncompress_native_libraries")
+        library_fields = _protobuf_fields(native)
+        enabled = _single_field(library_fields, 1, 0, "native-library uncompress setting")
+        alignment = _single_field(library_fields, 2, 0, "native-library page alignment")
+    except TypeError as error:
+        raise ElfAlignmentError("BundleConfig contains a field with an invalid wire type") from error
+
+    if enabled != 1:
+        raise ElfAlignmentError("BundleConfig must enable uncompressed native libraries")
+    if alignment != 2:
+        raise ElfAlignmentError(
+            f"BundleConfig native-library alignment is {alignment}; expected PAGE_ALIGNMENT_16K (2)"
+        )
 
 
 def load_segment_alignments(binary: bytes) -> list[int]:
@@ -88,6 +167,11 @@ def verify_entries(artifact: str, entries: dict[str, bytes]) -> int:
 def verify_archive(path: Path) -> int:
     try:
         with zipfile.ZipFile(path) as archive:
+            if path.suffix.lower() == ".aab":
+                if BUNDLE_CONFIG not in archive.namelist():
+                    raise ElfAlignmentError(f"{path}: missing {BUNDLE_CONFIG}")
+                verify_bundle_config(archive.read(BUNDLE_CONFIG))
+                print(f"16 KB App Bundle configuration passed: {path}")
             entries = {
                 name: archive.read(name)
                 for name in archive.namelist()

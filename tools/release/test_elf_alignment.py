@@ -2,9 +2,18 @@
 """Regression coverage for the 16 KB native-library release gate."""
 
 import struct
+import tempfile
 import unittest
+import zipfile
+from pathlib import Path
 
-from verify_elf_alignment import ElfAlignmentError, load_segment_alignments, verify_entries
+from verify_elf_alignment import (
+    ElfAlignmentError,
+    load_segment_alignments,
+    verify_bundle_config,
+    verify_archive,
+    verify_entries,
+)
 
 
 def elf64(*alignments: int) -> bytes:
@@ -24,7 +33,61 @@ def elf32(alignment: int) -> bytes:
     return ident + header + segment
 
 
+def varint(value: int) -> bytes:
+    encoded = bytearray()
+    while value > 0x7F:
+        encoded.append((value & 0x7F) | 0x80)
+        value >>= 7
+    encoded.append(value)
+    return bytes(encoded)
+
+
+def length_field(number: int, value: bytes) -> bytes:
+    return varint((number << 3) | 2) + varint(len(value)) + value
+
+
+def varint_field(number: int, value: int) -> bytes:
+    return varint(number << 3) + varint(value)
+
+
+def bundle_config(alignment: int = 2, enabled: int = 1) -> bytes:
+    native = varint_field(1, enabled) + varint_field(2, alignment)
+    optimizations = length_field(2, native)
+    return length_field(2, optimizations)
+
+
 class ElfAlignmentTest(unittest.TestCase):
+    def test_accepts_bundle_requesting_uncompressed_16_kb_libraries(self) -> None:
+        verify_bundle_config(bundle_config())
+
+    def test_rejects_bundle_requesting_4_kb_alignment(self) -> None:
+        with self.assertRaisesRegex(ElfAlignmentError, "expected PAGE_ALIGNMENT_16K"):
+            verify_bundle_config(bundle_config(alignment=1))
+
+    def test_rejects_bundle_that_compresses_native_libraries(self) -> None:
+        with self.assertRaisesRegex(ElfAlignmentError, "must enable uncompressed"):
+            verify_bundle_config(bundle_config(enabled=0))
+
+    def test_rejects_missing_or_ambiguous_alignment_settings(self) -> None:
+        with self.assertRaisesRegex(ElfAlignmentError, "missing or has ambiguous"):
+            verify_bundle_config(length_field(2, length_field(2, varint_field(1, 1))))
+        # A duplicate field in the nested native-library message must fail closed.
+        native = varint_field(1, 1) + varint_field(2, 2) + varint_field(2, 2)
+        with self.assertRaisesRegex(ElfAlignmentError, "ambiguous"):
+            verify_bundle_config(length_field(2, length_field(2, native)))
+
+    def test_rejects_malformed_bundle_config(self) -> None:
+        with self.assertRaises(ElfAlignmentError):
+            verify_bundle_config(b"\x12\x05\x12")
+
+    def test_aab_requires_bundle_config(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            bundle_path = Path(temporary_directory) / "candidate.aab"
+            with zipfile.ZipFile(bundle_path, "w") as archive:
+                archive.writestr("base/lib/arm64-v8a/libsample.so", elf64(0x4000))
+            with self.assertRaisesRegex(ElfAlignmentError, "missing BundleConfig.pb"):
+                verify_archive(bundle_path)
+
     def test_accepts_16_kb_aligned_elf64_load_segments(self) -> None:
         self.assertEqual(load_segment_alignments(elf64(0x4000, 0x10000)), [0x4000, 0x10000])
 
