@@ -2,6 +2,13 @@
 
 Last reviewed: 2026-10-11
 
+Release security gate update (2026-10-11): release artifact preflight now parses the merged binary
+manifest and fails on unreviewed permissions or exported components; the sole non-launcher export
+allowed today is AndroidX ProfileInstaller behind `android.permission.DUMP`. Five regression tests
+cover the accepted surface and fail-closed cases. The current QA-signed versionCode 664 APK/AAB
+passed the strengthened verifier. This is additional packaging evidence; production signing,
+physical-device/range acceptance and owner release approval remain open.
+
 Home + Fencing visual update (2026-10-11): Home now integrates the active rig and Train/Score
 actions into the licensed Recurve photo hero, and Fencing has the sport-specific photo, weapon
 reference and manual referee console documented below. Both connected debug and QA/debug-signed

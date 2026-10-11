@@ -3,6 +3,15 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-11 release manifest hardening: the production APK/AAB preflight now audits the merged
+binary manifest, not just the app source manifest. It requires the reviewed permission set, an
+explicitly exported MAIN/LAUNCHER activity, private app components, and only allows AndroidX's
+exported profile receiver when protected by `android.permission.DUMP`. Five focused tests cover
+the accepted release surface and fail-closed behavior for unreviewed permissions, exported
+components, removed receiver protection and launcher drift. The existing versionCode 664 QA
+APK/AAB passes the strengthened preflight. This reduces dependency-merger drift risk but is not a
+full platform penetration test or production signing/device acceptance.
+
 2026-10-11 Home cinematic integration: moved active-rig editing and Train/Score into the licensed
 Recurve photo hero and removed the separate large rig/action rows. This addresses the visual feedback
 that the initial app screenshot still looked generic; it is a deliberate incremental direction, not

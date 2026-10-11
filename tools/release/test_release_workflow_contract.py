@@ -77,6 +77,11 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("sha256sum", verifier)
         self.assertIn("shasum -a 256", verifier)
 
+    def test_release_preflight_audits_merged_manifest_surface(self) -> None:
+        verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
+        self.assertIn('dump xmltree "$APK" --file AndroidManifest.xml > "$MANIFEST"', verifier)
+        self.assertIn('verify_manifest_contract.py "$MANIFEST"', verifier)
+
     def test_dependency_verification_metadata_requires_sha256_for_every_artifact(self) -> None:
         metadata = ET.parse(DEPENDENCY_METADATA).getroot()
         namespace = metadata.tag.partition("}")[0].removeprefix("{")

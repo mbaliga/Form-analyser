@@ -51,8 +51,11 @@ signing inputs or expected certificate fingerprint are absent.
    The workflow also runs the release-workflow contract tests, which fail if signing-material
    permissions/cleanup or the release verification steps are removed.
 3. Confirm the preflight output verifies APK v2 signing, AAB signing, ZIP alignment, expected
-   version metadata, cleartext/backup/FileProvider policy, BlazePose hash, backup resources, no
-   staging files, and the expected signer fingerprint in both artifacts.
+   version metadata, cleartext/backup/FileProvider policy, the merged manifest's permission
+   allowlist and exported-component contract, BlazePose hash, backup resources, no staging files,
+   and the expected signer fingerprint in both artifacts. The manifest allowlist is intentionally
+   exact; any new app/library permission or exported component requires review and an explicit,
+   tested contract update.
 4. Download the APK/AAB and `*-SHA256SUMS.txt` from the GitHub Release and independently run:
 
 ```bash
