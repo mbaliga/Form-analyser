@@ -2,6 +2,19 @@
 
 Last reviewed: 2026-10-11
 
+Current-tree QA release replay (2026-10-11): Home/Atelier visual changes are packaged in QA
+candidate `0.6.0-home-atelier-qa` / versionCode 667. Debug and release Android unit tests and
+`lintRelease` pass; release artifact preflight verifies the APK/AAB signatures match the QA/debug
+certificate, manifest contract, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K` config, 11 aligned
+64-bit ELF libraries in each artifact, model hash and backup resources. The exact minified APK
+installed and launched on the API-36 ARM64 16 KB-page emulator (16,384-byte page size), remained
+alive, and showed no fatal/native-load error in the checked logcat window. Connected
+instrumentation could not report results: Gradle/ADB returned `java.io.IOException: Operation not
+permitted` even on retry with elevated local execution. APK SHA-256
+`7ed468bf3e8bc96cb01897755ff28cc1d19ecac31ed18811892b2a9f944c80f0`; AAB SHA-256
+`b3b688e104b29f23816b7cb3cc357e3d4b47e0940447a4605db56e0e907b6597`. The committed debug key is
+QA-only; production signing, physical-device/range, 30-session and owner-approval gates remain open.
+
 16 KB App Bundle safeguard (2026-10-11): release preflight now parses `BundleConfig.pb` and
 requires uncompressed native libraries with `PAGE_ALIGNMENT_16K`, in addition to checking every
 arm64-v8a/x86_64 ELF `PT_LOAD` segment in both APK and AAB and the APK ZIP alignment. The v666 QA
@@ -14,7 +27,7 @@ acceptance, production signing or owner release approval.
 Release security gate update (2026-10-11): release artifact preflight now parses the merged binary
 manifest and fails on unreviewed permissions or exported components; the sole non-launcher export
 allowed today is AndroidX ProfileInstaller behind `android.permission.DUMP`. Five regression tests
-cover the accepted surface and fail-closed cases. The current QA-signed versionCode 664 APK/AAB
+cover the accepted surface and fail-closed cases. The versionCode 664 QA APK/AAB at that point
 passed the strengthened verifier. This is additional packaging evidence; production signing,
 physical-device/range acceptance and owner release approval remain open.
 

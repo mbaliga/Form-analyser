@@ -17,6 +17,21 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### 1.1 Current local evidence (not release sign-off)
 
+- API-36 Home/Atelier QA candidate (2026-10-11): `0.6.0-home-atelier-qa` / versionCode 667.
+  Debug/release Android unit tests and `lintRelease` pass on the current tree. The minified
+  QA-signed APK/AAB pass the integrated release preflight: targetSdk 36, merged-manifest contract,
+  matching QA certificate, APK ZIP alignment, AAB `BundleConfig.pb` set to uncompressed
+  `PAGE_ALIGNMENT_16K`, 11 64-bit ELF libraries per artifact with aligned PT_LOAD segments, model
+  hash and backup-resource checks. The exact APK installed/launched successfully on the API-36
+  16 KB-page ARM64 emulator (`getconf PAGE_SIZE` = 16384); process remained live after launch and
+  no fatal app-process/native-load error appeared in the checked logcat window. Connected
+  instrumentation was attempted but Gradle/ADB returned `java.io.IOException: Operation not
+  permitted`, including retry with elevated local execution; no test result is claimed. This uses
+  the committed debug identity solely for QA, not production signing. APK SHA-256
+  `7ed468bf3e8bc96cb01897755ff28cc1d19ecac31ed18811892b2a9f944c80f0`; AAB SHA-256
+  `b3b688e104b29f23816b7cb3cc357e3d4b47e0940447a4605db56e0e907b6597`. Production signing,
+  physical-device/range acceptance, the 30-session gate and owner approval remain open.
+
 - API 36-target QA replay with connected smoke (2026-10-11): `0.6.0-api36-qa2` / versionCode 666
   supersedes the versionCode 665 artifact below. Root JVM, Android debug/release unit tests, and
   `lintRelease` passed. Connected debug and minified-release instrumentation each passed 9/9 on
