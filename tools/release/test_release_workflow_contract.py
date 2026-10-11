@@ -93,6 +93,10 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn('dump xmltree "$APK" --file AndroidManifest.xml > "$MANIFEST"', verifier)
         self.assertIn('verify_manifest_contract.py "$MANIFEST"', verifier)
 
+    def test_release_preflight_checks_16_kb_elf_alignment(self) -> None:
+        verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
+        self.assertIn('verify_elf_alignment.py "$APK" "$AAB"', verifier)
+
     def test_connected_debug_and_minified_results_are_retained_on_failure(self) -> None:
         for artifact_name, report_path, log_path in (
             (

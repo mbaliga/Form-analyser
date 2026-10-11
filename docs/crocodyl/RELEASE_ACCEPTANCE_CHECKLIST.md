@@ -24,11 +24,12 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
   and API-36 ARM64 Google APIs 16 KB-page emulator (`getconf PAGE_SIZE` = 16384). A test failure
   in the prior replay exposed that the round chooser lacked a visible cancel action; it now has
   “Cancel”, and the smoke test opens and dismisses the chooser through that UI. APK/AAB passed the
-  full release preflight with targetSdk 36, merged-manifest contract, QA signature agreement, ZIP
-  alignment, model hash, and backup resources. MediaPipe Tasks Vision 0.10.26 has no 16 KB
-  load-segment lint finding, and the 16 KB emulator completed the full connected suite without
-  native-library load failure. Physical-device/range and 30-session gates remain open. This is
-  debug-key QA, not production signing. APK SHA-256
+  full release preflight with targetSdk 36, merged-manifest contract, QA signature agreement,
+  16 KB ZIP/ELF alignment, model hash, and backup resources. A new preflight gate checks every
+  arm64-v8a and x86_64 shared library's PT_LOAD alignment in both APK and AAB. MediaPipe Tasks
+  Vision 0.10.26 has no 16 KB load-segment lint finding, and the 16 KB emulator completed the full
+  connected suite without native-library load failure. Physical-device/range and 30-session gates
+  remain open. This is debug-key QA, not production signing. APK SHA-256
   `5b52ff48aaf6b4f84f07558bce3f06a730526477cf35042c6e5ac156070e42dc`; AAB SHA-256
   `db6934358a19d387cd565e624edb71972428250e853830c68f13c17ee0a1147a`.
 

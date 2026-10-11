@@ -40,6 +40,7 @@ test -x "$ZIPALIGN"
 
 "$APKSIGNER" verify --verbose "$APK"
 "$ZIPALIGN" -c -P 16 4 "$APK"
+python3 tools/release/verify_elf_alignment.py "$APK" "$AAB"
 jarsigner -verify "$AAB"
 
 APK_CERT_SHA256="$("$APKSIGNER" verify --print-certs "$APK" | awk -F': ' '/certificate SHA-256 digest:/{print tolower($2); exit}')"
