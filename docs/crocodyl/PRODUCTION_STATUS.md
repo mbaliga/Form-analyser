@@ -17,6 +17,12 @@ artifact, pose-model hash and backup resources. APK SHA-256
 artifacts, not production release candidates. Production credentials, hosted CI, physical-device/
 range acceptance, the 30-session gate and owner approval remain open.
 
+Additional source-tree contracts (2026-10-11): release 38/38, shared-checkout 4/4, web-viewer
+10/10, community-directory 4/4, and Atelier plus arrow libraries 20/20 pass. The production
+signing properties and required environment inputs are absent from this checkout. A read-only
+`git ls-remote` check found no `codex/production-hardening` branch on `origin`, so hosted CI has not
+run for these commits; no remote write was performed.
+
 Previous current-tree QA replay (2026-10-11): version `0.6.0-current-tree-qa`, versionCode 669.
 Its earlier 9/9 instrumentation and APK/AAB digests are historical; use v678 above for the current
 source tree.
