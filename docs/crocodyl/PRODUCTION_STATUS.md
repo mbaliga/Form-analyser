@@ -3,19 +3,19 @@
 Last reviewed: 2026-10-11
 
 Current-tree QA release replay (2026-10-11): Home/Atelier visual changes are packaged in QA
-candidate `0.6.0-home-atelier-qa` / versionCode 667. Debug and release Android unit tests and
-`lintRelease` pass; release artifact preflight verifies the APK/AAB signatures match the QA/debug
-certificate, manifest contract, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K` config, 11 aligned
-64-bit ELF libraries in each artifact, model hash and backup resources. The exact minified APK
-installed and launched on the API-36 ARM64 16 KB-page emulator (16,384-byte page size), remained
-alive, and showed no fatal/native-load error in the checked logcat window. Connected
-instrumentation could not report results: Gradle/ADB returned `java.io.IOException: Operation not
-permitted` even on retry with elevated local execution. APK SHA-256
-`7ed468bf3e8bc96cb01897755ff28cc1d19ecac31ed18811892b2a9f944c80f0`; AAB SHA-256
-`b3b688e104b29f23816b7cb3cc357e3d4b47e0940447a4605db56e0e907b6597`. The committed debug key is
-QA-only; the updated Home smoke assertion for the Atelier component entry compiles but needs a
-connected run. Production signing, physical-device/range, 30-session and owner-approval gates remain
-open.
+candidate `0.6.0-home-smoke-qa` / versionCode 668. Android debug/release unit tests, `lintRelease`,
+and connected `ProductionSmokeTest` each pass 9/9 on API-35 ARM64 and API-36 ARM64 16 KB-page
+emulators. The suite includes the Home Atelier component-entry assertion. The minified APK/AAB
+pass integrated release preflight: APK/AAB signer agreement (committed debug identity), manifest
+contract, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries in each
+artifact, model hash and backup resources. The minified APK was exercised on the 16 KB emulator
+without native-load failure. APK SHA-256
+`13ac4c7b0ed12ce0350bfb86e8ac2d0ca6c0f54bf2f1749f1bc9735953e17f88`; AAB SHA-256
+`5259327800ed76e60852083161e5e6334b0ec77698b7e3982376a89fe10036a0`. Signing is QA-only;
+production signing, physical-device/range acceptance, 30-session and owner-approval gates remain
+open. The initial connected-test socket failure was resolved by using a temporary writable
+`ANDROID_USER_HOME`; an initial API-36 install attempt also required a QA versionCode higher than
+the already installed v667 app.
 
 16 KB App Bundle safeguard (2026-10-11): release preflight now parses `BundleConfig.pb` and
 requires uncompressed native libraries with `PAGE_ALIGNMENT_16K`, in addition to checking every
@@ -335,7 +335,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 662 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 9/9 each on API-35 ARM64. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 668 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 9/9 each on API-35 ARM64 and API-36 16 KB ARM64. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

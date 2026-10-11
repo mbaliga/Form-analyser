@@ -190,9 +190,10 @@ its existing component and variant inspection. Atelier and sport cards were shor
 the first-screen rhythm without concealing their full copy or changing feature routing. Home was
 rebuilt and visually inspected on API-35 ARM64 at 1080×1920; the screenshot is linked above. Debug
 unit tests and release lint passed. Production signing, compact-screen/large-font checks, remaining
-destination refreshes and physical-device visual acceptance remain open. Connected instrumentation
-was attempted but Gradle/ADB returned `java.io.IOException: Operation not permitted`, including on
-retry with elevated local execution; therefore this slice has no fresh connected-test pass. The shared
+destination refreshes and physical-device visual acceptance remain open. The follow-up v668
+minified QA build and debug build each passed the 9-test connected Home smoke on API-35 ARM64 and
+API-36 ARM64 16 KB-page emulators; this includes the visible Atelier entry assertion. The artifacts
+are QA/debug-signed, not production-signed. The shared
 [`../MOTION_SESSIONS_HANDOFF.md`](../MOTION_SESSIONS_HANDOFF.md) was refreshed to use current QA
 baseline v666; screenless motion capture remains a separate proposal pending owner reconciliation.
 

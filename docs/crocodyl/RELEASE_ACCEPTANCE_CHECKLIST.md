@@ -17,6 +17,19 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### 1.1 Current local evidence (not release sign-off)
 
+- API-36 Home/Atelier QA candidate (2026-10-11): `0.6.0-home-smoke-qa` / versionCode 668.
+  Android debug/release unit tests, `lintRelease`, and connected `ProductionSmokeTest` each pass
+  9/9 on API-35 ARM64 and API-36 ARM64 16 KB-page emulator (`getconf PAGE_SIZE` = 16384). This
+  includes the Home Atelier component-entry assertion. The minified QA APK/AAB pass integrated
+  release preflight: targetSdk 36, manifest contract, matching QA signer, APK ZIP alignment, AAB
+  `BundleConfig.pb` `PAGE_ALIGNMENT_16K`, 11 64-bit ELF libraries per artifact with aligned
+  PT_LOAD segments, model hash, and backup resources. The API-36/16 KB release suite completed
+  without native-library load failure. Artifacts use the committed debug identity solely for QA,
+  not production signing. APK SHA-256
+  `13ac4c7b0ed12ce0350bfb86e8ac2d0ca6c0f54bf2f1749f1bc9735953e17f88`; AAB SHA-256
+  `5259327800ed76e60852083161e5e6334b0ec77698b7e3982376a89fe10036a0`. Production signing,
+  physical-device/range acceptance, the 30-session gate and owner approval remain open.
+
 - API-36 Home/Atelier QA candidate (2026-10-11): `0.6.0-home-atelier-qa` / versionCode 667.
   Debug/release Android unit tests and `lintRelease` pass on the current tree. The minified
   QA-signed APK/AAB pass the integrated release preflight: targetSdk 36, merged-manifest contract,
@@ -28,7 +41,8 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
   instrumentation was attempted but Gradle/ADB returned `java.io.IOException: Operation not
   permitted`, including retry with elevated local execution; no test result is claimed. This uses
   the committed debug identity solely for QA, not production signing. The Home smoke assertion for
-  the Atelier component entry compiles, but still requires a connected CI/device run. APK SHA-256
+  the Atelier component entry compiled at this point but did not yet have a connected run; this
+  candidate is superseded by v668 below. APK SHA-256
   `7ed468bf3e8bc96cb01897755ff28cc1d19ecac31ed18811892b2a9f944c80f0`; AAB SHA-256
   `b3b688e104b29f23816b7cb3cc357e3d4b47e0940447a4605db56e0e907b6597`. Production signing,
   physical-device/range acceptance, the 30-session gate and owner approval remain open.
