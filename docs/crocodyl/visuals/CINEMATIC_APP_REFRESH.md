@@ -29,6 +29,11 @@ The Score landing visual is captured at
 also at 1080×1920 on API 35 with the QA profile. It uses the real target-face renderer in noninteractive
 example mode and does not claim a round has been selected or scored.
 
+The first-run entry is now captured at
+[`screenshots/onboarding-cinematic-refresh-api35.png`](screenshots/onboarding-cinematic-refresh-api35.png),
+1080×1920 on API-35 ARM64 using QA build 658. It uses the already-bundled, licensed Recurve training
+photograph with a dark Hyle scrim; the photo is atmospheric and is not presented as form guidance.
+
 Home problems visible in Crocodyl's screenshot:
 
 - The hero occupies about one-third of the usable screen but is only a blank gradient with target
@@ -94,14 +99,14 @@ unchanged.
 This does not yet refresh every screen; continue from real emulator captures.
 
 2026-10-11 validation: Android debug/release unit tests, `lintRelease`, and connected debug
-instrumentation passed (7/7). The suite covers all five primary tabs, Quick Score, accessible
+instrumentation passed (8/8). The suite covers first-run onboarding, all five primary tabs, Quick Score, accessible
 Progress empty-state/title copy, Train's disabled-action guidance, and the exact multiline Score
 headline. QA/debug-signed minified-release instrumentation also passed 7/7; its signer is not the
 production signer. `tools/atelier/test_assets.py` passes 9/9, including the source/license and
-checksum contract for the Home hero photograph. Version 656 QA APK/AAB passed release preflight.
+checksum contract for the Home hero photograph. Version 658 QA APK/AAB passed release preflight.
 These are emulator and local-build results, not physical-device visual acceptance. The checked-in
-screenshots cover Home, Train, Progress and Score entry; the other primary destinations remain
-visually unfinished and are still part of the refresh.
+screenshots cover Home, Train, Progress, Score entry and first-run onboarding; other primary
+destinations remain visually unfinished and are still part of the refresh.
 
 2026-10-11 Body slice: added a restrained editorial “Body & recovery” header in the Hyle palette,
 explicitly framing the journal as non-diagnostic. The Today atlas now offers a named, scrollable
@@ -111,6 +116,13 @@ pain dial, logging and history behavior are preserved. Connected debug and QA/de
 minified-release instrumentation pass 7/7 each on API-35 ARM64, including named region selection.
 Version 657 QA APK/AAB passed release preflight. No Body screenshot is checked in yet; the API-35
 emulator result is interaction evidence, not a completed visual review or physical-device acceptance.
+
+2026-10-11 onboarding visual pass: the first setup step now uses the bundled licensed Recurve photo
+as an immersive full-screen field with a dark scrim and a small radium/Hyle eyebrow. Later setup
+steps retain the plain dark task-focused surface. Role choices, progression, validation and commit
+behavior are unchanged. Debug and QA minified-release connected suites pass 8/8 each; the QA APK
+starts successfully and the checked-in 1080×1920 screenshot confirms the first-run render. Version
+658 APK/AAB passed release preflight. This screenshot is emulator evidence, not device acceptance.
 
 ## Screen-by-screen target direction
 

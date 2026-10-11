@@ -1,5 +1,7 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,13 +22,23 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.domain.OnboardingViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.HyleAvatar
@@ -39,8 +51,45 @@ import xyz.mdhv.formanalyser.model.Handedness
 @Composable
 fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
     val s by vm.state.collectAsState()
+    val context = LocalContext.current
+    val rangePhoto = remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    LaunchedEffect(s.step) {
+        if (s.step == 0 && rangePhoto.value == null) {
+            rangePhoto.value = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.assets.open("atelier/cinematic/recurve-training.jpg").use {
+                        BitmapFactory.decodeStream(it)?.asImageBitmap()
+                    }
+                }.getOrNull()
+            }
+        }
+    }
 
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Box(Modifier.fillMaxSize().background(Hyle.Background)) {
+        if (s.step == 0) {
+            rangePhoto.value?.let { image ->
+                Image(
+                    bitmap = image,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0f to Hyle.Background.copy(alpha = .72f),
+                        .3f to Hyle.Background.copy(alpha = .54f),
+                        .68f to Hyle.Background.copy(alpha = .68f),
+                        1f to Hyle.Background.copy(alpha = .96f),
+                    ),
+                ),
+            )
+        }
+        Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
         // progress dots
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             for (i in 0..s.lastStep) {
@@ -54,6 +103,12 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when (s.step) {
                 0 -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "CROCODYL  /  YOUR TRAINING SPACE",
+                        color = Hyle.RadiumGreen,
+                        style = MaterialTheme.typography.labelSmall,
+                        letterSpacing = 1.4.sp,
+                    )
                     Title("What do you do?")
                     HyleSegmented(listOf("ARCHER", "COACH", "BOTH"), s.role, { it.lowercase().replaceFirstChar(Char::uppercase) }) { vm.update { st -> st.copy(role = it) } }
                     if (s.role != "ARCHER") Hint("The coach workspace arrives in a later build — everything for training yourself is ready now.")
@@ -122,6 +177,7 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
                 enabled = s.canProceed,
                 modifier = Modifier.weight(1f),
             ) { Text(if (s.step == s.lastStep) "Finish" else "Next") }
+        }
         }
     }
 }

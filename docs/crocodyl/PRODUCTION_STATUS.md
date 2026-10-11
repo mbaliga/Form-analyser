@@ -2,6 +2,12 @@
 
 Last reviewed: 2026-10-11
 
+Repository-side gate replay (2026-10-11): release workflow/resolver tests passed 17/17, shared
+checkout 4/4, desktop viewer 10/10, Community Directory 4/4, Atelier authored assets/photo
+provenance 9/9, arrow library 4/4, arrow reference library 7/7, and immutable action references
+verified across all 7 workflow files. These are local contract checks; they do not close the
+physical-device, production-signing or owner-approval gates.
+
 Visual-system follow-up (2026-10-10): Home now uses the bundled, provenance-checked Recurve photo
 with an editorial scrim; action cards are more compact, repeated readiness copy is removed, the
 Atelier motif avoids repeating the same photograph, and primary navigation is an inset dock. Train
@@ -235,22 +241,23 @@ final session insert, including removal of already-inserted soreness rows. Debug
 pass 44/44 each. Session startup also rejects duplicate requests while a start or capture is in
 flight, and setup navigation occurs only for an accepted start.
 
-Current-tree QA artifact (2026-10-11): minified APK/AAB `0.6.0-body-recovery-cinematic-qa`,
-versionCode 657, includes the current Recurve source, cinematic Home/Train/Progress/Score work,
-and the editorial Body/recovery header plus accessible named-region picker. Release preflight
-passed. APK SHA-256
-`9c440099dbcc1fda8548a05a6948569121f1f7316cec7d0f374f51cc9db4e47c`; AAB SHA-256
-`4c1f57e1d386b5e645f23d95a613754adbcff24817796550ea9a2f627ff96324`. APK and AAB share the
+Current-tree QA artifact (2026-10-11): minified APK/AAB `0.6.0-onboarding-cinematic-qa`,
+versionCode 658, includes the current Recurve source, cinematic Home/Train/Progress/Score work,
+Body/recovery refinements, and first-run licensed-photo onboarding. Release preflight passed. APK
+SHA-256 `352e2cfae08413bf2455e815ed4956017a6f8b05c41b7fac44673ce421e90a90`; AAB SHA-256
+`e2b25360417174f715ef13a809e0714fca1c161c6ad968744624b8e2a29ec591`. APK and AAB share the
 committed QA/debug signing certificate `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`.
-Connected debug and QA-signed minified-release instrumentation each pass 7/7 on API-35 ARM64
-`emulator-5554`, including switching Body views, choosing a back-atlas region by name and opening
-the pain dial. Root/Android tests pass (104 actionable tasks) and release lint passes (54 tasks).
+Connected debug and QA-signed minified-release instrumentation each pass 8/8 on API-35 ARM64
+`emulator-5554`, including first-run onboarding copy and Body region selection. Root/Android tests
+and release lint pass (160 actionable tasks in the combined replay). The installed QA APK also
+started successfully with `am start -W` and rendered first-run onboarding at 1080×1920; screenshot
+evidence is checked in under `visuals/screenshots/onboarding-cinematic-refresh-api35.png`.
 These are emulator/build results, not physical-device/range acceptance. QA signing only; production
 signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 657 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 7/7 each on API-35 ARM64. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 658 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 8/8 each on API-35 ARM64. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

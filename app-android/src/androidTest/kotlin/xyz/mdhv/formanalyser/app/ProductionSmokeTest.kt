@@ -69,6 +69,26 @@ class ProductionSmokeTest {
     }
 
     @Test
+    fun firstRunOnboardingPresentsTheCinematicRangeEntry() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(context)
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        try {
+            runBlocking { prefs.setOnboarded(false) }
+            ActivityScenario.launch(MainActivity::class.java).use {
+                assertTextEventually(instrumentation, "CROCODYL  /  YOUR TRAINING SPACE")
+                assertTextEventually(instrumentation, "What do you do?")
+                assertTextEventually(instrumentation, "Archer")
+                assertTextEventually(instrumentation, "Coach")
+                assertTextEventually(instrumentation, "Both")
+            }
+        } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
     fun onboardedAthleteCanVisitEveryPrimaryTab() {
         val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)

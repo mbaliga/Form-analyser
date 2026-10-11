@@ -3,6 +3,18 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-11 cinematic onboarding pass: the first-run role step now places the licensed Recurve
+training photo behind a full-screen, dark Hyle scrim, with a radium editorial eyebrow; subsequent
+equipment/profile steps retain the focused dark layout. Role selection and onboarding state logic
+are unchanged. Added an instrumentation assertion for the first-run content and licensed imagery
+loads only from the curated local asset. Root/Android tests and release lint pass; connected debug
+and QA-signed minified-release smoke pass 8/8 each on API-35 ARM64. QA APK/AAB
+`0.6.0-onboarding-cinematic-qa` / versionCode 658 passed release preflight. APK SHA-256
+`352e2cfae08413bf2455e815ed4956017a6f8b05c41b7fac44673ce421e90a90`; AAB SHA-256
+`e2b25360417174f715ef13a809e0714fca1c161c6ad968744624b8e2a29ec591`. The first-run screenshot
+is `docs/crocodyl/visuals/screenshots/onboarding-cinematic-refresh-api35.png`. QA/debug identity
+only; no physical-device or production-signing acceptance is implied.
+
 2026-10-11 Body/recovery and motion handoff: added an editorial non-diagnostic Body header, an
 accessible named-region picker for Today atlas logging, and scroll-to-top behavior when switching
 Body subviews. Added a proposal record template and a clear concept-only/owner-approval boundary to
