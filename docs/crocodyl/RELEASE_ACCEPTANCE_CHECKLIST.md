@@ -206,14 +206,15 @@ The QA APK also installs, completes onboarding and opens Home; visual inspection
 Recurve/Fencing photo cards render in the feed. QA signer only; physical device/range acceptance
 remains.
 
-Current visual-refresh QA build (2026-10-11): `0.6.0-onboarding-cinematic-qa` / versionCode 658.
+Current visual-refresh QA build (2026-10-11): `0.6.0-saf-export-staging-qa` / versionCode 659.
 The minified APK/AAB passed `tools/release/verify_android_release.sh` with QA/debug certificate
 SHA-256 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. APK SHA-256
-`352e2cfae08413bf2455e815ed4956017a6f8b05c41b7fac44673ce421e90a90`; AAB SHA-256
-`e2b25360417174f715ef13a809e0714fca1c161c6ad968744624b8e2a29ec591`. Connected debug and
-QA/debug-signed minified-release instrumentation pass 8/8 each, including first-run onboarding
-and Body named-region selection. The QA key is not the production signer; physical-device/range
-acceptance remains open.
+`c322af59ee9060d0aeabedd0ad1f73a49800c98b5ebd0b99fda59f83ddd20dac`; AAB SHA-256
+`ab40ca771384f1530d988fdf5c41d29c51c0628d6984ad2cfde1241fdce09cd8`. Connected debug and
+QA/debug-signed minified-release instrumentation pass 8/8 each. The QA key is not the production
+signer; physical-device/range acceptance remains open. SAF archives are now generated in private
+cache before opening the selected document; copy failures trigger a document-delete attempt. A
+force-stop during provider copy still requires real-provider acceptance.
 
 Paired-session walkthrough coverage: 2026-09-24, tester: Codex. Added a Robolectric test for the
 DataStore flag that controls first-run versus returning-user walkthrough state. Debug and release
@@ -286,12 +287,12 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
-- [x] Current-tree QA APK/AAB (`0.6.0-score-editorial-qa`, versionCode 656) passed release artifact
-      preflight; connected debug and QA/debug-signed minified-release instrumentation each passed
-      7/7 on API-35 ARM64 `emulator-5554` (2026-10-10). This includes Android decoding checks for
-      sport photos, Progress empty-state/title and Score editorial-headline accessibility checks.
-      APK/AAB digests and full Android unit-test evidence are recorded above. QA signing is not production
-      signing or physical-device matrix acceptance.
+- [x] Current-tree QA APK/AAB (`0.6.0-saf-export-staging-qa`, versionCode 659) passed release
+      artifact preflight; connected debug and QA/debug-signed minified-release instrumentation
+      each passed 8/8 on API-35 ARM64 `emulator-5554` (2026-10-11). Includes first-run onboarding,
+      Body region selection, and current primary-tab smoke. SAF staging unit tests cover archive
+      writer failure, staged success and destination-copy cleanup. APK/AAB digests and test evidence
+      are recorded above. QA signing is not production signing or physical-device acceptance.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, absence of staging files, and the expected production

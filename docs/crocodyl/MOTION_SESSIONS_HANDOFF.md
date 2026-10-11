@@ -381,7 +381,7 @@ Before implementation, record an owner decision for each:
   passes, with API-35 emulator captures in `docs/crocodyl/visuals/screenshots/`. Other destinations remain
   unfinished. See `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`; this is separate from
   motion-analysis validity. Use licensed actual photography only; no AI-generated imagery.
-- Last recorded Recurve QA build: `0.6.0-onboarding-cinematic-qa`, versionCode 658, QA signer, not
+- Last recorded Recurve QA build: `0.6.0-saf-export-staging-qa`, versionCode 659, QA signer, not
   production approved. Production keystore/CI signing, physical-device/range matrix and owner
   release sign-off remain outstanding.
 

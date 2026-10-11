@@ -3,6 +3,18 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-11 SAF export failure hardening: saved `.croc` archives are now fully assembled in private
+app cache before the SAF destination is opened. If the completed-archive copy fails, the provider
+delete operation is attempted; the private staging file is removed in every handled outcome. Three
+unit tests cover writer failure without touching the destination, successful staged copy, and
+destination-copy failure cleanup. Root/Android tests and `lintRelease` pass; connected debug and
+QA-signed minified-release tests pass 8/8 each on API-35 ARM64. QA APK/AAB
+`0.6.0-saf-export-staging-qa` / versionCode 659 passed release preflight. APK SHA-256
+`c322af59ee9060d0aeabedd0ad1f73a49800c98b5ebd0b99fda59f83ddd20dac`; AAB SHA-256
+`ab40ca771384f1530d988fdf5c41d29c51c0628d6984ad2cfde1241fdce09cd8`. This does not prove how
+every SAF provider behaves if Android kills the app during the final copy; retain that in physical
+provider/device acceptance.
+
 2026-10-11 cinematic onboarding pass: the first-run role step now places the licensed Recurve
 training photo behind a full-screen, dark Hyle scrim, with a radium editorial eyebrow; subsequent
 equipment/profile steps retain the focused dark layout. Role selection and onboarding state logic
