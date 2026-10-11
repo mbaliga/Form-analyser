@@ -18,7 +18,11 @@ artifacts, not production release candidates. Production credentials, hosted CI,
 range acceptance, the 30-session gate and owner approval remain open.
 
 Additional source-tree contracts (2026-10-11): release 38/38, shared-checkout 4/4, web-viewer
-10/10, community-directory 4/4, and Atelier plus arrow libraries 20/20 pass. The production
+39/39, shared-checkout 4/4, web-viewer 10/10, community-directory 4/4, and Atelier plus arrow
+libraries 20/20 pass. The release workflow now rejects the committed QA/debug signer fingerprint
+before it materializes signing material; tests cover QA rejection, malformed fingerprints and a
+well-formed non-QA value. This prevents an accidental QA-key release but does not establish the
+missing production signing identity. The production
 signing properties and required environment inputs are absent from this checkout. A read-only
 `git ls-remote` check found no `codex/production-hardening` branch on `origin`, so hosted CI has not
 run for these commits; no remote write was performed.

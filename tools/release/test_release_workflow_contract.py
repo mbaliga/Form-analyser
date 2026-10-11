@@ -2,6 +2,7 @@
 """Static contract tests for the production release workflow's security gates."""
 
 import re
+import subprocess
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -25,9 +26,42 @@ class ReleaseWorkflowContract(unittest.TestCase):
         verify = self.workflow.index("- name: Verify production signing inputs")
         prepare = self.workflow.index("- name: Prepare release signing")
         self.assertLess(verify, prepare)
-        for token in ("STORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD", "CERT_SHA256"):
-            self.assertIn(f'test -n "${token}"' if token != "CERT_SHA256" else "NORMALIZED_CERT", self.workflow[verify:prepare])
-        self.assertIn("^[0-9a-f]{64}$", self.workflow[verify:prepare])
+        for token in ("STORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD"):
+            self.assertIn(f'test -n "${token}"', self.workflow[verify:prepare])
+        self.assertIn('bash tools/release/verify_production_signer.sh "$CERT_SHA256"', self.workflow[verify:prepare])
+
+    def test_production_release_rejects_the_committed_qa_signer(self) -> None:
+        verify = self.workflow.index("- name: Verify production signing inputs")
+        prepare = self.workflow.index("- name: Prepare release signing")
+        signing_gate = self.workflow[verify:prepare]
+        qa_certificate = "36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc"
+        guard = ROOT / "tools" / "release" / "verify_production_signer.sh"
+        self.assertIn('bash tools/release/verify_production_signer.sh "$CERT_SHA256"', signing_gate)
+
+        qa_result = subprocess.run(
+            ["bash", str(guard), ":".join(qa_certificate[i:i + 2] for i in range(0, 64, 2)).upper()],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(qa_result.returncode, 0)
+        self.assertIn("QA/debug certificate", qa_result.stderr)
+
+        production_result = subprocess.run(
+            ["bash", str(guard), "A" * 64],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(production_result.returncode, 0, production_result.stderr)
+
+        invalid_result = subprocess.run(
+            ["bash", str(guard), "not-a-certificate"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(invalid_result.returncode, 2)
 
     def test_signing_material_has_always_run_cleanup(self) -> None:
         self.assertIn("- name: Remove signing material", self.workflow)

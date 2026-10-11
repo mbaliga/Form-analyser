@@ -396,6 +396,10 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
+- [x] The release workflow rejects the committed QA/debug signer before keystore materialization;
+      release contract tests cover QA-certificate rejection, malformed fingerprints and acceptance
+      of a well-formed non-QA fingerprint. This policy check does not substitute for a real
+      production keystore or a signed production artifact.
 - [x] Android CI runs connected debug smoke on API-36 `google_apis_ps16k`; release CI runs the
       signed minified release smoke on the same 16 KB image and asserts the live page size is
       16384. The newly-added GitHub Actions lanes still require a successful hosted run.

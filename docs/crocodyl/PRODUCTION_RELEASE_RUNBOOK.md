@@ -31,6 +31,11 @@ The fingerprint can be derived from the production keystore before storing it as
 keytool -list -v -keystore production.keystore | grep -i 'SHA256:'
 ```
 
+The release workflow rejects the repository's committed QA/debug certificate fingerprint
+(`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`) before materializing the
+keystore. A passing local preflight with that certificate is QA evidence only and can never serve
+as production signing evidence.
+
 Never commit the keystore, passwords, or fingerprint-bearing private key material. The release
 workflow validates all five inputs before materializing anything, then writes the keystore only
 into the ephemeral CI workspace with owner-only permissions,

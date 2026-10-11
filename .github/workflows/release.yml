@@ -56,8 +56,7 @@ jobs:
           test -n "$STORE_PASSWORD"
           test -n "$KEY_ALIAS"
           test -n "$KEY_PASSWORD"
-          NORMALIZED_CERT="$(printf '%s' "$CERT_SHA256" | tr -d ':[:space:]' | tr '[:upper:]' '[:lower:]')"
-          printf '%s' "$NORMALIZED_CERT" | grep -Eq '^[0-9a-f]{64}$'
+          bash tools/release/verify_production_signer.sh "$CERT_SHA256"
       - name: Prepare release signing
         env:
           KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
