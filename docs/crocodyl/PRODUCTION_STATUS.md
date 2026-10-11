@@ -9,6 +9,15 @@ The emulator action is pinned to reviewed upstream v2.38.0, which supports the `
 image target. Local v668 connected runs already pass on an API-36 16 KB emulator; the new GitHub
 Actions lanes have not yet run and must pass in CI before they count as release evidence.
 
+Post-CI safeguard verification (2026-10-11): release workflow contract suite passes 38/38;
+shared checkout 4/4, offline viewer 10/10, community directory 4/4, Atelier asset/photo contracts
+9/9, arrow library 4/4, arrow reference library 7/7, and immutable action refs across all 7
+workflows pass. The retained local connected-test XML reports show 9/9 for each debug and
+minified-release suite on API-35 ARM64 and API-36 16 KB ARM64. A fresh Gradle replay was attempted
+but could not start: this checkout environment has no Java runtime. The current branch is not
+present on GitHub, so the new hosted 16 KB lanes cannot be run until the branch is pushed; no hosted
+pass is claimed. No product/app source changed in the CI-safeguard commit.
+
 Current-tree QA release replay (2026-10-11): Home/Atelier visual changes are packaged in QA
 candidate `0.6.0-home-smoke-qa` / versionCode 668. Android debug/release unit tests, `lintRelease`,
 and connected `ProductionSmokeTest` each pass 9/9 on API-35 ARM64 and API-36 ARM64 16 KB-page
