@@ -124,6 +124,14 @@ behavior are unchanged. Debug and QA minified-release connected suites pass 8/8 
 starts successfully and the checked-in 1080×1920 screenshot confirms the first-run render. Version
 658 APK/AAB passed release preflight. This screenshot is emulator evidence, not device acceptance.
 
+2026-10-11 Home refinement: retained the same licensed Recurve hero photograph and Hyle dark scrim,
+replaced the temporary profile name as the oversized headline with “Find your rhythm.”, and tightened
+the active-rig strip and Train/Score action tiles so the hero and next actions establish the hierarchy.
+Rig editing, Train, Score, readiness state, and navigation are unchanged. The fresh 1080×1920 API-35
+ARM64 render is [`screenshots/home-cinematic-handoff-api35.png`](screenshots/home-cinematic-handoff-api35.png).
+No generated imagery was introduced. Debug/release unit tests and release lint passed for the code
+slice; emulator screenshot is visual evidence only, not physical-device acceptance.
+
 ## Screen-by-screen target direction
 
 | Surface | Direction | Functional constraint |

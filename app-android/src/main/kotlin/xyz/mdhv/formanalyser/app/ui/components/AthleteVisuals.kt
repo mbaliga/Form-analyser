@@ -40,7 +40,6 @@ import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
 
 @Composable
 fun CrocodylHero(
-    athleteName: String,
     readinessLabel: String,
     readinessDetail: String?,
     ready: Boolean,
@@ -100,7 +99,11 @@ fun CrocodylHero(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("CROCODYL  /  RECURVE", color = Hyle.RadiumGreen, fontSize = 10.sp, letterSpacing = 1.7.sp)
-                Text(athleteName, style = MaterialTheme.typography.headlineMedium, color = Color.White)
+                Text(
+                    "Find your rhythm.",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White,
+                )
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(
@@ -142,7 +145,7 @@ fun AthleteActionTile(
 ) {
     Card(
         onClick = onClick,
-        modifier = modifier.height(108.dp),
+        modifier = modifier.height(88.dp),
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = Hyle.Surface),
         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = .18f)),
