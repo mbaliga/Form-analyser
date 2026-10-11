@@ -156,7 +156,9 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Quick score")
                 clickTextEventually(instrumentation, "Choose round")
                 assertTextEventually(instrumentation, "WA Recurve 70 m · 72 arrows")
-                instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+                // Dispatch through the modern back dispatcher: target API 36 no longer promises
+                // that a legacy KEYCODE_BACK event reaches the Activity callback chain.
+                scenario.onActivity { activity -> activity.onBackPressedDispatcher.onBackPressed() }
                 assertTextEventually(instrumentation, "Quick score")
             }
         } finally {

@@ -69,9 +69,20 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn(":app-android:testReleaseUnitTest", self.workflow)
         self.assertIn(":app-android:lintRelease", self.workflow)
 
+    def test_play_candidate_targets_api_36_in_build_and_emulator_jobs(self) -> None:
+        app_build = (ROOT / "app-android" / "build.gradle.kts").read_text()
+        self.assertRegex(app_build, r"compileSdk\s*=\s*36\b")
+        self.assertRegex(app_build, r"targetSdk\s*=\s*36\b")
+        for workflow_path in (
+            ROOT / ".github" / "workflows" / "android.yml",
+            WORKFLOW,
+        ):
+            self.assertRegex(workflow_path.read_text(), r"api-level:\s*36\b")
+
     def test_artifact_preflight_binds_package_identity(self) -> None:
         verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
         self.assertIn("package: name='xyz.mdhv.formanalyser'", verifier)
+        self.assertIn("targetSdkVersion:'36'", verifier)
         self.assertIn("certificate SHA-256 digest", verifier)
         self.assertIn("keytool -printcert -jarfile", verifier)
         self.assertIn("sha256sum", verifier)

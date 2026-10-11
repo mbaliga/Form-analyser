@@ -6,6 +6,7 @@
 import java.net.URI
 import java.security.MessageDigest
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 val releaseSigningProperties = Properties().apply {
     val file = rootProject.file("release-signing.properties")
@@ -67,14 +68,14 @@ repositories {
 
 android {
     namespace = "xyz.mdhv.formanalyser.app"
-    compileSdk = 35
+    compileSdk = 36
     // Keep ordinary CI on the fast debug contract. The release workflow opts in after signing so
     // the same on-device smoke suite also exercises the minified production variant.
     testBuildType = if (instrumentRelease) "release" else "debug"
     defaultConfig {
         applicationId = "xyz.mdhv.formanalyser"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = configuredVersionCode
         versionName = configuredVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -123,7 +124,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions { jvmTarget = "21" }
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
+    }
     // buildConfig is on so ExportViewModel can stamp the REAL versionName into every .crocbak
     // manifest. It was a hand-copied constant and had drifted two releases stale (0.4.4 vs 0.6.0),
     // which is exactly the failure a generated constant cannot have.
@@ -189,7 +194,7 @@ dependencies {
     // MediaPipe's AAR includes generated AutoValue classes, but its Maven metadata also pulls the
     // build-time processor into the runtime graph. The processor contributes no runtime behavior
     // and its service descriptor makes R8 inspect annotation processors inside the APK.
-    implementation("com.google.mediapipe:tasks-vision:0.10.20") {
+    implementation("com.google.mediapipe:tasks-vision:0.10.26") {
         exclude(group = "com.google.auto.value", module = "auto-value")
     }
     // MediaPipe LLM Inference (Gemma 3n) — on-device coach runtime.

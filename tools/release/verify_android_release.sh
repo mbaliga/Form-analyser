@@ -54,6 +54,7 @@ BADGING="$("$AAPT2" dump badging "$APK")"
 python3 tools/release/verify_manifest_contract.py "$MANIFEST"
 printf '%s\n' "$BADGING" | grep -F "package: name='xyz.mdhv.formanalyser'"
 printf '%s\n' "$BADGING" | grep -F "versionCode='$EXPECTED_VERSION_CODE' versionName='$EXPECTED_VERSION_NAME'"
+printf '%s\n' "$BADGING" | grep -F "targetSdkVersion:'36'"
 grep -Eq 'usesCleartextTraffic.*=false' "$MANIFEST"
 grep -Eq 'allowBackup.*=false' "$MANIFEST"
 grep -A8 -B3 'androidx.core.content.FileProvider' "$MANIFEST" | grep -Eq 'exported.*=false'

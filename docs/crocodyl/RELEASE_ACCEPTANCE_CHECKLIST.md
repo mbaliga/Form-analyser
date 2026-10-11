@@ -17,6 +17,19 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### 1.1 Current local evidence (not release sign-off)
 
+- API 36 target migration replay (2026-10-11): `0.6.0-api36-qa` / versionCode 665. Root JVM,
+  Android debug/release unit tests, and `lintRelease` passed after upgrading the Android/Kotlin
+  build plugins and SDK target; offline release APK/AAB packaging succeeded. The minified APK and
+  AAB passed `tools/release/verify_android_release.sh`, including targetSdk 36, merged-manifest
+  contract, APK/AAB signatures, ZIP alignment, model hash, and backup-resource checks. They are
+  signed using the repository's debug-only key solely for QA; this is not production-signing proof.
+  MediaPipe Tasks Vision is upgraded to 0.10.26; `lintRelease` no longer reports the prior
+  16 KB load-segment alignment issue. Retain a final 16 KB page-size emulator/device run in the
+  release matrix. No API-36 emulator/device test ran in this replay; the API-35 evidence below does
+  not verify API-36 behavior. APK SHA-256
+  `c8c5b436480801d34f55537138be6e3a1d8917dbc874b276c9ca1e4166906fac`; AAB SHA-256
+  `52244a09f13775749086c0b9a091877280071813775ccb009db4af4a33a5fef9`.
+
 - Current-tree QA release replay (2026-10-11): `0.6.0-home-immersive-qa` / versionCode 664.
   Minified APK/AAB passed `tools/release/verify_android_release.sh`, including APK v2/AAB
   signatures, matching QA/debug certificate, package/version, manifest security, ZIP alignment,
