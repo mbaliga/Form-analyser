@@ -115,7 +115,7 @@ class ProductionSmokeTest {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         try {
             runBlocking { prefs.setOnboarded(true) }
-            ActivityScenario.launch(MainActivity::class.java).use {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 assertTextEventually(instrumentation, "Crocodyl")
                 assertTextEventually(instrumentation, "Find your rhythm.")
                 assertTextEventually(instrumentation, "ACTIVE RIG")

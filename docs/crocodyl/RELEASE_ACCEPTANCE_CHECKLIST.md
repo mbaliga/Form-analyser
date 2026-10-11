@@ -29,6 +29,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
   not verify API-36 behavior. APK SHA-256
   `c8c5b436480801d34f55537138be6e3a1d8917dbc874b276c9ca1e4166906fac`; AAB SHA-256
   `52244a09f13775749086c0b9a091877280071813775ccb009db4af4a33a5fef9`.
+  A follow-up connected-debug attempt compiled the updated instrumentation suite but the local
+  ADB task stopped with `java.io.IOException: Operation not permitted` before reporting test
+  results. The API-36 system-image installer also produced no package/download progress and was
+  stopped; use the API-36 CI emulator job or a developer emulator for the connected run.
 
 - Current-tree QA release replay (2026-10-11): `0.6.0-home-immersive-qa` / versionCode 664.
   Minified APK/AAB passed `tools/release/verify_android_release.sh`, including APK v2/AAB
