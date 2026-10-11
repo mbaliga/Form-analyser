@@ -2,6 +2,13 @@
 
 Last reviewed: 2026-10-11
 
+16 KB emulator CI lane (2026-10-11): Android CI now includes a Google APIs 16 KB page-size
+emulator run for connected debug smoke tests; the release workflow adds the same check for the
+signed, minified release APK. Both assert `getconf PAGE_SIZE` is exactly 16384 before testing.
+The emulator action is pinned to reviewed upstream v2.38.0, which supports the `google_apis_ps16k`
+image target. Local v668 connected runs already pass on an API-36 16 KB emulator; the new GitHub
+Actions lanes have not yet run and must pass in CI before they count as release evidence.
+
 Current-tree QA release replay (2026-10-11): Home/Atelier visual changes are packaged in QA
 candidate `0.6.0-home-smoke-qa` / versionCode 668. Android debug/release unit tests, `lintRelease`,
 and connected `ProductionSmokeTest` each pass 9/9 on API-35 ARM64 and API-36 ARM64 16 KB-page

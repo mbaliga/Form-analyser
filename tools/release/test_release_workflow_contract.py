@@ -79,6 +79,23 @@ class ReleaseWorkflowContract(unittest.TestCase):
         ):
             self.assertRegex(workflow_path.read_text(), r"api-level:\s*36\b")
 
+    def test_debug_and_signed_release_ci_include_verified_16_kb_emulators(self) -> None:
+        android_workflow = (ROOT / ".github" / "workflows" / "android.yml").read_text()
+        self.assertIn("Run debug smoke tests on 16 KB page-size emulator", android_workflow)
+        self.assertIn("target: google_apis_ps16k", android_workflow)
+        self.assertIn('test "$page_size" = 16384', android_workflow)
+        self.assertIn(":app-android:connectedDebugAndroidTest", android_workflow)
+
+        release_workflow = WORKFLOW.read_text()
+        self.assertIn("Run signed minified release smoke tests on 16 KB page-size emulator", release_workflow)
+        self.assertIn("target: google_apis_ps16k", release_workflow)
+        self.assertIn('test "$page_size" = 16384', release_workflow)
+        self.assertIn(":app-android:connectedReleaseAndroidTest", release_workflow)
+        self.assertIn("-PcrocodylInstrumentRelease=true", release_workflow)
+        for workflow in (android_workflow, release_workflow):
+            self.assertNotIn("android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed", workflow)
+            self.assertIn("android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0", workflow)
+
     def test_artifact_preflight_binds_package_identity(self) -> None:
         verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
         self.assertIn("package: name='xyz.mdhv.formanalyser'", verifier)

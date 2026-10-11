@@ -369,6 +369,9 @@ leaks private data, or leaves the user unable to recover without clearing app st
       GradleDependency advisory warnings remain for dependency-version review.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
+- [x] Android CI runs connected debug smoke on API-36 `google_apis_ps16k`; release CI runs the
+      signed minified release smoke on the same 16 KB image and asserts the live page size is
+      16384. The newly-added GitHub Actions lanes still require a successful hosted run.
 - [x] Current-tree QA APK/AAB (`0.6.0-saf-export-staging-qa`, versionCode 659) passed release
       artifact preflight; connected debug and QA/debug-signed minified-release instrumentation
       each passed 8/8 on API-35 ARM64 `emulator-5554` (2026-10-11). Includes first-run onboarding,
