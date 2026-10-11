@@ -17,15 +17,17 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-11)
 
-- [x] The new Train → selected round → skipped pre-check-in → persisted session smoke passes
-      individually on API-35 ARM64 and API-36 ARM64 16 KB emulators. It covers permission-denied /
-      permanently-blocked and camera-less messaging and cleans up only its own records.
-- [x] Quick-score activity-recreation/resume smoke passes individually on both emulators.
-- [x] `lintRelease` passes against the current visual/source tree.
-- [ ] Rerun the complete connected debug suite after the Android permission-copy compatibility
-      fix; its first API-35 attempt had two failures, while both affected tests passed individually.
-- [ ] Build and preflight a new QA APK/AAB for this source tree. Existing v669 hashes below refer to
-      the earlier artifact and do not include these changes.
+- [x] Complete connected debug and minified-release smoke suites pass 10/10 on API-35 ARM64 and
+      API-36 ARM64 16 KB emulators, including the selected-round session persistence, pre-check-in
+      skip, permission fallbacks and scorecard-recreation tests.
+- [x] Root/JVM and Android debug/release unit tests pass; `lintRelease` passes (113 Gradle tasks).
+- [x] Version `0.6.0-session-smoke-qa` / versionCode 678 APK/AAB pass integrated preflight,
+      including signer agreement, targetSdk 36, manifest allowlist, APK ZIP alignment, AAB
+      `PAGE_ALIGNMENT_16K`, 11 64-bit ELF libraries, model hash and backup resources.
+      APK SHA-256 `6ee9bd509669dc07252333e335664b7b641597dca2c33a5a02be9ae5ab2193a5`; AAB SHA-256
+      `9eed6e44790886d9274259b603cc662014f4e63c8e9d9ee31880e98ceb441999`.
+- [ ] Production signer, hosted CI, physical-device/range matrix, 30-session gate and owner approval
+      remain outstanding; these emulator artifacts are debug-key QA only.
 
 ### 1.1 Current local evidence (not release sign-off)
 
@@ -39,7 +41,8 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
   `9d3bf449fe3f15459808c6348ff86f57f7bfd8577248a73cbe5778029ff0bba0`; AAB SHA-256
   `2c58df44bd8ca015c21bd22079957b060925fe8fe3ae8ae3411ac4a7c15fd780`. QA signing is not
   production signing or physical-device/range acceptance; hosted CI, the 30-session gate, and
-  owner approval remain open.
+  owner approval remain open. This older v669 evidence is superseded by the v678 10/10 matrix and
+  artifact digests in the incremental evidence section above.
 
 - API-36 Home/Atelier QA candidate (2026-10-11): `0.6.0-home-smoke-qa` / versionCode 668.
   Android debug/release unit tests, `lintRelease`, and connected `ProductionSmokeTest` each pass

@@ -2,28 +2,24 @@
 
 Last reviewed: 2026-10-11
 
-Incremental verification after the v669 artifact (2026-10-11): added connected coverage for the
-complete Train → selected round → skipped pre-check-in → persisted session path, including the
-camera-denied and no-camera states, with cleanup that restores prior emulator records/defaults.
-The new test passes individually on API-35 ARM64 and API-36 ARM64 16 KB; the scorecard-resume test
-also passes individually on both. `lintRelease` passes with the current UI source. A full connected
-debug suite after the permission-copy compatibility fix has not yet been rerun; the first API-35
-full-suite attempt had two failures (the Android curly-apostrophe permission label and a downstream
-scorecard timeout), both affected tests now pass in isolation. The v669 APK/AAB hashes below refer
-to the earlier artifact and do not include this source change.
+Current-tree Recurve QA replay after session-start smoke and Home visual correction (2026-10-11):
+version `0.6.0-session-smoke-qa`, versionCode 678. Root/JVM tests, Android debug/release unit tests,
+and `lintRelease` pass (113 actionable Gradle tasks). Connected `ProductionSmokeTest` passes 10/10
+with zero failures/errors/skips on API-35 ARM64 and API-36 ARM64 16 KB-page emulators for both
+debug and minified release. The new Train → selected round → skipped pre-check-in → persisted
+session test covers camera-denied, permanently blocked, and camera-less states; the scorecard
+activity-recreation smoke also passes. APK/AAB pass integrated preflight: QA signer fingerprint
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`, targetSdk 36, merged manifest
+allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries per
+artifact, pose-model hash and backup resources. APK SHA-256
+`6ee9bd509669dc07252333e335664b7b641597dca2c33a5a02be9ae5ab2193a5`; AAB SHA-256
+`9eed6e44790886d9274259b603cc662014f4e63c8e9d9ee31880e98ceb441999`. These are QA/debug-signed
+artifacts, not production release candidates. Production credentials, hosted CI, physical-device/
+range acceptance, the 30-session gate and owner approval remain open.
 
-Current-tree Recurve QA replay (2026-10-11): version `0.6.0-current-tree-qa`, versionCode 669.
-Root/JVM tests, Android debug/release unit tests, and `lintRelease` pass (`./gradlew test
-:app-android:testDebugUnitTest :app-android:testReleaseUnitTest :app-android:lintRelease
--PwithAndroid --offline --no-daemon`; 113 actionable tasks). Connected `ProductionSmokeTest` passes
-9/9 with zero failures/errors/skips on both API-35 ARM64 and API-36 ARM64 16 KB-page emulators for
-both debug and minified release. The signed APK/AAB pass integrated preflight: matching committed
-debug QA identity, targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB
-`PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries in each artifact, pose-model hash and backup
-resources. APK SHA-256 `9d3bf449fe3f15459808c6348ff86f57f7bfd8577248a73cbe5778029ff0bba0`; AAB SHA-256
-`2c58df44bd8ca015c21bd22079957b060925fe8fe3ae8ae3411ac4a7c15fd780`. This is a QA/debug-signed
-candidate only, not production signing or release approval. Production credentials, hosted CI,
-physical-device/range acceptance, the 30-session gate and owner approval remain open.
+Previous current-tree QA replay (2026-10-11): version `0.6.0-current-tree-qa`, versionCode 669.
+Its earlier 9/9 instrumentation and APK/AAB digests are historical; use v678 above for the current
+source tree.
 
 16 KB emulator CI lane (2026-10-11): Android CI now includes a Google APIs 16 KB page-size
 emulator run for connected debug smoke tests; the release workflow adds the same check for the
