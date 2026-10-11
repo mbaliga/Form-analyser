@@ -117,6 +117,10 @@ class ProductionSmokeTest {
             runBlocking { prefs.setOnboarded(true) }
             ActivityScenario.launch(MainActivity::class.java).use {
                 assertTextEventually(instrumentation, "Crocodyl")
+                assertTextEventually(instrumentation, "Find your rhythm.")
+                assertTextEventually(instrumentation, "ACTIVE RIG")
+                assertTextEventually(instrumentation, "Train")
+                assertTextEventually(instrumentation, "Score")
 
                 clickBottomTabEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "New session")

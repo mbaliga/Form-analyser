@@ -17,6 +17,21 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### 1.1 Current local evidence (not release sign-off)
 
+- Current-tree QA release replay (2026-10-11): `0.6.0-cinematic-home-qa` / versionCode 662.
+  Minified APK/AAB passed `tools/release/verify_android_release.sh`, including APK v2/AAB
+  signatures, matching QA/debug certificate, package/version, manifest security, ZIP alignment,
+  BlazePose hash, backup resources, and staging-file checks. APK SHA-256
+  `c4b686be1661a27cce1c96b9baa3458a7bf0b5dabc562c1b3febea4c268d1f67`; AAB SHA-256
+  `4d155c00cdeba56b67f7d7e236a849640a87eb516365abc63d338c77309fea3f`. Root JVM and Android
+  debug/release unit tasks passed (104 actionable Gradle tasks; Android unit total 96/96), release
+  lint passed, and connected debug plus minified-release instrumentation passed 9/9 each on API-35
+  ARM64 `emulator-5554`; the primary-tab smoke asserts the Home headline, active-rig label, and
+  Train/Score actions. Repository contracts also passed: release/version 17/17, shared checkout
+  4/4, web viewer 10/10, Community Directory 4/4, authored assets 9/9, arrow library 4/4 and
+  arrow-reference library 7/7; all seven workflows retain immutable action refs. The signer is the
+  committed QA/debug identity, not the production identity. This replay does not close the required
+  physical-device matrix, 30-session volume, range behavior or owner approval.
+
 - Run record: `sdk_gphone64_arm64` / API 35 / ARM64 emulator, app `0.6.0-test` (versionCode 600),
   2026-09-16, tester: Codex. QA APK SHA-256:
   `4736b0cc799790c26aafcbf481789b807c28c87d4ead5c09f4f1fc287036be44`; QA AAB SHA-256:

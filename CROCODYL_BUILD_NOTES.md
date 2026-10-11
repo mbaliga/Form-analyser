@@ -3,6 +3,21 @@
 Consolidated notes for the multi-phase build. (Deviation from the per-phase `PHASEn_NOTES.md`
 convention: this is one autonomous build across Phases 1–3, so notes are consolidated here.)
 
+2026-10-11 current-tree release replay: Home visual refinement and SAF cleanup diagnostics are
+included in commits `2efe6e7` and `ceef0a0`. Root `./gradlew test -PwithAndroid --offline --no-daemon`
+passed (104 actionable tasks); debug+release Android unit suites passed 96/96 combined, release
+lint passed, and connected debug plus minified-release instrumentation passed 9/9 each on API-35
+ARM64 `emulator-5554`; the primary-tab smoke asserts the current Home headline, active-rig label,
+Train, and Score actions. Repository contract suites passed: release/version 17/17, shared checkout
+4/4, web viewer 10/10, Community Directory 4/4, authored assets 9/9, arrow library 4/4, and arrow
+reference library 7/7; immutable workflow actions verified across seven files. QA artifact
+`0.6.0-cinematic-home-qa` / versionCode 662 passed `tools/release/verify_android_release.sh`.
+APK SHA-256 `c4b686be1661a27cce1c96b9baa3458a7bf0b5dabc562c1b3febea4c268d1f67`; AAB SHA-256
+`4d155c00cdeba56b67f7d7e236a849640a87eb516365abc63d338c77309fea3f`; signer certificate
+SHA-256 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc` is the committed QA/debug
+identity, not a production signer. Production secrets are absent locally; physical-device/range,
+30-session volume and owner approval remain open.
+
 2026-10-11 SAF staging restart recovery: register each active private export staging path, clear
 orphaned `.croc-export-*.partial` files at Crocodyl startup, and preserve current-process staging
 during Activity recreation. Added a connected startup check proving stale Crocodyl files are removed

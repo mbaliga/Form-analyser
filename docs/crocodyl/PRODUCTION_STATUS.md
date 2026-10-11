@@ -2,6 +2,21 @@
 
 Last reviewed: 2026-10-11
 
+Current-tree release replay (2026-10-11): the latest visual Home and SAF diagnostic commits are
+`2efe6e7` and `ceef0a0`. Root `./gradlew test -PwithAndroid --offline --no-daemon` passed (104
+actionable tasks); Android debug/release unit tests passed 96/96 combined, `lintRelease` passed,
+and connected debug plus minified-release instrumentation passed 9/9 each on API-35 ARM64
+`emulator-5554`; the primary-tab smoke asserts Home's new editorial headline, active-rig label,
+and Train/Score actions. Release/version contracts 17/17, shared checkout 4/4, offline viewer 10/10,
+Community Directory 4/4, authored assets 9/9, arrow library 4/4, arrow-reference library 7/7, and
+immutable workflow refs across 7 workflows also passed. QA artifact `0.6.0-cinematic-home-qa`,
+versionCode 662, passed APK/AAB preflight. APK SHA-256
+`c4b686be1661a27cce1c96b9baa3458a7bf0b5dabc562c1b3febea4c268d1f67`; AAB SHA-256
+`4d155c00cdeba56b67f7d7e236a849640a87eb516365abc63d338c77309fea3f`. Signer is the committed
+QA/debug identity, not a production key. Production signing inputs are absent from this local
+environment; physical-device/range acceptance, the 30-session volume run and owner sign-off remain
+open. See the release runbook and acceptance checklist before any distribution.
+
 Repository-side gate replay (2026-10-11): release workflow/resolver tests passed 17/17, shared
 checkout 4/4, desktop viewer 10/10, Community Directory 4/4, Atelier authored assets/photo
 provenance 9/9, arrow library 4/4, arrow reference library 7/7, and immutable action references
@@ -260,7 +275,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA production candidate | Current-tree versionCode 661 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 9/9 each on API-35 ARM64. Production signer and physical acceptance remain open. |
+| Recurve Android build | QA production candidate | Current-tree versionCode 662 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 9/9 each on API-35 ARM64. Production signer and physical acceptance remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
