@@ -189,7 +189,8 @@ writing disabled and `--offline` (111 actionable tasks, 4 executed, 107 up-to-da
 the exercised dependencies match their lock entries and that Gradle required no unpinned artifact
 downloads. The baseline hashes bytes obtained from configured repositories; they are not independent
 publisher authentication. Treat future metadata changes as reviewed dependency updates, not routine
-generated churn. Existing GradleDependency update advisories remain; lint reported no app-source
+generated churn. GradleDependency messages are available-version suggestions, not security/CVE
+advisories; lint reported no app-source
 findings. A CI trigger audit also found that Muay Thai, bouldering, and Gradle verification-file
 changes could miss some existing JVM/Android workflows; both push and pull-request filters now watch
 those paths. Contract tests lock the trigger coverage and require every pinned artifact to have a
@@ -293,7 +294,8 @@ verified separately below.
 Current-checkout replay (2026-10-09, follow-up to `0b5004f`): `./gradlew test` passed (50
 actionable tasks). Android debug and release unit tests passed 42/42; the migration chain, V8 → V9
 table creation and V9 privacy-schema test are included. `lintRelease` completed with no source-code
-lint findings but 20 GradleDependency update advisories. Release workflow contracts passed 6/6,
+lint findings but 20 GradleDependency available-version suggestions (not security advisories).
+Release workflow contracts passed 6/6,
 immutable workflow pins were verified across 7 files, shared checkout contracts passed 4/4, desktop
 viewer contracts 10/10, Community Directory contracts 4/4, and Atelier assets 19/19. Both cinematic
 sport photo assets match manifest byte counts, dimensions and hashes, with photographer/source/license

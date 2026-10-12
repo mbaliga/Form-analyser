@@ -424,8 +424,9 @@ leaks private data, or leaves the user unable to recover without clearing app st
       and the artifact handoff (2026-10-10).
 - [x] `./gradlew test` passes (local verification recorded in the handoff/build notes).
 - [x] `:app-android:testDebugUnitTest` and `:app-android:testReleaseUnitTest` pass with `-PwithAndroid` (2026-09-20; includes analyzer persistence/baseline, manifest privacy, durable recovery-notice, encrypted-vault, and model-inventory tests).
-- [x] `:app-android:lintRelease` completed with zero app-source lint findings (2026-10-09); 21
-      GradleDependency advisory warnings remain for dependency-version review.
+- [x] `:app-android:lintRelease` completed with zero app-source lint findings (2026-10-09); its
+      GradleDependency messages are available-version suggestions, not a security/CVE scan. Review
+      dependency updates with regression coverage before changing pinned versions.
 - [x] All repository workflows use immutable third-party action commit SHAs; CI and release run
       `tools/release/verify_workflow_actions.py` to prevent mutable refs from returning.
 - [x] The release workflow rejects the committed QA/debug signer before keystore materialization;
