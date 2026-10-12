@@ -436,6 +436,9 @@ class ProductionSmokeTest {
         return null
     }
 
+    private fun rootInActiveWindowOrNull(instrumentation: android.app.Instrumentation): AccessibilityNodeInfo? =
+        runCatching { instrumentation.uiAutomation.rootInActiveWindow }.getOrNull()
+
     private fun assertTextEventually(
         instrumentation: android.app.Instrumentation,
         expected: String,
@@ -443,13 +446,11 @@ class ProductionSmokeTest {
         val deadline = SystemClock.uptimeMillis() + 8_000
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
-            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val root = rootInActiveWindowOrNull(instrumentation)
             if (root != null && containsText(root, expected)) return
             SystemClock.sleep(50)
         }
-        val visibleText = instrumentation.uiAutomation.rootInActiveWindow
-            ?.let(::collectVisibleText)
-            .orEmpty()
+        val visibleText = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
         throw AssertionError("Timed out waiting for visible UI text: $expected. Visible: $visibleText")
     }
 
@@ -458,7 +459,7 @@ class ProductionSmokeTest {
         unexpected: String,
     ) {
         instrumentation.waitForIdleSync()
-        val root = instrumentation.uiAutomation.rootInActiveWindow
+        val root = rootInActiveWindowOrNull(instrumentation)
         assertFalse("Unexpected Home chrome is visible: $unexpected", root?.let { containsText(it, unexpected) } == true)
     }
 
@@ -469,13 +470,11 @@ class ProductionSmokeTest {
         val deadline = SystemClock.uptimeMillis() + 8_000
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
-            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val root = rootInActiveWindowOrNull(instrumentation)
             if (root != null && expected.any { containsText(root, it) }) return
             SystemClock.sleep(50)
         }
-        val visibleText = instrumentation.uiAutomation.rootInActiveWindow
-            ?.let(::collectVisibleText)
-            .orEmpty()
+        val visibleText = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
         throw AssertionError("Timed out waiting for any of $expected. Visible: $visibleText")
     }
 
@@ -488,7 +487,7 @@ class ProductionSmokeTest {
         val deadline = SystemClock.uptimeMillis() + 8_000
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
-            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val root = rootInActiveWindowOrNull(instrumentation)
             val target = root?.findClickableTextInBottomArea(label, minBottom)
             if (target != null && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
             SystemClock.sleep(50)
@@ -503,7 +502,7 @@ class ProductionSmokeTest {
         val deadline = SystemClock.uptimeMillis() + 8_000
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
-            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val root = rootInActiveWindowOrNull(instrumentation)
             val target = root?.findClickableText(label)
             if (target != null && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
             SystemClock.sleep(50)
@@ -517,7 +516,7 @@ class ProductionSmokeTest {
         val deadline = SystemClock.uptimeMillis() + 8_000
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
-            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val root = rootInActiveWindowOrNull(instrumentation)
             if (root == null) {
                 SystemClock.sleep(50)
                 continue
@@ -533,7 +532,7 @@ class ProductionSmokeTest {
             ) return
             SystemClock.sleep(50)
         }
-        val visible = instrumentation.uiAutomation.rootInActiveWindow?.let(::collectVisibleText).orEmpty()
+        val visible = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
         throw AssertionError("Camera prompt or safe denial/no-camera UI was not visible: $visible")
     }
 
@@ -544,7 +543,7 @@ class ProductionSmokeTest {
         val deadline = SystemClock.uptimeMillis() + 8_000
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
-            val root = instrumentation.uiAutomation.rootInActiveWindow
+            val root = rootInActiveWindowOrNull(instrumentation)
             if (root != null && containsText(root, expected)) return
             if (root != null) root.scrollForwardOnce()
             SystemClock.sleep(100)

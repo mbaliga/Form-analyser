@@ -20,13 +20,14 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
 - [x] The v679 minified QA build clean-installed and cold-launched on API-35 ARM64; the process
       remained live after four seconds with no fatal/class-loading error in the checked logcat.
-- [x] Latest-tree connected `ProductionSmokeTest` passed 10/10 for both debug and minified release
-      on API-36 Google APIs ARM64 16 KB; guest `getconf PAGE_SIZE` returned 16384. The Quick Score
-      smoke enters a 10, recreates the Activity, verifies that arrow persisted, then undoes it and
-      checks the empty-card state. It also presses system Back from the scored round, reopens Score,
-      and confirms the arrow remains. Integrated release preflight passed after testing. APK SHA-256
-      `affab55015bdaa75bbb98c9492908f35a0d8e2cbcd3d1f889479701bf380c2c3`; AAB SHA-256
-      `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
+- [x] Earlier v679 API-36 Google APIs ARM64 16 KB run passed full debug and minified-release
+      `ProductionSmokeTest` 10/10 each, including score persistence across recreation and system
+      Back; guest `getconf PAGE_SIZE` returned 16384. For the latest v681 Bocal-style nav source,
+      focused debug primary-tab navigation passed 1/1 and full minified-release instrumentation
+      passed 10/10 on the same 16 KB image. Latest APK/AAB preflight passed. APK SHA-256
+      `3a44b861ba60676aea85882865a358fa6491ee768263167288c6eb8d597b7f7d`; AAB SHA-256
+      `652d89ed33d6b90b9e19ed3429f747f4f1e2455a2a2e3bf6203ef6fbf25ccf7e`. The v681 signer is
+      still the QA/debug key, not a production identity.
 - [x] On a disposable API-36 16 KB AVD, QA versionCode 678 installed and upgraded in place to v679;
       Package Manager reported 679, cold launch returned `Status: ok`, process remained alive after
       four seconds, and no fatal/class-loading error appeared in the checked logcat. This does not

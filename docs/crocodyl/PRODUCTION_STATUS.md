@@ -2,39 +2,29 @@
 
 Last reviewed: 2026-10-13
 
-Current-tree Recurve QA replay after cinematic Home/onboarding refinement (2026-10-13): version
-`0.6.0-current-tree-qa-20261013`, versionCode 679. A fresh forced root/JVM test run passed (50
-Gradle tasks executed); the complete Gradle root + Android debug/release unit-test + `lintRelease`
-replay passed (113 actionable tasks). The prior connected `ProductionSmokeTest` passed 10/10 on
-API-35 ARM64 for debug and minified release. Release APK/AAB passed `tools/release/verify_android_release.sh`:
-matching committed QA/debug signer `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`,
-targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned
-64-bit ELF libraries, pose-model hash and backup resources. APK SHA-256
-`affab55015bdaa75bbb98c9492908f35a0d8e2cbcd3d1f889479701bf380c2c3`; AAB SHA-256
-`45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The v679 minified QA build
-was clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
-live after four seconds and the checked logcat window contained no fatal/class-loading error. This
-is a QA emulator clean-install smoke only, not an update over a prior production APK. Follow-up
-API-36 16 KB verification (2026-10-13): the approved Google APIs ARM64 16 KB system image was
-installed after redirecting sdkmanager's cache to a writable temporary `ANDROID_USER_HOME`.
-`getconf PAGE_SIZE` returned 16384. The latest-tree debug and minified-release
-`ProductionSmokeTest` suites each passed 10/10 (zero failures/skips) on the disposable API-36
-ARM64 emulator. The Quick Score flow now enters a 10, recreates the Activity, verifies the scored
-arrow still appears from persisted state, presses system Back to Home, reopens Score to verify the
-same arrow remains, then undoes it and verifies cleanup. The QA install path also passed:
-versionCode 678 (`0.6.0-session-smoke-qa`, built from `042de10`) installed, then `adb install -r`
-upgraded to versionCode 679. A direct cold launch returned `Status: ok`, process remained live after
-four seconds, and no fatal/class-loading error appeared in the checked logcat. The upgraded v679
-APK/AAB passed the integrated release preflight again; current APK SHA-256 is recorded above and
-AAB SHA-256 remains unchanged. This is QA-only upgrade evidence, not an update over the prior
-production APK or physical-device acceptance. Source-tree
-contracts also passed: release 39/39, shared checkout 4/4, web viewer 10/10 plus ECDSA
-interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4, arrow-reference
-library 7/7, and immutable action refs across 7 workflows. A read-only `git ls-remote` found no
-matching branch on origin, so hosted CI has not run for the newest commits. These artifacts use the
-QA/debug identity and are not production candidates. Production signing/hosted CI,
-physical-device/range acceptance, 30 real sessions, the physical
-clean-install/update matrix, and owner approval remain open.
+Current-tree Recurve QA replay after the Bocal-style navigation correction (2026-10-13): version
+`0.6.0-nav-qa-20261013`, versionCode 681. Android debug/release unit tests and `lintRelease` passed
+(89 actionable tasks). The API-36 Google APIs ARM64 emulator reported 16384-byte pages. The focused
+debug primary-tab navigation smoke passed 1/1; the complete minified-release `ProductionSmokeTest`
+passed 10/10 with zero skips or failures. QA APK/AAB passed
+`tools/release/verify_android_release.sh`: matching committed QA/debug signer
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`, targetSdk 36, manifest
+allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries, model hash
+and backup resources. APK SHA-256
+`3a44b861ba60676aea85882865a358fa6491ee768263167288c6eb8d597b7f7d`; AAB SHA-256
+`652d89ed33d6b90b9e19ed3429f747f4f1e2455a2a2e3bf6203ef6fbf25ccf7e`. The 1080×1920 Home render
+is checked in at `visuals/screenshots/home-bocal-arc-navigation-api36.png`. These are QA/debug-key
+artifacts and emulator results, not production signing, physical-device acceptance, or owner
+release approval. Production credentials/hosted CI, physical-device/range acceptance, previous
+production APK update, 30 real sessions and owner approval remain open.
+
+Previous v679 evidence (2026-10-13): the forced root/JVM run passed (50 tasks); the combined root/JVM,
+Android debug/release unit-test and `lintRelease` replay passed (113 tasks). Connected API-36 debug
+and minified-release suites passed 10/10 each, and the v678 QA APK upgraded to v679 in place. v679
+APK/AAB preflight and cold launch also passed. Source contracts passed release 39/39, shared checkout
+4/4, web viewer 10/10 plus ECDSA interoperability, community directory 4/4, Atelier/photo 9/9,
+arrow library 4/4, arrow-reference 7/7, and immutable action refs across 7 workflows. A read-only
+`git ls-remote` found no matching branch on origin, so hosted CI has not run for the newest commits.
 
 Previous current-tree Recurve QA replay after session-start smoke and Home visual correction (2026-10-11):
 version `0.6.0-session-smoke-qa`, versionCode 678. Root/JVM tests, Android debug/release unit tests,
@@ -527,6 +517,16 @@ numeric input cannot silently become a blank value; it blocks advancing from the
 Rig editing shows a validation message and disables Save. JVM coverage includes blank, positive,
 zero, negative, malformed, NaN and infinity cases. The broader rig and handedness acceptance item
 remains open for physical-device verification.
+
+Navigation correction (2026-10-13): `MainActivity` now uses the Bocal-style curved five-destination
+rail with tangent-rotated icons, selected raised keycap/label, and the existing Quick actions button
+preserved separately. The API-36 16 KB screenshot is checked in at
+`visuals/screenshots/home-bocal-arc-navigation-api36.png`; the focused primary-tab connected debug
+smoke passed 1/1, and the full minified-release connected replay subsequently passed 10/10 on the
+restarted API-36 16 KB emulator. The initial release attempt hit an emulator System UI edge-swipe
+ANR; the test accessibility helper now tolerates a transient unavailable root. Standard-size
+navigation has visual evidence; compact-width and large-font review remain open. See the cinematic
+refresh log for precise run details.
 
 Recovery hardening replay (2026-09-27): both Android unit-test variants, release lint, and
 connected debug instrumentation passed after checksum-manifested backups and the app-private

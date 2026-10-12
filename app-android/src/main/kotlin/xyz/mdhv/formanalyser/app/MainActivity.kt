@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,8 +14,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -24,8 +25,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -491,53 +498,84 @@ private fun BottomBar(
             Routes.BODY to (Icons.Filled.Accessibility to "Body"),
             Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
         )
-    Row(
-        Modifier.fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(25.dp))
-            .background(Hyle.Surface.copy(alpha = .97f))
-            .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(25.dp))
-            .padding(5.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    BoxWithConstraints(
+        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 8.dp, vertical = 4.dp).height(108.dp),
     ) {
-        items.forEach { (dest, pair) ->
+        val seatsX = listOf(.117f, .309f, .5f, .691f, .883f)
+        val seatsY = listOf(.574f, .477f, .445f, .477f, .574f)
+        val tilts = listOf(-9.6f, -4.83f, 0f, 4.83f, 9.6f)
+        Canvas(Modifier.fillMaxWidth().height(100.dp).align(Alignment.BottomCenter)) {
+            val scale = size.width / 400f
+            val dock = Path().apply {
+                moveTo(22f * scale, 62f * scale)
+                quadraticTo(200f * scale, 27f * scale, 378f * scale, 62f * scale)
+            }
+            val strokeCap = StrokeCap.Round
+            drawPath(dock, color = Hyle.Background.copy(alpha = .96f), style = Stroke(61f * scale, cap = strokeCap))
+            drawPath(
+                dock,
+                brush = Brush.verticalGradient(
+                    0f to Hyle.SurfaceVariant,
+                    .55f to Hyle.Surface,
+                    1f to Hyle.Background,
+                ),
+                style = Stroke(58f * scale, cap = strokeCap),
+            )
+            drawPath(
+                dock,
+                color = Hyle.OnBackground.copy(alpha = .045f),
+                style = Stroke(1f * scale, cap = strokeCap),
+            )
+        }
+        items.forEachIndexed { index, (dest, pair) ->
             val (icon: ImageVector, label) = pair
             val selected = current == dest
-            Column(
-                Modifier.weight(1f).heightIn(min = 52.dp)
-                    .clip(RoundedCornerShape(19.dp))
-                    .background(if (selected) Hyle.Accent.copy(alpha = .18f) else Hyle.Surface.copy(alpha = 0f))
-                    .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(dest) })
-                    .padding(horizontal = 2.dp, vertical = 5.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+            Box(
+                Modifier.align(Alignment.TopStart)
+                    .offset(x = maxWidth * seatsX[index] - 48.dp, y = 100.dp * seatsY[index] - 21.dp)
+                    .width(96.dp).height(44.dp)
+                    .graphicsLayer { rotationZ = tilts[index] }
+                    .testTag("nav-tab-$dest"),
+                contentAlignment = Alignment.Center,
             ) {
-                if (dest == Routes.BODY && badge) {
-                    BadgedBox({ Badge { Text("!") } }) {
-                        Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim)
+                Row(
+                    Modifier.widthIn(min = 44.dp).height(42.dp)
+                        .clip(CircleShape)
+                        .then(
+                            if (selected) Modifier
+                                .background(Brush.radialGradient(listOf(Hyle.AccentBright, Hyle.Accent, Hyle.AccentDim)))
+                                .border(1.dp, Hyle.OnBackground.copy(alpha = .18f), CircleShape)
+                            else Modifier
+                        )
+                        .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(dest) })
+                        .padding(horizontal = if (selected) 12.dp else 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    if (dest == Routes.BODY && badge) {
+                        BadgedBox({ Badge { Text("!") } }) {
+                            Icon(icon, label, tint = if (selected) Hyle.Background else Hyle.OnSurfaceDim, modifier = Modifier.size(19.dp))
+                        }
+                    } else {
+                        Icon(icon, label, tint = if (selected) Hyle.Background else Hyle.OnSurfaceDim, modifier = Modifier.size(19.dp))
                     }
-                } else {
-                    Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim)
+                    if (selected) {
+                        Spacer(Modifier.width(7.dp))
+                        Text(label, color = Hyle.Background, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    }
                 }
-                Text(
-                    label,
-                    color = if (selected) Hyle.OnBackground else Hyle.OnSurfaceDim,
-                    fontSize = 9.sp,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                    maxLines = 1,
-                )
             }
         }
         Column(
-            Modifier.size(48.dp).clip(CircleShape)
-                .background(Hyle.Accent.copy(alpha = .17f))
+            Modifier.align(Alignment.TopEnd).padding(end = 2.dp).size(48.dp)
+                .clip(CircleShape).background(Hyle.SurfaceVariant)
+                .border(1.dp, Hyle.HairlineStrong, CircleShape)
                 .clickable(onClickLabel = "Open quick actions", role = Role.Button, onClick = onAdd),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Icon(Icons.Filled.Add, "Quick actions", tint = Hyle.AccentBright)
+            Icon(Icons.Filled.Add, "Quick actions", tint = Hyle.AccentBright, modifier = Modifier.size(20.dp))
             Text("Add", color = Hyle.OnBackground, fontSize = 9.sp, fontWeight = FontWeight.Medium)
         }
     }

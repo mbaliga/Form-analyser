@@ -241,13 +241,14 @@ baseline v666; screenless motion capture remains a separate proposal pending own
 
 ## Navigation direction
 
-Study Bocal's floating dock, but design for Crocodyl's five current primary destinations. Target an
-inset, elevated surface with a compact active capsule, quiet inactive icons, readable labels, and
-optional secondary quick action attached to the active context. It must respect Android gesture
-navigation, edge-to-edge insets, keyboard, accessibility semantics, test tags, display scaling and
-the Compose navigation back stack. Do not implement Bocal's two-level arc geometry locally until the
-canonical reusable Hyle component/API is available to both apps; an approximation is worse than a
-simple accurate dock.
+Owner correction (2026-10-13): Crocodyl's primary navigation should visibly and behaviorally follow
+Bocal's arc dock, not the generic horizontal capsule that shipped in the first pass. The current
+implementation carries Bocal's five-seat curved rail, tangent-rotated controls and raised active
+keycap with its label; Crocodyl's existing Quick actions entry remains available as a separate
+context button. Route ownership, state restoration and accessibility semantics remain Compose-native.
+This is the lower destination rail only; do not invent a second contextual arc or claim shared Hyle
+component parity until that canonical reusable API is available to both apps. Device screenshots,
+large-font/compact viewport behavior, gesture insets and touch-target acceptance remain required.
 
 ## Acceptance checks for each visual slice
 
@@ -327,3 +328,23 @@ title-bar change is still outstanding, as are API-36 16 KB connected tests for t
 compact/large-font visual review and physical-device acceptance. The refreshed onboarding screenshot
 is visual evidence only; remaining destinations still need the full Bocal-inspired, screen-by-screen
 review described above.
+
+## 2026-10-13 Bocal navigation correction
+
+The owner pointed out that the bottom navigation still did not use Bocal's interaction pattern.
+The horizontal capsule is replaced with Bocal's five-seat curved destination rail: each destination
+sits on the curve, its icon follows the local tangent, and the selected destination rises as a
+tactile keycap with its label. The existing Add/Quick actions affordance is preserved as a separate
+context button. Navigation remains Compose-native and keeps the same routes/back stack. The captured
+Home screen is [`screenshots/home-bocal-arc-navigation-api36.png`](screenshots/home-bocal-arc-navigation-api36.png),
+API-36 ARM64 16 KB emulator, 1080×1920, disposable QA profile. It is visual evidence, not physical
+device acceptance.
+
+The `onboardedAthleteCanVisitEveryPrimaryTab` connected debug test passed 1/1 on this API-36
+emulator with the new dock. The initial full minified-release attempt encountered an emulator
+System UI edge-swipe ANR and a transient null accessibility root; that run did not complete and is
+not counted as a pass. After restarting the emulator headlessly, the full minified-release suite
+passed 10/10 with zero skips/failures; the accessibility lookup now tolerates a temporarily
+unavailable root. Full debug replay beyond the focused navigation test and compact/large-font
+visual review remain open. The compact-width screenshot attempt captured the emulator launcher,
+not the app, so it is not visual evidence.
