@@ -5,8 +5,10 @@ Last reviewed: 2026-10-13
 Current-tree Recurve QA replay after the Bocal-style navigation correction (2026-10-13): version
 `0.6.0-nav-qa-20261013`, versionCode 681. Android debug/release unit tests and `lintRelease` passed
 (89 actionable tasks). The API-36 Google APIs ARM64 emulator reported 16384-byte pages. The focused
-debug primary-tab navigation smoke passed 1/1; the complete minified-release `ProductionSmokeTest`
-passed 10/10 with zero skips or failures. QA APK/AAB passed
+debug primary-tab navigation smoke passed 1/1; the complete current-source debug and minified-release
+`ProductionSmokeTest` suites subsequently produced 10/10 reports with zero skips or failures. The
+latest signed QA release replay also exited successfully: instrumentation-only versionCode 689
+passed all 10 tests on the API-36 16 KB AVD. QA APK/AAB v681 passed
 `tools/release/verify_android_release.sh`: matching committed QA/debug signer
 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`, targetSdk 36, manifest
 allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries, model hash
@@ -408,7 +410,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Latest v681 Bocal-style navigation build passed API-36 16 KB focused debug navigation (1/1), full minified-release instrumentation (10/10), unit tests, `lintRelease` and artifact preflight; see the current-tree replay at the top of this document. Full debug replay beyond the focused navigation case, compact/large-font visual review, hosted CI, production signer, physical/range acceptance, update over the actual previous production APK and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Latest v681 Bocal-style navigation build passed API-36 16 KB full minified-release instrumentation (10/10), unit tests, `lintRelease` and artifact preflight; a subsequent debug replay on current source also produced a 10/10 API-36 16 KB JUnit report (versionCode 686). Full debug replay beyond the focused navigation case is now covered, although the Gradle wrapper hung after report generation and was interrupted before a normal task exit. Compact/large-font visual review, hosted CI, production signer, physical/range acceptance, update over the actual previous production APK and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -527,6 +529,26 @@ restarted API-36 16 KB emulator. The initial release attempt hit an emulator Sys
 ANR; the test accessibility helper now tolerates a transient unavailable root. Standard-size
 navigation has visual evidence; compact-width and large-font review remain open. See the cinematic
 refresh log for precise run details.
+
+Debug instrumentation follow-up (2026-10-13): the complete current-source API-36 16 KB debug
+`ProductionSmokeTest` generated a JUnit report with 10 tests, 0 failures, 0 errors and 0 skips
+(QA versionCode 686). The first replay exposed a test-helper issue: exact accessible-text matching
+was given a truncated camera-denial message, and API-36 accessibility click could leave the system
+permission prompt foregrounded. The helper now waits for Crocodyl's full safe-state label and uses
+Back only if the permission-controller dialog remains; the focused camera/session test then passed
+1/1, followed by the full 10/10 report. Gradle remained attached after UTP finished the suite and
+did not return a normal task exit; the process was interrupted after verifying the complete XML
+report. Do not count this as a clean Gradle task exit, and retain the teardown issue for CI/local
+tooling follow-up. Android debug/release unit tests and `lintRelease` subsequently exited
+successfully (89 actionable tasks).
+
+Minified-release instrumentation follow-up (2026-10-13): with release signing explicitly configured
+to the committed QA/debug keystore, the v689 instrumentation-only build passed all 10
+`ProductionSmokeTest` cases on `crocodyl-api36-16k-qa` (API 36 ARM64, `getconf PAGE_SIZE` = 16384).
+The JUnit XML records 10 tests, 0 failures, 0 errors and 0 skips; the Gradle task exited successfully
+(`BUILD SUCCESSFUL`, 108 actionable tasks). The artifact was used only for connected QA and was not
+run through standalone release preflight or prepared for distribution; the production signer remains
+absent.
 
 Recovery hardening replay (2026-09-27): both Android unit-test variants, release lint, and
 connected debug instrumentation passed after checksum-manifested backups and the app-private

@@ -514,6 +514,8 @@ class ProductionSmokeTest {
         instrumentation: android.app.Instrumentation,
     ) {
         val deadline = SystemClock.uptimeMillis() + 8_000
+        var denyClicked = false
+        var backSent = false
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
@@ -521,15 +523,35 @@ class ProductionSmokeTest {
                 SystemClock.sleep(50)
                 continue
             }
-            val deny = listOf("Don't allow", "Don’t allow")
-                .firstNotNullOfOrNull { root.findClickableText(it) }
-            if (deny != null && deny.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
             if (
                 containsText(root, "Grant camera") ||
-                containsText(root, "Camera access is blocked.") ||
+                containsText(root, "Camera access is blocked. Allow it in app settings to analyse form.") ||
                 containsText(root, "Camera permission is required to analyse form.") ||
-                containsText(root, "This device has no camera")
+                containsText(
+                    root,
+                    "This device has no camera, so form capture is unavailable here. " +
+                        "Scoring, training logs and everything else still work.",
+                )
             ) return
+
+            val systemPromptVisible =
+                containsText(root, "Allow Crocodyl to take pictures and record video?")
+            val deny = listOf("Don't allow", "Don’t allow")
+                .firstNotNullOfOrNull { root.findClickableText(it) }
+            if (!denyClicked && deny != null && deny.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                denyClicked = true
+                SystemClock.sleep(250)
+                continue
+            }
+            if (systemPromptVisible && !backSent) {
+                // Some API-36 permission-controller builds report a successful accessibility click
+                // without dismissing the dialog. Back cancels the request (the denied path under
+                // test); keep waiting for the app's own safe-state UI before accepting the smoke.
+                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+                backSent = true
+                SystemClock.sleep(250)
+                continue
+            }
             SystemClock.sleep(50)
         }
         val visible = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()

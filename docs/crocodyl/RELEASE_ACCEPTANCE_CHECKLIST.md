@@ -27,7 +27,13 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       passed 10/10 on the same 16 KB image. Latest APK/AAB preflight passed. APK SHA-256
       `3a44b861ba60676aea85882865a358fa6491ee768263167288c6eb8d597b7f7d`; AAB SHA-256
       `652d89ed33d6b90b9e19ed3429f747f4f1e2455a2a2e3bf6203ef6fbf25ccf7e`. The v681 signer is
-      still the QA/debug key, not a production identity.
+      still the QA/debug key, not a production identity. A post-v681 current-source debug replay
+      (QA versionCode 686) also produced a complete API-36 16 KB JUnit report, 10/10 with zero
+      failures/errors/skips; the Gradle wrapper hung during teardown and was interrupted after the
+      report completed, so this does not claim a clean Gradle task exit. A separate signed,
+      instrumentation-only QA release replay (versionCode 689) passed all 10 tests on API-36 16 KB
+      and exited successfully; it used the QA/debug keystore and was not run through artifact
+      preflight or prepared for distribution.
 - [x] On a disposable API-36 16 KB AVD, QA versionCode 678 installed and upgraded in place to v679;
       Package Manager reported 679, cold launch returned `Status: ok`, process remained alive after
       four seconds, and no fatal/class-loading error appeared in the checked logcat. This does not
