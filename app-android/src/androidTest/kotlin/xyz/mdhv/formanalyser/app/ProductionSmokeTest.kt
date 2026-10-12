@@ -150,6 +150,7 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, "Settings")
+                scrollHomeUntilText(instrumentation, "Arrow, down to each part.", forward = true)
                 assertTextEventually(instrumentation, "Arrow, down to each part.")
                 clickBottomTabEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "New session")
@@ -177,8 +178,10 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "← prev")
 
                 clickBottomTabEventually(instrumentation, "Home")
+                scrollHomeUntilText(instrumentation, "CROCODYL  /  RECURVE", forward = false)
                 assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
 
+                scrollHomeUntilText(instrumentation, "Score", forward = false)
                 clickTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, "Every arrow,\naccounted for.")
                 assertTextEventually(instrumentation, "Quick score")
@@ -550,6 +553,46 @@ class ProductionSmokeTest {
             SystemClock.sleep(20)
         }
         inject(MotionEvent.ACTION_UP, endX)
+    }
+
+    private fun scrollHomeUntilText(
+        instrumentation: android.app.Instrumentation,
+        expected: String,
+        forward: Boolean,
+    ) {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val width = context.resources.displayMetrics.widthPixels.toFloat()
+        val height = context.resources.displayMetrics.heightPixels.toFloat()
+        // Use short, deliberate swipes so a fast fling cannot skip past the target card.
+        val startY = height * if (forward) .66f else .52f
+        val endY = height * if (forward) .52f else .66f
+        val x = width * .5f
+        val automation = instrumentation.uiAutomation
+        val deadline = SystemClock.uptimeMillis() + 8_000
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.waitForIdleSync()
+            val root = rootInActiveWindowOrNull(instrumentation)
+            if (root != null && containsText(root, expected)) return
+            val downTime = SystemClock.uptimeMillis()
+            fun inject(action: Int, y: Float) {
+                val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0).apply {
+                    source = InputDevice.SOURCE_TOUCHSCREEN
+                }
+                try {
+                    assertTrue("Could not inject Home feed scroll", automation.injectInputEvent(event, true))
+                } finally {
+                    event.recycle()
+                }
+            }
+            inject(MotionEvent.ACTION_DOWN, startY)
+            repeat(8) { step ->
+                inject(MotionEvent.ACTION_MOVE, startY + (endY - startY) * (step + 1) / 8f)
+                SystemClock.sleep(35)
+            }
+            inject(MotionEvent.ACTION_UP, endY)
+            SystemClock.sleep(250)
+        }
+        throw AssertionError("Could not scroll Home to visible UI text: $expected")
     }
 
     private fun clickTextEventually(

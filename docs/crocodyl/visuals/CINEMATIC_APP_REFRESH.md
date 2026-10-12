@@ -352,7 +352,34 @@ tasks). The full primary-tab flow also passed 1/1 directly on that AVD, includin
 Progress checks. An unrelated off-screen lazy-row assertion was removed from this navigation smoke;
 the test no longer treats a not-yet-composed section as a route failure. A manual 420dp compact-width
 swipe changed Home to Calendar. Gradle's connected task timed out while querying a second attached
-emulator, so both target-AVD test runs used the Android instrumentation runner directly. A capture of
-the final seat-aligned version and large-font/physical-device review are still outstanding. Do not
-mistake the earlier lower-rail screenshot or release test results for evidence about this latest
+emulator, so both target-AVD test runs used the Android instrumentation runner directly. At the
+time, the final seat-aligned capture and large-font review were outstanding; both emulator captures
+are now documented in the Large-font Home follow-up below. Physical-device review remains open. Do
+not mistake the earlier lower-rail screenshot or release test results for evidence about this latest
 change.
+
+## 2026-10-13 Large-font Home follow-up
+
+The final visual review caught a genuine 1.3× font-scale defect: Home's Train and Score action
+labels wrapped mid-word beside their icons. `CrocodylHero` now switches those actions to a compact
+icon-above-label arrangement at font scales of 1.2× and higher, gives the hero enough height for
+the larger controls, and keeps both labels single-line. At normal font scale the established
+side-by-side icon-and-label composition is unchanged.
+
+Visual evidence: [`screenshots/home-hyle-two-arc-v696-api36-16kb.png`](screenshots/home-hyle-two-arc-v696-api36-16kb.png)
+shows the normal-scale two-arc Home on the API-36 ARM64 16 KB emulator; the final
+[`screenshots/home-large-font-1_3x-v697-api36-16kb.png`](screenshots/home-large-font-1_3x-v697-api36-16kb.png)
+shows the updated v697 debug build at 1.3× system font scale. Both are 840×1920 emulator captures,
+not physical-device or production-signing evidence. The large-font screenshot uses the synthetic
+QA profile created only on the disposable emulator. The lower Atelier card remains part of the
+scrollable Home feed; large text naturally places it below the first viewport.
+
+Verification: debug and minified QA release assembly succeeded for versionCode 697. The full debug
+and minified-release `ProductionSmokeTest` suites each passed 11/11 on the API-36 ARM64 16 KB
+emulator with system font scale set to 1.3×. Android debug/release unit tests and `lintRelease`
+also passed. The Home primary-tab smoke now performs deliberate short feed swipes in both directions,
+so it verifies reaching the below-fold Atelier and returning to the hero instead of assuming the
+feed resets on tab selection. The emulator font scale was restored to 1.0 after testing. The v697
+APK/AAB passed the release preflight, but are still signed with the QA/debug key and are not
+production-distributable. The Home large-font screenshot itself is from v697 debug; the visual
+source is the same as the minified artifact.

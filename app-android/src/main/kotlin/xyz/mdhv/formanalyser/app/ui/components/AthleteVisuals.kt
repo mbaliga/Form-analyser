@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,6 +57,7 @@ fun CrocodylHero(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val largeFont = LocalDensity.current.fontScale >= 1.2f
     val photograph = remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
     LaunchedEffect(Unit) {
         photograph.value = withContext(Dispatchers.IO) {
@@ -70,7 +72,7 @@ fun CrocodylHero(
         val compactWidth = maxWidth < 400.dp
         Box(
             Modifier.fillMaxWidth()
-                .height(if (compactWidth) 288.dp else 260.dp)
+                .height(if (largeFont) 360.dp else if (compactWidth) 288.dp else 260.dp)
                 .clip(RoundedCornerShape(30.dp))
                 .background(Hyle.SurfaceDeep)
                 .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),
@@ -175,22 +177,38 @@ fun CrocodylHero(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = onStartSession,
-                            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = if (largeFont) 76.dp else 52.dp),
                             shape = RoundedCornerShape(18.dp),
+                            contentPadding = if (largeFont) PaddingValues(horizontal = 8.dp, vertical = 8.dp) else ButtonDefaults.ContentPadding,
                         ) {
-                            Icon(Icons.Filled.CameraAlt, null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Train")
+                            if (largeFont) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Icon(Icons.Filled.CameraAlt, null, modifier = Modifier.size(20.dp))
+                                    Text("Train", maxLines = 1, softWrap = false)
+                                }
+                            } else {
+                                Icon(Icons.Filled.CameraAlt, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Train", maxLines = 1, softWrap = false)
+                            }
                         }
                         OutlinedButton(
                             onClick = onScore,
-                            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = if (largeFont) 76.dp else 52.dp),
                             shape = RoundedCornerShape(18.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                            contentPadding = if (largeFont) PaddingValues(horizontal = 8.dp, vertical = 8.dp) else ButtonDefaults.ContentPadding,
                         ) {
-                            Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Score")
+                            if (largeFont) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
+                                    Text("Score", maxLines = 1, softWrap = false)
+                                }
+                            } else {
+                                Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Score", maxLines = 1, softWrap = false)
+                            }
                         }
                     }
                 }

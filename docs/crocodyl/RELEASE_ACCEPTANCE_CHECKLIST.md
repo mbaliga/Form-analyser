@@ -20,9 +20,22 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       no fatal/class-loading match in the checked logcat. Tests were invoked directly on
       `emulator-5556` because Gradle's connected-device discovery timed out querying another
       attached emulator.
-Distribution caveat: v696 uses the committed QA/debug identity and is not production-distributable.
+Distribution caveat: v696 used the committed QA/debug identity and is not production-distributable.
 This evidence does not replace hosted release-workflow success, the physical-device/range matrix,
 an update over the actual previous production APK, 30-real-session acceptance, or owner approval.
+
+- [x] Current-source v697 QA release (2026-10-13): debug and minified release assembly, Android
+      debug/release unit tests and `lintRelease` passed. Debug and minified-release
+      `ProductionSmokeTest` each passed 11/11 on API-36 ARM64 16 KB with 1.3× font scale. The Home
+      action labels adapt to large font and the smoke scrolls the feed in both directions. The
+      minified APK/AAB passed `tools/release/verify_android_release.sh`, including QA signer match,
+      targetSdk 36, manifest/version, APK alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned ELF
+      libraries, model hash and backup resources. APK SHA-256
+      `9a7986fdbb4b6e7a53b8a1651d667d9553cd37e46cd2a2ad0100ec2388d2032a`; AAB SHA-256
+      `3b77a708d596abf3d0f5498c14d181c4ab3f8127d919d277e50718b59d5622aa`. Visuals are
+      checked in at `visuals/screenshots/home-hyle-two-arc-v696-api36-16kb.png` and
+      `visuals/screenshots/home-large-font-1_3x-v697-api36-16kb.png`. These artifacts use the QA
+      key and are not production-distributable.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,

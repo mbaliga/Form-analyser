@@ -2,6 +2,21 @@
 
 Last reviewed: 2026-10-13
 
+Large-font visual QA follow-up (2026-10-13): the exact v696 Home screen is now captured at normal
+scale in `visuals/screenshots/home-hyle-two-arc-v696-api36-16kb.png`. Review at 1.3× exposed Home
+action-label wrapping; the current source fixes it with an icon-above-label action layout at larger
+font scales. QA versionCode 697 debug and minified-release assembly passed. Android debug/release
+unit tests and `lintRelease` passed; all 11 `ProductionSmokeTest` cases passed in both debug and
+minified release on the API-36 ARM64 16 KB emulator at font scale 1.3. The corresponding 840×1920 capture is
+`visuals/screenshots/home-large-font-1_3x-v697-api36-16kb.png`. The full test now scrolls Home in both
+directions to reach the Atelier and return to the hero. Emulator font scale was restored to 1.0.
+v697 APK/AAB passed `tools/release/verify_android_release.sh`: matching QA signer, target SDK 36,
+manifest/package/version policy, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned native
+libraries per artifact, pose-model hash and backup resources. APK SHA-256
+`9a7986fdbb4b6e7a53b8a1651d667d9553cd37e46cd2a2ad0100ec2388d2032a`; AAB SHA-256
+`3b77a708d596abf3d0f5498c14d181c4ab3f8127d919d277e50718b59d5622aa`. These are QA/debug-key
+artifacts, not production-signed or physically accepted. Physical-device review remains open.
+
 Navbar follow-up (2026-10-13): the owner correctly identified that the previous “Bocal-style”
 change reproduced only the lower rail. Crocodyl now implements the shared Hyle two-arc stage:
 curved contextual rail with a destination label and drag-to-preview/release-to-select, left Train
