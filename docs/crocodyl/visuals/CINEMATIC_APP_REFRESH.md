@@ -318,9 +318,12 @@ media was used. A current 1080×1920 API-35 ARM64 profile-step render is checked
 Verification on October 13: debug assembly, Android debug and release unit tests, and `lintRelease`
 passed. The connected debug `ProductionSmokeTest` passed 10/10 on one API-35 ARM64 emulator after
 the onboarding update; the suite checks Home, settings, core navigation and primary flows. The
-previous Home/navigation run also passed 10/10. The broader root `test` task was attempted but its
-offline dependency cache lacks Kotlin test artifacts for unrelated module tests; no root-suite pass
-is claimed. A fresh Home screenshot after the title-bar change is still outstanding, as is a full
-minified-release connected rerun, compact/large-font visual review and physical-device acceptance.
-The refreshed onboarding screenshot is visual evidence only; remaining destinations still need
-the full Bocal-inspired, screen-by-screen review described above.
+previous Home/navigation run also passed 10/10. The initial offline root `test` attempt lacked
+cached Kotlin-test artifacts; after allowing Gradle to fetch the declared, checksum-verified
+dependencies, a forced root/JVM test run passed (50 tasks executed), and the combined root/JVM,
+Android debug/release unit-test and release-lint replay passed (113 actionable tasks). The minified
+release connected rerun also passed 10/10 on API-35 ARM64. A fresh Home screenshot after the
+title-bar change is still outstanding, as are API-36 16 KB connected tests for the new v679 build,
+compact/large-font visual review and physical-device acceptance. The refreshed onboarding screenshot
+is visual evidence only; remaining destinations still need the full Bocal-inspired, screen-by-screen
+review described above.

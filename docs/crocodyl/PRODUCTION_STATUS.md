@@ -1,8 +1,25 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-11
+Last reviewed: 2026-10-13
 
-Current-tree Recurve QA replay after session-start smoke and Home visual correction (2026-10-11):
+Current-tree Recurve QA replay after cinematic Home/onboarding refinement (2026-10-13): version
+`0.6.0-current-tree-qa-20261013`, versionCode 679. A fresh forced root/JVM test run passed (50
+Gradle tasks executed); the complete Gradle root + Android debug/release unit-test + `lintRelease`
+replay passed (113 actionable tasks). Connected `ProductionSmokeTest` passed 10/10 on API-35 ARM64
+for debug and minified release. Release APK/AAB passed `tools/release/verify_android_release.sh`:
+matching committed QA/debug signer `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`,
+targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned
+64-bit ELF libraries, pose-model hash and backup resources. APK SHA-256
+`d127bb9f0fc18d25f8090be30f31c7343e67dad956818e131daa1f3154288f9c`; AAB SHA-256
+`45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. Source-tree contracts also
+passed: release 39/39, shared checkout 4/4, web viewer 10/10 plus ECDSA interoperability, community
+directory 4/4, Atelier/photo 9/9, arrow library 4/4, arrow-reference library 7/7, and immutable
+action refs across 7 workflows. A read-only `git ls-remote` found no matching branch on origin, so
+hosted CI has not run for the newest commits. These artifacts use the QA/debug identity and are not
+production candidates. API-36 16 KB, production signer/hosted CI, physical-device/range acceptance,
+30 real sessions, clean install/update, and owner approval remain open.
+
+Previous current-tree Recurve QA replay after session-start smoke and Home visual correction (2026-10-11):
 version `0.6.0-session-smoke-qa`, versionCode 678. Root/JVM tests, Android debug/release unit tests,
 and `lintRelease` pass (113 actionable Gradle tasks). Connected `ProductionSmokeTest` passes 10/10
 with zero failures/errors/skips on API-35 ARM64 and API-36 ARM64 16 KB-page emulators for both
@@ -28,7 +45,7 @@ signing properties and required environment inputs are absent from this checkout
 run for these commits; no remote write was performed.
 
 Previous current-tree QA replay (2026-10-11): version `0.6.0-current-tree-qa`, versionCode 669.
-Its earlier 9/9 instrumentation and APK/AAB digests are historical; use v678 above for the current
+Its earlier 9/9 instrumentation and APK/AAB digests are historical; use v679 above for the current
 source tree.
 
 16 KB emulator CI lane (2026-10-11): Android CI now includes a Google APIs 16 KB page-size
@@ -382,7 +399,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Current-tree v678 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 10/10 on API-35 ARM64 and API-36 16 KB ARM64. Production signer, hosted CI, physical acceptance and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Current-tree v679 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 10/10 on API-35 ARM64. Prior v678 covered API-36 16 KB; v679 still needs the API-36 16 KB rerun. Production signer/hosted CI, physical acceptance, clean install/update and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -393,6 +410,7 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `18ea047` — refine cinematic Home/onboarding; current-tree v679 QA artifact preflight and API-35 debug/minified-release 10/10 instrumentation pass.
 - Crocodyl: `5623cfe` — reject the committed QA/debug signer for production and execute fingerprint-policy negative tests.
 - Crocodyl: `15f686b` — record the final QA gate status and 76 Python contract tests after v678.
 - Crocodyl: `b8501f2` — capture v678 (10/10 debug and minified-release suites across API 35 and 16 KB API 36, unit tests, lint, preflight and artifact digests).

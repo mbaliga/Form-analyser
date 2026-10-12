@@ -6,6 +6,27 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
+### Incremental evidence after the current QA artifact (2026-10-13)
+
+- [x] Fresh forced root/JVM run passed (50 Gradle tasks executed); combined root/JVM,
+      Android debug/release unit tests, and `lintRelease` passed (113 actionable Gradle tasks).
+- [x] Connected `ProductionSmokeTest` passed 10/10 on API-35 ARM64 for both debug and minified
+      release, including Home/settings navigation, first-run flows, scoring and training paths.
+- [x] Version `0.6.0-current-tree-qa-20261013` / versionCode 679 APK/AAB passed integrated
+      preflight: targetSdk 36, merged-manifest allowlist, matching QA/debug signer, APK ZIP
+      alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries, model hash and backup
+      resources. APK SHA-256
+      `d127bb9f0fc18d25f8090be30f31c7343e67dad956818e131daa1f3154288f9c`; AAB SHA-256
+      `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
+- [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
+      ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
+      arrow-reference 7/7, and immutable action refs across 7 workflows.
+- [ ] Repeat v679 minified-release connected tests on API-36 16 KB; that local system image is not
+      installed. The prior v678 source passed on API-36 16 KB, but does not cover this newer build.
+- [ ] Production signer/hosted release workflow, physical-device/range matrix, clean install/update,
+      30-real-session acceptance and owner approval remain open. v679 is signed with the committed
+      QA/debug key and is not distributable as a production release.
+
 ## 1. Required device matrix
 
 - [ ] ARM64 phone, Android 12–15, rear camera, mid-range performance.
@@ -15,7 +36,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [ ] At least one clean install and one update over the previous production APK.
 - [ ] If a supported x86 emulator is used, repeat the non-camera flows and record the emulator image.
 
-### Incremental evidence after the current QA artifact (2026-10-11)
+### Previous v678 evidence (2026-10-11; historical baseline)
 
 - [x] Complete connected debug and minified-release smoke suites pass 10/10 on API-35 ARM64 and
       API-36 ARM64 16 KB emulators, including the selected-round session persistence, pre-check-in
