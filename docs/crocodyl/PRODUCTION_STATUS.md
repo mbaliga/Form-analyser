@@ -40,12 +40,12 @@ resolution (7), merged manifest (5), ELF alignment (11), shared checkout (4), co
 (4), Atelier/photo assets (9), arrow library (4), arrow-reference library (7), and web viewer (10).
 The immutable GitHub Actions reference check also passed for all seven workflow files.
 
-Current-tree Recurve QA replay after the Bocal-style navigation correction (2026-10-13): version
-`0.6.0-nav-qa-20261013`, versionCode 681. Android debug/release unit tests and `lintRelease` passed
+Historical Recurve QA replay after the first, lower-rail-only navigation correction (2026-10-13):
+version `0.6.0-nav-qa-20261013`, versionCode 681. Android debug/release unit tests and `lintRelease` passed
 (89 actionable tasks). The API-36 Google APIs ARM64 emulator reported 16384-byte pages. The focused
 debug primary-tab navigation smoke passed 1/1; the complete current-source debug and minified-release
 `ProductionSmokeTest` suites subsequently produced 10/10 reports with zero skips or failures. The
-latest signed QA release replay also exited successfully: instrumentation-only versionCode 689
+At that time, a signed QA release replay also exited successfully: instrumentation-only versionCode 689
 passed all 10 tests on the API-36 16 KB AVD. QA APK/AAB v681 passed
 `tools/release/verify_android_release.sh`: matching committed QA/debug signer
 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`, targetSdk 36, manifest
