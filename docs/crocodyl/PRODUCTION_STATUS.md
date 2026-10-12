@@ -11,13 +11,17 @@ matching committed QA/debug signer `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3
 targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned
 64-bit ELF libraries, pose-model hash and backup resources. APK SHA-256
 `d127bb9f0fc18d25f8090be30f31c7343e67dad956818e131daa1f3154288f9c`; AAB SHA-256
-`45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. Source-tree contracts also
-passed: release 39/39, shared checkout 4/4, web viewer 10/10 plus ECDSA interoperability, community
-directory 4/4, Atelier/photo 9/9, arrow library 4/4, arrow-reference library 7/7, and immutable
-action refs across 7 workflows. A read-only `git ls-remote` found no matching branch on origin, so
-hosted CI has not run for the newest commits. These artifacts use the QA/debug identity and are not
-production candidates. API-36 16 KB, production signer/hosted CI, physical-device/range acceptance,
-30 real sessions, clean install/update, and owner approval remain open.
+`45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The exact minified QA APK
+was then clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
+live after four seconds and the checked logcat window contained no fatal/class-loading error. This
+is a QA emulator clean-install smoke only, not an update over a prior production APK. Source-tree
+contracts also passed: release 39/39, shared checkout 4/4, web viewer 10/10 plus ECDSA
+interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4, arrow-reference
+library 7/7, and immutable action refs across 7 workflows. A read-only `git ls-remote` found no
+matching branch on origin, so hosted CI has not run for the newest commits. These artifacts use the
+QA/debug identity and are not production candidates. API-36 16 KB, production signer/hosted CI,
+physical-device/range acceptance, 30 real sessions, the physical clean-install/update matrix, and
+owner approval remain open.
 
 Previous current-tree Recurve QA replay after session-start smoke and Home visual correction (2026-10-11):
 version `0.6.0-session-smoke-qa`, versionCode 678. Root/JVM tests, Android debug/release unit tests,

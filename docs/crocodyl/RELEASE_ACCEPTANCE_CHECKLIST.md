@@ -18,14 +18,17 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       resources. APK SHA-256
       `d127bb9f0fc18d25f8090be30f31c7343e67dad956818e131daa1f3154288f9c`; AAB SHA-256
       `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
+- [x] The exact v679 minified QA APK clean-installed and cold-launched on API-35 ARM64; the process
+      remained live after four seconds with no fatal/class-loading error in the checked logcat.
+      This does not count as an update over a prior production APK or physical-device acceptance.
 - [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across 7 workflows.
 - [ ] Repeat v679 minified-release connected tests on API-36 16 KB; that local system image is not
       installed. The prior v678 source passed on API-36 16 KB, but does not cover this newer build.
-- [ ] Production signer/hosted release workflow, physical-device/range matrix, clean install/update,
-      30-real-session acceptance and owner approval remain open. v679 is signed with the committed
-      QA/debug key and is not distributable as a production release.
+- [ ] Production signer/hosted release workflow, physical-device/range matrix, update over the
+      previous production APK, 30-real-session acceptance and owner approval remain open. v679 uses
+      the committed QA/debug key and is not distributable as a production release.
 
 ## 1. Required device matrix
 
