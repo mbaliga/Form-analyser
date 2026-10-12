@@ -14,7 +14,15 @@ targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_
 `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The exact minified QA APK
 was then clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
 live after four seconds and the checked logcat window contained no fatal/class-loading error. This
-is a QA emulator clean-install smoke only, not an update over a prior production APK. Source-tree
+is a QA emulator clean-install smoke only, not an update over a prior production APK. A follow-up
+v678 QA APK was rebuilt from commit `042de10` (`0.6.0-session-smoke-qa`, versionCode 678) to exercise
+an install/update path. The running API-35 emulator already contained v679, so Package Manager
+correctly rejected v678 as a downgrade; its installed app/data were left untouched. A disposable
+API-35 AVD could not boot on this host (`Incompatible processor`, missing NEON for this emulator
+build), so no v678→v679 upgrade result is claimed. The current temporary SDK contains only the
+API-35 standard ARM64 image; attempts to install the approved API-36 image failed because sdkmanager
+could not fetch remote package manifests (`IO exception while downloading manifest`) and reported
+no matching API-36 image package. Thus v679's API-36 16 KB rerun remains open. Source-tree
 contracts also passed: release 39/39, shared checkout 4/4, web viewer 10/10 plus ECDSA
 interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4, arrow-reference
 library 7/7, and immutable action refs across 7 workflows. A read-only `git ls-remote` found no

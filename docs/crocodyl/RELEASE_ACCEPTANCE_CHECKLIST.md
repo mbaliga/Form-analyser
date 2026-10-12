@@ -24,8 +24,14 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across 7 workflows.
-- [ ] Repeat v679 minified-release connected tests on API-36 16 KB; that local system image is not
-      installed. The prior v678 source passed on API-36 16 KB, but does not cover this newer build.
+- [ ] Repeat v679 minified-release connected tests on API-36 16 KB. Installing the approved image
+      was attempted, but sdkmanager could not fetch remote package manifests and reported no matching
+      package; the current temporary SDK has only the API-35 standard ARM64 image. The prior v678
+      source passed on API-36 16 KB, but does not cover this newer build.
+- [ ] QA upgrade smoke over v678. Rebuilt v678 from commit `042de10`; the API-35 emulator already
+      had v679 installed and rejected v678 as a downgrade. No app data was removed. A separate
+      disposable AVD could not boot on this host (`Incompatible processor` / missing NEON), so the
+      v678→v679 update path remains unverified.
 - [ ] Production signer/hosted release workflow, physical-device/range matrix, update over the
       previous production APK, 30-real-session acceptance and owner approval remain open. v679 uses
       the committed QA/debug key and is not distributable as a production release.
