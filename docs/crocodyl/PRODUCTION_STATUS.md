@@ -34,6 +34,12 @@ artifact replay only: the key is not a production identity, and a passing local 
 substitute for hosted workflow execution, physical-device/range acceptance, or an update from the
 actual previous production APK.
 
+Portable verification sweep (2026-10-13): root `./gradlew test` completed successfully (50 tasks,
+all up-to-date). Seventy-seven Python contract tests passed across release workflow (16), version
+resolution (7), merged manifest (5), ELF alignment (11), shared checkout (4), community directory
+(4), Atelier/photo assets (9), arrow library (4), arrow-reference library (7), and web viewer (10).
+The immutable GitHub Actions reference check also passed for all seven workflow files.
+
 Current-tree Recurve QA replay after the Bocal-style navigation correction (2026-10-13): version
 `0.6.0-nav-qa-20261013`, versionCode 681. Android debug/release unit tests and `lintRelease` passed
 (89 actionable tasks). The API-36 Google APIs ARM64 emulator reported 16384-byte pages. The focused

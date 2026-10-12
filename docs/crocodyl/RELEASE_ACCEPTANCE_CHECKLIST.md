@@ -24,6 +24,11 @@ Distribution caveat: v696 uses the committed QA/debug identity and is not produc
 This evidence does not replace hosted release-workflow success, the physical-device/range matrix,
 an update over the actual previous production APK, 30-real-session acceptance, or owner approval.
 
+- [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
+      contract tests across release, version, manifest, ELF, shared checkout, community directory,
+      Atelier/photo, arrow, arrow-reference and web-viewer contracts, and immutable Actions refs in
+      all seven workflow files.
+
 - [x] Fresh forced root/JVM run passed (50 Gradle tasks executed); combined root/JVM,
       Android debug/release unit tests, and `lintRelease` passed (113 actionable Gradle tasks).
 - [x] Connected `ProductionSmokeTest` passed 10/10 on API-35 ARM64 for both debug and minified
