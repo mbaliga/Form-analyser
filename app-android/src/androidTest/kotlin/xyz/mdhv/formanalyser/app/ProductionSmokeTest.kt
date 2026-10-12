@@ -290,18 +290,18 @@ class ProductionSmokeTest {
     }
 
     @Test
-    fun quickScoreResumesAfterActivityRecreationAndCleansUpItsEmptyCard() {
+    fun quickScorePersistsEnteredArrowAcrossActivityRecreationAndCleansUpItsEmptyCard() {
         val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
         val repository = ScoringRepository(appContext)
         val wasOnboarded = runBlocking { prefs.onboarded.first() }
         val startedAt = System.currentTimeMillis()
         var createdSessionId: String? = null
-        var expectedSummary: String? = null
+        var expectedSummary = ""
         var quickScoreRequested = false
         try {
             runBlocking { prefs.setOnboarded(true) }
-            ActivityScenario.launch(MainActivity::class.java).use {
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
                 val instrumentation = InstrumentationRegistry.getInstrumentation()
                 assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
                 waitForAthlete(repository)
@@ -314,17 +314,22 @@ class ProductionSmokeTest {
                 quickScoreRequested = true
                 val created = waitForActiveScorecard(repository)
                 createdSessionId = created.session.id
-                expectedSummary = "${created.card.total} · ${created.card.xCount} X · " +
+                val emptyCardSummary = "${created.card.total} · ${created.card.xCount} X · " +
                     "${created.card.arrowCount}/${created.card.round.maxArrows}"
-                assertTextEventually(instrumentation, expectedSummary!!)
+                expectedSummary = emptyCardSummary
+                assertTextEventually(instrumentation, emptyCardSummary)
                 // Exercise the actual numeric keypad and undo controls, not only the Room boundary.
                 clickTextEventually(instrumentation, "10")
-                assertTextEventually(
-                    instrumentation,
-                    "10 · 0 X · 1/${created.card.round.maxArrows}",
-                )
+                val scoredSummary = "10 · 0 X · 1/${created.card.round.maxArrows}"
+                assertTextEventually(instrumentation, scoredSummary)
+
+                // Recreate the real activity while the entered arrow is still committed. A fresh
+                // ViewModel must reload the scored card from Room rather than only restoring an empty card.
+                scenario.recreate()
+                assertTextEventually(instrumentation, scoredSummary)
+
                 clickTextEventually(instrumentation, "Undo")
-                assertTextEventually(instrumentation, expectedSummary!!)
+                assertTextEventually(instrumentation, emptyCardSummary)
             }
 
             // A new Activity gets a new ViewModel; the screen must resume the persisted card.
@@ -332,7 +337,7 @@ class ProductionSmokeTest {
                 val instrumentation = InstrumentationRegistry.getInstrumentation()
                 assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
                 clickTextEventually(instrumentation, "Score")
-                assertTextEventually(instrumentation, expectedSummary!!)
+                assertTextEventually(instrumentation, expectedSummary)
             }
         } finally {
             try {

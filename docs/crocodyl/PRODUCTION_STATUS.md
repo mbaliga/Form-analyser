@@ -5,20 +5,22 @@ Last reviewed: 2026-10-13
 Current-tree Recurve QA replay after cinematic Home/onboarding refinement (2026-10-13): version
 `0.6.0-current-tree-qa-20261013`, versionCode 679. A fresh forced root/JVM test run passed (50
 Gradle tasks executed); the complete Gradle root + Android debug/release unit-test + `lintRelease`
-replay passed (113 actionable tasks). Connected `ProductionSmokeTest` passed 10/10 on API-35 ARM64
-for debug and minified release. Release APK/AAB passed `tools/release/verify_android_release.sh`:
+replay passed (113 actionable tasks). The prior connected `ProductionSmokeTest` passed 10/10 on
+API-35 ARM64 for debug and minified release. Release APK/AAB passed `tools/release/verify_android_release.sh`:
 matching committed QA/debug signer `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`,
 targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned
 64-bit ELF libraries, pose-model hash and backup resources. APK SHA-256
-`3f4e96e6e2c48757e1d52ebc5e8a8dd6a3f26d591d9a682b0056d29b5cf2bdf1`; AAB SHA-256
+`f440b2ac1ac91ef420c8fc9877bca78f5b768edb5b9df84951e9c94231ee28d4`; AAB SHA-256
 `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The v679 minified QA build
 was clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
 live after four seconds and the checked logcat window contained no fatal/class-loading error. This
 is a QA emulator clean-install smoke only, not an update over a prior production APK. Follow-up
 API-36 16 KB verification (2026-10-13): the approved Google APIs ARM64 16 KB system image was
 installed after redirecting sdkmanager's cache to a writable temporary `ANDROID_USER_HOME`.
-`getconf PAGE_SIZE` returned 16384. The v679 minified-release `ProductionSmokeTest` passed 10/10
-(zero failures/skips) on the disposable API-36 ARM64 emulator. The QA install path also passed:
+`getconf PAGE_SIZE` returned 16384. The latest-tree debug and minified-release
+`ProductionSmokeTest` suites each passed 10/10 (zero failures/skips) on the disposable API-36
+ARM64 emulator. The Quick Score flow now enters a 10, recreates the Activity, verifies the scored
+arrow still appears from persisted state, then undoes it and verifies cleanup. The QA install path also passed:
 versionCode 678 (`0.6.0-session-smoke-qa`, built from `042de10`) installed, then `adb install -r`
 upgraded to versionCode 679. A direct cold launch returned `Status: ok`, process remained live after
 four seconds, and no fatal/class-loading error appeared in the checked logcat. The upgraded v679

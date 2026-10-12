@@ -20,10 +20,11 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
 - [x] The v679 minified QA build clean-installed and cold-launched on API-35 ARM64; the process
       remained live after four seconds with no fatal/class-loading error in the checked logcat.
-- [x] v679 minified-release `ProductionSmokeTest` passed 10/10 (zero failures/skips) on API-36
-      Google APIs ARM64 16 KB; guest `getconf PAGE_SIZE` returned 16384. Integrated release
-      preflight passed again after connected testing. APK SHA-256
-      `3f4e96e6e2c48757e1d52ebc5e8a8dd6a3f26d591d9a682b0056d29b5cf2bdf1`; AAB SHA-256
+- [x] Latest-tree connected `ProductionSmokeTest` passed 10/10 for both debug and minified release
+      on API-36 Google APIs ARM64 16 KB; guest `getconf PAGE_SIZE` returned 16384. The Quick Score
+      smoke enters a 10, recreates the Activity, verifies that arrow persisted, then undoes it and
+      checks the empty-card state. Integrated release preflight passed after testing. APK SHA-256
+      `f440b2ac1ac91ef420c8fc9877bca78f5b768edb5b9df84951e9c94231ee28d4`; AAB SHA-256
       `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
 - [x] On a disposable API-36 16 KB AVD, QA versionCode 678 installed and upgraded in place to v679;
       Package Manager reported 679, cold launch returned `Status: ok`, process remained alive after
