@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.TrackChanges
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +51,7 @@ fun CrocodylHero(
     onManageRigs: () -> Unit,
     onStartSession: () -> Unit,
     onScore: () -> Unit,
+    onSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -103,13 +105,26 @@ fun CrocodylHero(
             Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
-            Column(Modifier.fillMaxWidth(.88f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("CROCODYL  /  RECURVE", color = Hyle.RadiumGreen, fontSize = 10.sp, letterSpacing = 1.7.sp)
-                Text(
-                    "Find your rhythm.",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                Column(
+                    Modifier.weight(1f).fillMaxWidth(.88f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text("CROCODYL  /  RECURVE", color = Hyle.RadiumGreen, fontSize = 10.sp, letterSpacing = 1.7.sp)
+                    Text(
+                        "Find your rhythm.",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = Color.White,
+                    )
+                }
+                IconButton(
+                    onClick = onSettings,
+                    modifier = Modifier.size(42.dp).clip(CircleShape)
+                        .background(Color.Black.copy(alpha = .48f))
+                        .border(1.dp, Color.White.copy(alpha = .16f), CircleShape),
+                ) {
+                    Icon(Icons.Filled.Settings, "Settings", tint = Color.White, modifier = Modifier.size(19.dp))
+                }
             }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(

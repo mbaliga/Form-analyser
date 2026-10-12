@@ -8,13 +8,41 @@ those proposals here before committing to architecture or user-facing measuremen
 **Scope boundary:** this is a future cross-sport capability. It is not a prerequisite to the current
 Recurve Android production release and must not destabilize or silently widen that release.
 
-## Portable handoff snapshot — 11 October 2026
+## Portable handoff snapshot — 13 October 2026
 
 This is the shared product/engineering brief for the owner's parallel ChatGPT Work and Claude Work
 sessions. It is intentionally a proposal/research handoff, not a feature ticket and not permission to
 start recording sensor data. The owner wants to develop the concept in those sessions and reconcile
 the outputs before choosing an implementation. Keep this file as the canonical spec; do not let
 parallel copies diverge into separate requirements.
+
+### How to use this handoff across work sessions
+
+1. Give the same canonical file to ChatGPT Work and Claude Work. Use the two independent prompts in
+   section 11; ChatGPT should stress the athlete problem, measurement evidence and product/safety
+   boundaries, while Claude should independently inspect the actual code and audit architecture.
+2. Both sessions are proposal-only for now. Do not ask either to implement, record sensor traces,
+   create a competing motion spec, or announce screenless capture as an existing capability.
+3. Keep each session's recommendation and source citations in its original task. Bring both proposals
+   back to this Crocodyl task, compare them against section 10, and record a dated owner decision
+   before opening an implementation task. Preserve unresolved disagreements and their resolving
+   experiment instead of blending them into false consensus.
+4. This brief concerns future motion sensing; it does not replace, refactor, or reopen the existing
+   arrow Atelier project. That project already identifies the arrow's separate components and lets
+   the user inspect component families and variants independently. Its canonical execution map is
+   [`atelier/CODEX_HANDOFF.md`](atelier/CODEX_HANDOFF.md), with owner-approved visual direction and
+   provenance in the arrow-first art-direction/reference-ledger documents linked there. Continue
+   from that work; do not rebuild an arrow viewer as part of motion-session exploration.
+
+### Copy-ready opening message
+
+> I am developing a concept for Crocodyl screenless Motion Sessions in parallel with another work
+> session. Please read `docs/crocodyl/MOTION_SESSIONS_HANDOFF.md` as the canonical brief, including
+> the existing arrow Atelier note, and stay within the role-specific prompt in section 11. This is
+> concept/research/design only, not implementation approval. Return your proposal in the existing
+> proposal-record template, identify facts you verified versus assumptions, cite primary sources
+> with access dates, and do not duplicate the handoff or claim unvalidated metrics. Preserve
+> disagreements for reconciliation in the Crocodyl task.
 
 ### Current baseline and project map
 

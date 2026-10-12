@@ -121,11 +121,13 @@ class ProductionSmokeTest {
         try {
             runBlocking { prefs.setOnboarded(true) }
             ActivityScenario.launch(MainActivity::class.java).use {
-                assertTextEventually(instrumentation, "Crocodyl")
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
+                assertTextAbsent(instrumentation, "Crocodyl")
                 assertTextEventually(instrumentation, "Find your rhythm.")
                 assertTextEventually(instrumentation, "ACTIVE RIG")
                 assertTextEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "Score")
+                assertTextEventually(instrumentation, "Settings")
                 assertTextEventually(instrumentation, "Arrow, down to each part.")
 
                 clickBottomTabEventually(instrumentation, "Train")
@@ -155,7 +157,7 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "← prev")
 
                 clickBottomTabEventually(instrumentation, "Home")
-                assertTextEventually(instrumentation, "Crocodyl")
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
 
                 clickTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, "Every arrow,\naccounted for.")
@@ -186,7 +188,7 @@ class ProductionSmokeTest {
         try {
             runBlocking { prefs.setOnboarded(true) }
             ActivityScenario.launch(MainActivity::class.java).use {
-                assertTextEventually(instrumentation, "Crocodyl")
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
                 waitForAthlete(scoringRepository)
                 val athlete = runBlocking { repository.currentAthlete() }
                 assertNotNull("The main shell did not initialize a training profile", athlete)
@@ -301,7 +303,7 @@ class ProductionSmokeTest {
             runBlocking { prefs.setOnboarded(true) }
             ActivityScenario.launch(MainActivity::class.java).use {
                 val instrumentation = InstrumentationRegistry.getInstrumentation()
-                assertTextEventually(instrumentation, "Crocodyl")
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
                 waitForAthlete(repository)
                 // Avoid resuming or changing an athlete's pre-existing card on shared/local test devices.
                 assumeTrue("Quick Score smoke requires no pre-existing active scorecard", runBlocking { repository.resumeActive() == null })
@@ -328,7 +330,7 @@ class ProductionSmokeTest {
             // A new Activity gets a new ViewModel; the screen must resume the persisted card.
             ActivityScenario.launch(MainActivity::class.java).use {
                 val instrumentation = InstrumentationRegistry.getInstrumentation()
-                assertTextEventually(instrumentation, "Crocodyl")
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
                 clickTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, expectedSummary!!)
             }
@@ -436,6 +438,15 @@ class ProductionSmokeTest {
             ?.let(::collectVisibleText)
             .orEmpty()
         throw AssertionError("Timed out waiting for visible UI text: $expected. Visible: $visibleText")
+    }
+
+    private fun assertTextAbsent(
+        instrumentation: android.app.Instrumentation,
+        unexpected: String,
+    ) {
+        instrumentation.waitForIdleSync()
+        val root = instrumentation.uiAutomation.rootInActiveWindow
+        assertFalse("Unexpected Home chrome is visible: $unexpected", root?.let { containsText(it, unexpected) } == true)
     }
 
     private fun assertAnyTextEventually(

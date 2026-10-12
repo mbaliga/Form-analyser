@@ -33,6 +33,12 @@ runtime, Android SDK `adb`, or connected emulator is installed/available; do not
 visually accepted until a fresh emulator/device screenshot is reviewed. The previously checked-in
 screenshots show the pre-pass state.
 
+Follow-up visual QA fixed two issues in that first render: the compact header applies the system
+status-bar insets explicitly, and the no-session state is a compact, neutral row rather than a tall
+outlined emoji panel. The October 13 validation and onboarding continuity screenshot are recorded
+at the end of this document. Existing Home screenshots still predate the latest compact-header
+adjustment; they are not evidence of the current Home render.
+
 ## Evidence and diagnosis
 
 Reviewed the October 10 QA Home screenshot at `/private/tmp/crocodyl-photo-assets-home.png` and the
@@ -293,3 +299,28 @@ first-denial and permanently-denied copy, the two affected tests passed individu
 rerun after that harness correction is still outstanding, so this capture is visual evidence, not
 full-suite or physical-device acceptance. This is a first correction slice only: the wider screen-by-
 screen redesign and compact/large-font/device reviews below remain open.
+
+## 2026-10-13 Home and onboarding continuity pass
+
+Home no longer spends vertical space on the generic title bar; the licensed Recurve hero now owns
+the top of the destination, with Settings contained in the image card, a compact no-session row,
+and recent practice directly after the primary actions. This preserves the Home destinations,
+settings route, rig editing, Train and Score behavior. The arrow Atelier remains its own card and
+continues to open the previously implemented component-by-component and variant inspection.
+
+The same bundled, provenance-checked Recurve photograph now carries through all first-run setup
+steps under a stronger Hyle-black scrim. The form fields and actions remain legible; onboarding
+state, copy, progression and commit behavior are unchanged. This is a continuity treatment, not a
+claim that the photo teaches safe or correct technique. No new image was added and no generated
+media was used. A current 1080×1920 API-35 ARM64 profile-step render is checked in at
+[`screenshots/onboarding-cinematic-continuity-api35.png`](screenshots/onboarding-cinematic-continuity-api35.png).
+
+Verification on October 13: debug assembly, Android debug and release unit tests, and `lintRelease`
+passed. The connected debug `ProductionSmokeTest` passed 10/10 on one API-35 ARM64 emulator after
+the onboarding update; the suite checks Home, settings, core navigation and primary flows. The
+previous Home/navigation run also passed 10/10. The broader root `test` task was attempted but its
+offline dependency cache lacks Kotlin test artifacts for unrelated module tests; no root-suite pass
+is claimed. A fresh Home screenshot after the title-bar change is still outstanding, as is a full
+minified-release connected rerun, compact/large-font visual review and physical-device acceptance.
+The refreshed onboarding screenshot is visual evidence only; remaining destinations still need
+the full Bocal-inspired, screen-by-screen review described above.

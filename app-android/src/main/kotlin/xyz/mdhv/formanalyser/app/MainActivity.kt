@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -282,7 +283,9 @@ private fun MainShell() {
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     Scaffold(
         topBar = {
-            if (onTab) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) }
+            if (onTab) {
+                if (route != Routes.HOME) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) }
+            }
             // Every other route used to render with no bar, no back and no title. 22 of 27
             // destinations were reachable and then inescapable except by system back — and on a
             // desktop/ChromeOS window there is no system back gesture at all.
@@ -314,6 +317,7 @@ private fun MainShell() {
                     { nav.navigate(Routes.LOG) },
                     { nav.navigate(Routes.COACH) },
                     { nav.navigate(Routes.PAIRED_SESSION) },
+                    { nav.navigate(Routes.SETTINGS) },
                 )
             }
             composable(Routes.PAIRED_SESSION) { PairedSessionScreen(prefs) { nav.popBackStack() } }
@@ -449,7 +453,8 @@ private fun NavGraphBuilder.settingsGraph(
 @Composable
 private fun TopRow(title: String, onSettings: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 7.dp, bottom = 3.dp),
+        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)
+            .padding(start = 20.dp, end = 12.dp, top = 7.dp, bottom = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {

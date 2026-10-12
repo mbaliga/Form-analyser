@@ -53,8 +53,8 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
     val s by vm.state.collectAsState()
     val context = LocalContext.current
     val rangePhoto = remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
-    LaunchedEffect(s.step) {
-        if (s.step == 0 && rangePhoto.value == null) {
+    LaunchedEffect(Unit) {
+        if (rangePhoto.value == null) {
             rangePhoto.value = withContext(Dispatchers.IO) {
                 runCatching {
                     context.assets.open("atelier/cinematic/recurve-training.jpg").use {
@@ -66,15 +66,15 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
     }
 
     Box(Modifier.fillMaxSize().background(Hyle.Background)) {
+        rangePhoto.value?.let { image ->
+            Image(
+                bitmap = image,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         if (s.step == 0) {
-            rangePhoto.value?.let { image ->
-                Image(
-                    bitmap = image,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
             Box(
                 Modifier.fillMaxSize().background(
                     Brush.verticalGradient(
@@ -82,6 +82,16 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
                         .3f to Hyle.Background.copy(alpha = .54f),
                         .68f to Hyle.Background.copy(alpha = .68f),
                         1f to Hyle.Background.copy(alpha = .96f),
+                    ),
+                ),
+            )
+        } else {
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0f to Hyle.Background.copy(alpha = .90f),
+                        .48f to Hyle.Background.copy(alpha = .84f),
+                        1f to Hyle.Background.copy(alpha = .94f),
                     ),
                 ),
             )
