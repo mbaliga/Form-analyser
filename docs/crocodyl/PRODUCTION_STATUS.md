@@ -11,8 +11,8 @@ matching committed QA/debug signer `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3
 targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned
 64-bit ELF libraries, pose-model hash and backup resources. APK SHA-256
 `3f4e96e6e2c48757e1d52ebc5e8a8dd6a3f26d591d9a682b0056d29b5cf2bdf1`; AAB SHA-256
-`45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The exact minified QA APK
-was then clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
+`45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The v679 minified QA build
+was clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
 live after four seconds and the checked logcat window contained no fatal/class-loading error. This
 is a QA emulator clean-install smoke only, not an update over a prior production APK. Follow-up
 API-36 16 KB verification (2026-10-13): the approved Google APIs ARM64 16 KB system image was
