@@ -16,22 +16,22 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       preflight: targetSdk 36, merged-manifest allowlist, matching QA/debug signer, APK ZIP
       alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF libraries, model hash and backup
       resources. APK SHA-256
-      `d127bb9f0fc18d25f8090be30f31c7343e67dad956818e131daa1f3154288f9c`; AAB SHA-256
+      `3f4e96e6e2c48757e1d52ebc5e8a8dd6a3f26d591d9a682b0056d29b5cf2bdf1`; AAB SHA-256
       `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
 - [x] The exact v679 minified QA APK clean-installed and cold-launched on API-35 ARM64; the process
       remained live after four seconds with no fatal/class-loading error in the checked logcat.
-      This does not count as an update over a prior production APK or physical-device acceptance.
+- [x] v679 minified-release `ProductionSmokeTest` passed 10/10 (zero failures/skips) on API-36
+      Google APIs ARM64 16 KB; guest `getconf PAGE_SIZE` returned 16384. Integrated release
+      preflight passed again after connected testing. APK SHA-256
+      `3f4e96e6e2c48757e1d52ebc5e8a8dd6a3f26d591d9a682b0056d29b5cf2bdf1`; AAB SHA-256
+      `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
+- [x] On a disposable API-36 16 KB AVD, QA versionCode 678 installed and upgraded in place to v679;
+      Package Manager reported 679, cold launch returned `Status: ok`, process remained alive after
+      four seconds, and no fatal/class-loading error appeared in the checked logcat. This does not
+      prove migration from the actual previous production APK or physical-device acceptance.
 - [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across 7 workflows.
-- [ ] Repeat v679 minified-release connected tests on API-36 16 KB. Installing the approved image
-      was attempted, but sdkmanager could not fetch remote package manifests and reported no matching
-      package; the current temporary SDK has only the API-35 standard ARM64 image. The prior v678
-      source passed on API-36 16 KB, but does not cover this newer build.
-- [ ] QA upgrade smoke over v678. Rebuilt v678 from commit `042de10`; the API-35 emulator already
-      had v679 installed and rejected v678 as a downgrade. No app data was removed. A separate
-      disposable AVD could not boot on this host (`Incompatible processor` / missing NEON), so the
-      v678→v679 update path remains unverified.
 - [ ] Production signer/hosted release workflow, physical-device/range matrix, update over the
       previous production APK, 30-real-session acceptance and owner approval remain open. v679 uses
       the committed QA/debug key and is not distributable as a production release.

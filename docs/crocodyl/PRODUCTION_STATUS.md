@@ -10,26 +10,28 @@ for debug and minified release. Release APK/AAB passed `tools/release/verify_and
 matching committed QA/debug signer `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`,
 targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned
 64-bit ELF libraries, pose-model hash and backup resources. APK SHA-256
-`d127bb9f0fc18d25f8090be30f31c7343e67dad956818e131daa1f3154288f9c`; AAB SHA-256
+`3f4e96e6e2c48757e1d52ebc5e8a8dd6a3f26d591d9a682b0056d29b5cf2bdf1`; AAB SHA-256
 `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The exact minified QA APK
 was then clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
 live after four seconds and the checked logcat window contained no fatal/class-loading error. This
-is a QA emulator clean-install smoke only, not an update over a prior production APK. A follow-up
-v678 QA APK was rebuilt from commit `042de10` (`0.6.0-session-smoke-qa`, versionCode 678) to exercise
-an install/update path. The running API-35 emulator already contained v679, so Package Manager
-correctly rejected v678 as a downgrade; its installed app/data were left untouched. A disposable
-API-35 AVD could not boot on this host (`Incompatible processor`, missing NEON for this emulator
-build), so no v678→v679 upgrade result is claimed. The current temporary SDK contains only the
-API-35 standard ARM64 image; attempts to install the approved API-36 image failed because sdkmanager
-could not fetch remote package manifests (`IO exception while downloading manifest`) and reported
-no matching API-36 image package. Thus v679's API-36 16 KB rerun remains open. Source-tree
+is a QA emulator clean-install smoke only, not an update over a prior production APK. Follow-up
+API-36 16 KB verification (2026-10-13): the approved Google APIs ARM64 16 KB system image was
+installed after redirecting sdkmanager's cache to a writable temporary `ANDROID_USER_HOME`.
+`getconf PAGE_SIZE` returned 16384. The v679 minified-release `ProductionSmokeTest` passed 10/10
+(zero failures/skips) on the disposable API-36 ARM64 emulator. The QA install path also passed:
+versionCode 678 (`0.6.0-session-smoke-qa`, built from `042de10`) installed, then `adb install -r`
+upgraded to versionCode 679. A direct cold launch returned `Status: ok`, process remained live after
+four seconds, and no fatal/class-loading error appeared in the checked logcat. The upgraded v679
+APK/AAB passed the integrated release preflight again; current APK SHA-256 is recorded above and
+AAB SHA-256 remains unchanged. This is QA-only upgrade evidence, not an update over the prior
+production APK or physical-device acceptance. Source-tree
 contracts also passed: release 39/39, shared checkout 4/4, web viewer 10/10 plus ECDSA
 interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4, arrow-reference
 library 7/7, and immutable action refs across 7 workflows. A read-only `git ls-remote` found no
 matching branch on origin, so hosted CI has not run for the newest commits. These artifacts use the
-QA/debug identity and are not production candidates. API-36 16 KB, production signer/hosted CI,
-physical-device/range acceptance, 30 real sessions, the physical clean-install/update matrix, and
-owner approval remain open.
+QA/debug identity and are not production candidates. Production signing/hosted CI,
+physical-device/range acceptance, 30 real sessions, the physical
+clean-install/update matrix, and owner approval remain open.
 
 Previous current-tree Recurve QA replay after session-start smoke and Home visual correction (2026-10-11):
 version `0.6.0-session-smoke-qa`, versionCode 678. Root/JVM tests, Android debug/release unit tests,
