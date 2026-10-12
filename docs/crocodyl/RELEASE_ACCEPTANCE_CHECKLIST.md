@@ -8,7 +8,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-13)
 
-- [x] Current-source QA release `0.6.0-navbar-qa-20261013` / versionCode 696 APK and AAB passed
+- [x] Previous-source QA release `0.6.0-navbar-qa-20261013` / versionCode 696 APK and AAB passed
       `tools/release/verify_android_release.sh`: targetSdk 36, merged-manifest policy, matching
       QA/debug signer, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF
       libraries, pose-model hash and backup resources. APK SHA-256

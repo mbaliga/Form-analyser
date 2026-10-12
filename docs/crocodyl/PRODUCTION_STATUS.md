@@ -38,7 +38,8 @@ runner directly. The later v697 section below records final navbar and large-fon
 results. Physical-device review remains open. This is QA/debug evidence, not production signing or
 physical-device acceptance.
 
-Latest signed minified artifact (2026-10-13): version `0.6.0-navbar-qa-20261013`, versionCode 696.
+Previous signed minified artifact (2026-10-13): version `0.6.0-navbar-qa-20261013`, versionCode 696.
+It is superseded by current-source v697 below.
 The APK and AAB were signed with the committed QA/debug certificate, then passed
 `tools/release/verify_android_release.sh`: signer agreement, targetSdk 36, merged manifest policy,
 version metadata, APK ZIP alignment, App Bundle `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit native
