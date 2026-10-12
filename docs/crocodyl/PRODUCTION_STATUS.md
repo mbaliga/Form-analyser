@@ -10,7 +10,7 @@ API-35 ARM64 for debug and minified release. Release APK/AAB passed `tools/relea
 matching committed QA/debug signer `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`,
 targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned
 64-bit ELF libraries, pose-model hash and backup resources. APK SHA-256
-`78471730d0e03ce0d9eae5821505b84337156c567e646c3054ee3c36973ebc3c`; AAB SHA-256
+`affab55015bdaa75bbb98c9492908f35a0d8e2cbcd3d1f889479701bf380c2c3`; AAB SHA-256
 `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The v679 minified QA build
 was clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
 live after four seconds and the checked logcat window contained no fatal/class-loading error. This
@@ -20,7 +20,8 @@ installed after redirecting sdkmanager's cache to a writable temporary `ANDROID_
 `getconf PAGE_SIZE` returned 16384. The latest-tree debug and minified-release
 `ProductionSmokeTest` suites each passed 10/10 (zero failures/skips) on the disposable API-36
 ARM64 emulator. The Quick Score flow now enters a 10, recreates the Activity, verifies the scored
-arrow still appears from persisted state, then undoes it and verifies cleanup. The QA install path also passed:
+arrow still appears from persisted state, presses system Back to Home, reopens Score to verify the
+same arrow remains, then undoes it and verifies cleanup. The QA install path also passed:
 versionCode 678 (`0.6.0-session-smoke-qa`, built from `042de10`) installed, then `adb install -r`
 upgraded to versionCode 679. A direct cold launch returned `Status: ok`, process remained live after
 four seconds, and no fatal/class-loading error appeared in the checked logcat. The upgraded v679

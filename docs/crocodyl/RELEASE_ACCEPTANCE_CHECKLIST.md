@@ -23,8 +23,9 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [x] Latest-tree connected `ProductionSmokeTest` passed 10/10 for both debug and minified release
       on API-36 Google APIs ARM64 16 KB; guest `getconf PAGE_SIZE` returned 16384. The Quick Score
       smoke enters a 10, recreates the Activity, verifies that arrow persisted, then undoes it and
-      checks the empty-card state. Integrated release preflight passed after testing. APK SHA-256
-      `78471730d0e03ce0d9eae5821505b84337156c567e646c3054ee3c36973ebc3c`; AAB SHA-256
+      checks the empty-card state. It also presses system Back from the scored round, reopens Score,
+      and confirms the arrow remains. Integrated release preflight passed after testing. APK SHA-256
+      `affab55015bdaa75bbb98c9492908f35a0d8e2cbcd3d1f889479701bf380c2c3`; AAB SHA-256
       `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`.
 - [x] On a disposable API-36 16 KB AVD, QA versionCode 678 installed and upgraded in place to v679;
       Package Manager reported 679, cold launch returned `Status: ok`, process remained alive after

@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.os.SystemClock
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityNodeInfo
@@ -326,6 +327,13 @@ class ProductionSmokeTest {
                 // Recreate the real activity while the entered arrow is still committed. A fresh
                 // ViewModel must reload the scored card from Room rather than only restoring an empty card.
                 scenario.recreate()
+                assertTextEventually(instrumentation, scoredSummary)
+
+                // System Back must leave the active scoring destination without discarding the
+                // committed arrow; reopening Score resumes the same card.
+                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+                assertTextEventually(instrumentation, "Find your rhythm.")
+                clickTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, scoredSummary)
 
                 clickTextEventually(instrumentation, "Undo")
