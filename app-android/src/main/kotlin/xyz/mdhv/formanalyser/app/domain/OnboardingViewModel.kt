@@ -34,6 +34,7 @@ data class OnboardingState(
     val lastStep = 6
     val canProceed: Boolean get() = when (step) {
         1 -> name.trim().length in 1..40
+        4 -> PoundageValidation.isValid(markedLbs) && PoundageValidation.isValid(otfLbs)
         else -> true
     }
 }

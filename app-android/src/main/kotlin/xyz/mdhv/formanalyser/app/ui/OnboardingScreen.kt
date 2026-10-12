@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.domain.OnboardingViewModel
+import xyz.mdhv.formanalyser.app.domain.PoundageValidation
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.HyleAvatar
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
@@ -163,6 +164,9 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
                     }
                     NumberField(if (s.bowType == BowType.COMPOUND) "Peak weight (lbs)" else "Marked poundage (lbs)", s.markedLbs) { v -> vm.update { it.copy(markedLbs = v) } }
                     NumberField("On-the-fingers poundage (lbs, measured)", s.otfLbs) { v -> vm.update { it.copy(otfLbs = v) } }
+                    if (!PoundageValidation.isValid(s.markedLbs) || !PoundageValidation.isValid(s.otfLbs)) {
+                        Text("Poundage must be greater than 0 lbs, or left blank.", color = Hyle.Danger)
+                    }
                     val marked = s.markedLbs
                     if (s.bowType != BowType.COMPOUND && s.otfLbs == null && marked != null && s.drawLengthSet) {
                         val est = PoundageEstimator.estimateOtfLbs(marked, s.riserLengthIn.toDouble(), s.drawLengthMm)

@@ -521,6 +521,12 @@ published on Shared-Libraries-asoc `codex/evidence-schema-v1` at `da50c62`. Croc
 not claim production multiplayer: discovery, trust, reconnect, product event mapping and physical
 two-device acceptance remain open.
 
+Poundage validation hardening (2026-10-13): optional marked and measured poundage is now accepted
+only when blank or finite and greater than zero. Onboarding prevents advancing from the equipment
+step with invalid values; rig editing shows a validation message and disables Save. JVM coverage
+includes blank, positive, zero, negative, malformed, NaN and infinity cases. The broader rig and
+handedness acceptance item remains open for physical-device verification.
+
 Recovery hardening replay (2026-09-27): both Android unit-test variants, release lint, and
 connected debug instrumentation passed after checksum-manifested backups and the app-private
 recovery-root restriction were added. Connected instrumentation passed 3/3 on

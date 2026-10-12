@@ -32,6 +32,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import xyz.mdhv.formanalyser.app.domain.RigsViewModel
+import xyz.mdhv.formanalyser.app.domain.PoundageValidation
 import xyz.mdhv.formanalyser.app.domain.SettingsViewModel
 import xyz.mdhv.formanalyser.app.domain.Tuning
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -282,6 +283,8 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
             onChange = { adv = it },
         )
 
+        val poundageValid = PoundageValidation.isValidInput(marked) && PoundageValidation.isValidInput(otf)
+        if (!poundageValid) Text("Poundage must be greater than 0 lbs, or left blank.", color = Hyle.Danger)
         note?.let { Text(it, color = Hyle.Danger) }
         Button(
             onClick = {
@@ -297,6 +300,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
                 vm.saveRig(existing?.id, name, bow, Tuning.encodeFull(full))
                 onDone()
             },
+            enabled = poundageValid,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Save")

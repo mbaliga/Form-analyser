@@ -380,7 +380,7 @@ leaks private data, or leaves the user unable to recover without clearing app st
 
 - [ ] Install, launch, onboarding, restart, and update; profile and active rig persist.
 - [ ] Home and every bottom tab open; system back does not silently discard a recording or filled form.
-- [ ] Rig editing, handedness selection/override, draw-length and poundage validation behave correctly.
+- [ ] Rig editing, handedness selection/override, draw-length and poundage validation behave correctly. Automated validation requires optional poundage to be blank or finite and greater than zero; physical UI acceptance remains open.
 - [ ] Camera permission grant, denial, “don’t ask again”, rotation, background/foreground, interruption,
       and camera-unavailable paths are safe and explain the next action.
 - [ ] Start and stop a form session; post-session duration/RPE/feel/arrows sheet persists its values.
