@@ -19,6 +19,21 @@ querying the second attached emulator, so the target device runs used the Androi
 runner directly. The final tangent-positioned visual capture and large-font review remain open.
 This is QA/debug evidence, not production signing or physical-device acceptance.
 
+Latest signed minified artifact (2026-10-13): version `0.6.0-navbar-qa-20261013`, versionCode 696.
+The APK and AAB were signed with the committed QA/debug certificate, then passed
+`tools/release/verify_android_release.sh`: signer agreement, targetSdk 36, merged manifest policy,
+version metadata, APK ZIP alignment, App Bundle `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit native
+libraries in each artifact, pose-model hash, and backup resources. The complete minified-release
+`ProductionSmokeTest` passed 11/11 when invoked directly on `emulator-5556` (API 36, `PAGE_SIZE` =
+16384), including `upperArcDragPreviewsAndSelectsCalendar` and the primary-tab flow. The exact APK
+then cold-launched (`Status: ok`), its process remained live, and the checked logcat had no fatal or
+class-loading error. APK SHA-256
+`88143b1fc001072cad1e26bf5788755cda638ea7a326138e4a0e510cdb0f724b`; AAB SHA-256
+`645089dbd26284cbdb438b84d1faad62b977584252449dd95ef686317bff1a91`. This is a complete QA
+artifact replay only: the key is not a production identity, and a passing local preflight cannot
+substitute for hosted workflow execution, physical-device/range acceptance, or an update from the
+actual previous production APK.
+
 Current-tree Recurve QA replay after the Bocal-style navigation correction (2026-10-13): version
 `0.6.0-nav-qa-20261013`, versionCode 681. Android debug/release unit tests and `lintRelease` passed
 (89 actionable tasks). The API-36 Google APIs ARM64 emulator reported 16384-byte pages. The focused
@@ -427,7 +442,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Latest v681 Bocal-style navigation build passed API-36 16 KB full minified-release instrumentation (10/10), unit tests, `lintRelease` and artifact preflight; a subsequent debug replay on current source also produced a 10/10 API-36 16 KB JUnit report (versionCode 686). Full debug replay beyond the focused navigation case is now covered, although the Gradle wrapper hung after report generation and was interrupted before a normal task exit. Compact/large-font visual review, hosted CI, production signer, physical/range acceptance, update over the actual previous production APK and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Latest v696 minified APK/AAB passed release preflight and full 11/11 instrumentation on API-36 16 KB; exact APK cold-launched successfully. Android debug/release unit tests and release lint passed on the v695 current source. QA/debug signing only. Final visual capture/large-font review, hosted CI, production signer, physical/range acceptance, update over the actual previous production APK and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

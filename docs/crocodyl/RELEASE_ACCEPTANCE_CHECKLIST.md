@@ -8,6 +8,22 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-13)
 
+- [x] Current-source QA release `0.6.0-navbar-qa-20261013` / versionCode 696 APK and AAB passed
+      `tools/release/verify_android_release.sh`: targetSdk 36, merged-manifest policy, matching
+      QA/debug signer, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF
+      libraries, pose-model hash and backup resources. APK SHA-256
+      `88143b1fc001072cad1e26bf5788755cda638ea7a326138e4a0e510cdb0f724b`; AAB SHA-256
+      `645089dbd26284cbdb438b84d1faad62b977584252449dd95ef686317bff1a91`.
+- [x] The exact v696 minified APK passed full `ProductionSmokeTest` 11/11 on the API-36 ARM64
+      16 KB AVD (`getconf PAGE_SIZE` = 16384), including the two-arc swipe regression and all
+      primary destinations. It then cold-launched with `Status: ok`, remained live, and emitted
+      no fatal/class-loading match in the checked logcat. Tests were invoked directly on
+      `emulator-5556` because Gradle's connected-device discovery timed out querying another
+      attached emulator.
+Distribution caveat: v696 uses the committed QA/debug identity and is not production-distributable.
+This evidence does not replace hosted release-workflow success, the physical-device/range matrix,
+an update over the actual previous production APK, 30-real-session acceptance, or owner approval.
+
 - [x] Fresh forced root/JVM run passed (50 Gradle tasks executed); combined root/JVM,
       Android debug/release unit tests, and `lintRelease` passed (113 actionable Gradle tasks).
 - [x] Connected `ProductionSmokeTest` passed 10/10 on API-35 ARM64 for both debug and minified
