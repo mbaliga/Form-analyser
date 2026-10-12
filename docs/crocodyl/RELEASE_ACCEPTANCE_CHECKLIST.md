@@ -62,9 +62,11 @@ an update over the actual previous production APK, 30-real-session acceptance, o
 - [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across 7 workflows.
-- [ ] Production signer/hosted release workflow, physical-device/range matrix, update over the
-      previous production APK, 30-real-session acceptance and owner approval remain open. v679 uses
-      the committed QA/debug key and is not distributable as a production release.
+- [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, update over
+      the actual previous production APK, 30-real-session acceptance and owner approval remain open.
+      The current v696 APK/AAB use the committed QA/debug key and are not distributable as a
+      production release. The final tangent-positioned navbar visual capture and large-font review
+      also remain open; the checked-in earlier lower-rail screenshot is explicitly superseded.
 
 ## 1. Required device matrix
 
