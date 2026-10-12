@@ -162,9 +162,9 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
                         Text("Riser length", color = Hyle.OnSurfaceDim)
                         HyleSegmented(listOf(23, 25, 27), s.riserLengthIn, { "$it″" }) { vm.update { st -> st.copy(riserLengthIn = it) } }
                     }
-                    NumberField(if (s.bowType == BowType.COMPOUND) "Peak weight (lbs)" else "Marked poundage (lbs)", s.markedLbs) { v -> vm.update { it.copy(markedLbs = v) } }
-                    NumberField("On-the-fingers poundage (lbs, measured)", s.otfLbs) { v -> vm.update { it.copy(otfLbs = v) } }
-                    if (!PoundageValidation.isValid(s.markedLbs) || !PoundageValidation.isValid(s.otfLbs)) {
+                    NumberField(if (s.bowType == BowType.COMPOUND) "Peak weight (lbs)" else "Marked poundage (lbs)", s.markedLbsInput) { raw -> vm.update { it.copy(markedLbsInput = raw) } }
+                    NumberField("On-the-fingers poundage (lbs, measured)", s.otfLbsInput) { raw -> vm.update { it.copy(otfLbsInput = raw) } }
+                    if (!PoundageValidation.isValidInput(s.markedLbsInput) || !PoundageValidation.isValidInput(s.otfLbsInput)) {
                         Text("Poundage must be greater than 0 lbs, or left blank.", color = Hyle.Danger)
                     }
                     val marked = s.markedLbs
@@ -200,12 +200,12 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
 @Composable private fun Hint(t: String) = Text(t, color = Hyle.OnSurfaceDim)
 
 @Composable
-private fun NumberField(label: String, value: Double?, onChange: (Double?) -> Unit) {
+private fun NumberField(label: String, value: String, onChange: (String) -> Unit) {
     OutlinedTextField(
-        value = value?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "",
+        value = value,
         onValueChange = { raw ->
             val cleaned = raw.filter { it.isDigit() || it == '.' }
-            onChange(cleaned.toDoubleOrNull())
+            onChange(cleaned)
         },
         label = { Text(label) },
         singleLine = true,
