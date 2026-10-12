@@ -16,6 +16,9 @@ libraries per artifact, pose-model hash and backup resources. APK SHA-256
 `9a7986fdbb4b6e7a53b8a1651d667d9553cd37e46cd2a2ad0100ec2388d2032a`; AAB SHA-256
 `3b77a708d596abf3d0f5498c14d181c4ab3f8127d919d277e50718b59d5622aa`. These are QA/debug-key
 artifacts, not production-signed or physically accepted. Physical-device review remains open.
+The debug and minified-release 16 KB GitHub Actions lanes now explicitly set/assert 1.3× font scale;
+16 release-workflow contract tests and immutable action-ref checks pass locally. Hosted CI has not
+run for this checkout.
 
 Navbar follow-up (2026-10-13): the owner correctly identified that the previous “Bocal-style”
 change reproduced only the lower rail. Crocodyl now implements the shared Hyle two-arc stage:
@@ -31,8 +34,9 @@ Manual API-36 compact-width review also verified that a horizontal upper-rail sw
 Calendar. The broader test no longer asserts on an off-screen lazy row that is unrelated to tab
 navigation; the visible Progress screen assertions remain. Gradle's connected task timed out while
 querying the second attached emulator, so the target device runs used the Android instrumentation
-runner directly. The final tangent-positioned visual capture and large-font review remain open.
-This is QA/debug evidence, not production signing or physical-device acceptance.
+runner directly. The later v697 section below records final navbar and large-font captures and test
+results. Physical-device review remains open. This is QA/debug evidence, not production signing or
+physical-device acceptance.
 
 Latest signed minified artifact (2026-10-13): version `0.6.0-navbar-qa-20261013`, versionCode 696.
 The APK and AAB were signed with the committed QA/debug certificate, then passed

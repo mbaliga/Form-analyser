@@ -382,4 +382,6 @@ so it verifies reaching the below-fold Atelier and returning to the hero instead
 feed resets on tab selection. The emulator font scale was restored to 1.0 after testing. The v697
 APK/AAB passed the release preflight, but are still signed with the QA/debug key and are not
 production-distributable. The Home large-font screenshot itself is from v697 debug; the visual
-source is the same as the minified artifact.
+source is the same as the minified artifact. The debug and minified-release 16 KB CI lanes now set
+and assert 1.3× system font scale before running the suite; release-workflow contract tests verify
+the setting is scoped to those exact lanes. The workflow changes still need a hosted run.

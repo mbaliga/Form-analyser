@@ -116,12 +116,26 @@ class ReleaseWorkflowContract(unittest.TestCase):
     def test_debug_and_signed_release_ci_include_verified_16_kb_emulators(self) -> None:
         android_workflow = (ROOT / ".github" / "workflows" / "android.yml").read_text()
         self.assertIn("Run debug smoke tests on 16 KB page-size emulator", android_workflow)
+        debug_16kb_lane = android_workflow.split(
+            "      - name: Run debug smoke tests on 16 KB page-size emulator", maxsplit=1
+        )[1].split("\n      - name:", maxsplit=1)[0]
+        self.assertIn("target: google_apis_ps16k", debug_16kb_lane)
+        self.assertIn('test "$page_size" = 16384', debug_16kb_lane)
+        self.assertIn("adb shell settings put system font_scale 1.3", debug_16kb_lane)
+        self.assertIn('test "$font_scale" = 1.3', debug_16kb_lane)
         self.assertIn("target: google_apis_ps16k", android_workflow)
         self.assertIn('test "$page_size" = 16384', android_workflow)
         self.assertIn(":app-android:connectedDebugAndroidTest", android_workflow)
 
         release_workflow = WORKFLOW.read_text()
         self.assertIn("Run signed minified release smoke tests on 16 KB page-size emulator", release_workflow)
+        release_16kb_lane = release_workflow.split(
+            "      - name: Run signed minified release smoke tests on 16 KB page-size emulator", maxsplit=1
+        )[1].split("\n      - name:", maxsplit=1)[0]
+        self.assertIn("target: google_apis_ps16k", release_16kb_lane)
+        self.assertIn('test "$page_size" = 16384', release_16kb_lane)
+        self.assertIn("adb shell settings put system font_scale 1.3", release_16kb_lane)
+        self.assertIn('test "$font_scale" = 1.3', release_16kb_lane)
         self.assertIn("target: google_apis_ps16k", release_workflow)
         self.assertIn('test "$page_size" = 16384', release_workflow)
         self.assertIn(":app-android:connectedReleaseAndroidTest", release_workflow)

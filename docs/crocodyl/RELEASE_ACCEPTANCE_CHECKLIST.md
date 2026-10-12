@@ -77,9 +77,9 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       arrow-reference 7/7, and immutable action refs across 7 workflows.
 - [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, update over
       the actual previous production APK, 30-real-session acceptance and owner approval remain open.
-      The current v696 APK/AAB use the committed QA/debug key and are not distributable as a
-      production release. The final tangent-positioned navbar visual capture and large-font review
-      also remain open; the checked-in earlier lower-rail screenshot is explicitly superseded.
+      The current v697 APK/AAB use the committed QA/debug key and are not distributable as a
+      production release. Navbar and 1.3× large-font emulator captures are complete; physical-device
+      visual acceptance remains open. The earlier lower-rail screenshot is explicitly superseded.
 
 ## 1. Required device matrix
 
