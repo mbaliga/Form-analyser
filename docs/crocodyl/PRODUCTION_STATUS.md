@@ -2,6 +2,23 @@
 
 Last reviewed: 2026-10-13
 
+Navbar follow-up (2026-10-13): the owner correctly identified that the previous “Bocal-style”
+change reproduced only the lower rail. Crocodyl now implements the shared Hyle two-arc stage:
+curved contextual rail with a destination label and drag-to-preview/release-to-select, left Train
+shortcut, right Add control, and five tangent-positioned primary destinations on the lower arc.
+`assembleDebug` and both debug APK assembly tasks passed for QA versionCode 695. The isolated
+`upperArcDragPreviewsAndSelectsCalendar` instrumentation test passed 1/1 on the API-36 16 KB AVD.
+After the final path-position, compact-hero and Hyle haptic source edits, Android debug/release
+unit tests and `lintRelease` also exited successfully (89 actionable tasks); the final v695 debug
+and instrumentation APKs assembled. Both the isolated upper-arc swipe test and the complete
+primary-tab flow passed 1/1 when run directly on emulator-5556.
+Manual API-36 compact-width review also verified that a horizontal upper-rail swipe changed Home to
+Calendar. The broader test no longer asserts on an off-screen lazy row that is unrelated to tab
+navigation; the visible Progress screen assertions remain. Gradle's connected task timed out while
+querying the second attached emulator, so the target device runs used the Android instrumentation
+runner directly. The final tangent-positioned visual capture and large-font review remain open.
+This is QA/debug evidence, not production signing or physical-device acceptance.
+
 Current-tree Recurve QA replay after the Bocal-style navigation correction (2026-10-13): version
 `0.6.0-nav-qa-20261013`, versionCode 681. Android debug/release unit tests and `lintRelease` passed
 (89 actionable tasks). The API-36 Google APIs ARM64 emulator reported 16384-byte pages. The focused
@@ -520,15 +537,12 @@ Rig editing shows a validation message and disables Save. JVM coverage includes 
 zero, negative, malformed, NaN and infinity cases. The broader rig and handedness acceptance item
 remains open for physical-device verification.
 
-Navigation correction (2026-10-13): `MainActivity` now uses the Bocal-style curved five-destination
-rail with tangent-rotated icons, selected raised keycap/label, and the existing Quick actions button
-preserved separately. The API-36 16 KB screenshot is checked in at
-`visuals/screenshots/home-bocal-arc-navigation-api36.png`; the focused primary-tab connected debug
-smoke passed 1/1, and the full minified-release connected replay subsequently passed 10/10 on the
-restarted API-36 16 KB emulator. The initial release attempt hit an emulator System UI edge-swipe
-ANR; the test accessibility helper now tolerates a transient unavailable root. Standard-size
-navigation has visual evidence; compact-width and large-font review remain open. See the cinematic
-refresh log for precise run details.
+Navigation correction history (2026-10-13): the first correction implemented only a curved
+five-destination lower rail. It was not full Hyle/Bocal parity; see the navbar follow-up above and
+the cinematic refresh log. The earlier screenshot
+`visuals/screenshots/home-bocal-arc-navigation-api36.png` shows that superseded lower-rail design
+and must not be used as evidence for the current two-arc implementation. Earlier 1/1 and 10/10
+connected runs validate that prior lower-rail build only.
 
 Debug instrumentation follow-up (2026-10-13): the complete current-source API-36 16 KB debug
 `ProductionSmokeTest` generated a JUnit report with 10 tests, 0 failures, 0 errors and 0 skips

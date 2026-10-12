@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
@@ -28,12 +29,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -498,86 +506,175 @@ private fun BottomBar(
             Routes.BODY to (Icons.Filled.Accessibility to "Body"),
             Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
         )
+    var scrubbedDestination by remember { mutableStateOf<String?>(null) }
+    val haptics = LocalHapticFeedback.current
+    val selectDestination: (String) -> Unit = { destination ->
+        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        onSelect(destination)
+    }
+    val selectedLabel = items.firstOrNull { it.first == (scrubbedDestination ?: current) }?.second?.second
+        ?: "Home"
     BoxWithConstraints(
         Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(horizontal = 8.dp, vertical = 4.dp).height(108.dp),
+            .padding(horizontal = 8.dp, vertical = 4.dp),
     ) {
+        // Hyle's navigation is a single 400 × 150 stage. Both arcs and their controls scale
+        // together, so the contextual controls stay on the upper curve instead of drifting to
+        // screen-edge FAB positions.
+        val scale = maxWidth / 400.dp
+        val stageWidth = maxWidth
         val seatsX = listOf(.117f, .309f, .5f, .691f, .883f)
-        val seatsY = listOf(.574f, .477f, .445f, .477f, .574f)
+        // Positions sampled from the lower Bézier so each control sits on the curve.
+        val seatsY = listOf(.716f, .652f, .630f, .652f, .716f)
         val tilts = listOf(-9.6f, -4.83f, 0f, 4.83f, 9.6f)
-        Canvas(Modifier.fillMaxWidth().height(100.dp).align(Alignment.BottomCenter)) {
-            val scale = size.width / 400f
-            val dock = Path().apply {
-                moveTo(22f * scale, 62f * scale)
-                quadraticTo(200f * scale, 27f * scale, 378f * scale, 62f * scale)
+        Box(Modifier.fillMaxWidth().height(150.dp * scale)) {
+            Canvas(Modifier.fillMaxSize()) {
+                val s = size.width / 400f
+                val lower = Path().apply {
+                    moveTo(22f * s, 112f * s)
+                    quadraticTo(200f * s, 77f * s, 378f * s, 112f * s)
+                }
+                val upper = Path().apply {
+                    moveTo(82.52f * s, 40.12f * s)
+                    quadraticTo(200f * s, 24.88f * s, 317.48f * s, 40.12f * s)
+                }
+                val strokeCap = StrokeCap.Round
+                listOf(lower to 61f, upper to 44f).forEach { (path, width) ->
+                    drawPath(path, color = Hyle.Background.copy(alpha = .96f), style = Stroke(width * s, cap = strokeCap))
+                    drawPath(
+                        path,
+                        brush = Brush.verticalGradient(0f to Hyle.SurfaceVariant, .55f to Hyle.Surface, 1f to Hyle.Background),
+                        style = Stroke((width - 3f) * s, cap = strokeCap),
+                    )
+                    drawPath(path, color = Hyle.OnBackground.copy(alpha = .045f), style = Stroke(1f * s, cap = strokeCap))
+                }
+                // The active destination follows the upper Bézier rather than sitting on a
+                // detached, flat label. It also becomes the live scrub preview while dragging.
+                val textPath = android.graphics.Path().apply {
+                    moveTo(82.52f * s, 40.12f * s)
+                    quadTo(200f * s, 24.88f * s, 317.48f * s, 40.12f * s)
+                }
+                val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Hyle.OnBackground.toArgb()
+                    textSize = 14f * s
+                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
+                    textAlign = android.graphics.Paint.Align.CENTER
+                }
+                drawContext.canvas.nativeCanvas.drawTextOnPath(selectedLabel, textPath, 0f, 5f * s, paint)
             }
-            val strokeCap = StrokeCap.Round
-            drawPath(dock, color = Hyle.Background.copy(alpha = .96f), style = Stroke(61f * scale, cap = strokeCap))
-            drawPath(
-                dock,
-                brush = Brush.verticalGradient(
-                    0f to Hyle.SurfaceVariant,
-                    .55f to Hyle.Surface,
-                    1f to Hyle.Background,
-                ),
-                style = Stroke(58f * scale, cap = strokeCap),
-            )
-            drawPath(
-                dock,
-                color = Hyle.OnBackground.copy(alpha = .045f),
-                style = Stroke(1f * scale, cap = strokeCap),
-            )
-        }
-        items.forEachIndexed { index, (dest, pair) ->
-            val (icon: ImageVector, label) = pair
-            val selected = current == dest
+
+            // Drag across the contextual rail to preview destinations; release commits the
+            // highlighted route. The ordinary lower seats remain independently tappable.
             Box(
-                Modifier.align(Alignment.TopStart)
-                    .offset(x = maxWidth * seatsX[index] - 48.dp, y = 100.dp * seatsY[index] - 21.dp)
-                    .width(96.dp).height(44.dp)
-                    .graphicsLayer { rotationZ = tilts[index] }
-                    .testTag("nav-tab-$dest"),
-                contentAlignment = Alignment.Center,
-            ) {
-                Row(
-                    Modifier.widthIn(min = 44.dp).height(42.dp)
-                        .clip(CircleShape)
-                        .then(
-                            if (selected) Modifier
-                                .background(Brush.radialGradient(listOf(Hyle.AccentBright, Hyle.Accent, Hyle.AccentDim)))
-                                .border(1.dp, Hyle.OnBackground.copy(alpha = .18f), CircleShape)
-                            else Modifier
+                Modifier.offset(x = 82.52.dp * scale, y = 15.dp * scale)
+                    .width(234.96.dp * scale).height(50.dp * scale)
+                    .pointerInput(items, current) {
+                        var preview: String? = null
+                        detectDragGestures(
+                            onDragStart = { point ->
+                                val index = ((point.x / size.width) * items.size).toInt().coerceIn(items.indices)
+                                preview = items[index].first
+                                scrubbedDestination = preview
+                            },
+                            onDrag = { change, _ ->
+                                val index = ((change.position.x / size.width) * items.size).toInt().coerceIn(items.indices)
+                                preview = items[index].first
+                                scrubbedDestination = preview
+                                change.consume()
+                            },
+                            onDragEnd = { preview?.let(selectDestination); scrubbedDestination = null },
+                            onDragCancel = { scrubbedDestination = null },
                         )
-                        .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(dest) })
-                        .padding(horizontal = if (selected) 12.dp else 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    if (dest == Routes.BODY && badge) {
-                        BadgedBox({ Badge { Text("!") } }) {
-                            Icon(icon, label, tint = if (selected) Hyle.Background else Hyle.OnSurfaceDim, modifier = Modifier.size(19.dp))
-                        }
-                    } else {
-                        Icon(icon, label, tint = if (selected) Hyle.Background else Hyle.OnSurfaceDim, modifier = Modifier.size(19.dp))
                     }
-                    if (selected) {
-                        Spacer(Modifier.width(7.dp))
-                        Text(label, color = Hyle.Background, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    .semantics { contentDescription = "Swipe across the upper arc to preview and select $selectedLabel" }
+                    .testTag("nav-context-arc"),
+            )
+
+            items.forEachIndexed { index, (dest, pair) ->
+                val (icon: ImageVector, label) = pair
+                val selected = current == dest
+                Box(
+                    Modifier.align(Alignment.TopStart)
+                        .offset(x = stageWidth * seatsX[index] - 48.dp * scale, y = 150.dp * seatsY[index] - 21.dp * scale)
+                        .width(96.dp * scale).height(44.dp * scale)
+                        .graphicsLayer { rotationZ = tilts[index] }
+                        .testTag("nav-tab-$dest"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(
+                        Modifier.widthIn(min = 44.dp * scale).height(42.dp * scale)
+                            .clip(CircleShape)
+                            .then(if (selected) Modifier
+                                .background(Brush.radialGradient(listOf(Hyle.AccentBright, Hyle.Accent, Hyle.AccentDim)))
+                                .border(1.dp * scale, Hyle.OnBackground.copy(alpha = .18f), CircleShape) else Modifier)
+                            .selectable(selected = selected, role = Role.Tab, onClick = { selectDestination(dest) })
+                            .padding(horizontal = if (selected) 12.dp * scale else 10.dp * scale),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        if (dest == Routes.BODY && badge) {
+                            BadgedBox({ Badge { Text("!") } }) {
+                                Icon(icon, label, tint = if (selected) Hyle.Background else Hyle.OnSurfaceDim, modifier = Modifier.size(19.dp * scale))
+                            }
+                        } else {
+                            Icon(icon, label, tint = if (selected) Hyle.Background else Hyle.OnSurfaceDim, modifier = Modifier.size(19.dp * scale))
+                        }
+                        if (selected) {
+                            Spacer(Modifier.width(7.dp * scale))
+                            Text(
+                                label,
+                                color = Hyle.Background,
+                                fontSize = 11.sp * scale,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                            )
+                        }
                     }
                 }
             }
+
+            // Left context control starts a range session; the right retains the familiar Add
+            // sheet. Their centers match the continuation of the upper-rail geometry.
+            ContextDockButton(
+                modifier = Modifier.offset(x = (18.dp - 22.dp) * scale, y = (50.79.dp - 22.dp) * scale),
+                icon = Icons.Filled.CameraAlt,
+                label = "Train",
+                stageScale = scale,
+                rotation = -11.37f,
+                onClick = { selectDestination(Routes.TRAIN) },
+            )
+            ContextDockButton(
+                modifier = Modifier.offset(x = (382.dp - 22.dp) * scale, y = (50.79.dp - 22.dp) * scale),
+                icon = Icons.Filled.Add,
+                label = "Add",
+                stageScale = scale,
+                rotation = 11.37f,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onAdd()
+                },
+            )
         }
-        Column(
-            Modifier.align(Alignment.TopEnd).padding(end = 2.dp).size(48.dp)
-                .clip(CircleShape).background(Hyle.SurfaceVariant)
-                .border(1.dp, Hyle.HairlineStrong, CircleShape)
-                .clickable(onClickLabel = "Open quick actions", role = Role.Button, onClick = onAdd),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Icon(Icons.Filled.Add, "Quick actions", tint = Hyle.AccentBright, modifier = Modifier.size(20.dp))
-            Text("Add", color = Hyle.OnBackground, fontSize = 9.sp, fontWeight = FontWeight.Medium)
-        }
+    }
+}
+
+@Composable
+private fun ContextDockButton(
+    modifier: Modifier,
+    icon: ImageVector,
+    label: String,
+    stageScale: Float,
+    rotation: Float,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier.size(44.dp * stageScale).clip(CircleShape).background(Hyle.SurfaceVariant)
+            .border(1.dp * stageScale, Hyle.HairlineStrong, CircleShape)
+            .graphicsLayer { rotationZ = rotation }
+            .clickable(onClickLabel = label, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, label, tint = Hyle.AccentBright, modifier = Modifier.size(20.dp * stageScale))
     }
 }
 

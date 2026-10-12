@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -65,129 +66,132 @@ fun CrocodylHero(
             }.getOrNull()
         }
     }
-    Box(
-        modifier
-            .fillMaxWidth()
-            .height(260.dp)
-            .clip(RoundedCornerShape(30.dp))
-            .background(Hyle.SurfaceDeep)
-            .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),
-    ) {
-        photograph.value?.let {
-            Image(
-                bitmap = it,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-        }
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val compactWidth = maxWidth < 400.dp
         Box(
-            Modifier.fillMaxSize().background(
-                Brush.horizontalGradient(
-                    colorStops = arrayOf(
-                        0f to Color(0xff08090d).copy(alpha = .86f),
-                        .48f to Color(0xff08090d).copy(alpha = .57f),
-                        1f to Color(0xff08090d).copy(alpha = .10f),
-                    ),
-                )
-            )
-        )
-        Box(
-            Modifier.fillMaxSize().background(
-                Brush.verticalGradient(
-                    0f to Color.Transparent,
-                    .58f to Color.Transparent,
-                    1f to Color(0xff08090d).copy(alpha = .72f),
-                )
-            )
-        )
-        Column(
-            Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
+            Modifier.fillMaxWidth()
+                .height(if (compactWidth) 288.dp else 260.dp)
+                .clip(RoundedCornerShape(30.dp))
+                .background(Hyle.SurfaceDeep)
+                .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),
         ) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                Column(
-                    Modifier.weight(1f).fillMaxWidth(.88f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text("CROCODYL  /  RECURVE", color = Hyle.RadiumGreen, fontSize = 10.sp, letterSpacing = 1.7.sp)
-                    Text(
-                        "Find your rhythm.",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White,
-                    )
-                }
-                IconButton(
-                    onClick = onSettings,
-                    modifier = Modifier.size(42.dp).clip(CircleShape)
-                        .background(Color.Black.copy(alpha = .48f))
-                        .border(1.dp, Color.White.copy(alpha = .16f), CircleShape),
-                ) {
-                    Icon(Icons.Filled.Settings, "Settings", tint = Color.White, modifier = Modifier.size(19.dp))
-                }
+            photograph.value?.let {
+                Image(
+                    bitmap = it,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
             }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(
-                    Modifier.clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = .42f))
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Box(
-                        Modifier.size(9.dp).clip(CircleShape)
-                            .background(if (ready) Hyle.RadiumGreen else Hyle.Warning)
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.horizontalGradient(
+                        colorStops = arrayOf(
+                            0f to Color(0xff08090d).copy(alpha = .86f),
+                            .48f to Color(0xff08090d).copy(alpha = .57f),
+                            1f to Color(0xff08090d).copy(alpha = .10f),
+                        ),
                     )
-                    Text(readinessLabel, style = MaterialTheme.typography.labelLarge, color = Color.White)
-                }
-                readinessDetail?.takeIf { !it.equals(readinessLabel, ignoreCase = true) }?.let {
-                    Text(
-                        it,
-                        color = Color.White.copy(alpha = .82f),
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
+                )
+            )
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        .58f to Color.Transparent,
+                        1f to Color(0xff08090d).copy(alpha = .72f),
                     )
-                }
-                streak?.takeIf { it > 0 }?.let {
-                    Text("$it day rhythm", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelMedium)
-                }
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.Black.copy(alpha = .48f))
-                        .clickable(
-                            role = Role.Button,
-                            onClickLabel = "Edit active equipment setup",
-                            onClick = onManageRigs,
+                )
+            )
+            Column(
+                Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                    Column(
+                        Modifier.weight(1f).fillMaxWidth(.88f),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("CROCODYL  /  RECURVE", color = Hyle.RadiumGreen, fontSize = 10.sp, letterSpacing = 1.7.sp)
+                        Text(
+                            "Find your rhythm.",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White,
                         )
-                        .padding(horizontal = 12.dp, vertical = 7.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                        Text("ACTIVE RIG", color = Color.White.copy(alpha = .72f), style = MaterialTheme.typography.labelSmall)
-                        Text(rigName, color = Color.White, style = MaterialTheme.typography.titleSmall, maxLines = 1)
                     }
-                    Text("EDIT  →", color = Hyle.AccentBright, style = MaterialTheme.typography.labelMedium)
+                    IconButton(
+                        onClick = onSettings,
+                        modifier = Modifier.size(42.dp).clip(CircleShape)
+                            .background(Color.Black.copy(alpha = .48f))
+                            .border(1.dp, Color.White.copy(alpha = .16f), CircleShape),
+                    ) {
+                        Icon(Icons.Filled.Settings, "Settings", tint = Color.White, modifier = Modifier.size(19.dp))
+                    }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
-                        onClick = onStartSession,
-                        modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(18.dp),
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        Modifier.clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = .42f))
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(Icons.Filled.CameraAlt, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Train")
+                        Box(
+                            Modifier.size(9.dp).clip(CircleShape)
+                                .background(if (ready) Hyle.RadiumGreen else Hyle.Warning)
+                        )
+                        Text(readinessLabel, style = MaterialTheme.typography.labelLarge, color = Color.White)
                     }
-                    OutlinedButton(
-                        onClick = onScore,
-                        modifier = Modifier.weight(1f).heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(18.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    readinessDetail?.takeIf { !it.equals(readinessLabel, ignoreCase = true) }?.let {
+                        Text(
+                            it,
+                            color = Color.White.copy(alpha = .82f),
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = if (compactWidth) 2 else 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    streak?.takeIf { it > 0 }?.let {
+                        Text("$it day rhythm", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelMedium)
+                    }
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black.copy(alpha = .48f))
+                            .clickable(
+                                role = Role.Button,
+                                onClickLabel = "Edit active equipment setup",
+                                onClick = onManageRigs,
+                            )
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Score")
+                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                            Text("ACTIVE RIG", color = Color.White.copy(alpha = .72f), style = MaterialTheme.typography.labelSmall)
+                            Text(rigName, color = Color.White, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                        }
+                        Text("EDIT  →", color = Hyle.AccentBright, style = MaterialTheme.typography.labelMedium)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = onStartSession,
+                            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                            shape = RoundedCornerShape(18.dp),
+                        ) {
+                            Icon(Icons.Filled.CameraAlt, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Train")
+                        }
+                        OutlinedButton(
+                            onClick = onScore,
+                            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                        ) {
+                            Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Score")
+                        }
                     }
                 }
             }

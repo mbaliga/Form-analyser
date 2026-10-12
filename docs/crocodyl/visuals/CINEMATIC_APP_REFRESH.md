@@ -331,20 +331,28 @@ review described above.
 
 ## 2026-10-13 Bocal navigation correction
 
-The owner pointed out that the bottom navigation still did not use Bocal's interaction pattern.
-The horizontal capsule is replaced with Bocal's five-seat curved destination rail: each destination
-sits on the curve, its icon follows the local tangent, and the selected destination rises as a
-tactile keycap with its label. The existing Add/Quick actions affordance is preserved as a separate
-context button. Navigation remains Compose-native and keeps the same routes/back stack. The captured
-Home screen is [`screenshots/home-bocal-arc-navigation-api36.png`](screenshots/home-bocal-arc-navigation-api36.png),
-API-36 ARM64 16 KB emulator, 1080×1920, disposable QA profile. It is visual evidence, not physical
-device acceptance.
+The owner correctly noted that the first correction still did not use Bocal's full interaction
+pattern: it implemented only the lower destination rail. That first build and its screenshot
+([`home-bocal-arc-navigation-api36.png`](screenshots/home-bocal-arc-navigation-api36.png)) are
+superseded; they are not evidence for the current navbar.
 
-The `onboardedAthleteCanVisitEveryPrimaryTab` connected debug test passed 1/1 on this API-36
-emulator with the new dock. The initial full minified-release attempt encountered an emulator
-System UI edge-swipe ANR and a transient null accessibility root; that run did not complete and is
-not counted as a pass. After restarting the emulator headlessly, the full minified-release suite
-passed 10/10 with zero skips/failures; the accessibility lookup now tolerates a temporarily
-unavailable root. Full debug replay beyond the focused navigation test and compact/large-font
-visual review remain open. The compact-width screenshot attempt captured the emulator launcher,
-not the app, so it is not visual evidence.
+The follow-up implements the shared Hyle two-arc stage described in Bocal's
+`docs/HYLE_ARC_NAVIGATION_DIRECTIVE.md`: both rails scale as one 400×150 stage; the upper Bézier
+hosts the active destination label and accepts horizontal scrub gestures, previewing destinations
+while held and selecting on release. The left contextual control opens Train, the right opens the
+existing Add sheet, and the five lower destinations sit on the lower Bézier with tangent rotations
+and the selected raised keycap. Routes, tab semantics, state restoration and the existing Add
+action remain intact. The selection interaction is tested independently by
+`upperArcDragPreviewsAndSelectsCalendar`.
+
+Verification (2026-10-13): debug and debug-test APK assembly passed (QA versionCode 695), and the
+focused instrumentation test passed 1/1 directly on the API-36 ARM64 16 KB AVD. Android
+debug/release unit tests and `lintRelease` passed after the final source edits (89 actionable
+tasks). The full primary-tab flow also passed 1/1 directly on that AVD, including the visible
+Progress checks. An unrelated off-screen lazy-row assertion was removed from this navigation smoke;
+the test no longer treats a not-yet-composed section as a route failure. A manual 420dp compact-width
+swipe changed Home to Calendar. Gradle's connected task timed out while querying a second attached
+emulator, so both target-AVD test runs used the Android instrumentation runner directly. A capture of
+the final seat-aligned version and large-font/physical-device review are still outstanding. Do not
+mistake the earlier lower-rail screenshot or release test results for evidence about this latest
+change.

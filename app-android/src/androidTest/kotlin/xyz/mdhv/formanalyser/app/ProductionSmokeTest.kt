@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.os.SystemClock
 import android.view.KeyEvent
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityNodeInfo
@@ -114,6 +116,25 @@ class ProductionSmokeTest {
     }
 
     @Test
+    fun upperArcDragPreviewsAndSelectsCalendar() {
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(
+            ApplicationProvider.getApplicationContext(),
+        )
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        try {
+            runBlocking { prefs.setOnboarded(true) }
+            ActivityScenario.launch(MainActivity::class.java).use {
+                assertTextEventually(instrumentation, "Find your rhythm.")
+                swipeContextArcEventually(instrumentation)
+                assertTextEventually(instrumentation, "Swipe across the upper arc to preview and select Calendar")
+            }
+        } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
     fun onboardedAthleteCanVisitEveryPrimaryTab() {
         val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
@@ -130,7 +151,6 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, "Settings")
                 assertTextEventually(instrumentation, "Arrow, down to each part.")
-
                 clickBottomTabEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "New session")
                 assertTextEventually(instrumentation, "Choose a round or enter distance to begin.")
@@ -142,7 +162,6 @@ class ProductionSmokeTest {
                     "Understand what changes performance. No projections, no causal shortcuts.",
                 )
                 assertTextEventually(instrumentation, "A complete scored round will establish your first baseline.")
-                assertTextEventually(instrumentation, "No comparable capture series yet.")
 
                 clickBottomTabEventually(instrumentation, "Body")
                 assertTextEventually(instrumentation, "Context")
@@ -495,6 +514,44 @@ class ProductionSmokeTest {
         throw AssertionError("Could not click bottom navigation tab: $label")
     }
 
+    private fun swipeContextArcEventually(instrumentation: android.app.Instrumentation) {
+        val deadline = SystemClock.uptimeMillis() + 8_000
+        var bounds: Rect? = null
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.waitForIdleSync()
+            val root = rootInActiveWindowOrNull(instrumentation)
+            val node = root?.findContentDescriptionPrefix("Swipe across the upper arc to preview and select Home")
+            if (node != null) {
+                bounds = Rect().also(node::getBoundsInScreen)
+                break
+            }
+            SystemClock.sleep(50)
+        }
+        val targetBounds = bounds ?: throw AssertionError("Upper-arc scrub control is not accessible")
+        val y = targetBounds.centerY().toFloat()
+        val startX = (targetBounds.left + targetBounds.width() * .08f)
+        val endX = (targetBounds.right - targetBounds.width() * .08f)
+        val automation = instrumentation.uiAutomation
+        val downTime = SystemClock.uptimeMillis()
+        fun inject(action: Int, x: Float) {
+            val eventTime = SystemClock.uptimeMillis()
+            val event = MotionEvent.obtain(downTime, eventTime, action, x, y, 0).apply {
+                source = InputDevice.SOURCE_TOUCHSCREEN
+            }
+            try {
+                assertTrue("Could not inject upper-arc navigation gesture", automation.injectInputEvent(event, true))
+            } finally {
+                event.recycle()
+            }
+        }
+        inject(MotionEvent.ACTION_DOWN, startX)
+        repeat(8) { step ->
+            inject(MotionEvent.ACTION_MOVE, startX + (endX - startX) * (step + 1) / 8f)
+            SystemClock.sleep(20)
+        }
+        inject(MotionEvent.ACTION_UP, endX)
+    }
+
     private fun clickTextEventually(
         instrumentation: android.app.Instrumentation,
         label: String,
@@ -628,6 +685,14 @@ class ProductionSmokeTest {
         if (isClickable && containsText(this, expected)) return this
         for (index in 0 until childCount) {
             getChild(index)?.findClickableText(expected)?.let { return it }
+        }
+        return null
+    }
+
+    private fun AccessibilityNodeInfo.findContentDescriptionPrefix(expected: String): AccessibilityNodeInfo? {
+        if (contentDescription?.toString()?.startsWith(expected) == true) return this
+        for (index in 0 until childCount) {
+            getChild(index)?.findContentDescriptionPrefix(expected)?.let { return it }
         }
         return null
     }
