@@ -408,7 +408,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Current-tree v679 QA APK/AAB preflight passed; connected debug and QA-signed minified-release instrumentation pass 10/10 on API-35 ARM64. Prior v678 covered API-36 16 KB; v679 still needs the API-36 16 KB rerun. Production signer/hosted CI, physical acceptance, clean install/update and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Latest v681 Bocal-style navigation build passed API-36 16 KB focused debug navigation (1/1), full minified-release instrumentation (10/10), unit tests, `lintRelease` and artifact preflight; see the current-tree replay at the top of this document. Full debug replay beyond the focused navigation case, compact/large-font visual review, hosted CI, production signer, physical/range acceptance, update over the actual previous production APK and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
