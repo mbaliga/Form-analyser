@@ -24,7 +24,7 @@ class ResolveVersionTest(unittest.TestCase):
             output.seek(0)
             return result, output.read().decode()
 
-    def test_release_branch_semver_derives_monotonic_code(self) -> None:
+    def test_release_branch_semver_derives_code_above_last_issued_floor(self) -> None:
         result, output = self.resolve(
             {"INPUT_VERSION": "", "INPUT_VERSION_CODE": "", "REF_NAME": "release/v1.2.3"}
         )
@@ -43,10 +43,27 @@ class ResolveVersionTest(unittest.TestCase):
         for version in ("0.6.0", "0.6.0-beta+2"):
             with self.subTest(version=version):
                 result, output = self.resolve(
-                    {"INPUT_VERSION": version, "INPUT_VERSION_CODE": "601", "REF_NAME": "dispatch"}
+                    {"INPUT_VERSION": version, "INPUT_VERSION_CODE": "698", "REF_NAME": "dispatch"}
                 )
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertEqual(output, f"version={version}\nversion_code=601\n")
+                self.assertEqual(output, f"version={version}\nversion_code=698\n")
+
+    def test_rejects_codes_at_or_below_last_issued_version(self) -> None:
+        for version, version_code in (("0.6.0", "697"), ("0.6.1", "")):
+            with self.subTest(version=version, version_code=version_code):
+                result, output = self.resolve(
+                    {"INPUT_VERSION": version, "INPUT_VERSION_CODE": version_code, "REF_NAME": "dispatch"}
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("must be greater than the last issued versionCode 697", result.stderr)
+                self.assertEqual(output, "")
+
+    def test_accepts_first_code_above_last_issued_version(self) -> None:
+        result, output = self.resolve(
+            {"INPUT_VERSION": "0.6.1", "INPUT_VERSION_CODE": "698", "REF_NAME": "dispatch"}
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(output, "version=0.6.1\nversion_code=698\n")
 
     def test_invalid_explicit_version_code_is_not_ignored_for_semver(self) -> None:
         result, output = self.resolve(

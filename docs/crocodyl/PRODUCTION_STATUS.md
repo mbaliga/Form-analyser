@@ -19,6 +19,10 @@ artifacts, not production-signed or physically accepted. Physical-device review 
 The debug and minified-release 16 KB GitHub Actions lanes now explicitly set/assert 1.3× font scale;
 16 release-workflow contract tests and immutable action-ref checks pass locally. Hosted CI has not
 run for this checkout.
+Release version resolution now also enforces a checked-in high-water mark of 697: semver such as
+0.6.1 (601) is rejected, and the next candidate must use a higher explicit code or a version whose
+derived code is higher. Before production release, reconcile the ledger with the actual previous
+production APK and advance it after each successful release.
 
 Navbar follow-up (2026-10-13): the owner correctly identified that the previous “Bocal-style”
 change reproduced only the lower rail. Crocodyl now implements the shared Hyle two-arc stage:

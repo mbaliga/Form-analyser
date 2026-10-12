@@ -44,12 +44,15 @@ signing inputs or expected certificate fingerprint are absent.
 
 ## Trigger and verify
 
-1. Create a release branch named `release/v<major>.<minor>.<patch>` or use the workflow dispatch
-   input. Use a new, monotonically increasing Android `versionCode`; the workflow derives one only
-   for plain `major.minor.patch` releases (minor and patch must each be 0–99 so the mapping remains
-   unique). Prerelease/build labels (for example, `-rc.1` or `+build`) require an explicit code so
-   they cannot collide with the corresponding stable release. An explicitly supplied positive code
-   takes precedence over derivation and is range-checked.
+1. Before releasing, compare the actual previous production APK's versionCode with the project's
+   highest issued code and set `tools/release/highest_issued_version_code.txt` to the greater value.
+   It currently records 697, the latest v697 QA build. The resolver fails closed unless the new
+   code is strictly higher. On a successful release, advance this ledger to the released code in
+   the next release-preparation commit. A plain semver branch derives `major*10000 + minor*100 +
+   patch` (minor and patch must each be 0–99); derived values below the ledger are rejected. For
+   example, `0.6.1` derives 601 and is rejected against the current 697 floor, so use workflow
+   dispatch with an explicit code of at least 698 (and higher if the previous production APK
+   requires it). Prerelease/build labels also require an explicit versionCode.
 2. Require the release workflow to pass JVM tests, Android debug/release unit tests, release lint,
    debug connected smoke, signed minified release connected smoke on both standard and explicit
    16 KB page-size API-36 emulators, generated-asset drift checks,

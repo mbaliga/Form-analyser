@@ -3,6 +3,14 @@ set -euo pipefail
 
 raw_version="${INPUT_VERSION:-${REF_NAME:-}}"
 version="${raw_version#release/}"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+last_issued_version_code="$(tr -d '[:space:]' < "$script_dir/highest_issued_version_code.txt")"
+
+if [[ ! "$last_issued_version_code" =~ ^(0|[1-9][0-9]*)$ ]] || \
+  ! python3 -c 'import sys; n = int(sys.argv[1]); sys.exit(0 if 0 <= n <= 2100000000 else 1)' "$last_issued_version_code"; then
+  echo "The checked-in highest-issued versionCode is invalid." >&2
+  exit 1
+fi
 
 # This value becomes an artifact filename and Gradle property. Keep it shell-safe even though
 # callers pass it through environment variables; release inputs must never become shell source.
@@ -33,6 +41,11 @@ fi
 
 if ! python3 -c 'import sys; n = int(sys.argv[1]); sys.exit(0 if 1 <= n <= 2100000000 else 1)' "$version_code"; then
   echo "Derived versionCode is outside Android's supported range: $version_code" >&2
+  exit 1
+fi
+
+if (( version_code <= last_issued_version_code )); then
+  echo "versionCode $version_code must be greater than the last issued versionCode $last_issued_version_code. Supply a higher explicit versionCode or use a version whose derived code is higher." >&2
   exit 1
 fi
 

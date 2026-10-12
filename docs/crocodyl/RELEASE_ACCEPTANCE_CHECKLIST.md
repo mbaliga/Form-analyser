@@ -79,7 +79,9 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       the actual previous production APK, 30-real-session acceptance and owner approval remain open.
       The current v697 APK/AAB use the committed QA/debug key and are not distributable as a
       production release. Navbar and 1.3× large-font emulator captures are complete; physical-device
-      visual acceptance remains open. The earlier lower-rail screenshot is explicitly superseded.
+      visual acceptance remains open. Verify and set `tools/release/highest_issued_version_code.txt`
+      to at least the actual previous production APK's code before triggering a release. The earlier
+      lower-rail screenshot is explicitly superseded.
 
 ## 1. Required device matrix
 

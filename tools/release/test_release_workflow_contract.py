@@ -74,7 +74,11 @@ class ReleaseWorkflowContract(unittest.TestCase):
 
     def test_release_version_is_bounded_and_not_interpolated_into_shell_source(self) -> None:
         resolver = (ROOT / "tools" / "release" / "resolve_version.sh").read_text()
+        version_floor = (ROOT / "tools" / "release" / "highest_issued_version_code.txt").read_text().strip()
         self.assertIn("bash tools/release/resolve_version.sh", self.workflow)
+        self.assertEqual(version_floor, "697")
+        self.assertIn("last_issued_version_code", resolver)
+        self.assertIn("version_code <= last_issued_version_code", resolver)
         self.assertIn("^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$", resolver)
         self.assertIn("version_code=\"$(python3 -c", resolver)
         self.assertIn("Semver prerelease/build labels require an explicit versionCode.", resolver)
