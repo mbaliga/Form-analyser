@@ -280,7 +280,7 @@ class ProductionSmokeTest {
                                 arrayOf(id),
                             )
                         } else {
-                            database.athleteFeatureDao().upsertDefaults(preexistingTrainingDefaults!!)
+                            database.athleteFeatureDao().upsertDefaults(preexistingTrainingDefaults)
                         }
                     }
                 }

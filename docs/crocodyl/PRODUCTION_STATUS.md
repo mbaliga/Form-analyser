@@ -10,7 +10,7 @@ API-35 ARM64 for debug and minified release. Release APK/AAB passed `tools/relea
 matching committed QA/debug signer `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`,
 targetSdk 36, merged manifest allowlist, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned
 64-bit ELF libraries, pose-model hash and backup resources. APK SHA-256
-`f440b2ac1ac91ef420c8fc9877bca78f5b768edb5b9df84951e9c94231ee28d4`; AAB SHA-256
+`78471730d0e03ce0d9eae5821505b84337156c567e646c3054ee3c36973ebc3c`; AAB SHA-256
 `45350ba20d416b9e51058a5ae3b9ed93fb5e2f204b077e8b80db3a56a2b25de8`. The v679 minified QA build
 was clean-installed on API-35 ARM64 and cold-launched with `Status: ok`; its process remained
 live after four seconds and the checked logcat window contained no fatal/class-loading error. This
