@@ -20,7 +20,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       `a1eb2623a2bccf0f84f72f0734fdbce1fcaf06368bfef00e5cedcd5a6e0d28cc`; AAB SHA-256
       `6e08cddc70cdca9b19f67d622b12bddc250705348c15066fd008f375a243e961`; R8 mapping SHA-256
       `6afc7de40e03df932e91ac664ea6542ce489e91c397732d407e16e4b0de5a949` (34,935,687 bytes).
-      This is QA/debug signing, not production distribution. API-36/16 KB current-source, physical
+      On API 36 ARM64/16 KB at 1.3× font, 10/11 minified-release tests passed; the camera-denial
+      test failed because the permission-controller surface yielded an empty accessibility tree.
+      A focused retry was interrupted after the emulator became unresponsive, so this gate remains
+      open (not a product pass). This is QA/debug signing, not production distribution. Physical
       device/range, production signer and hosted-release acceptance remain separate gates.
 
 - [x] Bocal current web-source arc parity is now reflected in Crocodyl source: curved upper-rail

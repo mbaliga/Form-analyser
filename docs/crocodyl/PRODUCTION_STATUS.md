@@ -583,7 +583,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Current-source QA v711 has passing debug and minified-release instrumentation (11/11 each on API 35), debug/release unit tests, release lint, APK/AAB assembly and artifact preflight; current-source API-36/16 KB run is pending. Current-source dock screenshot is archived. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
+| Recurve Android build | QA-only, not production releasable | Current-source QA v711 has passing debug and minified-release instrumentation (11/11 each on API 35), debug/release unit tests, release lint, APK/AAB assembly and artifact preflight. API-36/16 KB at 1.3× font produced 10/11 passes; camera-denial instrumentation failed on an empty permission-controller accessibility surface, and the focused retry was interrupted by an unresponsive emulator. Dock screenshot is archived. Production signer/hosted CI, clean API-36/16 KB pass, physical/range matrix, real-athlete data and 30-session evidence remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -596,6 +596,7 @@ signing remains open.
 
 - Crocodyl: `e15c557` — replace the blank database-open frame with an accessible branded loading surface; exercise the curved dock swipe and correct the Home-header test assumption.
 - Crocodyl: `33841c9` — index QA v711 artifact digests, API-35 debug/minified instrumentation evidence and current-source screenshot.
+- Crocodyl: pending — record the incomplete API-36/16 KB camera-permission instrumentation result for QA v711.
 - Crocodyl: `55b8490` — record current-source QA v710 hashes, lint/unit/preflight evidence, and open connected-smoke gate.
 - Crocodyl: `b537196` — index the current web-source arc parity implementation and its v710 validation boundary.
 - Crocodyl: `5ff0d53` — match Bocal's current web-source arc with curved contextual text, angled controls, and rail scrub preview/release navigation; record validation boundary.
