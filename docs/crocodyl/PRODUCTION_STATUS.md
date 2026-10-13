@@ -35,7 +35,9 @@ app cold-launched with `Status: ok`, remained live after four seconds, and emitt
 loading errors in the checked log. After update, Home still showed `My bow` and Settings → Profile &
 Identity still showed `Test`. This verifies the onboarding profile and active-rig data survived the
 published-APK upgrade on this emulator; session/score history migration and physical-device update
-acceptance remain open. Production signing remains open.
+acceptance remain open. Android displayed its 16 KB compatibility warning for the old v0.5.1 APK
+(`ELF alignment check failed`) and ran it in compatible mode; v701's current artifact preflight
+confirmed all packaged 64-bit native libraries are 16 KB aligned. Production signing remains open.
 
 Navbar parity correction (2026-10-13): owner review correctly noted that current Crocodyl did not
 match Bocal. The previous single-rail correction was wrong: Bocal's current Hyle contract is one

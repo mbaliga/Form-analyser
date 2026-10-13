@@ -106,7 +106,9 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       synthetic athlete `Test` and active rig `My bow`; after update, Home still showed `My bow` and
       Settings → Profile & Identity still showed `Test`. This verifies profile and active-rig
       persistence on the emulator. Session/score migration and physical-device update acceptance
-      remain open. The high-water mark 697 is above the actual published code 4.
+      remain open. Android emitted the 16 KB ELF-alignment compatibility warning for v0.5.1 and ran
+      it in compatible mode; the v701 preflight independently confirms current native libraries are
+      16 KB aligned. The high-water mark 697 is above the actual published code 4.
 - [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across 7 workflows.
