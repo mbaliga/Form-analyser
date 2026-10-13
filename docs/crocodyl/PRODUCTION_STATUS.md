@@ -2,6 +2,18 @@
 
 Last reviewed: 2026-10-14
 
+Current web-source arc parity update (2026-10-14): following the owner's confirmation to match
+Bocal's current web-source arc (not its older flat Android screenshot), the mobile dock now draws
+its Recurve/destination readout along the upper Bézier, angles the 44 dp context controls to the
+rail guides, and supports lower-rail drag preview/release navigation while preserving direct taps
+and the five accessible destinations. This supersedes the flat-pill/context-row details in the
+historical v708 entry below. Debug Kotlin compilation, Android JVM unit tests, and all five navbar
+contract tests pass. The focused API-35 connected smoke attempt did not reach its Home assertion
+(`Find your rhythm.`; accessibility tree empty), so runtime interaction and visual acceptance are
+not yet verified. QA artifact v709 predates this source change and must not be distributed as
+containing this parity update; regenerate and validate the candidate after emulator smoke is
+resolved.
+
 Camera-permission instrumentation hardening (2026-10-14): the training-start smoke now captures the
 permission state before launch, explicitly checks the denied or granted capture UI, and asserts the
 flow did not mutate the permission state. It leaves permission setup to the device harness because

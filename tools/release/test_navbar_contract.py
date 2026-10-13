@@ -20,8 +20,14 @@ def bottom_bar_source() -> str:
 class NavbarContractTest(unittest.TestCase):
     def test_mobile_nav_uses_bocal_curved_stage_and_five_tabs(self) -> None:
         source = bottom_bar_source()
-        self.assertIn('"RECURVE  ·  RANGE"', source)
-        self.assertIn('testTag("nav-context-recurve")', source)
+        self.assertIn('"RECURVE  ·  ${shownContext.uppercase()}"', source)
+        self.assertIn("drawTextOnPath(contextText", source)
+        self.assertIn("dockSeat(18f, 50.79f", source)
+        self.assertIn("rotationZ = -11.37f", source)
+        self.assertIn("rotationZ = 11.37f", source)
+        self.assertIn("detectDragGestures(", source)
+        self.assertIn("previewDestination.value = it", source)
+        self.assertIn("previewDestination.value?.let(onSelect)", source)
         self.assertIn("DockSeat(46.8f, 107.4f", source)
         self.assertIn("DockSeat(353.2f, 107.4f", source)
         for route in ("HOME", "TRAIN", "PROGRESS", "BODY", "CALENDAR"):

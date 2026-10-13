@@ -5,6 +5,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -16,9 +17,10 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +30,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -37,8 +42,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import xyz.mdhv.formanalyser.app.ui.theme.Hyle
-import kotlin.math.atan2
+import kotlin.math.pow
 
 /** Crocodyl's Recurve adaptation of Bocal's two-level floating arc dock. */
 @OptIn(ExperimentalAnimationApi::class)
@@ -51,18 +55,55 @@ internal fun ArcNavigationDock(
     onQuickAdd: () -> Unit,
     onSettings: () -> Unit,
 ) {
+    val previewDestination = remember(current) { mutableStateOf(current) }
     BoxWithConstraints(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp)
-            .testTag("bocal-style-navigation-dock"),
+            .testTag("bocal-style-navigation-dock")
+            .pointerInput(items, current) {
+                var scrubbing = false
+                fun destinationAt(xPx: Float, yPx: Float): String? {
+                    val factor = 400f / size.width
+                    val x = xPx * factor
+                    val y = yPx * factor
+                    return BOCAL_DOCK_SEATS.minByOrNull { seat ->
+                        (seat.x - x).pow(2) + (seat.y - y).pow(2)
+                    }?.let { seat -> items.getOrNull(BOCAL_DOCK_SEATS.indexOf(seat))?.first }
+                }
+                detectDragGestures(
+                    onDragStart = { offset ->
+                        scrubbing = offset.y * 400f / size.width >= 70f
+                        if (scrubbing) previewDestination.value = destinationAt(offset.x, offset.y) ?: current
+                    },
+                    onDragEnd = {
+                        if (scrubbing) previewDestination.value?.let(onSelect)
+                        scrubbing = false
+                    },
+                    onDragCancel = {
+                        if (scrubbing) previewDestination.value = current
+                        scrubbing = false
+                    },
+                ) { change, _ ->
+                    if (scrubbing) destinationAt(change.position.x, change.position.y)?.let {
+                        previewDestination.value = it
+                    }
+                }
+            },
         contentAlignment = Alignment.TopStart,
     ) {
         val scale = maxWidth.value / 400f
         val stageHeight = (150f * scale).dp
         val compactLabels = maxWidth < 320.dp || LocalDensity.current.fontScale >= 1.2f
+        val shownContext = items.firstOrNull { it.first == previewDestination.value }?.second?.second ?: "Range"
 
-        Canvas(Modifier.fillMaxWidth().height(stageHeight)) {
+        Canvas(
+            Modifier
+                .fillMaxWidth()
+                .height(stageHeight)
+                .semantics { contentDescription = "Current sport: Recurve" }
+                .testTag("nav-context-recurve"),
+        ) {
             val unit = size.width / 400f
             val lower = Path().apply {
                 moveTo(22f * unit, 112f * unit)
@@ -101,6 +142,18 @@ internal fun ArcNavigationDock(
                 style = Stroke(42f * unit, cap = StrokeCap.Round),
             )
             drawPath(upper, Color.White.copy(alpha = .05f), style = Stroke(1f * unit, cap = StrokeCap.Round))
+
+            val labelPath = upper.asAndroidPath()
+            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                color = android.graphics.Color.rgb(198, 241, 150)
+                textSize = 9f * unit
+                letterSpacing = .11f
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+            }
+            val contextText = "RECURVE  ·  ${shownContext.uppercase()}"
+            val pathLength = android.graphics.PathMeasure(labelPath, false).length
+            val textOffset = ((pathLength - paint.measureText(contextText)) / 2f).coerceAtLeast(0f)
+            drawContext.canvas.nativeCanvas.drawTextOnPath(contextText, labelPath, textOffset, 3f * unit, paint)
         }
 
         // The side controls sit on the upper-rail continuation; all positions and sizes
@@ -108,46 +161,16 @@ internal fun ArcNavigationDock(
         DockSideAction(
             label = "Quick add",
             icon = Icons.Filled.Add,
-            modifier = Modifier.dockSeat(18f, 50.79f, scale, 48.dp, 48.dp),
+            modifier = Modifier.dockSeat(18f, 50.79f, scale, 44.dp, 44.dp).graphicsLayer { rotationZ = -11.37f },
             onClick = onQuickAdd,
         )
         DockSideAction(
             label = "Settings",
             icon = Icons.Filled.Settings,
-            modifier = Modifier.dockSeat(382f, 50.79f, scale, 48.dp, 48.dp),
+            modifier = Modifier.dockSeat(382f, 50.79f, scale, 44.dp, 44.dp).graphicsLayer { rotationZ = 11.37f },
             onClick = onSettings,
         )
 
-        Surface(
-            modifier = Modifier
-                .dockSeat(200f, 38f, scale, width = 156.dp, height = 36.dp)
-                .semantics { contentDescription = "Current sport: Recurve" }
-                .testTag("nav-context-recurve"),
-            shape = RoundedCornerShape(50),
-            color = Color(0xFF1C2027),
-            shadowElevation = 3.dp,
-            tonalElevation = 0.dp,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    "RECURVE  ·  RANGE",
-                    color = Hyle.RadiumGreen,
-                    fontSize = 9.sp,
-                    lineHeight = 11.sp,
-                    letterSpacing = 1.05.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                )
-            }
-        }
-
-        val seats = listOf(
-            DockSeat(46.8f, 107.4f, -9.6f),
-            DockSeat(123.6f, 93.2f, -4.83f),
-            DockSeat(200f, 87.5f, 0f),
-            DockSeat(276.4f, 93.2f, 4.83f),
-            DockSeat(353.2f, 107.4f, 9.6f),
-        )
         items.forEachIndexed { index, (destination, pair) ->
             val (icon, label) = pair
             val shownLabel = if (compactLabels) when (label) {
@@ -155,7 +178,7 @@ internal fun ArcNavigationDock(
                 "Calendar" -> "Cal"
                 else -> label
             } else label
-            val seat = seats.getOrNull(index) ?: return@forEachIndexed
+            val seat = BOCAL_DOCK_SEATS.getOrNull(index) ?: return@forEachIndexed
             val selected = current == destination
             Column(
                 Modifier
@@ -224,6 +247,14 @@ private fun DockSideAction(
 }
 
 private data class DockSeat(val x: Float, val y: Float, val tilt: Float)
+
+private val BOCAL_DOCK_SEATS = listOf(
+    DockSeat(46.8f, 107.4f, -9.6f),
+    DockSeat(123.6f, 93.2f, -4.83f),
+    DockSeat(200f, 87.5f, 0f),
+    DockSeat(276.4f, 93.2f, 4.83f),
+    DockSeat(353.2f, 107.4f, 9.6f),
+)
 
 private fun Modifier.dockSeat(
     x: Float,
