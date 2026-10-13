@@ -507,6 +507,7 @@ private fun BottomBar(
             Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
         )
     val haptics = LocalHapticFeedback.current
+    val largeFont = androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.2f
     val selectDestination: (String) -> Unit = { destination ->
         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         onSelect(destination)
@@ -531,6 +532,11 @@ private fun BottomBar(
         items.forEach { (dest, pair) ->
             val (icon: ImageVector, label) = pair
             val selected = current == dest
+            val visibleLabel = if (largeFont) when (label) {
+                "Progress" -> "Prog."
+                "Calendar" -> "Cal."
+                else -> label
+            } else label
             Column(
                 Modifier.weight(1f).heightIn(min = 62.dp).clip(RoundedCornerShape(17.dp))
                     .then(if (selected) Modifier.background(Hyle.Accent.copy(alpha = .16f)) else Modifier)
@@ -548,7 +554,7 @@ private fun BottomBar(
                     Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim, modifier = Modifier.size(20.dp))
                 }
                 Spacer(Modifier.height(5.dp))
-                Text(label, color = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim,
+                Text(visibleLabel, color = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim,
                     style = MaterialTheme.typography.labelSmall, maxLines = 1, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
             }
         }

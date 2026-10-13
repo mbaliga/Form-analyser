@@ -334,12 +334,17 @@ actual mobile reference (`Bocal/android/docs/reference-ui/145483.jpg`) clarified
 pattern: five icon-over-label destinations in one floating dock, with the current destination
 highlighted in a filled capsule. The two-arc Hyle version is superseded, despite matching a separate
 shared navigation directive. Crocodyl now uses the Bocal dock interaction with Home, Train, Progress,
-Body and Calendar; its Hyle accent, accessibility labels, badge and haptics remain. The navbar
-contract test now asserts this structure, and the API-36 ARM64 16 KB debug `ProductionSmokeTest`
-passed 11/11 using temporary QA versionCode 702. Debug unit tests and `assembleDebug` also passed.
-Fresh rendered visual confirmation is pending; prior v701 two-arc captures are historical and do not
-represent current source. Production distribution and physical-device acceptance remain separate
-open gates.
+Body and Calendar; its Hyle accent, accessibility labels, badge and haptics remain. At 1.3× font
+scale, Progress and Calendar visually shorten to Prog. and Cal. while preserving complete
+accessibility names. The navbar contract test asserts the dock, and all 11 API-36 ARM64 16 KB debug
+smoke tests passed at 1.0×; the focused dock test also passed at 1.3×. Debug unit tests, release
+unit tests and `lintRelease` passed. Fresh 840×1920 emulator captures at 1.0× and 1.3× are
+[`home-bocal-floating-dock-v702-api36-16kb.png`](screenshots/home-bocal-floating-dock-v702-api36-16kb.png)
+and
+[`home-bocal-floating-dock-large-font-1_3x-v702-api36-16kb.png`](screenshots/home-bocal-floating-dock-large-font-1_3x-v702-api36-16kb.png).
+The images were visually reviewed, and emulator font scale was restored to 1.0. Minified-release
+connected validation and physical-device review remain open; prior v701 two-arc captures are
+historical, not current-source evidence.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 

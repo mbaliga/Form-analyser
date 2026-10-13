@@ -24,7 +24,7 @@ class NavbarContractTest(unittest.TestCase):
         for route in ("HOME", "TRAIN", "PROGRESS", "BODY", "CALENDAR"):
             self.assertIn(f"Routes.{route} to", source)
         self.assertIn("selectable(selected = selected, role = Role.Tab", source)
-        self.assertIn("Text(label, color = if (selected) Hyle.AccentBright", source)
+        self.assertIn("Text(visibleLabel, color = if (selected) Hyle.AccentBright", source)
         self.assertIn("contentDescription = label", source)
 
     def test_destination_icons_are_above_labels_and_active_tab_is_filled(self) -> None:
@@ -39,6 +39,15 @@ class NavbarContractTest(unittest.TestCase):
         tests = SMOKE_TEST.read_text(encoding="utf-8")
         self.assertIn("fun bocalStyleDockNavigationSelectsCalendar()", tests)
         self.assertIn('clickBottomTabEventually(instrumentation, "Calendar")', tests)
+
+    def test_large_font_labels_keep_full_accessible_names_and_visual_capture_is_opt_in(self) -> None:
+        source = bottom_bar_source()
+        self.assertIn('"Progress" -> "Prog."', source)
+        self.assertIn('"Calendar" -> "Cal."', source)
+        self.assertIn('contentDescription = label', source)
+        tests = SMOKE_TEST.read_text(encoding="utf-8")
+        self.assertIn('getString("captureDockVisual") == "true"', tests)
+        self.assertIn("MediaStore.Images.Media.RELATIVE_PATH", tests)
 
 
 if __name__ == "__main__":

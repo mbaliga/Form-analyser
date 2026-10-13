@@ -48,10 +48,23 @@ the intended interaction: one floating five-destination dock, each destination s
 above its label, with the selected destination on a filled capsule. Crocodyl's subsequent two-arc
 Hyle experiment was a separate visual language and is now superseded. Crocodyl's current source
 uses the Bocal dock pattern with its own Home, Train, Progress, Body and Calendar destinations,
-Hyle violet active treatment, haptics, badge, and accessible tab labels. The older upper-arc gesture
-test and two-arc screenshots are historical only; new connected verification and screenshot review
-are required for this correction. Prior v701 QA artifact and release preflight evidence remains
-valid for that exact older artifact, not the current source or a production-signed distribution.
+Hyle violet active treatment, haptics, badge, and accessible tab labels. At 1.3× font scale the
+visible Progress and Calendar labels shorten to Prog. and Cal.; their full names remain in
+accessibility semantics. Current-source debug build and unit tests passed, and all 11 connected debug
+smoke tests passed at 1.0× font scale on API-36 ARM64 16 KB. The dock-focused connected test also
+passed at both 1.0× and 1.3×, producing reviewed 840×1920 screenshots in
+`visuals/screenshots/home-bocal-floating-dock-v702-api36-16kb.png` and
+`visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v702-api36-16kb.png`. Emulator font
+scale was restored to 1.0. Screenshot capture is an opt-in instrumentation argument and saves to
+Pictures/Crocodyl QA. The current minified-release connected suite passed 11/11 on the same 16 KB
+emulator; `lintRelease` and release unit tests passed. Current v702 APK/AAB passed release preflight
+(manifest, APK ZIP alignment, AAB 16 KB page alignment, 11 aligned native libraries, pose-model
+hash and signer agreement). APK SHA-256
+`be97dbafe76eb4b9717be41f68cd407937f31a861c185cb49c3679a783393246`; AAB SHA-256
+`7293f0ddb8cb0375894b0573e229b4a2ac08e36e6cf725b2e9a6bbd97600e365`. These use the committed
+QA/debug signer and are not production-distributable; the release signer guard rejects it.
+Physical-device review remains open. The older upper-arc gesture test and two-arc screenshots are
+historical only. Prior v701 evidence remains valid only for that exact older source.
 
 Earlier two-rail implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and upper-rail swipe instrumentation on API-36 16 KB AVDs. Their screenshots

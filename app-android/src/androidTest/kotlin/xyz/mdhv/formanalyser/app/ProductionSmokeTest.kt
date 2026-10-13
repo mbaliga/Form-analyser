@@ -1,11 +1,13 @@
 package xyz.mdhv.formanalyser.app
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.os.SystemClock
+import android.provider.MediaStore
 import android.view.KeyEvent
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -127,6 +129,28 @@ class ProductionSmokeTest {
             ActivityScenario.launch(MainActivity::class.java).use {
                 assertTextEventually(instrumentation, "Find your rhythm.")
                 assertTextEventually(instrumentation, "Home")
+                if (InstrumentationRegistry.getArguments().getString("captureDockVisual") == "true") {
+                    val values = ContentValues().apply {
+                        put(MediaStore.Images.Media.DISPLAY_NAME, "crocodyl-bocal-floating-dock-home.png")
+                        put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                        put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Crocodyl QA")
+                    }
+                    val resolver = instrumentation.targetContext.contentResolver
+                    val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                        ?: error("Could not create the Bocal dock visual-QA media record")
+                    val screenshot = instrumentation.uiAutomation.takeScreenshot()
+                        ?: error("Could not capture the Bocal dock visual-QA screenshot")
+                    try {
+                        resolver.openOutputStream(uri)?.use { output ->
+                            assertTrue(
+                                "Could not write the Bocal dock visual-QA screenshot",
+                                screenshot.compress(Bitmap.CompressFormat.PNG, 100, output),
+                            )
+                        } ?: error("Could not open the Bocal dock visual-QA media stream")
+                    } finally {
+                        screenshot.recycle()
+                    }
+                }
                 clickBottomTabEventually(instrumentation, "Calendar")
                 assertTextEventually(instrumentation, "← prev")
                 clickBottomTabEventually(instrumentation, "Home")

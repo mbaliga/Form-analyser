@@ -50,12 +50,20 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
 - [x] Historical two-arc navigation contract and v700/v701 QA evidence are retained as historical
       records only. Owner review found the two-arc Hyle experiment still visually unlike Bocal's
       mobile reference, so it is superseded by the single floating dock pattern. Current source uses
-      five icon-over-label tabs and highlights the selected tab with a filled capsule; three
+      five icon-over-label tabs and highlights the selected tab with a filled capsule; four
       contract tests guard this structure and direct navigation. Debug unit tests and assembly pass,
       and all 11 connected debug smoke tests pass on the API-36 ARM64 16 KB emulator using temporary
-      QA versionCode 702. New visual confirmation, minified-release validation and physical-device
-      review for this correction remain pending. Older two-arc screenshots are not current-source
-      acceptance evidence.
+      QA versionCode 702. The minified-release connected smoke suite also passed 11/11 after the
+      large-font adjustment, and APK/AAB artifact preflight passed with the QA/debug signer only.
+      APK SHA-256 `be97dbafe76eb4b9717be41f68cd407937f31a861c185cb49c3679a783393246`; AAB SHA-256
+      `7293f0ddb8cb0375894b0573e229b4a2ac08e36e6cf725b2e9a6bbd97600e365`. Dock-focused connected
+      tests passed at 1.0× and 1.3× font scale. The corresponding 840×1920 captures are
+      `visuals/screenshots/home-bocal-floating-dock-v702-api36-16kb.png` and
+      `visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v702-api36-16kb.png`; visual
+      review confirmed all labels remain legible, with Progress/Calendar compacted to Prog./Cal. at
+      1.3× while full accessibility names are retained. The emulator font scale was restored to 1.0.
+      This does not establish production-signing continuity. Physical-device review remains pending.
+      Older two-arc screenshots are not current-source acceptance evidence.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,
@@ -113,8 +121,9 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       approval remain open. The v0.5.1-to-v701 emulator test verified synthetic profile/rig
       persistence but does not replace physical-device acceptance. Corrected-source v701 remains
       QA/debug-signed and is not distributable. The v701 current
-      navbar captures at normal and 1.3× font scale are checked in above; physical-device visual
-      acceptance remains open. The version ledger (697) is verified above the actual published v4.
+      current-source floating-dock captures at normal and 1.3× font scale are checked in above;
+      physical-device visual acceptance remains open. The version ledger (697) is verified above the
+      actual published v4; v702 was a temporary QA build and did not advance the ledger.
 
 ## 1. Required device matrix
 
