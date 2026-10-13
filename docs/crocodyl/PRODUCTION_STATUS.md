@@ -571,6 +571,7 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `84ebb2e` — deterministically exercise capture with camera permission denied and restore its initial grant state; record API-35 release-test evidence.
 - Crocodyl: `994ed7a` — clear the FOC validator compiler warning and record exact-source v709 API-35/16 KB QA evidence.
 - Crocodyl: `596bc1b` — correct R8 artifact accessibility claims for the public repository.
 - Crocodyl: `2169d26` — require and preserve the versioned R8 mapping and digest for crash diagnostics.
