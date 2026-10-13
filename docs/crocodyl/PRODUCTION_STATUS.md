@@ -571,6 +571,7 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `d81ac3f` — validate granted and denied camera UI without mutating permission state; record 11/11 API-35 release runs for each state.
 - Crocodyl: `84ebb2e` — record API-35 release-test evidence and add explicit camera-permission state handling to the training smoke.
 - Crocodyl: `994ed7a` — clear the FOC validator compiler warning and record exact-source v709 API-35/16 KB QA evidence.
 - Crocodyl: `596bc1b` — correct R8 artifact accessibility claims for the public repository.
