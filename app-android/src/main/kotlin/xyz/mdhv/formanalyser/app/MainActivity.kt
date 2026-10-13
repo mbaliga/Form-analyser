@@ -299,7 +299,9 @@ private fun MainShell() {
     Scaffold(
         topBar = {
             if (onTab) {
-                if (route != Routes.HOME) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) }
+                if (route != Routes.HOME) {
+                    TopRow(tabTitle(route), { quick = true }) { nav.navigate(Routes.SETTINGS) }
+                }
             }
             // Every other route used to render with no bar, no back and no title. 22 of 27
             // destinations were reachable and then inescapable except by system back — and on a
@@ -314,8 +316,6 @@ private fun MainShell() {
             if (onTab) BottomBar(
                 route,
                 injuries > 0,
-                onAdd = { quick = true },
-                onSettings = { nav.navigate(Routes.SETTINGS) },
             ) { navigateTab(nav, it) }
         },
     ) { pad ->
@@ -471,7 +471,7 @@ private fun NavGraphBuilder.settingsGraph(
 }
 
 @Composable
-private fun TopRow(title: String, onSettings: () -> Unit) {
+private fun TopRow(title: String, onQuickAdd: () -> Unit, onSettings: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)
             .padding(start = 20.dp, end = 12.dp, top = 7.dp, bottom = 3.dp),
@@ -488,6 +488,12 @@ private fun TopRow(title: String, onSettings: () -> Unit) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = Hyle.OnBackground)
         }
         IconButton(
+            onClick = onQuickAdd,
+            modifier = Modifier.size(42.dp).clip(CircleShape).background(Hyle.SurfaceVariant.copy(alpha = .72f)),
+        ) {
+            Icon(Icons.Filled.Add, "Quick add", tint = Hyle.AccentBright, modifier = Modifier.size(19.dp))
+        }
+        IconButton(
             onClick = onSettings,
             modifier = Modifier.size(42.dp).clip(CircleShape).background(Hyle.SurfaceVariant.copy(alpha = .72f)),
         ) {
@@ -500,8 +506,6 @@ private fun TopRow(title: String, onSettings: () -> Unit) {
 private fun BottomBar(
     current: String?,
     badge: Boolean,
-    onAdd: () -> Unit,
-    onSettings: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
     val items =
@@ -525,9 +529,6 @@ private fun BottomBar(
             items = items,
             current = current,
             badge = badge,
-            contextLabel = tabTitle(current),
-            onQuickAdd = onAdd,
-            onSettings = onSettings,
             onSelect = selectDestination,
         )
     }

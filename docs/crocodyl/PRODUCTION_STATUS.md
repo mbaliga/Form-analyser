@@ -45,22 +45,19 @@ acceptance remain open. Android displayed its 16 KB compatibility warning for th
 (`ELF alignment check failed`) and ran it in compatible mode; v701's current artifact preflight
 confirmed all packaged 64-bit native libraries are 16 KB aligned. Production signing remains open.
 
-Navbar correction (2026-10-13): owner review correctly observed the rendered dock did not match
-Bocal's current mobile interaction. v702's flat five-slot pill and its screenshots are historical,
-not current parity evidence. Crocodyl now implements the documented Bocal/Hyle tactile curved
-navigation stage: two curved rails, contextual path text, left Quick Add and right Settings actions,
-five tangent-seated primary destinations, selected keycap, and accessible direct-selection tabs.
-Kotlin compilation, Android debug/release unit tests, `lintRelease`, and four navbar contract tests
-pass. On the final rotated-keycap source, all 11 debug and all 11 minified-release instrumentation
-tests passed through direct runner invocation on API-36 ARM64 16 KB; Gradle UTP orchestration failed
-locally with `Operation not permitted`. The focused navigation test also passed at 1.3× font scale.
-Current-source captures are
-`visuals/screenshots/home-bocal-curved-dock-v705-api36-16kb.png` and
-`visuals/screenshots/home-bocal-curved-dock-large-font-1_3x-v705-api36-16kb.png`; font scale was
-restored to 1.0. The focused 1.3× navigation test passed on both debug and minified-release variants.
-See `visuals/CINEMATIC_APP_REFRESH.md` and
-`../design/HYLE_ARC_NAVIGATION_DIRECTIVE.md` for the correction context and geometry contract.
-QA release v705 (`0.6.4-curved-dock-qa`) passed artifact preflight: APK SHA-256
+Navbar owner correction (2026-10-13): the owner pointed out Crocodyl's curved navigation still did
+not match Bocal's visible mobile interaction. Bocal's screenshot shows a floating rounded bottom
+dock with five direct destinations, persistent icon/label pairs and a tinted active item. Crocodyl
+now uses that pattern; Quick Add and Settings are in the upper action row, not attached to the dock.
+The prior v705 arc implementation and screenshots are historical only. The revised source still
+compiled and assembled as QA version 706, and the focused Calendar direct-navigation smoke passed
+on the API-36 ARM64 16 KB emulator. The fresh Home capture is
+`visuals/screenshots/home-bocal-floating-dock-v706-api36-16kb.png`. Four navbar contract tests also
+pass. The broader debug unit-test task reported 24 failures in tests resolving a local Maven
+dependency (`MavenDependencyResolver` / `FileNotFoundException`); those are not represented as
+passing. Large-font and compact-width captures remain outstanding.
+
+Prior arc-source QA release v705 (`0.6.4-curved-dock-qa`) passed artifact preflight: APK SHA-256
 `392551f44fccc1a72b7ba9bb96766c588e270a27c26af10279abcbce5639239e`; AAB SHA-256
 `73eabb62ff5e83d5af23f6fca32cd646c389abf53ddaeb2b665840efd80f5d7a`. The artifacts are QA-signed,
 not distributable, and did not advance the ledger. Production signing/hosted CI and physical-device

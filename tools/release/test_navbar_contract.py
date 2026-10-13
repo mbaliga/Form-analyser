@@ -19,22 +19,20 @@ def bottom_bar_source() -> str:
 class NavbarContractTest(unittest.TestCase):
     def test_mobile_nav_uses_bocal_floating_dock_and_five_tabs(self) -> None:
         source = bottom_bar_source()
-        self.assertIn("moveTo(22f * scale, 112f * scale)", source)
-        self.assertIn("moveTo(82.52f * scale, 40.12f * scale)", source)
-        self.assertIn("drawTextOnPath(", source)
-        self.assertIn('description = "Quick add"', source)
-        self.assertIn('description = "Settings"', source)
+        self.assertIn("RoundedCornerShape(24.dp)", source)
+        self.assertIn("heightIn(min = 68.dp)", source)
+        self.assertIn("Color(0xFF182622)", source)
         for route in ("HOME", "TRAIN", "PROGRESS", "BODY", "CALENDAR"):
             self.assertIn(f"Routes.{route} to", source)
         self.assertIn("selectable(selected = selected, role = Role.Tab", source)
-        self.assertIn("Text(visibleLabel, color = Color(0xFF17181D)", source)
+        self.assertIn("Text(\n                    label,", source)
         self.assertIn("contentDescription = label", source)
 
     def test_destination_icons_are_above_labels_and_active_tab_is_filled(self) -> None:
         source = bottom_bar_source()
         self.assertIn("Icon(icon, label", source)
-        self.assertIn("if (selected) Modifier.background(", source)
-        self.assertIn("graphicsLayer { rotationZ = rotation }", source)
+        self.assertIn("if (selected) Modifier.background(Color(0xFF182622))", source)
+        self.assertIn("Hyle.AccentBright else Color(0xFF77777D)", source)
 
     def test_direct_tab_selection_is_exercised_in_android_smoke_test(self) -> None:
         source = bottom_bar_source()
@@ -44,10 +42,10 @@ class NavbarContractTest(unittest.TestCase):
         self.assertIn("fun bocalStyleDockNavigationSelectsCalendar()", tests)
         self.assertIn('clickBottomTabEventually(instrumentation, "Calendar")', tests)
 
-    def test_large_font_labels_keep_full_accessible_names_and_visual_capture_is_opt_in(self) -> None:
+    def test_full_labels_keep_accessible_names_and_visual_capture_is_opt_in(self) -> None:
         source = bottom_bar_source()
-        self.assertIn('"Progress" -> "Prog."', source)
-        self.assertIn('"Calendar" -> "Cal."', source)
+        self.assertIn('maxLines = 1', source)
+        self.assertIn('fontSize = 9.sp', source)
         self.assertIn('contentDescription = label', source)
         tests = SMOKE_TEST.read_text(encoding="utf-8")
         self.assertIn('getString("captureDockVisual") == "true"', tests)

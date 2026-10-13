@@ -353,6 +353,25 @@ artifact preflight and all 11 release instrumentation cases by direct runner inv
 `Operation not permitted`; physical-device acceptance is still pending. Do not treat the v702
 flat-dock images as evidence for the current source.
 
+## 2026-10-13 prior two-arc navbar verification — historical
+## 2026-10-13 owner correction — match Bocal's visible dock
+
+Owner review caught that the tangent-following two-arc implementation was not the navbar interaction
+shown in Bocal's mobile reference. The reference uses a single floating rounded bottom bar with five
+evenly spaced destinations, icon-plus-label items, and a tinted active destination; Crocodyl now
+uses that direct-selection pattern with its own five destinations and Hyle radium accent. Quick Add
+and Settings moved to secondary-tab upper actions; Home keeps its cinematic hero and in-hero Settings
+action, with Train and Score as its primary shortcuts. These utility controls no longer flank or
+visually reshape the navigation dock. The current screenshot `145483.jpg` in the Bocal checkout is the visual comparison
+reference; the Hyle arc directive describes a separate design proposal and is not treated as shipped
+Bocal parity evidence. Previous Crocodyl arc captures and test results are retained as historical
+records, not current UI evidence. QA version 706 compiled and assembled, and the focused Calendar
+direct-navigation smoke passed on the API-36 ARM64 16 KB emulator. Four source-contract tests pass.
+Fresh Home evidence is [`home-bocal-floating-dock-v706-api36-16kb.png`](screenshots/home-bocal-floating-dock-v706-api36-16kb.png).
+The debug unit-test task still has 24 unrelated dependency-resolution failures; see
+`../PRODUCTION_STATUS.md`. Large-font/compact viewport and physical-device visual acceptance remain
+open, so this is an interaction-pattern correction, not a claim of complete product parity.
+
 ## 2026-10-13 Bocal-parity navbar runtime verification
 
 Historical QA candidate `0.6.0-bocal-navbar-qa`, versionCode 698, used one molded mobile arc with
