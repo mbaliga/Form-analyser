@@ -65,7 +65,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       passed again at 1.3× font scale; all five labels remained visible and font scale was restored
       to 1.0. Capture:
       `visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v706-api36-16kb.png`.
-      v706 is historical; see the current v707 entry above for compact-width and minified-release
+      v706 is historical; see v707 history and current v708 above for compact-width/minified-release
       verification. Physical-device review, production signing, hosted CI and owner approval remain
       open.
 
@@ -110,9 +110,9 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       is superseded and its screenshot is not evidence for current-source parity.
 - [x] Historical two-arc navigation contract and v700/v701 QA evidence are retained as historical
       records only. Owner review found the two-arc Hyle experiment still visually unlike Bocal's
-      mobile reference, so it is superseded by the single floating dock pattern. Current source uses
-      five icon-over-label tabs and highlights the selected tab with a filled capsule; four
-      contract tests guard this structure and direct navigation. Debug unit tests and assembly pass,
+      mobile reference, so it was superseded first by a flat dock and then by the current v708
+      curved-stage pattern. The five-tab direct-navigation contract is guarded by tests. Debug unit
+      tests and assembly pass,
       and all 11 connected debug smoke tests pass on the API-36 ARM64 16 KB emulator using temporary
       QA versionCode 702. The minified-release connected smoke suite also passed 11/11 after the
       large-font adjustment, and APK/AAB artifact preflight passed with the QA/debug signer only.
@@ -625,6 +625,9 @@ leaks private data, or leaves the user unable to recover without clearing app st
       release contract tests cover QA-certificate rejection, malformed fingerprints and acceptance
       of a well-formed non-QA fingerprint. This policy check does not substitute for a real
       production keystore or a signed production artifact.
+- [x] Production release workflow requires and privately retains the versioned minified-release
+      R8 mapping plus SHA-256 digest for 90 days; the runbook requires verifying and moving it to
+      restricted durable storage. The mapping is intentionally excluded from public release assets.
 - [x] Android CI runs connected debug smoke on API-36 `google_apis_ps16k`; release CI runs the
       signed minified release smoke on the same 16 KB image and asserts the live page size is
       16384. The newly-added GitHub Actions lanes still require a successful hosted run.
@@ -638,6 +641,7 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, absence of staging files, and the expected production
       certificate fingerprint (`CROCODYL_RELEASE_CERT_SHA256`) in both APK and AAB.
+- [ ] Verify the same-run R8 mapping digest and record its restricted durable archive location.
 - [ ] APK is installed over the previous production build and launches on the acceptance matrix.
 - [ ] Owner approves the release notes and selected distribution channel.
 

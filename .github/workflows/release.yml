@@ -230,6 +230,23 @@ jobs:
           EXPECTED_CERT_SHA256: ${{ secrets.CROCODYL_RELEASE_CERT_SHA256 }}
         run: |
           tools/release/verify_android_release.sh "$(find app-android/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print -quit)" "$(find app-android/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' -print -quit)"
+      - name: Preserve minified-release mapping for crash diagnostics
+        env:
+          RELEASE_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          mapping='app-android/build/outputs/mapping/release/mapping.txt'
+          test -s "$mapping"
+          cp "$mapping" "crocodyl-${RELEASE_VERSION}-r8-mapping.txt"
+          sha256sum "crocodyl-${RELEASE_VERSION}-r8-mapping.txt" > "crocodyl-${RELEASE_VERSION}-r8-mapping.sha256"
+      - name: Upload private R8 mapping and digest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crocodyl-release-r8-mapping-${{ steps.ver.outputs.version }}
+          path: |
+            crocodyl-${{ steps.ver.outputs.version }}-r8-mapping.txt
+            crocodyl-${{ steps.ver.outputs.version }}-r8-mapping.sha256
+          retention-days: 90
+          if-no-files-found: error
       - name: Rename release artifacts
         # Release outputs live under the release variant; keep the public filenames stable.
         env:

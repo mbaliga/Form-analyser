@@ -81,6 +81,13 @@ sha256sum -c crocodyl-<version>-SHA256SUMS.txt
 
 Do not distribute a QA-signed artifact, even if every functional check passes.
 
+5. Download the private `crocodyl-release-r8-mapping-<version>` Actions artifact from the same
+   successful workflow run. Verify its `.sha256` file, preserve the mapping in the restricted
+   long-term release archive, and restrict access because it exposes obfuscated-to-original symbol
+   names. GitHub Actions artifact retention is limited to 90 days here; do not treat it as durable
+   storage. Record the archive location alongside the release acceptance record. The public GitHub
+   Release intentionally does not include the mapping file.
+
 ## Physical acceptance and approval
 
 Before owner approval, complete one run record per device using

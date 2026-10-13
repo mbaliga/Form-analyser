@@ -72,6 +72,21 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("CROCODYL_RELEASE_CERT_SHA256", self.workflow)
         self.assertIn("tools/release/verify_android_release.sh", self.workflow)
 
+    def test_release_preserves_versioned_r8_mapping_privately(self) -> None:
+        mapping = self.workflow.index("- name: Preserve minified-release mapping for crash diagnostics")
+        upload = self.workflow.index("- name: Upload private R8 mapping and digest")
+        cleanup = self.workflow.index("- name: Remove signing material")
+        self.assertLess(mapping, upload)
+        self.assertLess(upload, cleanup)
+        mapping_steps = self.workflow[mapping:cleanup]
+        self.assertIn("app-android/build/outputs/mapping/release/mapping.txt", mapping_steps)
+        self.assertIn('test -s "$mapping"', mapping_steps)
+        self.assertIn('sha256sum "crocodyl-${RELEASE_VERSION}-r8-mapping.txt"', mapping_steps)
+        self.assertIn("retention-days: 90", mapping_steps)
+        self.assertIn("if-no-files-found: error", mapping_steps)
+        publish = self.workflow.split("\n  publish:", maxsplit=1)[1]
+        self.assertNotIn("r8-mapping", publish)
+
     def test_release_version_is_bounded_and_not_interpolated_into_shell_source(self) -> None:
         resolver = (ROOT / "tools" / "release" / "resolve_version.sh").read_text()
         version_floor = (ROOT / "tools" / "release" / "highest_issued_version_code.txt").read_text().strip()
