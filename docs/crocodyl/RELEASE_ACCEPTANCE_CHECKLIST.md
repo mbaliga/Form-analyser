@@ -36,18 +36,21 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       checked in at `visuals/screenshots/home-hyle-two-arc-v696-api36-16kb.png` and
       `visuals/screenshots/home-large-font-1_3x-v697-api36-16kb.png`. These artifacts use the QA
       key and are not production-distributable.
-      These v696/v697 navbar captures and test results predate the requested Bocal-parity correction
-      to a single direct-select arc; they are historical evidence, not acceptance of current source.
-- [x] Current-source QA candidate `0.6.0-bocal-navbar-qa` / versionCode 698 compiled and passed
+      These v696/v697 navbar captures and test results predate later navbar corrections; they are
+      historical evidence, not acceptance of current source.
+- [x] Historical QA candidate `0.6.0-bocal-navbar-qa` / versionCode 698 compiled and passed
       Android debug and release unit tests, `lintRelease`, and debug/instrumentation APK assembly.
       Full debug and minified-release `ProductionSmokeTest` each passed 11/11 on API-36 ARM64
       16 KB; the new `bocalStyleArcNavigationSelectsCalendar` test passed in both runs. Fresh
       840×1920 screenshot: `visuals/screenshots/home-bocal-single-arc-v698-api36-16kb.png`.
       The minified test build used only the committed QA/debug key. This verifies runtime behavior
       on an emulator, not production signing, artifact preflight or physical-device acceptance.
-- [x] Three CI-discovered navbar contract tests pass: single arc/five tabs, separate Train/Add
-      controls, no scrub gesture, and direct Calendar tab smoke coverage. This is source-level
-      regression protection only; it supplements but does not replace Android compile/runtime tests.
+      Owner review later established that the one-rail interaction still diverged from Bocal; v698
+      is superseded and its screenshot is not evidence for current-source parity.
+- [x] Three CI-discovered navbar contract tests now guard Bocal's two-rail geometry, curve-anchored
+      context actions, upper-rail preview/commit, and direct destination tabs. Current QA v700
+      compiled; `testDebugUnitTest` and all 11 connected `ProductionSmokeTest` cases passed on the
+      API-36 ARM64 16 KB emulator. Fresh checked-in capture and physical-device acceptance remain open.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,

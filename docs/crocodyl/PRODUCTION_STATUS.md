@@ -28,21 +28,18 @@ as the latest published release; that tag's Android Gradle config sets versionCo
 supporting source-history evidence only: the APK itself has not been fetched/inspected or installed
 as an update test, so the actual previous-production-artifact gate remains open.
 
-Navbar parity correction (2026-10-13): owner review caught that Crocodyl's custom two-arc,
-drag-to-scrub navigation did not match Bocal. Current source now follows Bocal's mobile interaction:
-one shallow molded arc, five tangent-seated direct-tap destinations, and a raised active keycap
-that contains its label. Train and Add remain separate contextual controls above the arc; the
-second navigation arc and scrub-preview gesture are removed. `bocalStyleArcNavigationSelectsCalendar`
-now covers direct selection. Earlier two-arc QA remains historical evidence only. Current-source
-QA candidate v698 (`0.6.0-bocal-navbar-qa`) compiled and passed Android debug/release unit tests,
-`lintRelease`, and debug/test APK assembly. The complete debug and minified-release
-`ProductionSmokeTest` suites passed 11/11 each on API 36, ARM64, 16 KB pages; the focused Bocal-tab
-case also passed. The 840×1920 capture at
-`visuals/screenshots/home-bocal-single-arc-v698-api36-16kb.png` shows the fresh one-arc UI. These
-are emulator results with a QA/debug key, not production artifact preflight, CI, physical-device
-acceptance, or range validation. A CI-discovered source contract checks the single-arc geometry,
-five destinations, separate context actions, and direct-tab smoke coverage; all 44 release-workflow
-source contract tests pass. Physical-device review remains open.
+Navbar parity correction (2026-10-13): owner review correctly noted that current Crocodyl did not
+match Bocal. The previous single-rail correction was wrong: Bocal's current Hyle contract is one
+coordinated 400×150 stage with parallel contextual and destination rails, curved-context preview,
+and side controls following the upper-curve continuation. Crocodyl source now restores that
+two-rail geometry, preview/commit gesture, tangent-seated destination tabs, and curve-anchored Train
+and Add controls. All five destination tabs now expose explicit accessible labels. The v698
+single-rail screenshot and its related test evidence are historical, not acceptance of the corrected
+source. QA candidate v700 compiled; `testDebugUnitTest` passed, and all 11 `ProductionSmokeTest`
+cases passed on the API-36 ARM64 16 KB emulator, including an injected upper-rail swipe to Calendar
+and direct Calendar/Home tab selection. The corrected navbar still needs a fresh checked-in visual
+capture and physical-device acceptance. Production signing, artifact preflight, CI, and range
+validation remain open.
 
 Earlier two-arc implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and the upper-arc swipe instrumentation on API-36 16 KB AVDs. Those results

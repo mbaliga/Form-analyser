@@ -241,14 +241,12 @@ baseline v666; screenless motion capture remains a separate proposal pending own
 
 ## Navigation direction
 
-Owner correction (2026-10-13): Crocodyl's primary navigation should visibly and behaviorally follow
-Bocal's arc dock, not the generic horizontal capsule that shipped in the first pass. The current
-implementation carries Bocal's five-seat curved rail, tangent-rotated controls and raised active
-keycap with its label; Crocodyl's existing Quick actions entry remains available as a separate
-context button. Route ownership, state restoration and accessibility semantics remain Compose-native.
-This is the lower destination rail only; do not invent a second contextual arc or claim shared Hyle
-component parity until that canonical reusable API is available to both apps. Device screenshots,
-large-font/compact viewport behavior, gesture insets and touch-target acceptance remain required.
+Owner direction: Crocodyl's primary navigation should visibly and behaviorally follow Bocal's
+current Hyle arc dock. It is one coordinated 400×150 stage with a lower destination rail, an upper
+context rail, and side actions aligned to the upper curve. Preserve tangent-aligned tabs, active
+destination styling, upper-rail preview/commit, and Compose route/state/accessibility semantics.
+Device screenshots, large-font/compact viewport behavior, gesture insets and touch-target acceptance
+remain required.
 
 ## Acceptance checks for each visual slice
 
@@ -331,30 +329,20 @@ review described above.
 
 ## 2026-10-13 Bocal navigation correction
 
-The owner correctly noted that the first correction still did not use Bocal's full interaction
-pattern: it implemented only the lower destination rail. That first build and its screenshot
-([`home-bocal-arc-navigation-api36.png`](screenshots/home-bocal-arc-navigation-api36.png)) are
-superseded; they are not evidence for the current navbar.
-
-The subsequent two-arc stage was a Crocodyl-specific interpretation, not Bocal interaction parity.
-Owner review rejected that divergence on 2026-10-13. Current source instead follows Bocal's mobile
-navbar: one shallow molded arc, five direct-tap destinations on the curve, and a raised active
-keycap containing its label. Train and Add remain separate contextual controls above the arc.
-`bocalStyleArcNavigationSelectsCalendar` verifies direct destination selection; the former upper
-arc drag-preview interaction has been removed. The old descriptions and QA captures below are
-retained strictly as history and are not evidence of current source behavior.
-
-Historical verification (2026-10-13): the superseded two-arc build passed the old upper-rail swipe
-instrumentation on an API-36 ARM64 16 KB AVD. That run says nothing about the current Bocal-parity
-single-arc implementation. The checked-in captures in the Large-font Home follow-up below likewise
-show the two-arc design, not current navbar source. The current-source capture and test evidence are
-recorded below.
+Owner review on 2026-10-13 identified that the v698 single-rail correction did not match Bocal and
+is superseded. Current source restores Bocal's Hyle two-rail contract: lower destination curve
+`M22 112 Q200 77 378 112`, upper contextual curve
+`M82.52 40.12 Q200 24.88 317.48 40.12`, side actions anchored at `(18, 50.79)` and
+`(382, 50.79)`, and upper-rail drag preview that commits on release. The curves, controls and tabs
+share one scale/inset stage. The v698 screenshots below depict the superseded one-rail version and
+must not be used to judge current-source parity. QA candidate v700 passed the full 11-test debug
+instrumentation suite on API-36 ARM64 16 KB, including swipe-to-preview/commit and direct tab taps.
+A fresh checked-in visual capture and physical-device review of the corrected navbar remain pending.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 
-Current-source QA candidate `0.6.0-bocal-navbar-qa`, versionCode 698, uses one molded mobile arc
-with five tangent-seated direct-select destinations and an active keycap label. Train and Add remain
-as separate controls above it. The fresh 840×1920 capture
+Historical QA candidate `0.6.0-bocal-navbar-qa`, versionCode 698, used one molded mobile arc with
+five tangent-seated direct-select destinations. Its 840×1920 capture
 ([`home-bocal-single-arc-v698-api36-16kb.png`](screenshots/home-bocal-single-arc-v698-api36-16kb.png))
 was reviewed on API 36 / ARM64 / 16 KB pages at normal font scale. Its profile data is synthetic and
 belongs only to the disposable emulator.
@@ -363,8 +351,9 @@ Verification: `testDebugUnitTest`, `testReleaseUnitTest`, and `lintRelease` pass
 debug and minified-release `ProductionSmokeTest` suites each passed 11/11 on the API-36 16 KB AVD;
 the new direct Calendar-tab case passed in both. Debug and instrumentation APKs assembled at
 versionCode 698. The minified release test APK was signed only with the repository's QA/debug
-identity; this is not production signing or artifact-preflight evidence. Physical-device and
-large-font-with-current-navbar visual acceptance remain open.
+identity; this is not production signing or artifact-preflight evidence. This build is superseded
+by the restored Hyle two-rail source; physical-device and fresh visual acceptance of the corrected
+navbar remain open.
 
 ## 2026-10-13 Large-font Home follow-up
 
