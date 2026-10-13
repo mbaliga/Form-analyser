@@ -580,7 +580,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Final-source QA v709 debug/release unit tests, release lint, cross-module JVM tests, APK/AAB assembly and artifact preflight pass. Minified-release smoke passes 11/11 on API 35 and API-36 ARM64/16 KB at 1.3× font. Production signer/hosted CI and run, physical/range matrix, real-athlete data and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | QA v709 passed debug/release unit tests, release lint, cross-module JVM tests, APK/AAB assembly and preflight, with 11/11 minified-release smoke on API 35 and API-36 ARM64/16 KB at 1.3× font; v709 predates the current web-source arc parity change. Rebuild/retest the new source, then production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -591,6 +591,8 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `5ff0d53` — match Bocal's current web-source arc with curved contextual text, angled controls, and rail scrub preview/release navigation; record validation boundary.
+- Crocodyl: `3781a86` — correct QA v709 artifact hashes after restoring the explicit versioned release outputs.
 - Crocodyl: `d81ac3f` — validate granted and denied camera UI without mutating permission state; record 11/11 API-35 release runs for each state.
 - Crocodyl: `84ebb2e` — record API-35 release-test evidence and add explicit camera-permission state handling to the training smoke.
 - Crocodyl: `994ed7a` — clear the FOC validator compiler warning and record exact-source v709 API-35/16 KB QA evidence.
