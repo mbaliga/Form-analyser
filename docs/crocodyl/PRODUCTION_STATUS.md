@@ -51,19 +51,20 @@ not current parity evidence. Crocodyl now implements the documented Bocal/Hyle t
 navigation stage: two curved rails, contextual path text, left Quick Add and right Settings actions,
 five tangent-seated primary destinations, selected keycap, and accessible direct-selection tabs.
 Kotlin compilation, Android debug/release unit tests, `lintRelease`, and four navbar contract tests
-pass. All 11 connected debug smoke tests passed on API-36 ARM64 16 KB, and the focused navigation
-test passed again at 1.3× font scale. Fresh reviewed captures are
-`visuals/screenshots/home-bocal-curved-dock-v703-api36-16kb.png` and
-`visuals/screenshots/home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png`; font scale was
-restored to 1.0. Minified-release connected validation and physical-device review remain open. See
-`visuals/CINEMATIC_APP_REFRESH.md` and
+pass. On the final rotated-keycap source, all 11 debug and all 11 minified-release instrumentation
+tests passed through direct runner invocation on API-36 ARM64 16 KB; Gradle UTP orchestration failed
+locally with `Operation not permitted`. The focused navigation test also passed at 1.3× font scale.
+Current-source captures are
+`visuals/screenshots/home-bocal-curved-dock-v705-api36-16kb.png` and
+`visuals/screenshots/home-bocal-curved-dock-large-font-1_3x-v705-api36-16kb.png`; font scale was
+restored to 1.0. The focused 1.3× navigation test passed on both debug and minified-release variants.
+See `visuals/CINEMATIC_APP_REFRESH.md` and
 `../design/HYLE_ARC_NAVIGATION_DIRECTIVE.md` for the correction context and geometry contract.
-QA release v704 (`0.6.3-curved-dock-qa`) also passed artifact preflight and all 11 minified-release
-instrumentation tests when the release APK/test APK were installed and invoked directly on the
-16 KB emulator. Gradle's `connectedReleaseAndroidTest` built both APKs but UTP orchestration failed
-with local `Operation not permitted`, so this is a direct instrumentation pass, not a Gradle task
-pass. The artifacts are QA-signed; no ledger change was made. Production signing/hosted CI and
-physical-device review remain open. The older flat-dock screenshots are historical only.
+QA release v705 (`0.6.4-curved-dock-qa`) passed artifact preflight: APK SHA-256
+`392551f44fccc1a72b7ba9bb96766c588e270a27c26af10279abcbce5639239e`; AAB SHA-256
+`73eabb62ff5e83d5af23f6fca32cd646c389abf53ddaeb2b665840efd80f5d7a`. The artifacts are QA-signed,
+not distributable, and did not advance the ledger. Production signing/hosted CI and physical-device
+review remain open. The older flat-dock screenshots are historical only.
 
 Earlier two-rail implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and upper-rail swipe instrumentation on API-36 16 KB AVDs. Their screenshots
@@ -500,7 +501,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Corrected-source v702 APK/AAB passed local preflight and 11/11 minified-release instrumentation on API-36 ARM64 16 KB; debug passed 11/11. Normal and 1.3× floating-dock screenshots are checked in. Actual public v0.5.1 V4 database upgraded to V9 with synthetic legacy session and shot scores preserved; the old schema predates standalone scorecards. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Final rotated-keycap source: debug and minified-release direct instrumentation 11/11 each on API-36 ARM64 16 KB; v705 APK/AAB passed local preflight. Normal/1.3× current-source screenshots checked in. Public v0.5.1 V4 database upgraded to V9 with synthetic training-session and shot-score data preserved. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

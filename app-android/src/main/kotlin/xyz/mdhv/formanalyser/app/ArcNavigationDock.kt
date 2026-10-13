@@ -144,6 +144,7 @@ internal fun ArcNavigationDock(
                         .then(if (selected) Modifier.background(
                             Brush.verticalGradient(listOf(Color(0xFFF8F6EF), Color(0xFFD5D2C8))),
                         ) else Modifier)
+                        .graphicsLayer { rotationZ = rotation }
                         .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(destination) })
                         .semantics(mergeDescendants = true) { contentDescription = label }
                         .testTag("nav-tab-$destination"),
@@ -154,11 +155,11 @@ internal fun ArcNavigationDock(
                         if (destination == "body" && badge) {
                             BadgedBox(badge = { Badge { Text("!") } }) {
                                 Icon(icon, label, tint = if (selected) Color(0xFF17181D) else Hyle.OnSurfaceDim,
-                                    modifier = Modifier.size(20.dp).graphicsLayer { rotationZ = rotation })
+                                    modifier = Modifier.size(20.dp))
                             }
                         } else {
                             Icon(icon, label, tint = if (selected) Color(0xFF17181D) else Hyle.OnSurfaceDim,
-                                modifier = Modifier.size(20.dp).graphicsLayer { rotationZ = rotation })
+                                modifier = Modifier.size(20.dp))
                         }
                         if (selected) {
                             Spacer(Modifier.width(6.dp))

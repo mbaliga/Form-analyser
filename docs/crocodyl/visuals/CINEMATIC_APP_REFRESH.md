@@ -337,15 +337,17 @@ follows the destination curve. Crocodyl's Hyle arc geometry contract in
 [`../../design/HYLE_ARC_NAVIGATION_DIRECTIVE.md`](../../design/HYLE_ARC_NAVIGATION_DIRECTIVE.md)
 is the applicable design spec, not the old screenshot. The latest correction implements that
 400×150 scaled stage with Home, Train, Progress, Body and Calendar, curved context text, Quick Add
-and Settings side actions, selected-state keycap, and tangent-rotated icons. Kotlin compilation,
-Android debug/release unit tests, `lintRelease`, and four navbar contract tests pass. All 11 connected
-debug smoke tests passed on API-36 ARM64 16 KB; the focused direct navigation test also passed at
-1.3× font scale. Fresh captures are
-[`home-bocal-curved-dock-v703-api36-16kb.png`](screenshots/home-bocal-curved-dock-v703-api36-16kb.png)
+and Settings side actions, selected-state keycap, and tangent-rotated destinations. The whole active
+keycap rotates with the rail tangent, matching Bocal's selected-key treatment. Kotlin compilation,
+Android debug/release unit tests, `lintRelease`, and four navbar contract tests pass. On the final
+source, all 11 debug and all 11 minified-release tests passed by direct runner on API-36 ARM64 16 KB;
+local Gradle UTP orchestration failed with `Operation not permitted`. The focused navigation test
+also passed at 1.3× on both debug and minified release. Fresh captures are
+[`home-bocal-curved-dock-v705-api36-16kb.png`](screenshots/home-bocal-curved-dock-v705-api36-16kb.png)
 and
-[`home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png`](screenshots/home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png).
+[`home-bocal-curved-dock-large-font-1_3x-v705-api36-16kb.png`](screenshots/home-bocal-curved-dock-large-font-1_3x-v705-api36-16kb.png).
 Both were visually reviewed and system font scale was restored to 1.0. Large-font labels compact
-visually where needed while accessibility labels remain complete. QA minified-release v704 passed
+visually where needed while accessibility labels remain complete. QA minified-release v705 passed
 artifact preflight and all 11 release instrumentation cases by direct runner invocation on the
 16 KB emulator. The Gradle connected-release task itself failed in local UTP orchestration with
 `Operation not permitted`; physical-device acceptance is still pending. Do not treat the v702

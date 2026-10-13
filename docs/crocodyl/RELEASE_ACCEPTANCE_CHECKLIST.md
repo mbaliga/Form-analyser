@@ -65,22 +65,23 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       This does not establish production-signing continuity. Physical-device review remains pending.
       Older two-arc screenshots are not current-source acceptance evidence.
 
-- [ ] Current-source Bocal/Hyle curved-dock correction (2026-10-13): the previous v702 flat pill
+- [x] Current-source Bocal/Hyle curved-dock correction (2026-10-13): the previous v702 flat pill
       was not the current Bocal interaction and must not be accepted as parity evidence. Crocodyl
       now uses the two-rail 400×150 scaled geometry in
       `docs/design/HYLE_ARC_NAVIGATION_DIRECTIVE.md`, with context text on the upper Bézier, Quick
       Add/Settings side actions, and five direct-select lower-curve tabs. Kotlin compilation,
       Android debug/release unit tests, `lintRelease`, and four navbar contract tests pass. All 11
       API-36 ARM64 16 KB connected debug tests passed, as did the focused direct-navigation
-      test at 1.3× font scale. Current-source 840×1920 captures are
-      `visuals/screenshots/home-bocal-curved-dock-v703-api36-16kb.png` and
-      `visuals/screenshots/home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png`; visual
-      review passed and font scale was restored to 1.0. At this checkpoint, minified-release
-      validation and physical-device review were still open; v702 flat-dock screenshots remain
-      historical. The release validation was completed later as QA v704 below.
+      test at 1.3× font scale. Final rotated-keycap source v705 passed all 11 debug instrumentation
+      cases and all 11 minified-release cases by direct runner invocation on API-36 ARM64 16 KB;
+      Gradle UTP orchestration itself failed locally with `Operation not permitted`. Current-source
+      840×1920 captures are `visuals/screenshots/home-bocal-curved-dock-v705-api36-16kb.png` and
+      `visuals/screenshots/home-bocal-curved-dock-large-font-1_3x-v705-api36-16kb.png`; visual
+      review passed; the focused large-font navigation test passed on debug and minified release,
+      and font scale was restored to 1.0. v702 flat-dock screenshots remain historical.
 
 - [x] Current curved-dock minified-release replay (2026-10-13): QA candidate
-      `0.6.3-curved-dock-qa`, versionCode 704, built as release APK/AAB and passed
+      `0.6.4-curved-dock-qa`, versionCode 705, built as release APK/AAB and passed
       `tools/release/verify_android_release.sh`. Both artifacts use the committed QA/debug signer,
       not a production release identity. The minified APK and its release instrumentation APK were
       installed on the API-36 ARM64 16 KB emulator (`getconf PAGE_SIZE` = 16384); direct
@@ -88,12 +89,12 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       navigation. The Gradle `connectedReleaseAndroidTest` task built both APKs but its UTP device
       orchestration failed with a local `Operation not permitted`; no Gradle connected-test success
       is claimed. Artifact SHA-256: APK
-      `32f2bb894a9362a1a3c0be700a1d0b53fcd82b9157e7c9f4a0a21ed62b7365c5`; AAB
-      `6a316f8527505c81f7cba815ea8ce7cb755fe6ce65729c5db68489db7a4babf5`. This QA run did not
+      `392551f44fccc1a72b7ba9bb96766c588e270a27c26af10279abcbce5639239e`; AAB
+      `73eabb62ff5e83d5af23f6fca32cd646c389abf53ddaeb2b665840efd80f5d7a`. This QA run did not
       advance the checked-in version ledger (697). Production signing/hosted CI and physical-device
       acceptance remain open.
 
-- [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
+- [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 83 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,
       Atelier/photo, arrow, arrow-reference and web-viewer contracts, and immutable Actions refs in
       all seven workflow files.
@@ -159,11 +160,11 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
 - [ ] Production signer and hosted release-workflow pass, physical-device/range matrix,
       real-athlete-data and 30-real-session acceptance, and owner approval remain open. The v0.5.1
       V4→V9 synthetic replay verifies legacy session/shot-score row preservation; V4 had no
-      standalone scorecards to migrate. No real athlete database was used. Corrected-source v702
-      artifacts are QA/debug-signed and not distributable. Current-source floating-dock captures
-      at normal and 1.3× font scale are checked in above; physical-device visual acceptance remains
-      open. The version ledger (697) is still above the actual published v4; v702 was temporary QA
-      and did not advance the ledger.
+      standalone scorecards to migrate. No real athlete database was used. Current-source v704 APK/
+      AAB and instrumentation are QA/debug-signed and not distributable. Current curved-dock
+      captures at normal and 1.3× font scale are checked in above; physical-device visual acceptance
+      remains open. The version ledger (697) is still above the actual published v4; v704 was
+      temporary QA and did not advance the ledger.
 
 ## 1. Required device matrix
 
