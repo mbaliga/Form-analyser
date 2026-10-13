@@ -148,6 +148,24 @@ class ReleaseWorkflowContract(unittest.TestCase):
             self.assertNotIn("android-emulator-runner@1dcd0090116d15e7c562f8db72807de5e036a4ed", workflow)
             self.assertIn("android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0", workflow)
 
+    def test_current_app_smoke_runs_on_android_15_in_debug_and_signed_release(self) -> None:
+        android_workflow = (ROOT / ".github" / "workflows" / "android.yml").read_text()
+        debug_lane = android_workflow.split(
+            "      - name: Run debug smoke tests on Android 15", maxsplit=1
+        )[1].split("\n      - name:", maxsplit=1)[0]
+        self.assertIn("api-level: 35", debug_lane)
+        self.assertIn("target: google_apis", debug_lane)
+        self.assertIn(":app-android:connectedDebugAndroidTest", debug_lane)
+
+        release_lane = self.workflow.split(
+            "      - name: Run signed minified release smoke tests on Android 15", maxsplit=1
+        )[1].split("\n      - name:", maxsplit=1)[0]
+        self.assertIn("api-level: 35", release_lane)
+        self.assertIn("target: google_apis", release_lane)
+        self.assertIn("CROCODYL_RELEASE_STORE_FILE", release_lane)
+        self.assertIn(":app-android:connectedReleaseAndroidTest", release_lane)
+        self.assertIn("-PcrocodylInstrumentRelease=true", release_lane)
+
     def test_artifact_preflight_binds_package_identity(self) -> None:
         verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
         self.assertIn("package: name='xyz.mdhv.formanalyser'", verifier)

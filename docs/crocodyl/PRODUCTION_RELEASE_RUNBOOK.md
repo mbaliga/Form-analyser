@@ -56,8 +56,8 @@ signing inputs or expected certificate fingerprint are absent.
    dispatch with an explicit code of at least 698 (and higher if the previous production APK
    requires it). Prerelease/build labels also require an explicit versionCode.
 2. Require the release workflow to pass JVM tests, Android debug/release unit tests, release lint,
-   debug connected smoke, signed minified release connected smoke on both standard and explicit
-   16 KB page-size API-36 emulators, generated-asset drift checks,
+   Android 15 (API 35) signed minified-release smoke, debug connected smoke, signed minified-release
+   smoke on standard and explicit 16 KB page-size API-36 emulators, generated-asset drift checks,
    signed artifact preflight, and checksum publication. The CI now retains connected-test XML/HTML
    reports and emulator logcat for debug and minified-release runs even when a smoke step fails;
    download those diagnostics before triaging an intermittent instrumentation failure.

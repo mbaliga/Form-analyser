@@ -24,6 +24,15 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       production signing; physical-device/range matrix, 30-real-session acceptance, hosted release
       workflow and owner approval remain open.
 
+- [x] Release-safeguard definition: Android CI now runs the debug smoke suite on API 35 in addition
+      to API 36 and API 36/16 KB; the production release workflow runs the signed minified-release
+      smoke on API 35 as well as API 36 and API 36/16 KB. Static release-workflow contracts (17/17),
+      immutable action refs (7 workflows), and YAML parsing pass locally. These are workflow-source
+      checks only; no hosted run is claimed. Repository secrets and a successful hosted release run
+      remain outstanding. Attempts to boot the local API-35 ARM64 AVD exit 132 during emulator
+      startup; no v707 API-35 runtime pass is claimed until the hosted lane or a supported device
+      completes.
+
 - [x] Initial QA v706 navbar correction (commit `b404f91`, superseded for current source by v707): Crocodyl follows the Bocal mobile
       reference's single floating bottom dock, five always-labeled destinations and highlighted
       active tab; Quick Add/Settings are outside the dock. Temporary QA v706 compiled and both app

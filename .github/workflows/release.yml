@@ -148,6 +148,23 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
+      - name: Run signed minified release smoke tests on Android 15
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore
+          CROCODYL_RELEASE_STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          CROCODYL_RELEASE_KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+          RELEASE_VERSION: ${{ steps.ver.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ steps.ver.outputs.version_code }}
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
       - name: Run signed minified release smoke tests on 16 KB page-size emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:

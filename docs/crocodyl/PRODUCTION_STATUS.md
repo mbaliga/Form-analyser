@@ -16,9 +16,11 @@ libraries per artifact, pose-model hash and backup resources. APK SHA-256
 `9a7986fdbb4b6e7a53b8a1651d667d9553cd37e46cd2a2ad0100ec2388d2032a`; AAB SHA-256
 `3b77a708d596abf3d0f5498c14d181c4ab3f8127d919d277e50718b59d5622aa`. These are QA/debug-key
 artifacts, not production-signed or physically accepted. Physical-device review remains open.
-The debug and minified-release 16 KB GitHub Actions lanes now explicitly set/assert 1.3× font scale;
-16 release-workflow contract tests and immutable action-ref checks pass locally. Hosted CI has not
-run for this checkout.
+The debug and signed minified-release workflows now include Android 15 (API 35) smoke lanes in
+addition to API 36 and API-36/16 KB; the 16 KB lanes explicitly assert 16,384-byte pages and 1.3×
+font scale. Seventeen release-workflow contract tests, YAML parsing and immutable action-ref checks
+pass locally. The local API-35 ARM64 AVD exits 132 during emulator startup, so no v707 API-35
+runtime result is claimed; hosted CI has not run for this checkout.
 Release version resolution now also enforces a checked-in high-water mark of 697: semver such as
 0.6.1 (601) is rejected, and the next candidate must use a higher explicit code or a version whose
 derived code is higher. Before production release, reconcile the ledger with the actual previous
