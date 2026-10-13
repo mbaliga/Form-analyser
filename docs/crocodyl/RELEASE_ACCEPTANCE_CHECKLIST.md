@@ -8,6 +8,21 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-14)
 
+- [x] Current-source QA v711 (`0.6.4-bocal-arc-qa`, versionCode 711): startup now presents a
+      branded accessible loading surface during the safe database-open gate; it never exposes a
+      blank screen or app content before that gate completes. The API-35 ARM64 debug instrumentation
+      suite passes 11/11, including Bocal curved-rail swipe selection and all primary-tab flows.
+      Release debug/release unit tests and `lintRelease` pass; QA APK/AAB assemble and integrated
+      release preflight passes, including target SDK, manifest, signer identity, pose model and 16 KB
+      alignment checks. The exact minified QA release also passes 11/11 connected instrumentation
+      tests on API 35 ARM64. Current-source
+      Home screenshot: `visuals/screenshots/home-bocal-web-arc-current-api35.png`. QA APK SHA-256
+      `a1eb2623a2bccf0f84f72f0734fdbce1fcaf06368bfef00e5cedcd5a6e0d28cc`; AAB SHA-256
+      `6e08cddc70cdca9b19f67d622b12bddc250705348c15066fd008f375a243e961`; R8 mapping SHA-256
+      `6afc7de40e03df932e91ac664ea6542ce489e91c397732d407e16e4b0de5a949` (34,935,687 bytes).
+      This is QA/debug signing, not production distribution. API-36/16 KB current-source, physical
+      device/range, production signer and hosted-release acceptance remain separate gates.
+
 - [x] Bocal current web-source arc parity is now reflected in Crocodyl source: curved upper-rail
       destination readout, tangent-angled 44 dp context controls, and lower-rail drag preview with
       release-to-open. Current-source QA v710 debug/release unit tests, `lintRelease`, APK/AAB
