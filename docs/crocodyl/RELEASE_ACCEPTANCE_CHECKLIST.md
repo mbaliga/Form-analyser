@@ -6,9 +6,23 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
-### Incremental evidence after the current QA artifact (2026-10-13)
+### Incremental evidence after the current QA artifact (2026-10-14)
 
-- [x] Current-source QA v708 (`0.6.4-bocal-arc-qa`): replaces the flat dock with Bocal's curved,
+- [x] Current-source QA v709 (`0.6.4-bocal-arc-qa`, versionCode 709): final-source debug and
+      release Android unit tests, `lintRelease`, APK/AAB assembly, and release artifact preflight
+      pass with the repository QA/debug signer. `./gradlew test --rerun-tasks` executed all 50
+      cross-module JVM tasks successfully; `:core-equipment:test --rerun-tasks` passed after a
+      warning-only FOC nullable-access cleanup. The exact minified v709 release passed all 11
+      instrumentation tests on API 35 ARM64 (4 KB pages) and all 11 on API-36 ARM64/16 KB at
+      1.3× font. The API-36 page size/font scale were asserted and the disposable emulator font was
+      restored. APK SHA-256
+      `7abb18cfdc1d30ce9651080339437ac3e1c83dc2df226cf178119808e630fd08`; AAB SHA-256
+      `815dcacd36da45a4eb50d041997de2f5f2f6749bd6d44a4fdd1785fd69019cc2`; R8 mapping SHA-256
+      `5b46ed049593b4dbeeb49be24159fc06846b0bba557cb034c6cdff23bfa2409c`. The APK/AAB are QA-
+      signed, not production-distributable. Hosted workflow, production key, physical-device/range
+      acceptance, 30-real-session evidence, and owner approval remain open.
+
+- [x] Historical QA v708 (`0.6.4-bocal-arc-qa`): replaces the flat dock with Bocal's curved,
       two-level interaction pattern—Recurve context, Quick Add and Settings side actions, and five
       direct-select curved destinations. The selected destination expands into a labelled keycap;
       inactive destinations remain icon-forward with full accessible names. Removed the duplicate

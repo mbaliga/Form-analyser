@@ -1,8 +1,23 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-13
+Last reviewed: 2026-10-14
 
-Bocal navigation correction / QA v708 (2026-10-13): Crocodyl now follows Bocal's curved,
+QA v709 final-source validation (2026-10-14): local QA candidate `0.6.4-bocal-arc-qa`,
+versionCode 709, was built after the current navigation and equipment-validator sources. Debug and
+release Android unit tests, `lintRelease`, APK/AAB assembly, and the cross-module JVM test suite
+passed; the JVM suite was forced to rerun all 50 tasks. `core-equipment:test` was rerun after
+removing a redundant nullable access in FOC calculation, and the compiler warning is gone. The
+exact minified QA release passed 11/11 instrumentation tests on API 35 (4 KB pages) and 11/11 on
+API 36 ARM64/16 KB at 1.3× font. The API-36 page size and font scale were asserted and restored.
+Integrated artifact preflight passed. APK SHA-256
+`7abb18cfdc1d30ce9651080339437ac3e1c83dc2df226cf178119808e630fd08`; AAB SHA-256
+`815dcacd36da45a4eb50d041997de2f5f2f6749bd6d44a4fdd1785fd69019cc2`; R8 mapping SHA-256
+`5b46ed049593b4dbeeb49be24159fc06846b0bba557cb034c6cdff23bfa2409c` (34,833,247 bytes).
+These artifacts use the QA/debug signing identity and are not distributable. The Android 15 and
+16 KB evidence is local emulator evidence, not the required hosted workflow or physical-device/
+range acceptance.
+
+Bocal navigation correction / prior QA v708 (2026-10-13): Crocodyl now follows Bocal's curved,
 two-level mobile dock interaction: a Recurve context control, Quick Add and Settings side actions,
 and five direct-select destinations on a curved lower rail. The selected destination expands to a
 labelled keycap; inactive destinations stay icon-forward while retaining full accessible names.
@@ -31,9 +46,9 @@ build does not produce a non-empty, version-matched R8 mapping. It uploads that 
 SHA-256 digest as a 90-day Actions artifact, deliberately separate from public release assets.
 Actions artifacts are downloadable by signed-in users with repository read access; do not treat
 this artifact as confidential. The runbook/checklist require verifying and archiving it durably.
-The new 52-test release contract suite, immutable action-ref check and workflow YAML parse pass
-locally; this workflow change has not yet run in hosted CI. Full Gradle replay could not run in this
-shell because `/usr/bin/java` is only a launcher shim and no Java runtime is installed here.
+The 52-test release contract suite, immutable action-ref check and workflow YAML parse pass locally;
+this workflow change has not yet run in hosted CI. The task-local JDK/SDK were found outside the
+default shell PATH, enabling the local Gradle/JVM/Android replay recorded above.
 
 Large-font visual QA follow-up (2026-10-13): the exact v696 Home screen is now captured at normal
 scale in `visuals/screenshots/home-hyle-two-arc-v696-api36-16kb.png`. Review at 1.3× exposed Home
@@ -536,7 +551,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | QA v708 debug/release unit tests, release lint, APK/AAB assembly and artifact preflight pass. Direct 11/11 debug/release instrumentation passes on API-36 ARM64 16 KB; focused dock interaction passes at 1.3× font. v708 artifacts remain QA/debug-signed. Production signer/hosted CI, API-35 runtime, physical/range matrix, real-athlete data and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Final-source QA v709 debug/release unit tests, release lint, cross-module JVM tests, APK/AAB assembly and artifact preflight pass. Minified-release smoke passes 11/11 on API 35 and API-36 ARM64/16 KB at 1.3× font. Production signer/hosted CI and run, physical/range matrix, real-athlete data and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -547,6 +562,8 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: pending commit — clear the FOC validator compiler warning and record exact-source v709 API-35/16 KB QA evidence.
+- Crocodyl: `596bc1b` — correct R8 artifact accessibility claims for the public repository.
 - Crocodyl: `2169d26` — require and preserve the versioned R8 mapping and digest for crash diagnostics.
 - Crocodyl: `a1d61ae` — align the mobile navigation interaction with current Bocal source; add v708 screenshots and runtime coverage.
 - Crocodyl: `a4fd94e` — reject debuggable and test-only Android release artifacts.
