@@ -255,14 +255,6 @@ class ProductionSmokeTest {
         var startedAt = 0L
         try {
             runBlocking { prefs.setOnboarded(true) }
-            if (hasCameraHardware) {
-                // Keep the denial branch deterministic even when this AVD or device was previously
-                // used to grant camera access. Restore the exact initial permission state below.
-                instrumentation.uiAutomation.revokeRuntimePermission(
-                    appContext.packageName,
-                    Manifest.permission.CAMERA,
-                )
-            }
             ActivityScenario.launch(MainActivity::class.java).use {
                 assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
                 waitForAthlete(scoringRepository)
@@ -280,7 +272,7 @@ class ProductionSmokeTest {
                 clickTextEventually(instrumentation, "Start recording")
                 assertTextEventually(instrumentation, "Quick check-in")
                 clickTextEventually(instrumentation, "Skip")
-                if (hasCameraHardware) {
+                if (hasCameraHardware && !cameraPermissionWasGranted) {
                     dismissCameraPermissionPromptIfShown(instrumentation)
                     assertAnyTextEventually(
                         instrumentation,
@@ -288,6 +280,16 @@ class ProductionSmokeTest {
                             "Camera permission is required to analyse form.",
                             "Camera access is blocked. Allow it in app settings to analyse form.",
                         ),
+                    )
+                } else if (hasCameraHardware) {
+                    assertTextEventually(
+                        instrumentation,
+                        "No archer detected — frame the full body, side-on.",
+                    )
+                    assertTextAbsent(instrumentation, "Camera permission is required to analyse form.")
+                    assertTextAbsent(
+                        instrumentation,
+                        "Camera access is blocked. Allow it in app settings to analyse form.",
                     )
                 } else {
                     assertTextEventually(
@@ -361,10 +363,12 @@ class ProductionSmokeTest {
                 }
                 runBlocking { prefs.setOnboarded(wasOnboarded) }
             } finally {
-                if (hasCameraHardware && cameraPermissionWasGranted) {
-                    instrumentation.uiAutomation.grantRuntimePermission(
-                        appContext.packageName,
-                        Manifest.permission.CAMERA,
+                if (hasCameraHardware) {
+                    assertEquals(
+                        "The training flow must not change camera permission state",
+                        cameraPermissionWasGranted,
+                        appContext.checkSelfPermission(Manifest.permission.CAMERA) ==
+                            PackageManager.PERMISSION_GRANTED,
                     )
                 }
             }

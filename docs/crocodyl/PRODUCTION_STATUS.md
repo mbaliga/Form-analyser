@@ -2,14 +2,14 @@
 
 Last reviewed: 2026-10-14
 
-Camera-denial instrumentation hardening (2026-10-14): the training-start smoke test now revokes
-CAMERA permission before entering capture on camera-equipped devices, so an earlier user grant can
-no longer silently skip the denied-permission path. It restores CAMERA permission only when the
-test observed it granted at entry; a device without a camera still verifies the explicit no-camera
-state. `:app-android:assembleReleaseAndroidTest` passed, and the QA/debug-signed minified release
-suite passed 11/11 on the existing API-35 ARM64 emulator. The JUnit XML records this case with no
-failures. The app APK/AAB were not changed by this instrumentation-only update; this adds API-35
-local emulator evidence, not hosted CI or physical-device acceptance.
+Camera-permission instrumentation hardening (2026-10-14): the training-start smoke now captures the
+permission state before launch, explicitly checks the denied or granted capture UI, and asserts the
+flow did not mutate the permission state. It leaves permission setup to the device harness because
+revoking a live app's permission can terminate the instrumentation process. A fresh UTP install
+exercises denial; host-configured API-35 replays verified both pre-granted and pre-revoked states.
+The minified QA release suite passed 11/11 in each permission state, with unchanged permission
+postconditions asserted. The app APK/AAB were not changed by this instrumentation-only update;
+hosted CI and physical-device acceptance remain open.
 
 QA v709 final-source validation (2026-10-14): local QA candidate `0.6.4-bocal-arc-qa`,
 versionCode 709, was built after the current navigation and equipment-validator sources. Debug and
@@ -571,7 +571,7 @@ signing remains open.
 
 ## Current commits
 
-- Crocodyl: `84ebb2e` — deterministically exercise capture with camera permission denied and restore its initial grant state; record API-35 release-test evidence.
+- Crocodyl: `84ebb2e` — record API-35 release-test evidence and add explicit camera-permission state handling to the training smoke.
 - Crocodyl: `994ed7a` — clear the FOC validator compiler warning and record exact-source v709 API-35/16 KB QA evidence.
 - Crocodyl: `596bc1b` — correct R8 artifact accessibility claims for the public repository.
 - Crocodyl: `2169d26` — require and preserve the versioned R8 mapping and digest for crash diagnostics.
