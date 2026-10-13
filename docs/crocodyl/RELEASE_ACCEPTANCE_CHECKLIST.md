@@ -96,17 +96,17 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       This does not establish production-signing continuity. Physical-device review remains pending.
       Older two-arc screenshots are not current-source acceptance evidence.
 
-- [x] Current-source Bocal/Hyle curved-dock correction (2026-10-13): the previous v702 flat pill
-      was not the current Bocal interaction and must not be accepted as parity evidence. Crocodyl
-      now uses the two-rail 400×150 scaled geometry in
+- [x] Historical two-rail Bocal/Hyle experiment (2026-10-13; superseded by v706/v707): owner review
+      found that this two-rail 400×150 geometry did not match the visible Bocal floating dock.
+      The experiment used
       `docs/design/HYLE_ARC_NAVIGATION_DIRECTIVE.md`, with context text on the upper Bézier, Quick
       Add/Settings side actions, and five direct-select lower-curve tabs. Kotlin compilation,
       Android debug/release unit tests, `lintRelease`, and four navbar contract tests pass. All 11
       API-36 ARM64 16 KB connected debug tests passed, as did the focused direct-navigation
       test at 1.3× font scale. Final rotated-keycap source v705 passed all 11 debug instrumentation
       cases and all 11 minified-release cases by direct runner invocation on API-36 ARM64 16 KB;
-      Gradle UTP orchestration itself failed locally with `Operation not permitted`. Current-source
-      840×1920 captures are `visuals/screenshots/home-bocal-curved-dock-v705-api36-16kb.png` and
+      Gradle UTP orchestration itself failed locally with `Operation not permitted`. Its v705
+      captures are `visuals/screenshots/home-bocal-curved-dock-v705-api36-16kb.png` and
       `visuals/screenshots/home-bocal-curved-dock-large-font-1_3x-v705-api36-16kb.png`; visual
       review passed; the focused large-font navigation test passed on debug and minified release,
       and font scale was restored to 1.0. v702 flat-dock screenshots remain historical.
@@ -191,11 +191,11 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
 - [ ] Production signer and hosted release-workflow pass, physical-device/range matrix,
       real-athlete-data and 30-real-session acceptance, and owner approval remain open. The v0.5.1
       V4→V9 synthetic replay verifies legacy session/shot-score row preservation; V4 had no
-      standalone scorecards to migrate. No real athlete database was used. Current-source v704 APK/
-      AAB and instrumentation are QA/debug-signed and not distributable. Current curved-dock
-      captures at normal and 1.3× font scale are checked in above; physical-device visual acceptance
-      remains open. The version ledger (697) is still above the actual published v4; v704 was
-      temporary QA and did not advance the ledger.
+      standalone scorecards to migrate. No real athlete database was used. The latest v707 APK/AAB
+      and instrumentation are QA/debug-signed and not distributable. Current floating-dock captures
+      at normal, compact width and 1.3× font scale are checked in above; physical-device visual
+      acceptance remains open. The version ledger (697) is still above the actual published v4; v707
+      was temporary QA and did not advance the ledger.
 
 ## 1. Required device matrix
 
