@@ -244,6 +244,10 @@ class ProductionSmokeTest {
         val repository = Repository(appContext)
         val database = xyz.mdhv.formanalyser.app.data.AppDatabase.get(appContext)
         val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val hasCameraHardware =
+            appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+        val cameraPermissionWasGranted =
+            appContext.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         var athleteId: String? = null
         var preexistingSessionIds = emptySet<String>()
@@ -251,6 +255,14 @@ class ProductionSmokeTest {
         var startedAt = 0L
         try {
             runBlocking { prefs.setOnboarded(true) }
+            if (hasCameraHardware) {
+                // Keep the denial branch deterministic even when this AVD or device was previously
+                // used to grant camera access. Restore the exact initial permission state below.
+                instrumentation.uiAutomation.revokeRuntimePermission(
+                    appContext.packageName,
+                    Manifest.permission.CAMERA,
+                )
+            }
             ActivityScenario.launch(MainActivity::class.java).use {
                 assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
                 waitForAthlete(scoringRepository)
@@ -268,10 +280,7 @@ class ProductionSmokeTest {
                 clickTextEventually(instrumentation, "Start recording")
                 assertTextEventually(instrumentation, "Quick check-in")
                 clickTextEventually(instrumentation, "Skip")
-                if (appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) &&
-                    appContext.checkSelfPermission(Manifest.permission.CAMERA) !=
-                        PackageManager.PERMISSION_GRANTED
-                ) {
+                if (hasCameraHardware) {
                     dismissCameraPermissionPromptIfShown(instrumentation)
                     assertAnyTextEventually(
                         instrumentation,
@@ -280,7 +289,7 @@ class ProductionSmokeTest {
                             "Camera access is blocked. Allow it in app settings to analyse form.",
                         ),
                     )
-                } else if (!appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)) {
+                } else {
                     assertTextEventually(
                         instrumentation,
                         "This device has no camera, so form capture is unavailable here. Scoring, training logs and everything else still work.",
@@ -310,46 +319,55 @@ class ProductionSmokeTest {
             assertEquals("PRE", precheckin!!.kind)
             assertTrue("The check-in skip must be recorded", precheckin.skipped)
         } finally {
-            athleteId?.let { id ->
-                val createdSessions = runBlocking {
-                    repository.allSessions(id).filter {
-                        it.id !in preexistingSessionIds && it.startedAtEpochMs >= startedAt
+            try {
+                athleteId?.let { id ->
+                    val createdSessions = runBlocking {
+                        repository.allSessions(id).filter {
+                            it.id !in preexistingSessionIds && it.startedAtEpochMs >= startedAt
+                        }
                     }
-                }
-                runBlocking {
-                    database.withTransaction {
-                        createdSessions.forEach { session ->
-                            database.openHelper.writableDatabase.execSQL(
-                                "DELETE FROM session_context WHERE sessionId = ?",
-                                arrayOf(session.id),
-                            )
-                            session.preCheckinId?.let { checkinId ->
+                    runBlocking {
+                        database.withTransaction {
+                            createdSessions.forEach { session ->
                                 database.openHelper.writableDatabase.execSQL(
-                                    "DELETE FROM soreness WHERE checkinId = ?",
-                                    arrayOf(checkinId),
+                                    "DELETE FROM session_context WHERE sessionId = ?",
+                                    arrayOf(session.id),
                                 )
+                                session.preCheckinId?.let { checkinId ->
+                                    database.openHelper.writableDatabase.execSQL(
+                                        "DELETE FROM soreness WHERE checkinId = ?",
+                                        arrayOf(checkinId),
+                                    )
+                                    database.openHelper.writableDatabase.execSQL(
+                                        "DELETE FROM checkin WHERE id = ?",
+                                        arrayOf(checkinId),
+                                    )
+                                }
                                 database.openHelper.writableDatabase.execSQL(
-                                    "DELETE FROM checkin WHERE id = ?",
-                                    arrayOf(checkinId),
+                                    "DELETE FROM sessions WHERE id = ?",
+                                    arrayOf(session.id),
                                 )
                             }
-                            database.openHelper.writableDatabase.execSQL(
-                                "DELETE FROM sessions WHERE id = ?",
-                                arrayOf(session.id),
-                            )
-                        }
-                        if (preexistingTrainingDefaults == null) {
-                            database.openHelper.writableDatabase.execSQL(
-                                "DELETE FROM session_default WHERE athleteId = ?",
-                                arrayOf(id),
-                            )
-                        } else {
-                            database.athleteFeatureDao().upsertDefaults(preexistingTrainingDefaults)
+                            if (preexistingTrainingDefaults == null) {
+                                database.openHelper.writableDatabase.execSQL(
+                                    "DELETE FROM session_default WHERE athleteId = ?",
+                                    arrayOf(id),
+                                )
+                            } else {
+                                database.athleteFeatureDao().upsertDefaults(preexistingTrainingDefaults)
+                            }
                         }
                     }
                 }
+                runBlocking { prefs.setOnboarded(wasOnboarded) }
+            } finally {
+                if (hasCameraHardware && cameraPermissionWasGranted) {
+                    instrumentation.uiAutomation.grantRuntimePermission(
+                        appContext.packageName,
+                        Manifest.permission.CAMERA,
+                    )
+                }
             }
-            runBlocking { prefs.setOnboarded(wasOnboarded) }
         }
     }
 

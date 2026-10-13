@@ -2,6 +2,15 @@
 
 Last reviewed: 2026-10-14
 
+Camera-denial instrumentation hardening (2026-10-14): the training-start smoke test now revokes
+CAMERA permission before entering capture on camera-equipped devices, so an earlier user grant can
+no longer silently skip the denied-permission path. It restores CAMERA permission only when the
+test observed it granted at entry; a device without a camera still verifies the explicit no-camera
+state. `:app-android:assembleReleaseAndroidTest` passed, and the QA/debug-signed minified release
+suite passed 11/11 on the existing API-35 ARM64 emulator. The JUnit XML records this case with no
+failures. The app APK/AAB were not changed by this instrumentation-only update; this adds API-35
+local emulator evidence, not hosted CI or physical-device acceptance.
+
 QA v709 final-source validation (2026-10-14): local QA candidate `0.6.4-bocal-arc-qa`,
 versionCode 709, was built after the current navigation and equipment-validator sources. Debug and
 release Android unit tests, `lintRelease`, APK/AAB assembly, and the cross-module JVM test suite

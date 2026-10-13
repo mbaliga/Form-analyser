@@ -8,6 +8,13 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-14)
 
+- [x] Camera-denial instrumentation is now deterministic on camera-equipped devices: the test
+      revokes CAMERA before the capture flow and restores the original grant if there was one. The
+      release instrumentation target compiles, and the QA/debug-signed minified-release suite
+      passes 11/11 on API-35 ARM64; the exact JUnit XML names
+      `startingTrainingPersistsTheSelectedRoundAndSkippedPrecheckin` with zero failures. The app
+      APK/AAB did not change; physical-device and hosted workflow gates remain open.
+
 - [x] Current-source QA v709 (`0.6.4-bocal-arc-qa`, versionCode 709): final-source debug and
       release Android unit tests, `lintRelease`, APK/AAB assembly, and release artifact preflight
       pass with the repository QA/debug signer. `./gradlew test --rerun-tasks` executed all 50
