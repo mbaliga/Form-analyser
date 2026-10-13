@@ -26,7 +26,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 - [x] Release-safeguard definition: Android CI now runs the debug smoke suite on API 35 in addition
       to API 36 and API 36/16 KB; the production release workflow runs the signed minified-release
-      smoke on API 35 as well as API 36 and API 36/16 KB. Static release-workflow contracts (17/17),
+      smoke on API 35 as well as API 36 and API 36/16 KB. Static release-workflow contracts (18/18),
       immutable action refs (7 workflows), and YAML parsing pass locally. These are workflow-source
       checks only; no hosted run is claimed. Repository secrets and a successful hosted release run
       remain outstanding. Attempts to boot the local API-35 ARM64 AVD exit 132 during emulator

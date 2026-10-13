@@ -107,6 +107,12 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn(":app-android:testReleaseUnitTest", self.workflow)
         self.assertIn(":app-android:lintRelease", self.workflow)
 
+    def test_release_contracts_run_when_release_workflow_or_tests_change(self) -> None:
+        ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
+        self.assertIn('".github/workflows/**"', ci)
+        self.assertIn('"tools/release/**"', ci)
+        self.assertIn("python3 -m unittest discover -s tools/release -p 'test_*.py'", ci)
+
     def test_play_candidate_targets_api_36_in_build_and_emulator_jobs(self) -> None:
         app_build = (ROOT / "app-android" / "build.gradle.kts").read_text()
         self.assertRegex(app_build, r"compileSdk\s*=\s*36\b")

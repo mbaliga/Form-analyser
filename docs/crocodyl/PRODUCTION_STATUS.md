@@ -18,7 +18,7 @@ libraries per artifact, pose-model hash and backup resources. APK SHA-256
 artifacts, not production-signed or physically accepted. Physical-device review remains open.
 The debug and signed minified-release workflows now include Android 15 (API 35) smoke lanes in
 addition to API 36 and API-36/16 KB; the 16 KB lanes explicitly assert 16,384-byte pages and 1.3×
-font scale. Seventeen release-workflow contract tests, YAML parsing and immutable action-ref checks
+font scale. Eighteen release-workflow contract tests, YAML parsing and immutable action-ref checks
 pass locally. The local API-35 ARM64 AVD exits 132 during emulator startup, so no v707 API-35
 runtime result is claimed; hosted CI has not run for this checkout.
 Release version resolution now also enforces a checked-in high-water mark of 697: semver such as
