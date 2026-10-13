@@ -11,6 +11,14 @@ The minified QA release suite passed 11/11 in each permission state, with unchan
 postconditions asserted. The app APK/AAB were not changed by this instrumentation-only update;
 hosted CI and physical-device acceptance remain open.
 
+Artifact-output correction (2026-10-14): connected-test builds without explicit version properties
+left release output metadata at `0.6.0-spec-dev` / versionCode 6. Those outputs were not used as
+release evidence. Reassembled the exact QA candidate `0.6.4-bocal-arc-qa` / versionCode 709 and
+reran integrated APK/AAB preflight successfully. Current QA APK SHA-256
+`0b1a967194a5a8b4a4385cd9e1c97374edd5e8b94e90fa1a335094b54983ba29`; AAB SHA-256
+`2da58084fb7208b2698e8cecb09375ee87fe3c58a81336642e3774eabe939b7f`. This is QA/debug signing,
+not a production-distributable artifact.
+
 QA v709 final-source validation (2026-10-14): local QA candidate `0.6.4-bocal-arc-qa`,
 versionCode 709, was built after the current navigation and equipment-validator sources. Debug and
 release Android unit tests, `lintRelease`, APK/AAB assembly, and the cross-module JVM test suite
@@ -18,10 +26,10 @@ passed; the JVM suite was forced to rerun all 50 tasks. `core-equipment:test` wa
 removing a redundant nullable access in FOC calculation, and the compiler warning is gone. The
 exact minified QA release passed 11/11 instrumentation tests on API 35 (4 KB pages) and 11/11 on
 API 36 ARM64/16 KB at 1.3× font. The API-36 page size and font scale were asserted and restored.
-Integrated artifact preflight passed. APK SHA-256
-`7abb18cfdc1d30ce9651080339437ac3e1c83dc2df226cf178119808e630fd08`; AAB SHA-256
-`815dcacd36da45a4eb50d041997de2f5f2f6749bd6d44a4fdd1785fd69019cc2`; R8 mapping SHA-256
-`5b46ed049593b4dbeeb49be24159fc06846b0bba557cb034c6cdff23bfa2409c` (34,833,247 bytes).
+Integrated artifact preflight passed. Current fresh QA APK SHA-256
+`0b1a967194a5a8b4a4385cd9e1c97374edd5e8b94e90fa1a335094b54983ba29`; AAB SHA-256
+`2da58084fb7208b2698e8cecb09375ee87fe3c58a81336642e3774eabe939b7f`; R8 mapping SHA-256
+`5b46ed049593b4dbeeb49be24159fc06846b0bba557cb034c6cdff23bfa2409c` (34,833,386 bytes).
 These artifacts use the QA/debug signing identity and are not distributable. The Android 15 and
 16 KB evidence is local emulator evidence, not the required hosted workflow or physical-device/
 range acceptance.

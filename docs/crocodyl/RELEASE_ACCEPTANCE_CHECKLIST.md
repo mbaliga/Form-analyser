@@ -22,9 +22,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       warning-only FOC nullable-access cleanup. The exact minified v709 release passed all 11
       instrumentation tests on API 35 ARM64 (4 KB pages) and all 11 on API-36 ARM64/16 KB at
       1.3× font. The API-36 page size/font scale were asserted and the disposable emulator font was
-      restored. APK SHA-256
-      `7abb18cfdc1d30ce9651080339437ac3e1c83dc2df226cf178119808e630fd08`; AAB SHA-256
-      `815dcacd36da45a4eb50d041997de2f5f2f6749bd6d44a4fdd1785fd69019cc2`; R8 mapping SHA-256
+      restored. After connected tests left default-version build outputs, the exact v709 candidate
+      was reassembled and passed integrated APK/AAB preflight. Current APK SHA-256
+      `0b1a967194a5a8b4a4385cd9e1c97374edd5e8b94e90fa1a335094b54983ba29`; AAB SHA-256
+      `2da58084fb7208b2698e8cecb09375ee87fe3c58a81336642e3774eabe939b7f`; R8 mapping SHA-256
       `5b46ed049593b4dbeeb49be24159fc06846b0bba557cb034c6cdff23bfa2409c`. The APK/AAB are QA-
       signed, not production-distributable. Hosted workflow, production key, physical-device/range
       acceptance, 30-real-session evidence, and owner approval remain open.
