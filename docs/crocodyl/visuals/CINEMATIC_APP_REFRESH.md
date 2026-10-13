@@ -345,9 +345,11 @@ debug smoke tests passed on API-36 ARM64 16 KB; the focused direct navigation te
 and
 [`home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png`](screenshots/home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png).
 Both were visually reviewed and system font scale was restored to 1.0. Large-font labels compact
-visually where needed while accessibility labels remain complete. Minified-release connected
-validation and physical-device acceptance are still pending; do not treat the v702 flat-dock images
-as evidence for the current source.
+visually where needed while accessibility labels remain complete. QA minified-release v704 passed
+artifact preflight and all 11 release instrumentation cases by direct runner invocation on the
+16 KB emulator. The Gradle connected-release task itself failed in local UTP orchestration with
+`Operation not permitted`; physical-device acceptance is still pending. Do not treat the v702
+flat-dock images as evidence for the current source.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 

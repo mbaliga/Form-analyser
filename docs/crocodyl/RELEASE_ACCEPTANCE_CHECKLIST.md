@@ -75,8 +75,23 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       test at 1.3× font scale. Current-source 840×1920 captures are
       `visuals/screenshots/home-bocal-curved-dock-v703-api36-16kb.png` and
       `visuals/screenshots/home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png`; visual
-      review passed and font scale was restored to 1.0. Minified-release connected validation and
-      physical-device review remain open; v702 flat-dock screenshots remain historical.
+      review passed and font scale was restored to 1.0. At this checkpoint, minified-release
+      validation and physical-device review were still open; v702 flat-dock screenshots remain
+      historical. The release validation was completed later as QA v704 below.
+
+- [x] Current curved-dock minified-release replay (2026-10-13): QA candidate
+      `0.6.3-curved-dock-qa`, versionCode 704, built as release APK/AAB and passed
+      `tools/release/verify_android_release.sh`. Both artifacts use the committed QA/debug signer,
+      not a production release identity. The minified APK and its release instrumentation APK were
+      installed on the API-36 ARM64 16 KB emulator (`getconf PAGE_SIZE` = 16384); direct
+      `am instrument` execution passed all 11 `ProductionSmokeTest` cases, including primary-tab
+      navigation. The Gradle `connectedReleaseAndroidTest` task built both APKs but its UTP device
+      orchestration failed with a local `Operation not permitted`; no Gradle connected-test success
+      is claimed. Artifact SHA-256: APK
+      `32f2bb894a9362a1a3c0be700a1d0b53fcd82b9157e7c9f4a0a21ed62b7365c5`; AAB
+      `6a316f8527505c81f7cba815ea8ce7cb755fe6ce65729c5db68489db7a4babf5`. This QA run did not
+      advance the checked-in version ledger (697). Production signing/hosted CI and physical-device
+      acceptance remain open.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,

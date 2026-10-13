@@ -58,8 +58,12 @@ test passed again at 1.3× font scale. Fresh reviewed captures are
 restored to 1.0. Minified-release connected validation and physical-device review remain open. See
 `visuals/CINEMATIC_APP_REFRESH.md` and
 `../design/HYLE_ARC_NAVIGATION_DIRECTIVE.md` for the correction context and geometry contract.
-Physical-device review remains open. The older upper-arc gesture test and two-arc screenshots are
-historical only. Prior v701 evidence remains valid only for that exact older source.
+QA release v704 (`0.6.3-curved-dock-qa`) also passed artifact preflight and all 11 minified-release
+instrumentation tests when the release APK/test APK were installed and invoked directly on the
+16 KB emulator. Gradle's `connectedReleaseAndroidTest` built both APKs but UTP orchestration failed
+with local `Operation not permitted`, so this is a direct instrumentation pass, not a Gradle task
+pass. The artifacts are QA-signed; no ledger change was made. Production signing/hosted CI and
+physical-device review remain open. The older flat-dock screenshots are historical only.
 
 Earlier two-rail implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and upper-rail swipe instrumentation on API-36 16 KB AVDs. Their screenshots
