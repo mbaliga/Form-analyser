@@ -39,9 +39,15 @@ source. QA candidate v700 compiled; `testDebugUnitTest` passed, and all 11 `Prod
 cases passed on the API-36 ARM64 16 KB emulator, including an injected upper-rail swipe to Calendar
 and direct Calendar/Home tab selection. Corrected-source v701 also passed all 11 tests in the
 minified release variant on that emulator; `lintRelease` passed as well. The v701 test APK was signed
-with the QA/debug key only. The corrected navbar still needs a fresh checked-in visual capture and
-physical-device acceptance. Production signing, artifact preflight for v701, hosted CI, and range
-validation remain open.
+with the QA/debug key only. Its release APK/AAB passed the local `verify_android_release.sh`
+preflight (APK ZIP alignment, AAB 16 KB alignment, manifest/version/target SDK, pose-model hash,
+backup resources and QA signer agreement); exact APK SHA-256
+`5b3fe80fa514ab7ddd982a1c3ed6a2e3d441eaea0abeb6d1e5818d8e0a48eeed`, AAB SHA-256
+`de84277ff8237a5ff63518db27fae10844e47685f95265b8d01c74e1e51aa508`. The exact APK cold-launched
+with `Status: ok`, and its process remained live after four seconds without fatal/class-loading
+errors in the checked logs. This is still QA-key evidence, not production distribution proof. The
+corrected navbar still needs a fresh checked-in visual capture and physical-device acceptance.
+Production signing, hosted CI, and range validation remain open.
 
 Earlier two-rail implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and upper-rail swipe instrumentation on API-36 16 KB AVDs. Their screenshots

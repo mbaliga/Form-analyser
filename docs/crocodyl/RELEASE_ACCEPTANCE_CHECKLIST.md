@@ -51,7 +51,11 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       context actions, upper-rail preview/commit, and direct destination tabs. Corrected-source QA
       v700 passed `testDebugUnitTest` and all 11 connected `ProductionSmokeTest` cases; QA v701 passed
       all 11 in the minified release variant on the API-36 ARM64 16 KB emulator. Both release-test
-      installables used only the committed QA/debug signer, and `lintRelease` passed. Fresh
+      installables used only the committed QA/debug signer, and `lintRelease` passed. The v701
+      release APK/AAB passed local artifact preflight; APK SHA-256
+      `5b3fe80fa514ab7ddd982a1c3ed6a2e3d441eaea0abeb6d1e5818d8e0a48eeed`, AAB SHA-256
+      `de84277ff8237a5ff63518db27fae10844e47685f95265b8d01c74e1e51aa508`. The exact APK cold-launched
+      and remained live for four seconds without a fatal/class-loading error in checked logs. Fresh
       checked-in capture and physical-device acceptance remain open.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
