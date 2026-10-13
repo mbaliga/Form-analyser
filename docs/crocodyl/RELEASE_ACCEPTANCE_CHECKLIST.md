@@ -102,15 +102,19 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. On an API-36 ARM64 16 KB
       AVD, clean-installed and cold-launched v0.5.1, updated it in place to corrected-source v701
       using the same signer, then cold-launched v701 (`Status: ok`, process live after four seconds,
-      no fatal/class-loading errors in checked logs). The v0.5.1 install had clean app data; existing
-      profile/rig/session migration and physical-device update acceptance remain unproven. The
-      high-water mark 697 is above the actual published code 4.
+      no fatal/class-loading errors in checked logs). Repeated with completed v0.5.1 onboarding for
+      synthetic athlete `Test` and active rig `My bow`; after update, Home still showed `My bow` and
+      Settings → Profile & Identity still showed `Test`. This verifies profile and active-rig
+      persistence on the emulator. Session/score migration and physical-device update acceptance
+      remain open. The high-water mark 697 is above the actual published code 4.
 - [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across 7 workflows.
-- [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, migration
-      from a data-bearing production install, 30-real-session acceptance and owner approval remain
-      open. Corrected-source v701 remains QA/debug-signed and is not distributable. The v701 current
+- [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, session/
+      score migration from a data-bearing production install, 30-real-session acceptance and owner
+      approval remain open. The v0.5.1-to-v701 emulator test verified synthetic profile/rig
+      persistence but does not replace physical-device acceptance. Corrected-source v701 remains
+      QA/debug-signed and is not distributable. The v701 current
       navbar captures at normal and 1.3× font scale are checked in above; physical-device visual
       acceptance remains open. The version ledger (697) is verified above the actual published v4.
 
@@ -121,8 +125,8 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
 - [ ] Camera-less or large-screen Android device (the app must still support scoring, logging,
       progress, body, coach, and export without capture).
 - [x] At least one clean install and update over the previous published production APK; see the
-      v0.5.1 → v701 API-36 16 KB emulator replay above. A data-bearing profile migration and device
-      matrix are still open.
+      v0.5.1 → v701 API-36 16 KB emulator replay above. Onboarding profile and active rig survived;
+      session/score migration and the physical device matrix remain open.
 - [ ] If a supported x86 emulator is used, repeat the non-camera flows and record the emulator image.
 
 ### Previous v678 evidence (2026-10-11; historical baseline)

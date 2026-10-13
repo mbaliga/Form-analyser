@@ -28,12 +28,14 @@ release asset and matched its SHA-256 `84e21831c085905f2beedea704c3998b32e76c4ed
 to GitHub's release metadata. The APK is `xyz.mdhv.formanalyser`, versionCode 4, targetSdk 35, and
 uses certificate `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. The checked-in
 high-water mark is 697, safely above the actual published code 4. On the disposable API-36 ARM64
-16 KB AVD (`PAGE_SIZE=16384`), installed and cold-launched v0.5.1, then updated it in place to the
-exact v701 minified QA APK using the same certificate. Package Manager reported versionCode 701;
-the updated app cold-launched with `Status: ok`, remained live after four seconds, and emitted no
-fatal/class-loading errors in the checked log. The AVD had clean app data when v0.5.1 was installed,
-so this proves package/signature/update launch compatibility, not migration of an existing profile,
-rig or session database. Production signing and physical-device update acceptance remain open.
+16 KB AVD (`PAGE_SIZE=16384`), clean-installed and cold-launched v0.5.1, completed onboarding as
+synthetic athlete `Test` with active rig `My bow`, then updated it in place to the exact v701
+minified QA APK using the same certificate. Package Manager reported versionCode 701; the updated
+app cold-launched with `Status: ok`, remained live after four seconds, and emitted no fatal/class-
+loading errors in the checked log. After update, Home still showed `My bow` and Settings → Profile &
+Identity still showed `Test`. This verifies the onboarding profile and active-rig data survived the
+published-APK upgrade on this emulator; session/score history migration and physical-device update
+acceptance remain open. Production signing remains open.
 
 Navbar parity correction (2026-10-13): owner review correctly noted that current Crocodyl did not
 match Bocal. The previous single-rail correction was wrong: Bocal's current Hyle contract is one
