@@ -594,6 +594,7 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `55b8490` — record current-source QA v710 hashes, lint/unit/preflight evidence, and open connected-smoke gate.
 - Crocodyl: `b537196` — index the current web-source arc parity implementation and its v710 validation boundary.
 - Crocodyl: `5ff0d53` — match Bocal's current web-source arc with curved contextual text, angled controls, and rail scrub preview/release navigation; record validation boundary.
 - Crocodyl: `3781a86` — correct QA v709 artifact hashes after restoring the explicit versioned release outputs.
