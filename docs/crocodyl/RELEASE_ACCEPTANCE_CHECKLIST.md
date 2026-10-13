@@ -109,21 +109,33 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       no fatal/class-loading errors in checked logs). Repeated with completed v0.5.1 onboarding for
       synthetic athlete `Test` and active rig `My bow`; after update, Home still showed `My bow` and
       Settings → Profile & Identity still showed `Test`. This verifies profile and active-rig
-      persistence on the emulator. Session/score migration and physical-device update acceptance
-      remain open. Android emitted the 16 KB ELF-alignment compatibility warning for v0.5.1 and ran
+      persistence on the emulator. The separate data-bearing V4→V9 replay below now verifies
+      legacy training session/shot-score preservation. Android emitted the 16 KB ELF-alignment compatibility warning for v0.5.1 and ran
       it in compatible mode; the v701 preflight independently confirms current native libraries are
       16 KB aligned. The high-water mark 697 is above the actual published code 4.
+- [x] Data-bearing v0.5.1 database migration replay (2026-10-13): the actual public APK opened on
+      the API-36 ARM64 16 KB AVD and created its Room V4 database. Three synthetic legacy shots
+      (scores 9, 10, 8) and one synthetic training session/rig were inserted into that V4 schema,
+      then the app was upgraded in place to minified QA APK v702 with the same signing identity.
+      After launch and same-signer debug instrumentation, `PRAGMA user_version` reported 9; one
+      session and all three shot rows (score sum 27) remained. The new `score_session` table existed
+      and had zero rows, as expected: the V4 production schema predates standalone scorecards
+      (introduced by V4→V5). This verifies legacy training-session/shot-score preservation, not
+      migration of pre-existing standalone scorecards. The full v1→v9 migration test now also seeds
+      and asserts preservation of those shot-score rows. All records were synthetic; no real athlete
+      database was used. Production signer continuity, physical-device acceptance and real-session
+      validation remain open.
 - [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across 7 workflows.
-- [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, session/
-      score migration from a data-bearing production install, 30-real-session acceptance and owner
-      approval remain open. The v0.5.1-to-v701 emulator test verified synthetic profile/rig
-      persistence but does not replace physical-device acceptance. Corrected-source v701 remains
-      QA/debug-signed and is not distributable. The v701 current
-      current-source floating-dock captures at normal and 1.3× font scale are checked in above;
-      physical-device visual acceptance remains open. The version ledger (697) is verified above the
-      actual published v4; v702 was a temporary QA build and did not advance the ledger.
+- [ ] Production signer and hosted release-workflow pass, physical-device/range matrix,
+      real-athlete-data and 30-real-session acceptance, and owner approval remain open. The v0.5.1
+      V4→V9 synthetic replay verifies legacy session/shot-score row preservation; V4 had no
+      standalone scorecards to migrate. No real athlete database was used. Corrected-source v702
+      artifacts are QA/debug-signed and not distributable. Current-source floating-dock captures
+      at normal and 1.3× font scale are checked in above; physical-device visual acceptance remains
+      open. The version ledger (697) is still above the actual published v4; v702 was temporary QA
+      and did not advance the ledger.
 
 ## 1. Required device matrix
 
@@ -133,7 +145,8 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       progress, body, coach, and export without capture).
 - [x] At least one clean install and update over the previous published production APK; see the
       v0.5.1 → v701 API-36 16 KB emulator replay above. Onboarding profile and active rig survived;
-      session/score migration and the physical device matrix remain open.
+      the synthetic V4→V9 session/shot-score replay is also recorded above. Physical-device and
+      real-user data acceptance remain open.
 - [ ] If a supported x86 emulator is used, repeat the non-camera flows and record the emulator image.
 
 ### Previous v678 evidence (2026-10-11; historical baseline)

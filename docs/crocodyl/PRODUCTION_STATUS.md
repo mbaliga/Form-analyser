@@ -37,7 +37,10 @@ minified QA APK using the same certificate. Package Manager reported versionCode
 app cold-launched with `Status: ok`, remained live after four seconds, and emitted no fatal/class-
 loading errors in the checked log. After update, Home still showed `My bow` and Settings → Profile &
 Identity still showed `Test`. This verifies the onboarding profile and active-rig data survived the
-published-APK upgrade on this emulator; session/score history migration and physical-device update
+published-APK upgrade on this emulator. A later data-bearing replay seeded three synthetic shot
+scores and a training session in the actual V4 schema, then updated in place to v702; Room reached
+V9 and preserved one session plus all three scored shots. V4 has no standalone scorecard table, so
+no legacy scorecard migration could be exercised. Real athlete database and physical-device update
 acceptance remain open. Android displayed its 16 KB compatibility warning for the old v0.5.1 APK
 (`ELF alignment check failed`) and ran it in compatible mode; v701's current artifact preflight
 confirmed all packaged 64-bit native libraries are 16 KB aligned. Production signing remains open.
@@ -501,7 +504,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Corrected-source v701 APK/AAB passed local preflight, release lint, and 11/11 minified-release instrumentation on API-36 ARM64 16 KB; v700 debug passed 11/11. Normal and 1.3× screenshots are checked in. Actual public v0.5.1 APK (v4, digest/signature verified) updated in place to v701 and cold-launched on the same emulator; this used clean prior app data, so existing-profile migration is not proven. Production signer/hosted CI, physical/range matrix and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Corrected-source v702 APK/AAB passed local preflight and 11/11 minified-release instrumentation on API-36 ARM64 16 KB; debug passed 11/11. Normal and 1.3× floating-dock screenshots are checked in. Actual public v0.5.1 V4 database upgraded to V9 with synthetic legacy session and shot scores preserved; the old schema predates standalone scorecards. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

@@ -37,6 +37,12 @@ class AppDatabaseMigrationTest {
                 "INSERT INTO sessions (id, athleteId, startedAtEpochMs, drawWeightLbs, distanceMeters) " +
                     "VALUES ('s1', 'a1', 1234, 38.5, 70)"
             )
+            db.execSQL(
+                "INSERT INTO shots (id, sessionId, athleteId, indexInSession, featuresJson, score, isBaseline) VALUES " +
+                    "('shot1', 's1', 'a1', 1, '{}', 9.0, 1), " +
+                    "('shot2', 's1', 'a1', 2, '{}', 10.0, 1), " +
+                    "('shot3', 's1', 'a1', 3, '{}', 8.0, 1)"
+            )
 
             AppDatabase.MIGRATION_1_2.migrate(db)
             AppDatabase.MIGRATION_2_3.migrate(db)
@@ -50,6 +56,8 @@ class AppDatabaseMigrationTest {
             assertEquals("Legacy", scalar(db, "SELECT displayName FROM athletes WHERE id = 'a1'"))
             assertEquals("38.5", scalar(db, "SELECT drawWeightLbs FROM sessions WHERE id = 's1'"))
             assertEquals("rig_a1", scalar(db, "SELECT rigId FROM sessions WHERE id = 's1'"))
+            assertEquals("3", scalar(db, "SELECT COUNT(*) FROM shots WHERE sessionId = 's1'"))
+            assertEquals("27", scalar(db, "SELECT SUM(score) FROM shots WHERE sessionId = 's1'"))
             assertEquals("RH", scalar(db, "SELECT handedness FROM athletes WHERE id = 'a1'"))
             assertEquals("My bow", scalar(db, "SELECT name FROM rig WHERE id = 'rig_a1'"))
 
