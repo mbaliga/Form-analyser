@@ -595,7 +595,7 @@ signing remains open.
 ## Current commits
 
 - Crocodyl: `e15c557` — replace the blank database-open frame with an accessible branded loading surface; exercise the curved dock swipe and correct the Home-header test assumption.
-- Crocodyl: pending — index QA v711 artifact digests, API-35 debug/minified instrumentation evidence and current-source screenshot.
+- Crocodyl: `33841c9` — index QA v711 artifact digests, API-35 debug/minified instrumentation evidence and current-source screenshot.
 - Crocodyl: `55b8490` — record current-source QA v710 hashes, lint/unit/preflight evidence, and open connected-smoke gate.
 - Crocodyl: `b537196` — index the current web-source arc parity implementation and its v710 validation boundary.
 - Crocodyl: `5ff0d53` — match Bocal's current web-source arc with curved contextual text, angled controls, and rail scrub preview/release navigation; record validation boundary.
