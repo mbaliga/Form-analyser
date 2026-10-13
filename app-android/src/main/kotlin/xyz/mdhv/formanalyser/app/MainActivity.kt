@@ -513,6 +513,7 @@ private fun BottomBar(
         // tangent-aligned seats, and a raised active keycap that carries its label. The previous
         // double-arc/scrub interaction was a Crocodyl-only invention, not the shared pattern.
         val scale = maxWidth / 400.dp
+        val stageWidth = maxWidth
         val seatsX = listOf(.117f, .309f, .5f, .691f, .883f)
         val seatsY = listOf(.574f, .477f, .445f, .477f, .574f)
         val tilts = listOf(-9.6f, -4.83f, 0f, 4.83f, 9.6f)
@@ -549,7 +550,7 @@ private fun BottomBar(
                 val selected = current == dest
                 Box(
                     Modifier.align(Alignment.TopStart)
-                        .offset(x = maxWidth * seatsX[index] - 48.dp * scale, y = 100.dp * seatsY[index] - 21.dp * scale)
+                        .offset(x = stageWidth * seatsX[index] - 48.dp * scale, y = 100.dp * seatsY[index] - 21.dp * scale)
                         .width(96.dp * scale).height(42.dp * scale)
                         .graphicsLayer { rotationZ = tilts[index] }
                         .testTag("nav-tab-$dest"),

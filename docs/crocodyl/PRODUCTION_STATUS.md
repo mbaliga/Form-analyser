@@ -33,14 +33,16 @@ drag-to-scrub navigation did not match Bocal. Current source now follows Bocal's
 one shallow molded arc, five tangent-seated direct-tap destinations, and a raised active keycap
 that contains its label. Train and Add remain separate contextual controls above the arc; the
 second navigation arc and scrub-preview gesture are removed. `bocalStyleArcNavigationSelectsCalendar`
-now covers direct selection. Earlier two-arc QA remains historical evidence only. Capture a fresh
-post-change device screenshot and rerun the complete debug/minified-release smoke suites before
-claiming this revision's visual/test acceptance. Physical-device review remains open.
-The Android SDK/emulator are not mounted in the current checkout environment, so the Android
-instrumentation and fresh capture could not be rerun here. A CI-discovered source contract now checks
-the single-arc geometry, five destinations, separate context actions, and direct-tab smoke coverage;
-all 44 release-workflow/source contract tests pass. This static check is regression protection, not
-a substitute for Android compilation or runtime verification.
+now covers direct selection. Earlier two-arc QA remains historical evidence only. Current-source
+QA candidate v698 (`0.6.0-bocal-navbar-qa`) compiled and passed Android debug/release unit tests,
+`lintRelease`, and debug/test APK assembly. The complete debug and minified-release
+`ProductionSmokeTest` suites passed 11/11 each on API 36, ARM64, 16 KB pages; the focused Bocal-tab
+case also passed. The 840×1920 capture at
+`visuals/screenshots/home-bocal-single-arc-v698-api36-16kb.png` shows the fresh one-arc UI. These
+are emulator results with a QA/debug key, not production artifact preflight, CI, physical-device
+acceptance, or range validation. A CI-discovered source contract checks the single-arc geometry,
+five destinations, separate context actions, and direct-tab smoke coverage; all 44 release-workflow
+source contract tests pass. Physical-device review remains open.
 
 Earlier two-arc implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and the upper-arc swipe instrumentation on API-36 16 KB AVDs. Those results

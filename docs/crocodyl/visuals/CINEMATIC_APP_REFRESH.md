@@ -347,7 +347,24 @@ retained strictly as history and are not evidence of current source behavior.
 Historical verification (2026-10-13): the superseded two-arc build passed the old upper-rail swipe
 instrumentation on an API-36 ARM64 16 KB AVD. That run says nothing about the current Bocal-parity
 single-arc implementation. The checked-in captures in the Large-font Home follow-up below likewise
-show the two-arc design, not current navbar source. Fresh capture and test evidence are pending.
+show the two-arc design, not current navbar source. The current-source capture and test evidence are
+recorded below.
+
+## 2026-10-13 Bocal-parity navbar runtime verification
+
+Current-source QA candidate `0.6.0-bocal-navbar-qa`, versionCode 698, uses one molded mobile arc
+with five tangent-seated direct-select destinations and an active keycap label. Train and Add remain
+as separate controls above it. The fresh 840×1920 capture
+([`home-bocal-single-arc-v698-api36-16kb.png`](screenshots/home-bocal-single-arc-v698-api36-16kb.png))
+was reviewed on API 36 / ARM64 / 16 KB pages at normal font scale. Its profile data is synthetic and
+belongs only to the disposable emulator.
+
+Verification: `testDebugUnitTest`, `testReleaseUnitTest`, and `lintRelease` passed. The complete
+debug and minified-release `ProductionSmokeTest` suites each passed 11/11 on the API-36 16 KB AVD;
+the new direct Calendar-tab case passed in both. Debug and instrumentation APKs assembled at
+versionCode 698. The minified release test APK was signed only with the repository's QA/debug
+identity; this is not production signing or artifact-preflight evidence. Physical-device and
+large-font-with-current-navbar visual acceptance remain open.
 
 ## 2026-10-13 Large-font Home follow-up
 
