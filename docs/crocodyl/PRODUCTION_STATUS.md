@@ -53,9 +53,14 @@ The prior v705 arc implementation and screenshots are historical only. The revis
 compiled and assembled as QA version 706, and the focused Calendar direct-navigation smoke passed
 on the API-36 ARM64 16 KB emulator. The fresh Home capture is
 `visuals/screenshots/home-bocal-floating-dock-v706-api36-16kb.png`. Four navbar contract tests also
-pass. The broader debug unit-test task reported 24 failures in tests resolving a local Maven
-dependency (`MavenDependencyResolver` / `FileNotFoundException`); those are not represented as
-passing. Large-font and compact-width captures remain outstanding.
+pass. The focused navigation smoke also passed at 1.3× font scale; all five dock labels remain
+visible and the emulator scale was restored to 1.0. Capture:
+`visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v706-api36-16kb.png`. Compact-width
+review remains open. The broader debug unit-test task reported 24 failures because Robolectric could not create its
+lock file at `/Users/tulikapandey/.robolectric-download-lock` (`Operation not permitted`); this is
+sandbox filesystem denial, not evidence of failed app assertions. A retry redirecting `user.home`
+to `/private/tmp` could not start because the cached Gradle distribution/native platform requires
+writes under the protected Gradle home.
 
 Prior arc-source QA release v705 (`0.6.4-curved-dock-qa`) passed artifact preflight: APK SHA-256
 `392551f44fccc1a72b7ba9bb96766c588e270a27c26af10279abcbce5639239e`; AAB SHA-256
@@ -498,7 +503,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Final rotated-keycap source: debug and minified-release direct instrumentation 11/11 each on API-36 ARM64 16 KB; v705 APK/AAB passed local preflight. Normal/1.3× current-source screenshots checked in. Public v0.5.1 V4 database upgraded to V9 with synthetic training-session and shot-score data preserved. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Current Bocal-style floating dock source compiled/assembled as temporary QA v706; focused Calendar navigation passed on API-36 ARM64 16 KB and four navbar contract tests passed. Current screenshot at `visuals/screenshots/home-bocal-floating-dock-v706-api36-16kb.png`. Broader debug unit run is blocked by sandbox denial creating `/Users/tulikapandey/.robolectric-download-lock`; no full-suite pass is claimed. Prior v705 artifacts/screenshots are historical. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

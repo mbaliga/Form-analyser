@@ -8,6 +8,19 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-13)
 
+- [x] Current-source navbar correction (commit `b404f91`): Crocodyl now follows the Bocal mobile
+      reference's single floating bottom dock, five always-labeled destinations and highlighted
+      active tab; Quick Add/Settings are outside the dock. Temporary QA v706 compiled and both app
+      and instrumentation APKs assembled. The focused Calendar direct-navigation smoke passed on
+      the API-36 ARM64 16 KB emulator; four navbar contract tests passed. Fresh 840×1920 capture:
+      `visuals/screenshots/home-bocal-floating-dock-v706-api36-16kb.png`. Debug unit-test execution
+      is not accepted as passing: Robolectric could not create `/Users/tulikapandey/.robolectric-download-lock`
+      under the sandbox. The focused smoke passed again at 1.3× font scale; all five labels remained
+      visible and font scale was restored to 1.0. Capture:
+      `visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v706-api36-16kb.png`.
+      Compact-width visuals, minified-release current-source smoke, physical-device review,
+      production signing, hosted CI and owner approval remain open.
+
 - [x] Previous-source QA release `0.6.0-navbar-qa-20261013` / versionCode 696 APK and AAB passed
       `tools/release/verify_android_release.sh`: targetSdk 36, merged-manifest policy, matching
       QA/debug signer, APK ZIP alignment, AAB `PAGE_ALIGNMENT_16K`, 11 aligned 64-bit ELF
