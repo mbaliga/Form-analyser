@@ -38,6 +38,9 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       key and are not production-distributable.
       These v696/v697 navbar captures and test results predate the requested Bocal-parity correction
       to a single direct-select arc; they are historical evidence, not acceptance of current source.
+- [x] Three CI-discovered navbar contract tests pass: single arc/five tabs, separate Train/Add
+      controls, no scrub gesture, and direct Calendar tab smoke coverage. This is source-level
+      regression protection only; Android compile, connected smoke and a fresh capture remain open.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,
@@ -80,8 +83,10 @@ an update over the actual previous production APK, 30-real-session acceptance, o
 - [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, update over
       the actual previous production APK, 30-real-session acceptance and owner approval remain open.
       The current v697 APK/AAB use the committed QA/debug key and are not distributable as a
-      production release. Navbar and 1.3× large-font emulator captures are complete; physical-device
-      visual acceptance remains open. Verify and set `tools/release/highest_issued_version_code.txt`
+      production release. The previous two-arc navbar captures are historical and do not verify the
+      current Bocal-parity single arc; a fresh current-source emulator capture and Android smoke run
+      are pending. The 1.3× large-font capture is from v697 and also predates the navbar correction.
+      Physical-device visual acceptance remains open. Verify and set `tools/release/highest_issued_version_code.txt`
       to at least the actual previous production APK's code before triggering a release. The earlier
       lower-rail screenshot is explicitly superseded.
 

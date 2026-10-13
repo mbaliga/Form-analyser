@@ -36,6 +36,11 @@ second navigation arc and scrub-preview gesture are removed. `bocalStyleArcNavig
 now covers direct selection. Earlier two-arc QA remains historical evidence only. Capture a fresh
 post-change device screenshot and rerun the complete debug/minified-release smoke suites before
 claiming this revision's visual/test acceptance. Physical-device review remains open.
+The Android SDK/emulator are not mounted in the current checkout environment, so the Android
+instrumentation and fresh capture could not be rerun here. A CI-discovered source contract now checks
+the single-arc geometry, five destinations, separate context actions, and direct-tab smoke coverage;
+all 44 release-workflow/source contract tests pass. This static check is regression protection, not
+a substitute for Android compilation or runtime verification.
 
 Earlier two-arc implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and the upper-arc swipe instrumentation on API-36 16 KB AVDs. Those results
