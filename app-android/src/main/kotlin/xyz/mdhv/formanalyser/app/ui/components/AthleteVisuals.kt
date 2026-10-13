@@ -53,7 +53,6 @@ fun CrocodylHero(
     onManageRigs: () -> Unit,
     onStartSession: () -> Unit,
     onScore: () -> Unit,
-    onSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -121,14 +120,6 @@ fun CrocodylHero(
                             style = MaterialTheme.typography.headlineMedium,
                             color = Color.White,
                         )
-                    }
-                    IconButton(
-                        onClick = onSettings,
-                        modifier = Modifier.size(42.dp).clip(CircleShape)
-                            .background(Color.Black.copy(alpha = .48f))
-                            .border(1.dp, Color.White.copy(alpha = .16f), CircleShape),
-                    ) {
-                        Icon(Icons.Filled.Settings, "Settings", tint = Color.White, modifier = Modifier.size(19.dp))
                     }
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

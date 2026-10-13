@@ -1,4 +1,4 @@
-"""Keep Crocodyl's mobile primary navigation aligned with Bocal's floating dock."""
+"""Keep Crocodyl's mobile primary navigation aligned with Bocal's curved stage."""
 
 from pathlib import Path
 import unittest
@@ -18,22 +18,24 @@ def bottom_bar_source() -> str:
 
 
 class NavbarContractTest(unittest.TestCase):
-    def test_mobile_nav_uses_bocal_floating_dock_and_five_tabs(self) -> None:
+    def test_mobile_nav_uses_bocal_curved_stage_and_five_tabs(self) -> None:
         source = bottom_bar_source()
-        self.assertIn("RoundedCornerShape(24.dp)", source)
-        self.assertIn("heightIn(min = 68.dp)", source)
-        self.assertIn("Color(0xFF182622)", source)
+        self.assertIn('"RECURVE  ·  RANGE"', source)
+        self.assertIn('testTag("nav-context-recurve")', source)
+        self.assertIn("DockSeat(46.8f, 107.4f", source)
+        self.assertIn("DockSeat(353.2f, 107.4f", source)
         for route in ("HOME", "TRAIN", "PROGRESS", "BODY", "CALENDAR"):
             self.assertIn(f"Routes.{route} to", source)
         self.assertIn("selectable(selected = selected, role = Role.Tab", source)
-        self.assertIn("Text(\n                    label,", source)
         self.assertIn("contentDescription = label", source)
 
     def test_destination_icons_are_above_labels_and_active_tab_is_filled(self) -> None:
         source = bottom_bar_source()
-        self.assertIn("Icon(icon, label", source)
-        self.assertIn("if (selected) Modifier.background(Color(0xFF182622))", source)
-        self.assertIn("Hyle.AccentBright else Color(0xFF77777D)", source)
+        self.assertIn("Icon(icon, null", source)
+        self.assertIn("if (selected) Modifier.background(Color(0xFFE6E2D8))", source)
+        self.assertIn("if (active)", source)
+        self.assertIn('label = "Quick add"', source)
+        self.assertIn('label = "Settings"', source)
 
     def test_direct_tab_selection_is_exercised_in_android_smoke_test(self) -> None:
         source = bottom_bar_source()

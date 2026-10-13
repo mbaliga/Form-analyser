@@ -239,14 +239,12 @@ baseline v666; screenless motion capture remains a separate proposal pending own
 | Atelier | Keep the cinematic reference-led 3D/equipment experience; improve entry preview/framing only from the approved geometry/asset workflow. | Arrow components and variants stay separately inspectable; no fabricated reference accuracy. |
 | Fencing/Muay Thai/Bouldering | Sport-specific real/licensed image cards with clear beta/scaffold status; mature screens get a bespoke hero only as the feature merits it. | A beautiful card must not imply unimplemented analysis/adjudication. |
 
-## Navigation direction
+## Navigation direction (historical flat-dock interpretation; superseded by v708)
 
-Owner direction: Crocodyl's primary navigation should follow the Bocal mobile reference: a single
-floating dock, five icon-over-label destinations, and a filled capsule behind the active destination.
-Keep Crocodyl's sport-specific labels, Hyle violet active color, haptic feedback, badges, and Compose
-route/state/accessibility semantics. Do not substitute the separate Hyle two-arc exploration for
-this product-level Bocal interaction. Device screenshots, large-font/compact viewport behavior,
-gesture insets and touch-target acceptance remain required.
+The single-floating-dock prescription was based on an older Bocal screenshot and is superseded by
+the current-source parity work documented below. Preserve Crocodyl's route/state/accessibility
+semantics; device screenshots, large-font/compact viewport behavior, gesture insets and touch-target
+acceptance remain required.
 
 ## Acceptance checks for each visual slice
 
@@ -354,21 +352,15 @@ artifact preflight and all 11 release instrumentation cases by direct runner inv
 flat-dock images as evidence for the current source.
 
 ## 2026-10-13 prior two-arc navbar verification — historical
-## 2026-10-13 owner correction — match Bocal's visible dock
+## 2026-10-13 first owner correction — historical flat-dock interpretation
 
-Owner review caught that the tangent-following two-arc implementation was not the navbar interaction
-shown in Bocal's mobile reference. The reference uses a single floating rounded bottom bar with five
-evenly spaced destinations, icon-plus-label items, and a tinted active destination; Crocodyl now
-uses that direct-selection pattern with its own five destinations and Hyle radium accent. Quick Add
-and Settings moved to secondary-tab upper actions; Home keeps its cinematic hero and in-hero Settings
-action, with Train and Score as its primary shortcuts. These utility controls no longer flank or
-visually reshape the navigation dock. The current screenshot `145483.jpg` in the Bocal checkout is the visual comparison
-reference; the Hyle arc directive describes a separate design proposal and is not treated as shipped
-Bocal parity evidence. Previous Crocodyl arc captures and test results are retained as historical
-records, not current UI evidence. QA version 706 was the initial correction; v707 below supersedes it
-after finding a compact-width Home action-label clipping defect.
+The initial interpretation replaced the tangent-following arc with a single rounded bottom bar,
+based on an older Bocal screenshot. That interpretation was incomplete: current Bocal source uses a
+curved two-level stage with a contextual/action row and curved destination rail. The v706/v707 flat
+bar and its captures are historical artifacts only; current-source parity is implemented in v708
+below. The Bocal checkout remains untouched.
 
-## 2026-10-13 Bocal dock v707 compact-width follow-up
+## 2026-10-13 Bocal dock v707 compact-width follow-up — historical
 
 At a 720×1600 viewport, the Home hero's side-by-side Train/Score actions clipped their text even
 though the bottom dock itself fit. Below 400dp, these actions now stack icon over label (also the
@@ -382,6 +374,27 @@ The emulator was restored to normal size and font scale. Captures:
 [`home-bocal-floating-dock-large-font-1_3x-v707-release-api36-16kb.png`](screenshots/home-bocal-floating-dock-large-font-1_3x-v707-release-api36-16kb.png).
 The v706 compact capture is retained only to document the regression and its resolution. QA signing
 and physical-device acceptance remain separate production gates.
+
+## 2026-10-13 current Bocal curved-stage navigation — v708
+
+Compared Crocodyl against Bocal's current source interaction rather than relying on the older flat-
+dock screenshot. Crocodyl now presents the contextual Recurve/Range row and Quick Add/Settings
+actions above a curved destination rail. Five destinations remain directly selectable; the selected
+destination becomes a labelled keycap while inactive destinations are icon-forward and retain full
+TalkBack names. The duplicate Home-hero Settings action was removed. This updates navigation only;
+non-Recurve sports remain scaffolding.
+
+QA v708 (`0.6.4-bocal-arc-qa`) passed Android debug/release unit tests, `lintRelease`, release
+APK/AAB assembly and artifact preflight. Full minified-release and debug `ProductionSmokeTest` suites
+each passed 11/11 on API-36 ARM64/16 KB; focused navigation, Quick Add open/dismiss and Settings
+route passed at 1.3× font scale. Captures:
+[`home-bocal-arc-dock-v708-api36-16kb.png`](screenshots/home-bocal-arc-dock-v708-api36-16kb.png)
+and
+[`home-bocal-arc-dock-large-font-1_3x-v708-api36-16kb.png`](screenshots/home-bocal-arc-dock-large-font-1_3x-v708-api36-16kb.png).
+APK SHA-256 `479f3035d58484aab0be76de81c65a1bf40cd250758d36c977bbc27f9a27715f`; AAB SHA-256
+`714d3eaa3caca309f308330767799a953327a0737772268665942527edb9552e`. Both use the QA/debug
+certificate, not production signing. API-35 runtime/hosted CI and physical-device, gesture-inset,
+range and owner acceptance remain open.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 

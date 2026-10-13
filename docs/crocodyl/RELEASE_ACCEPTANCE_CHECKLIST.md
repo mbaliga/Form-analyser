@@ -8,9 +8,24 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-13)
 
-- [x] Current-source QA v707 (`0.6.4-compact-hero-qa`): fixes Home Train/Score label clipping
-      below 400dp by switching to icon-over-label controls, while retaining Bocal's floating
-      five-tab dock. Debug/release unit tests, `lintRelease`, APK/AAB assembly and
+- [x] Current-source QA v708 (`0.6.4-bocal-arc-qa`): replaces the flat dock with Bocal's curved,
+      two-level interaction pattern—Recurve context, Quick Add and Settings side actions, and five
+      direct-select curved destinations. The selected destination expands into a labelled keycap;
+      inactive destinations remain icon-forward with full accessible names. Removed the duplicate
+      Home-hero Settings action. Debug/release unit tests, `lintRelease`, release APK/AAB assembly,
+      and integrated artifact preflight pass. All 11 debug and all 11 minified-release smoke tests
+      pass on API-36 ARM64 16 KB; the focused dock test also passes at 1.3× font and verifies
+      navigation, Quick Add open/dismiss, and Settings. Emulator restored to 840×1920 and 1.0×.
+      Screenshots:
+      `visuals/screenshots/home-bocal-arc-dock-v708-api36-16kb.png` and
+      `visuals/screenshots/home-bocal-arc-dock-large-font-1_3x-v708-api36-16kb.png`. QA APK SHA-256
+      `479f3035d58484aab0be76de81c65a1bf40cd250758d36c977bbc27f9a27715f`; AAB SHA-256
+      `714d3eaa3caca309f308330767799a953327a0737772268665942527edb9552e`. QA signing is not
+      production signing; physical-device/range matrix, hosted release and owner approval remain open.
+
+- [x] Historical QA v707 (`0.6.4-compact-hero-qa`): fixes Home Train/Score label clipping
+      below 400dp by switching to icon-over-label controls, while retaining the then-current
+      then-current five-tab dock. Debug/release unit tests, `lintRelease`, APK/AAB assembly and
       `tools/release/verify_android_release.sh` all pass. Full 11/11 debug and minified-release
       instrumentation suites pass by direct runner on API-36 ARM64 16 KB. Focused dock navigation
       passes at 1.3× font on both variants and at 720×1600 on both variants; emulator restored to
@@ -22,7 +37,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       `3ba579b0ad237261d24916e3ec8714de96b01bb7cec5bd22a69fdb7aeb5caf05`; AAB SHA-256
       `da5f29a8548705411bf84cf99bc9284d33bbddb664fdc9dbd5632069a4553d38`. QA signing is not
       production signing; physical-device/range matrix, 30-real-session acceptance, hosted release
-      workflow and owner approval remain open.
+      workflow and owner approval remain open. Navbar visuals/behavior were superseded by v708 above.
 
 - [x] Release-safeguard definition: Android CI now runs the debug smoke suite on API 35 in addition
       to API 36 and API 36/16 KB; the production release workflow runs the signed minified-release
@@ -30,16 +45,16 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       immutable action refs (7 workflows), and YAML parsing pass locally. These are workflow-source
       checks only; no hosted run is claimed. Repository secrets and a successful hosted release run
       remain outstanding. Attempts to boot the local API-35 ARM64 AVD exit 132 during emulator
-      startup; no v707 API-35 runtime pass is claimed until the hosted lane or a supported device
+      startup; no v708 API-35 runtime pass is claimed until the hosted lane or a supported device
       completes.
 
 - [x] Release-manifest hardening (2026-10-13): artifact preflight now requires exactly one merged
       `application` element and rejects explicit `android:debuggable="true"` and
       `android:testOnly="true"`. Seven focused manifest regression tests and all 51 release-tool
-      tests pass. The current v707 QA APK/AAB passed the updated integrated preflight; this does not
+      tests pass. The current v708 QA APK/AAB passed the updated integrated preflight; this does not
       change the outstanding production signer, hosted release, or physical-device acceptance gates.
 
-- [x] Initial QA v706 navbar correction (commit `b404f91`, superseded for current source by v707): Crocodyl follows the Bocal mobile
+- [x] Initial QA v706 navbar correction (commit `b404f91`, superseded for current source by v708): Crocodyl follows the Bocal mobile
       reference's single floating bottom dock, five always-labeled destinations and highlighted
       active tab; Quick Add/Settings are outside the dock. Temporary QA v706 compiled and both app
       and instrumentation APKs assembled. The focused Calendar direct-navigation smoke passed on

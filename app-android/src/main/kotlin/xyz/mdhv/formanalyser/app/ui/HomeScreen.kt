@@ -27,7 +27,6 @@ fun HomeScreen(
     onLog: () -> Unit,
     onCoach: () -> Unit,
     onPairedSession: () -> Unit,
-    onSettings: () -> Unit,
 ) {
     LaunchedEffect(Unit) { vm.load() }
     val athlete by vm.athlete.collectAsState()
@@ -60,7 +59,6 @@ fun HomeScreen(
                 onManageRigs = onManageRigs,
                 onStartSession = onStartSession,
                 onScore = onScore,
-                onSettings = onSettings,
             )
         }
         item {

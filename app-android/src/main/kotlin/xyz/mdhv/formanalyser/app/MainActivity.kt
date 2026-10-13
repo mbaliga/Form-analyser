@@ -300,7 +300,7 @@ private fun MainShell() {
         topBar = {
             if (onTab) {
                 if (route != Routes.HOME) {
-                    TopRow(tabTitle(route), { quick = true }) { nav.navigate(Routes.SETTINGS) }
+                    TopRow(tabTitle(route))
                 }
             }
             // Every other route used to render with no bar, no back and no title. 22 of 27
@@ -316,6 +316,8 @@ private fun MainShell() {
             if (onTab) BottomBar(
                 route,
                 injuries > 0,
+                onQuickAdd = { quick = true },
+                onSettings = { nav.navigate(Routes.SETTINGS) },
             ) { navigateTab(nav, it) }
         },
     ) { pad ->
@@ -337,7 +339,6 @@ private fun MainShell() {
                     { nav.navigate(Routes.LOG) },
                     { nav.navigate(Routes.COACH) },
                     { nav.navigate(Routes.PAIRED_SESSION) },
-                    { nav.navigate(Routes.SETTINGS) },
                 )
             }
             composable(Routes.PAIRED_SESSION) { PairedSessionScreen(prefs) { nav.popBackStack() } }
@@ -471,7 +472,7 @@ private fun NavGraphBuilder.settingsGraph(
 }
 
 @Composable
-private fun TopRow(title: String, onQuickAdd: () -> Unit, onSettings: () -> Unit) {
+private fun TopRow(title: String) {
     Row(
         Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)
             .padding(start = 20.dp, end = 12.dp, top = 7.dp, bottom = 3.dp),
@@ -487,18 +488,6 @@ private fun TopRow(title: String, onQuickAdd: () -> Unit, onSettings: () -> Unit
             )
             Text(title, style = MaterialTheme.typography.titleMedium, color = Hyle.OnBackground)
         }
-        IconButton(
-            onClick = onQuickAdd,
-            modifier = Modifier.size(42.dp).clip(CircleShape).background(Hyle.SurfaceVariant.copy(alpha = .72f)),
-        ) {
-            Icon(Icons.Filled.Add, "Quick add", tint = Hyle.AccentBright, modifier = Modifier.size(19.dp))
-        }
-        IconButton(
-            onClick = onSettings,
-            modifier = Modifier.size(42.dp).clip(CircleShape).background(Hyle.SurfaceVariant.copy(alpha = .72f)),
-        ) {
-            Icon(Icons.Filled.Settings, "Settings", tint = Hyle.OnBackground, modifier = Modifier.size(19.dp))
-        }
     }
 }
 
@@ -506,6 +495,8 @@ private fun TopRow(title: String, onQuickAdd: () -> Unit, onSettings: () -> Unit
 private fun BottomBar(
     current: String?,
     badge: Boolean,
+    onQuickAdd: () -> Unit,
+    onSettings: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
     val items =
@@ -521,15 +512,14 @@ private fun BottomBar(
         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         onSelect(destination)
     }
-    Column(
-        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(horizontal = 16.dp, vertical = 2.dp),
-    ) {
+    Column(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars)) {
         ArcNavigationDock(
             items = items,
             current = current,
             badge = badge,
             onSelect = selectDestination,
+            onQuickAdd = onQuickAdd,
+            onSettings = onSettings,
         )
     }
 }

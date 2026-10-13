@@ -2,10 +2,26 @@
 
 Last reviewed: 2026-10-13
 
+Bocal navigation correction / QA v708 (2026-10-13): Crocodyl now follows Bocal's curved,
+two-level mobile dock interaction: a Recurve context control, Quick Add and Settings side actions,
+and five direct-select destinations on a curved lower rail. The selected destination expands to a
+labelled keycap; inactive destinations stay icon-forward while retaining full accessible names.
+The duplicate Home-hero Settings action was removed. Debug and minified-release unit tests, release
+lint, APK/AAB assembly, and integrated release preflight pass. All 11 debug and all 11 minified
+release `ProductionSmokeTest` cases pass on the API-36 ARM64 16 KB emulator; the focused navigation
+case also passes at 1.3× font scale and verifies Calendar↔Home, Quick Add open/dismiss, and Settings
+navigation. Emulator restored to 840×1920 and font scale 1.0. Screenshots are in
+`visuals/screenshots/home-bocal-arc-dock-v708-api36-16kb.png` and
+`visuals/screenshots/home-bocal-arc-dock-large-font-1_3x-v708-api36-16kb.png`. QA APK SHA-256
+`479f3035d58484aab0be76de81c65a1bf40cd250758d36c977bbc27f9a27715f`; AAB SHA-256
+`714d3eaa3caca309f308330767799a953327a0737772268665942527edb9552e`. These use the committed
+QA/debug signer, not the production signer; physical-device/range acceptance and hosted CI remain
+open.
+
 Release-manifest hardening (2026-10-13): artifact preflight now requires exactly one merged
 `application` element and rejects explicit `android:debuggable="true"` or
 `android:testOnly="true"`. Seven focused manifest regressions and all 51 release-tool tests pass;
-immutable action references still verify across seven workflows. The actual v707 QA APK/AAB passed
+immutable action references still verify across seven workflows. The actual v708 QA APK/AAB passed
 the updated integrated preflight, including signer, manifest, package/version/target SDK, 16 KB
 alignment, model and backup-resource checks. This is a verifier safeguard, not a new production
 artifact or production-signing/device-acceptance result.
@@ -55,24 +71,20 @@ acceptance remain open. Android displayed its 16 KB compatibility warning for th
 (`ELF alignment check failed`) and ran it in compatible mode; v701's current artifact preflight
 confirmed all packaged 64-bit native libraries are 16 KB aligned. Production signing remains open.
 
-Navbar owner correction (2026-10-13): the owner pointed out Crocodyl's curved navigation still did
-not match Bocal's visible mobile interaction. Bocal's screenshot shows a floating rounded bottom
-dock with five direct destinations, persistent icon/label pairs and a tinted active item. Crocodyl
-now uses that pattern; Quick Add and Settings are in the upper action row, not attached to the dock.
-The prior v705 arc implementation and v706 initial flat-dock screenshots are historical only. QA
-version 707 (`0.6.4-compact-hero-qa`) contains the current Bocal-style floating dock and fixes a
-compact-width clipping defect in Home's Train/Score actions by stacking icon over label below
-400dp. Debug/release unit tests, `lintRelease`, and app/instrumentation APK plus AAB assembly pass.
-Full 11/11 debug and minified-release instrumentation suites passed by direct runner on API-36 ARM64
-16 KB; focused navigation passed at 1.3× font on both variants and at 720×1600 on debug and release.
-The emulator was restored to 840×1920, font scale 1.0. Visual evidence:
-`visuals/screenshots/home-bocal-floating-dock-v707-api36-16kb.png`,
-`visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v707-release-api36-16kb.png`, and
-`visuals/screenshots/home-bocal-floating-dock-compact-720x1600-v707-api36-16kb.png`. Five navbar
-contract tests pass. Release APK/AAB passed local preflight with the QA/debug signer only: APK SHA256
-`3ba579b0ad237261d24916e3ec8714de96b01bb7cec5bd22a69fdb7aeb5caf05`; AAB SHA256
-`da5f29a8548705411bf84cf99bc9284d33bbddb664fdc9dbd5632069a4553d38`. Production signing, hosted
-CI, physical-device/range acceptance, 30-real-session evidence and owner approval remain open.
+Navbar owner correction (2026-10-13): the owner clarified Crocodyl should follow Bocal's current
+curved, two-level interaction, not the flat bar inferred from an older screenshot. The earlier v707
+five-tab dock is historical. Current source is QA v708 (`0.6.4-bocal-arc-qa`): Recurve context,
+Quick Add and Settings actions above five direct-select curved destinations. The selected destination
+expands into a labelled keycap; inactive items remain icon-forward with full accessibility names.
+The duplicate Home-hero Settings action was removed. Debug/release unit tests, `lintRelease`, APK/AAB
+assembly and artifact preflight pass. Full 11/11 debug and minified-release instrumentation suites
+pass on API-36 ARM64 16 KB; focused dock navigation/action smoke passes at 1.3× font. Evidence:
+`visuals/screenshots/home-bocal-arc-dock-v708-api36-16kb.png` and
+`visuals/screenshots/home-bocal-arc-dock-large-font-1_3x-v708-api36-16kb.png`. QA APK SHA256
+`479f3035d58484aab0be76de81c65a1bf40cd250758d36c977bbc27f9a27715f`; AAB SHA256
+`714d3eaa3caca309f308330767799a953327a0737772268665942527edb9552e`. Production signing, hosted
+CI, API-35 runtime, physical-device/range acceptance, 30-real-session evidence and owner approval
+remain open.
 
 Prior arc-source QA release v705 (`0.6.4-curved-dock-qa`) passed artifact preflight: APK SHA-256
 `392551f44fccc1a72b7ba9bb96766c588e270a27c26af10279abcbce5639239e`; AAB SHA-256
@@ -515,7 +527,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | QA v707 debug/release unit tests, release lint, APK/AAB assembly and artifact preflight pass. Direct 11/11 debug/release instrumentation passes on API-36 ARM64 16 KB; dock interaction also passes compact-width and 1.3× font checks. v707 release artifacts remain QA/debug-signed. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | QA v708 debug/release unit tests, release lint, APK/AAB assembly and artifact preflight pass. Direct 11/11 debug/release instrumentation passes on API-36 ARM64 16 KB; focused dock interaction passes at 1.3× font. v708 artifacts remain QA/debug-signed. Production signer/hosted CI, API-35 runtime, physical/range matrix, real-athlete data and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

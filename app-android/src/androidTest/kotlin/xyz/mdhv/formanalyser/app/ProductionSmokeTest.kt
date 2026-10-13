@@ -131,6 +131,12 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Home")
                 assertTextEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "Score")
+                assertTextEventually(instrumentation, "Current sport: Recurve")
+                assertTextEventually(instrumentation, "Quick add")
+                assertTextEventually(instrumentation, "Settings")
+                assertTextEventually(instrumentation, "Progress")
+                assertTextEventually(instrumentation, "Body")
+                assertTextEventually(instrumentation, "Calendar")
                 if (InstrumentationRegistry.getArguments().getString("captureDockVisual") == "true") {
                     val values = ContentValues().apply {
                         put(MediaStore.Images.Media.DISPLAY_NAME, "crocodyl-bocal-floating-dock-home.png")
@@ -157,6 +163,12 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "← prev")
                 clickBottomTabEventually(instrumentation, "Home")
                 assertTextEventually(instrumentation, "Find your rhythm.")
+                clickBottomTabEventually(instrumentation, "Quick add")
+                assertTextEventually(instrumentation, "Local actions · no account required")
+                instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+                assertTextEventually(instrumentation, "Find your rhythm.")
+                clickBottomTabEventually(instrumentation, "Settings")
+                assertTextEventually(instrumentation, "Settings")
             }
         } finally {
             runBlocking { prefs.setOnboarded(wasOnboarded) }
@@ -533,17 +545,23 @@ class ProductionSmokeTest {
         instrumentation: android.app.Instrumentation,
         label: String,
     ) {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        val minBottom = (context.resources.displayMetrics.heightPixels * 0.72f).toInt()
         val deadline = SystemClock.uptimeMillis() + 8_000
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
-            val target = root?.findClickableTextInBottomArea(label, minBottom)
+            val target = root?.findClickableText(label)
             if (target != null && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+            val named = root?.findTextNode(label)
+            if (named != null) {
+                val bounds = Rect()
+                named.getBoundsInScreen(bounds)
+                tap(instrumentation, bounds.centerX().toFloat(), bounds.centerY().toFloat())
+                return
+            }
             SystemClock.sleep(50)
         }
-        throw AssertionError("Could not click bottom navigation tab: $label")
+        val visibleText = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
+        throw AssertionError("Could not click bottom navigation tab: $label. Visible: $visibleText")
     }
 
     private fun scrollHomeUntilText(
@@ -596,6 +614,13 @@ class ProductionSmokeTest {
             val root = rootInActiveWindowOrNull(instrumentation)
             val target = root?.findClickableText(label)
             if (target != null && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+            val named = root?.findTextNode(label)
+            if (named != null) {
+                val bounds = Rect()
+                named.getBoundsInScreen(bounds)
+                tap(instrumentation, bounds.centerX().toFloat(), bounds.centerY().toFloat())
+                return
+            }
             SystemClock.sleep(50)
         }
         throw AssertionError("Could not click visible UI text: $label")
@@ -702,25 +727,47 @@ class ProductionSmokeTest {
         }
     }
 
-    private fun AccessibilityNodeInfo.findClickableTextInBottomArea(
-        expected: String,
-        minBottom: Int,
-    ): AccessibilityNodeInfo? {
-        val bounds = Rect()
-        getBoundsInScreen(bounds)
-        if (isClickable && bounds.bottom >= minBottom && containsText(this, expected)) return this
-        for (index in 0 until childCount) {
-            getChild(index)?.findClickableTextInBottomArea(expected, minBottom)?.let { return it }
-        }
-        return null
-    }
-
     private fun AccessibilityNodeInfo.findClickableText(expected: String): AccessibilityNodeInfo? {
-        if (isClickable && containsText(this, expected)) return this
+        if (isClickable && (text?.toString() == expected || contentDescription?.toString() == expected)) return this
         for (index in 0 until childCount) {
             getChild(index)?.findClickableText(expected)?.let { return it }
         }
         return null
+    }
+
+    private fun AccessibilityNodeInfo.findTextNode(expected: String): AccessibilityNodeInfo? {
+        if (text?.toString() == expected || contentDescription?.toString() == expected) return this
+        for (index in 0 until childCount) {
+            getChild(index)?.findTextNode(expected)?.let { return it }
+        }
+        return null
+    }
+
+    private fun tap(instrumentation: android.app.Instrumentation, x: Float, y: Float) {
+        val downTime = SystemClock.uptimeMillis()
+        val down = android.view.MotionEvent.obtain(
+            downTime,
+            downTime,
+            android.view.MotionEvent.ACTION_DOWN,
+            x,
+            y,
+            0,
+        )
+        val up = android.view.MotionEvent.obtain(
+            downTime,
+            downTime + 80,
+            android.view.MotionEvent.ACTION_UP,
+            x,
+            y,
+            0,
+        )
+        try {
+            instrumentation.uiAutomation.injectInputEvent(down, true)
+            instrumentation.uiAutomation.injectInputEvent(up, true)
+        } finally {
+            down.recycle()
+            up.recycle()
+        }
     }
 
     private fun AccessibilityNodeInfo.findContentDescriptionPrefix(expected: String): AccessibilityNodeInfo? {
