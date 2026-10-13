@@ -33,6 +33,12 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       startup; no v707 API-35 runtime pass is claimed until the hosted lane or a supported device
       completes.
 
+- [x] Release-manifest hardening (2026-10-13): artifact preflight now requires exactly one merged
+      `application` element and rejects explicit `android:debuggable="true"` and
+      `android:testOnly="true"`. Seven focused manifest regression tests and all 51 release-tool
+      tests pass. The current v707 QA APK/AAB passed the updated integrated preflight; this does not
+      change the outstanding production signer, hosted release, or physical-device acceptance gates.
+
 - [x] Initial QA v706 navbar correction (commit `b404f91`, superseded for current source by v707): Crocodyl follows the Bocal mobile
       reference's single floating bottom dock, five always-labeled destinations and highlighted
       active tab; Quick Add/Settings are outside the dock. Temporary QA v706 compiled and both app

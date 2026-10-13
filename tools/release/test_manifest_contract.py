@@ -18,6 +18,13 @@ PERMISSIONS = """
         A: android:name(0x01010003)="xyz.mdhv.formanalyser.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 """
 
+APPLICATION = """
+        E: application (line=6)
+"""
+
+APPLICATION_DEBUGGABLE = APPLICATION.rstrip() + "\n          A: android:debuggable(0x0101000f)=true\n"
+APPLICATION_TEST_ONLY = APPLICATION.rstrip() + "\n          A: android:testOnly(0x01010272)=true\n"
+
 LAUNCHER = """
           E: activity (line=10)
             A: android:name(0x01010003)="xyz.mdhv.formanalyser.app.MainActivity"
@@ -39,17 +46,29 @@ PROFILE_RECEIVER = """
 
 class MergedManifestContractTest(unittest.TestCase):
     def test_expected_release_surface_passes(self):
-        self.assertEqual(audit(PERMISSIONS + LAUNCHER + PROFILE_RECEIVER), [])
+        self.assertEqual(audit(PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER), [])
+
+    def test_debuggable_release_application_is_rejected(self):
+        errors = audit(PERMISSIONS + APPLICATION_DEBUGGABLE + LAUNCHER + PROFILE_RECEIVER)
+        self.assertIn("Release application must not be debuggable", errors)
+
+    def test_test_only_release_application_is_rejected(self):
+        errors = audit(PERMISSIONS + APPLICATION_TEST_ONLY + LAUNCHER + PROFILE_RECEIVER)
+        self.assertIn("Release application must not be marked testOnly", errors)
+
+    def test_missing_application_element_is_rejected(self):
+        errors = audit(PERMISSIONS + LAUNCHER + PROFILE_RECEIVER)
+        self.assertIn("Exactly one application element is required", errors)
 
     def test_unreviewed_permission_is_rejected(self):
         dump = PERMISSIONS + '''
       E: uses-permission (line=6)
         A: android:name(0x01010003)="android.permission.RECORD_AUDIO"
-''' + LAUNCHER + PROFILE_RECEIVER
+''' + APPLICATION + LAUNCHER + PROFILE_RECEIVER
         self.assertTrue(any("RECORD_AUDIO" in error for error in audit(dump)))
 
     def test_unprotected_exported_component_is_rejected(self):
-        dump = PERMISSIONS + LAUNCHER + PROFILE_RECEIVER + '''
+        dump = PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER + '''
           E: receiver (line=30)
             A: android:name(0x01010003)="com.example.UnreviewedReceiver"
             A: android:exported(0x01010010)=true
@@ -57,13 +76,13 @@ class MergedManifestContractTest(unittest.TestCase):
         self.assertTrue(any("UnreviewedReceiver" in error for error in audit(dump)))
 
     def test_profile_receiver_without_signature_permission_is_rejected(self):
-        dump = PERMISSIONS + LAUNCHER + PROFILE_RECEIVER.replace(
+        dump = PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER.replace(
             'A: android:permission(0x01010006)="android.permission.DUMP"\n', ""
         )
         self.assertTrue(any("ProfileInstallReceiver" in error for error in audit(dump)))
 
     def test_launcher_must_be_explicitly_exported_and_launcher_filtered(self):
-        dump = PERMISSIONS + LAUNCHER.replace(
+        dump = PERMISSIONS + APPLICATION + LAUNCHER.replace(
             'A: android:exported(0x01010010)=true\n', ""
         ) + PROFILE_RECEIVER
         self.assertTrue(any("android:exported" in error for error in audit(dump)))

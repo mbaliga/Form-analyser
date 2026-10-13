@@ -2,6 +2,14 @@
 
 Last reviewed: 2026-10-13
 
+Release-manifest hardening (2026-10-13): artifact preflight now requires exactly one merged
+`application` element and rejects explicit `android:debuggable="true"` or
+`android:testOnly="true"`. Seven focused manifest regressions and all 51 release-tool tests pass;
+immutable action references still verify across seven workflows. The actual v707 QA APK/AAB passed
+the updated integrated preflight, including signer, manifest, package/version/target SDK, 16 KB
+alignment, model and backup-resource checks. This is a verifier safeguard, not a new production
+artifact or production-signing/device-acceptance result.
+
 Large-font visual QA follow-up (2026-10-13): the exact v696 Home screen is now captured at normal
 scale in `visuals/screenshots/home-hyle-two-arc-v696-api36-16kb.png`. Review at 1.3× exposed Home
 action-label wrapping; the current source fixes it with an icon-above-label action layout at larger

@@ -17,10 +17,13 @@ ALLOWED_PERMISSIONS = {
 }
 ANDROID_ATTRIBUTE = re.compile(r'android:name\([^)]*\)="([^"]+)"')
 EXPORTED_ATTRIBUTE = re.compile(r'android:exported\([^)]*\)=(true|false)')
+DEBUGGABLE_ATTRIBUTE = re.compile(r'android:debuggable\([^)]*\)=(true|false)')
+TEST_ONLY_ATTRIBUTE = re.compile(r'android:testOnly\([^)]*\)=(true|false)')
 PERMISSION_ATTRIBUTE = re.compile(r'android:permission\([^)]*\)="([^"]+)"')
 ELEMENT = re.compile(r"^(\s*)E: ([a-zA-Z0-9_-]+)(?:\s|$)")
 COMPONENT_TAGS = {"activity", "activity-alias", "service", "receiver", "provider"}
 PERMISSION_TAGS = {"uses-permission", "uses-permission-sdk-23"}
+APPLICATION_TAGS = {"application"}
 MAIN_ACTIVITY = "xyz.mdhv.formanalyser.app.MainActivity"
 PROFILE_RECEIVER = "androidx.profileinstaller.ProfileInstallReceiver"
 
@@ -65,6 +68,16 @@ def audit(manifest_dump: str) -> list[str]:
         errors.append(f"Unexpected merged permissions: {', '.join(sorted(unexpected))}")
     if missing:
         errors.append(f"Expected permissions missing from merged manifest: {', '.join(sorted(missing))}")
+
+    applications = blocks(lines, APPLICATION_TAGS)
+    if len(applications) != 1:
+        errors.append("Exactly one application element is required")
+    else:
+        application_text = "\n".join(applications[0][1])
+        if attribute(DEBUGGABLE_ATTRIBUTE, application_text) == "true":
+            errors.append("Release application must not be debuggable")
+        if attribute(TEST_ONLY_ATTRIBUTE, application_text) == "true":
+            errors.append("Release application must not be marked testOnly")
 
     components = []
     for tag, block in blocks(lines, COMPONENT_TAGS):

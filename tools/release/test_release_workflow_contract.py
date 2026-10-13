@@ -185,6 +185,9 @@ class ReleaseWorkflowContract(unittest.TestCase):
         verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
         self.assertIn('dump xmltree "$APK" --file AndroidManifest.xml > "$MANIFEST"', verifier)
         self.assertIn('verify_manifest_contract.py "$MANIFEST"', verifier)
+        manifest_contract = (ROOT / "tools" / "release" / "verify_manifest_contract.py").read_text()
+        self.assertIn("Release application must not be debuggable", manifest_contract)
+        self.assertIn("Release application must not be marked testOnly", manifest_contract)
 
     def test_release_preflight_checks_16_kb_elf_alignment(self) -> None:
         verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
