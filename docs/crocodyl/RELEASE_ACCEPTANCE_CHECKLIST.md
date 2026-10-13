@@ -8,13 +8,16 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-14)
 
-- [ ] Bocal current web-source arc parity is now reflected in Crocodyl source: curved upper-rail
+- [x] Bocal current web-source arc parity is now reflected in Crocodyl source: curved upper-rail
       destination readout, tangent-angled 44 dp context controls, and lower-rail drag preview with
-      release-to-open. Kotlin compilation, Android JVM tests, and five navbar contract tests pass.
-      The focused API-35 connected smoke attempt failed before its first Home assertion, returning
-      no visible accessibility nodes; therefore runtime gesture/tap and visual acceptance remain
-      open. QA v709 predates this change and does not contain it. Build and validate a fresh QA
-      candidate after resolving the emulator smoke setup.
+      release-to-open. Current-source QA v710 debug/release unit tests, `lintRelease`, APK/AAB
+      assembly and integrated artifact preflight pass; five navbar contract tests pass. QA APK
+      SHA-256 `ee8923c440a28624f0340f2a30d641403a98c4f4f3d15d789783a89c514b09c0`; AAB SHA-256
+      `6907043de51846f2e9071a747fe563f1851fe42bc3df4ef7283eb0ec4a73e727`; R8 mapping SHA-256
+      `663de5f9e74c08820353e71afe1a9c9ac067abfd8563619bb1a14b3ef5902894` (34,926,684 bytes).
+      These are QA/debug-signed. The focused API-35 connected smoke attempt failed before its first
+      Home assertion, returning no visible accessibility nodes; current-source runtime gesture/tap
+      and visual acceptance remain open.
 
 - [x] Camera-permission instrumentation records the entry state, validates the matching denied or
       granted capture UI, and asserts the flow leaves that state unchanged. Fresh UTP installs

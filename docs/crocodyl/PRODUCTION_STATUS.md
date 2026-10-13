@@ -7,12 +7,15 @@ Bocal's current web-source arc (not its older flat Android screenshot), the mobi
 its Recurve/destination readout along the upper Bézier, angles the 44 dp context controls to the
 rail guides, and supports lower-rail drag preview/release navigation while preserving direct taps
 and the five accessible destinations. This supersedes the flat-pill/context-row details in the
-historical v708 entry below. Debug Kotlin compilation, Android JVM unit tests, and all five navbar
-contract tests pass. The focused API-35 connected smoke attempt did not reach its Home assertion
-(`Find your rhythm.`; accessibility tree empty), so runtime interaction and visual acceptance are
-not yet verified. QA artifact v709 predates this source change and must not be distributed as
-containing this parity update; regenerate and validate the candidate after emulator smoke is
-resolved.
+historical v708 entry below. QA candidate v710 (`0.6.4-bocal-arc-qa`) now includes this source;
+debug/release JVM unit tests, `lintRelease`, and integrated APK/AAB release preflight pass. APK
+SHA-256 `ee8923c440a28624f0340f2a30d641403a98c4f4f3d15d789783a89c514b09c0`; AAB SHA-256
+`6907043de51846f2e9071a747fe563f1851fe42bc3df4ef7283eb0ec4a73e727`; R8 mapping SHA-256
+`663de5f9e74c08820353e71afe1a9c9ac067abfd8563619bb1a14b3ef5902894` (34,926,684 bytes). These
+are QA/debug-signed, not distributable. The focused API-35 connected smoke attempt did not reach
+its Home assertion (`Find your rhythm.`; accessibility tree empty), so runtime interaction and
+visual acceptance are still unverified. Hosted production workflow, production signer and
+physical-device gates remain open.
 
 Camera-permission instrumentation hardening (2026-10-14): the training-start smoke now captures the
 permission state before launch, explicitly checks the denied or granted capture UI, and asserts the
@@ -580,7 +583,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | QA v709 passed debug/release unit tests, release lint, cross-module JVM tests, APK/AAB assembly and preflight, with 11/11 minified-release smoke on API 35 and API-36 ARM64/16 KB at 1.3× font; v709 predates the current web-source arc parity change. Rebuild/retest the new source, then production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
+| Recurve Android build | QA-only, not production releasable | QA v710 current-source debug/release unit tests, release lint, APK/AAB assembly and preflight pass; the prior v709 minified-release suite passed 11/11 on API 35 and API-36 ARM64/16 KB at 1.3× font. Current-source connected smoke and visual review, production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -591,6 +594,7 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `b537196` — index the current web-source arc parity implementation and its v710 validation boundary.
 - Crocodyl: `5ff0d53` — match Bocal's current web-source arc with curved contextual text, angled controls, and rail scrub preview/release navigation; record validation boundary.
 - Crocodyl: `3781a86` — correct QA v709 artifact hashes after restoring the explicit versioned release outputs.
 - Crocodyl: `d81ac3f` — validate granted and denied camera UI without mutating permission state; record 11/11 API-35 release runs for each state.
