@@ -311,7 +311,12 @@ private fun MainShell() {
             else DetailBar(detailTitle(route)) { backDispatcher?.onBackPressed() }
         },
         bottomBar = {
-            if (onTab) BottomBar(route, injuries > 0, { quick = true }) { navigateTab(nav, it) }
+            if (onTab) BottomBar(
+                route,
+                injuries > 0,
+                onAdd = { quick = true },
+                onSettings = { nav.navigate(Routes.SETTINGS) },
+            ) { navigateTab(nav, it) }
         },
     ) { pad ->
         // imePadding() once here rather than on eleven screens: every text field in the app lives
@@ -496,6 +501,7 @@ private fun BottomBar(
     current: String?,
     badge: Boolean,
     onAdd: () -> Unit,
+    onSettings: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
     val items =
@@ -507,58 +513,23 @@ private fun BottomBar(
             Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
         )
     val haptics = LocalHapticFeedback.current
-    val largeFont = androidx.compose.ui.platform.LocalDensity.current.fontScale >= 1.2f
     val selectDestination: (String) -> Unit = { destination ->
         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         onSelect(destination)
     }
-    Column(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars).padding(horizontal = 8.dp, vertical = 4.dp)) {
-    Row(Modifier.fillMaxWidth().height(38.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-        IconButton(
-            onClick = onAdd,
-            modifier = Modifier.size(36.dp).clip(CircleShape).background(Hyle.SurfaceVariant)
-                .border(1.dp, Hyle.HairlineStrong, CircleShape),
-        ) {
-            Icon(Icons.Filled.Add, "Quick add", tint = Hyle.AccentBright, modifier = Modifier.size(19.dp))
-        }
-    }
-    Row(
-        Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(26.dp)).background(Hyle.Surface.copy(alpha = .96f))
-            .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(26.dp)).padding(6.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 16.dp, vertical = 2.dp),
     ) {
-        items.forEach { (dest, pair) ->
-            val (icon: ImageVector, label) = pair
-            val selected = current == dest
-            val visibleLabel = if (largeFont) when (label) {
-                "Progress" -> "Prog."
-                "Calendar" -> "Cal."
-                else -> label
-            } else label
-            Column(
-                Modifier.weight(1f).heightIn(min = 62.dp).clip(RoundedCornerShape(17.dp))
-                    .then(if (selected) Modifier.background(Hyle.Accent.copy(alpha = .16f)) else Modifier)
-                    .selectable(selected = selected, role = Role.Tab, onClick = { selectDestination(dest) })
-                    .semantics(mergeDescendants = true) { contentDescription = label }
-                    .testTag("nav-tab-$dest").padding(vertical = 7.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                if (dest == Routes.BODY && badge) {
-                    BadgedBox({ Badge { Text("!") } }) {
-                        Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim, modifier = Modifier.size(20.dp))
-                    }
-                } else {
-                    Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim, modifier = Modifier.size(20.dp))
-                }
-                Spacer(Modifier.height(5.dp))
-                Text(visibleLabel, color = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim,
-                    style = MaterialTheme.typography.labelSmall, maxLines = 1, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
-            }
-        }
-    }
+        ArcNavigationDock(
+            items = items,
+            current = current,
+            badge = badge,
+            contextLabel = tabTitle(current),
+            onQuickAdd = onAdd,
+            onSettings = onSettings,
+            onSelect = selectDestination,
+        )
     }
 }
 

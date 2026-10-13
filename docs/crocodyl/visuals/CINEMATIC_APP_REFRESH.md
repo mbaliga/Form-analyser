@@ -327,24 +327,27 @@ compact/large-font visual review and physical-device acceptance. The refreshed o
 is visual evidence only; remaining destinations still need the full Bocal-inspired, screen-by-screen
 review described above.
 
-## 2026-10-13 Bocal navigation correction
+## 2026-10-13 Bocal navigation correction — superseded after owner review
 
-Owner feedback identified that the navbar still did not look like Bocal. Comparing against the
-actual mobile reference (`Bocal/android/docs/reference-ui/145483.jpg`) clarified the intended
-pattern: five icon-over-label destinations in one floating dock, with the current destination
-highlighted in a filled capsule. The two-arc Hyle version is superseded, despite matching a separate
-shared navigation directive. Crocodyl now uses the Bocal dock interaction with Home, Train, Progress,
-Body and Calendar; its Hyle accent, accessibility labels, badge and haptics remain. At 1.3× font
-scale, Progress and Calendar visually shorten to Prog. and Cal. while preserving complete
-accessibility names. The navbar contract test asserts the dock, and all 11 API-36 ARM64 16 KB debug
-smoke tests passed at 1.0×; the focused dock test also passed at 1.3×. Debug unit tests, release
-unit tests and `lintRelease` passed. Fresh 840×1920 emulator captures at 1.0× and 1.3× are
-[`home-bocal-floating-dock-v702-api36-16kb.png`](screenshots/home-bocal-floating-dock-v702-api36-16kb.png)
+Owner feedback initially led to a flat five-slot dock based on an older Bocal reference screenshot.
+That implementation and its v702 screenshots are preserved as historical evidence only; they did
+not reflect Bocal's current interaction model. The current Bocal mobile implementation uses a
+tactile curved destination rail, a curved contextual rail, side actions, and a selected keycap that
+follows the destination curve. Crocodyl's Hyle arc geometry contract in
+[`../../design/HYLE_ARC_NAVIGATION_DIRECTIVE.md`](../../design/HYLE_ARC_NAVIGATION_DIRECTIVE.md)
+is the applicable design spec, not the old screenshot. The latest correction implements that
+400×150 scaled stage with Home, Train, Progress, Body and Calendar, curved context text, Quick Add
+and Settings side actions, selected-state keycap, and tangent-rotated icons. Kotlin compilation,
+Android debug/release unit tests, `lintRelease`, and four navbar contract tests pass. All 11 connected
+debug smoke tests passed on API-36 ARM64 16 KB; the focused direct navigation test also passed at
+1.3× font scale. Fresh captures are
+[`home-bocal-curved-dock-v703-api36-16kb.png`](screenshots/home-bocal-curved-dock-v703-api36-16kb.png)
 and
-[`home-bocal-floating-dock-large-font-1_3x-v702-api36-16kb.png`](screenshots/home-bocal-floating-dock-large-font-1_3x-v702-api36-16kb.png).
-The images were visually reviewed, and emulator font scale was restored to 1.0. Minified-release
-connected validation and physical-device review remain open; prior v701 two-arc captures are
-historical, not current-source evidence.
+[`home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png`](screenshots/home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png).
+Both were visually reviewed and system font scale was restored to 1.0. Large-font labels compact
+visually where needed while accessibility labels remain complete. Minified-release connected
+validation and physical-device acceptance are still pending; do not treat the v702 flat-dock images
+as evidence for the current source.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 

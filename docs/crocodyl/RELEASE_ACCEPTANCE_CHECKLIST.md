@@ -65,6 +65,19 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       This does not establish production-signing continuity. Physical-device review remains pending.
       Older two-arc screenshots are not current-source acceptance evidence.
 
+- [ ] Current-source Bocal/Hyle curved-dock correction (2026-10-13): the previous v702 flat pill
+      was not the current Bocal interaction and must not be accepted as parity evidence. Crocodyl
+      now uses the two-rail 400×150 scaled geometry in
+      `docs/design/HYLE_ARC_NAVIGATION_DIRECTIVE.md`, with context text on the upper Bézier, Quick
+      Add/Settings side actions, and five direct-select lower-curve tabs. Kotlin compilation,
+      Android debug/release unit tests, `lintRelease`, and four navbar contract tests pass. All 11
+      API-36 ARM64 16 KB connected debug tests passed, as did the focused direct-navigation
+      test at 1.3× font scale. Current-source 840×1920 captures are
+      `visuals/screenshots/home-bocal-curved-dock-v703-api36-16kb.png` and
+      `visuals/screenshots/home-bocal-curved-dock-large-font-1_3x-v703-api36-16kb.png`; visual
+      review passed and font scale was restored to 1.0. Minified-release connected validation and
+      physical-device review remain open; v702 flat-dock screenshots remain historical.
+
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,
       Atelier/photo, arrow, arrow-reference and web-viewer contracts, and immutable Actions refs in
