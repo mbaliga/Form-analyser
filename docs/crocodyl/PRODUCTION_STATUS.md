@@ -41,9 +41,10 @@ and direct Calendar/Home tab selection. The corrected navbar still needs a fresh
 capture and physical-device acceptance. Production signing, artifact preflight, CI, and range
 validation remain open.
 
-Earlier two-arc implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
-tests, `lintRelease`, and the upper-arc swipe instrumentation on API-36 16 KB AVDs. Those results
-validate the superseded custom interaction only, not the Bocal-parity navbar now in source.
+Earlier two-rail implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
+tests, `lintRelease`, and upper-rail swipe instrumentation on API-36 16 KB AVDs. Their screenshots
+are historical revisions rather than proof of the current source render; the current v700 source
+has separately passed connected behavior tests above.
 
 Previous signed minified artifact (2026-10-13): version `0.6.0-navbar-qa-20261013`, versionCode 696.
 It is superseded by current-source v697 below.
@@ -585,11 +586,11 @@ Rig editing shows a validation message and disables Save. JVM coverage includes 
 zero, negative, malformed, NaN and infinity cases. The broader rig and handedness acceptance item
 remains open for physical-device verification.
 
-Navigation correction history (2026-10-13): successive earlier revisions implemented a curved
-five-destination lower rail and then a custom two-arc scrub stage. Both were superseded by the
-owner-requested Bocal-parity single-arc interaction above. Checked-in navigation screenshots show
-historical builds and must not be presented as captures of current source. Earlier 1/1 and 10/10
-connected runs validate their respective historical builds only.
+Navigation correction history (2026-10-13): Crocodyl iterated from a curved lower-only rail to a
+two-rail design, then briefly regressed to lower-only v698. The owner clarified Bocal parity; v700
+restores the canonical Hyle two-rail geometry and preview/commit interaction, with fresh connected
+behavior evidence recorded above. Existing checked-in navigation screenshots show earlier builds;
+do not present them as captures of the current source render.
 
 Debug instrumentation follow-up (2026-10-13): the complete current-source API-36 16 KB debug
 `ProductionSmokeTest` generated a JUnit report with 10 tests, 0 failures, 0 errors and 0 skips

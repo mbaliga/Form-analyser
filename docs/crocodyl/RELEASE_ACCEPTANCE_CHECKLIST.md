@@ -92,10 +92,10 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       arrow-reference 7/7, and immutable action refs across 7 workflows.
 - [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, update over
       the actual previous production APK, 30-real-session acceptance and owner approval remain open.
-      The current-source v698 QA APKs use the committed QA/debug key and are not distributable as a
-      production release; no v698 AAB/preflight was produced. The current-source Bocal-parity single
-      arc has fresh emulator capture and Android smoke evidence above. The 1.3× large-font capture
-      remains v697 and predates the navbar correction. Physical-device visual acceptance remains
+      The corrected-source v700 QA build uses the committed QA/debug key and is not distributable;
+      no v700 release APK/AAB preflight was produced. The Bocal two-rail navbar has connected debug
+      smoke evidence above, but a fresh checked-in capture is still pending. The 1.3× large-font
+      capture remains v697 and predates the current source. Physical-device visual acceptance remains
       open. Verify and set `tools/release/highest_issued_version_code.txt`
       to at least the actual previous production APK's code before triggering a release. The earlier
       lower-rail screenshot is explicitly superseded.
