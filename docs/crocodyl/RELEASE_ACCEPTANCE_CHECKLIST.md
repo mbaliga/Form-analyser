@@ -22,7 +22,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       attached emulator.
 Distribution caveat: v696 used the committed QA/debug identity and is not production-distributable.
 This evidence does not replace hosted release-workflow success, the physical-device/range matrix,
-an update over the actual previous production APK, 30-real-session acceptance, or owner approval.
+data-bearing migration acceptance, 30-real-session acceptance, or owner approval.
 
 - [x] Current-source v697 QA release (2026-10-13): debug and minified release assembly, Android
       debug/release unit tests and `lintRelease` passed. Debug and minified-release
@@ -94,20 +94,25 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       preflight or prepared for distribution.
 - [x] On a disposable API-36 16 KB AVD, QA versionCode 678 installed and upgraded in place to v679;
       Package Manager reported 679, cold launch returned `Status: ok`, process remained alive after
-      four seconds, and no fatal/class-loading error appeared in the checked logcat. This does not
-      prove migration from the actual previous production APK or physical-device acceptance.
+      four seconds, and no fatal/class-loading error appeared in the checked logcat. This is an
+      earlier QA-to-QA update check; see the actual published APK update replay below.
+- [x] Actual public previous release `v0.5.1-reconciled` APK inspected: SHA-256
+      `84e21831c085905f2beedea704c3998b32e76c4ed84966c1e797ab006c2a440b`, package
+      `xyz.mdhv.formanalyser`, versionCode 4 / targetSdk 35, signer SHA-256
+      `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. On an API-36 ARM64 16 KB
+      AVD, clean-installed and cold-launched v0.5.1, updated it in place to corrected-source v701
+      using the same signer, then cold-launched v701 (`Status: ok`, process live after four seconds,
+      no fatal/class-loading errors in checked logs). The v0.5.1 install had clean app data; existing
+      profile/rig/session migration and physical-device update acceptance remain unproven. The
+      high-water mark 697 is above the actual published code 4.
 - [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across 7 workflows.
-- [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, update over
-      the actual previous production APK, 30-real-session acceptance and owner approval remain open.
-      The corrected-source v700 QA build uses the committed QA/debug key and is not distributable;
-      no v700 release APK/AAB preflight was produced. The Bocal two-rail navbar has connected debug
-      smoke evidence above, but a fresh checked-in capture is still pending. The 1.3× large-font
-      capture remains v697 and predates the current source. Physical-device visual acceptance remains
-      open. Verify and set `tools/release/highest_issued_version_code.txt`
-      to at least the actual previous production APK's code before triggering a release. The earlier
-      lower-rail screenshot is explicitly superseded.
+- [ ] Production signer and hosted release-workflow pass, physical-device/range matrix, migration
+      from a data-bearing production install, 30-real-session acceptance and owner approval remain
+      open. Corrected-source v701 remains QA/debug-signed and is not distributable. The v701 current
+      navbar captures at normal and 1.3× font scale are checked in above; physical-device visual
+      acceptance remains open. The version ledger (697) is verified above the actual published v4.
 
 ## 1. Required device matrix
 
@@ -115,7 +120,9 @@ an update over the actual previous production APK, 30-real-session acceptance, o
 - [ ] ARM64 phone, Android 12–15, flagship performance and a different camera vendor.
 - [ ] Camera-less or large-screen Android device (the app must still support scoring, logging,
       progress, body, coach, and export without capture).
-- [ ] At least one clean install and one update over the previous production APK.
+- [x] At least one clean install and update over the previous published production APK; see the
+      v0.5.1 → v701 API-36 16 KB emulator replay above. A data-bearing profile migration and device
+      matrix are still open.
 - [ ] If a supported x86 emulator is used, repeat the non-camera flows and record the emulator image.
 
 ### Previous v678 evidence (2026-10-11; historical baseline)

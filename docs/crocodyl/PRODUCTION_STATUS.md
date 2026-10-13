@@ -23,10 +23,17 @@ Release version resolution now also enforces a checked-in high-water mark of 697
 0.6.1 (601) is rejected, and the next candidate must use a higher explicit code or a version whose
 derived code is higher. Before production release, reconcile the ledger with the actual previous
 production APK and advance it after each successful release.
-Read-only GitHub Releases metadata currently lists [`v0.5.1-reconciled`](https://github.com/mbaliga/Form-analyser/releases/tag/v0.5.1-reconciled)
-as the latest published release; that tag's Android Gradle config sets versionCode 4. This is
-supporting source-history evidence only: the APK itself has not been fetched/inspected or installed
-as an update test, so the actual previous-production-artifact gate remains open.
+Previous-production APK/update replay (2026-10-13): fetched the public `v0.5.1-reconciled`
+release asset and matched its SHA-256 `84e21831c085905f2beedea704c3998b32e76c4ed84966c1e797ab006c2a440b`
+to GitHub's release metadata. The APK is `xyz.mdhv.formanalyser`, versionCode 4, targetSdk 35, and
+uses certificate `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. The checked-in
+high-water mark is 697, safely above the actual published code 4. On the disposable API-36 ARM64
+16 KB AVD (`PAGE_SIZE=16384`), installed and cold-launched v0.5.1, then updated it in place to the
+exact v701 minified QA APK using the same certificate. Package Manager reported versionCode 701;
+the updated app cold-launched with `Status: ok`, remained live after four seconds, and emitted no
+fatal/class-loading errors in the checked log. The AVD had clean app data when v0.5.1 was installed,
+so this proves package/signature/update launch compatibility, not migration of an existing profile,
+rig or session database. Production signing and physical-device update acceptance remain open.
 
 Navbar parity correction (2026-10-13): owner review correctly noted that current Crocodyl did not
 match Bocal. The previous single-rail correction was wrong: Bocal's current Hyle contract is one
@@ -71,8 +78,8 @@ class-loading error. APK SHA-256
 `88143b1fc001072cad1e26bf5788755cda638ea7a326138e4a0e510cdb0f724b`; AAB SHA-256
 `645089dbd26284cbdb438b84d1faad62b977584252449dd95ef686317bff1a91`. This is a complete QA
 artifact replay only: the key is not a production identity, and a passing local preflight cannot
-substitute for hosted workflow execution, physical-device/range acceptance, or an update from the
-actual previous production APK.
+substitute for hosted workflow execution, physical-device/range acceptance, or the separate
+v0.5.1-to-v701 update test documented above.
 
 Portable verification sweep (2026-10-13): root `./gradlew test` completed successfully (50 tasks,
 all up-to-date). Seventy-seven Python contract tests passed across release workflow (16), version
@@ -488,7 +495,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Latest v696 minified APK/AAB passed release preflight and full 11/11 instrumentation on API-36 16 KB; exact APK cold-launched successfully. Android debug/release unit tests and release lint passed on the v695 current source. QA/debug signing only. Final visual capture/large-font review, hosted CI, production signer, physical/range acceptance, update over the actual previous production APK and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | Corrected-source v701 APK/AAB passed local preflight, release lint, and 11/11 minified-release instrumentation on API-36 ARM64 16 KB; v700 debug passed 11/11. Normal and 1.3× screenshots are checked in. Actual public v0.5.1 APK (v4, digest/signature verified) updated in place to v701 and cold-launched on the same emulator; this used clean prior app data, so existing-profile migration is not proven. Production signer/hosted CI, physical/range matrix and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
