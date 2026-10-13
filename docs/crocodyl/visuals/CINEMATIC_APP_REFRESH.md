@@ -336,27 +336,18 @@ pattern: it implemented only the lower destination rail. That first build and it
 ([`home-bocal-arc-navigation-api36.png`](screenshots/home-bocal-arc-navigation-api36.png)) are
 superseded; they are not evidence for the current navbar.
 
-The follow-up implements the shared Hyle two-arc stage described in Bocal's
-`docs/HYLE_ARC_NAVIGATION_DIRECTIVE.md`: both rails scale as one 400×150 stage; the upper Bézier
-hosts the active destination label and accepts horizontal scrub gestures, previewing destinations
-while held and selecting on release. The left contextual control opens Train, the right opens the
-existing Add sheet, and the five lower destinations sit on the lower Bézier with tangent rotations
-and the selected raised keycap. Routes, tab semantics, state restoration and the existing Add
-action remain intact. The selection interaction is tested independently by
-`upperArcDragPreviewsAndSelectsCalendar`.
+The subsequent two-arc stage was a Crocodyl-specific interpretation, not Bocal interaction parity.
+Owner review rejected that divergence on 2026-10-13. Current source instead follows Bocal's mobile
+navbar: one shallow molded arc, five direct-tap destinations on the curve, and a raised active
+keycap containing its label. Train and Add remain separate contextual controls above the arc.
+`bocalStyleArcNavigationSelectsCalendar` verifies direct destination selection; the former upper
+arc drag-preview interaction has been removed. The old descriptions and QA captures below are
+retained strictly as history and are not evidence of current source behavior.
 
-Verification (2026-10-13): debug and debug-test APK assembly passed (QA versionCode 695), and the
-focused instrumentation test passed 1/1 directly on the API-36 ARM64 16 KB AVD. Android
-debug/release unit tests and `lintRelease` passed after the final source edits (89 actionable
-tasks). The full primary-tab flow also passed 1/1 directly on that AVD, including the visible
-Progress checks. An unrelated off-screen lazy-row assertion was removed from this navigation smoke;
-the test no longer treats a not-yet-composed section as a route failure. A manual 420dp compact-width
-swipe changed Home to Calendar. Gradle's connected task timed out while querying a second attached
-emulator, so both target-AVD test runs used the Android instrumentation runner directly. At the
-time, the final seat-aligned capture and large-font review were outstanding; both emulator captures
-are now documented in the Large-font Home follow-up below. Physical-device review remains open. Do
-not mistake the earlier lower-rail screenshot or release test results for evidence about this latest
-change.
+Historical verification (2026-10-13): the superseded two-arc build passed the old upper-rail swipe
+instrumentation on an API-36 ARM64 16 KB AVD. That run says nothing about the current Bocal-parity
+single-arc implementation. The checked-in captures in the Large-font Home follow-up below likewise
+show the two-arc design, not current navbar source. Fresh capture and test evidence are pending.
 
 ## 2026-10-13 Large-font Home follow-up
 

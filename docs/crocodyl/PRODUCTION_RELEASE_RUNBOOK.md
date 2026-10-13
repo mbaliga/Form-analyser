@@ -46,7 +46,9 @@ signing inputs or expected certificate fingerprint are absent.
 
 1. Before releasing, compare the actual previous production APK's versionCode with the project's
    highest issued code and set `tools/release/highest_issued_version_code.txt` to the greater value.
-   It currently records 697, the latest v697 QA build. The resolver fails closed unless the new
+   The latest public GitHub Release is currently `v0.5.1-reconciled`, whose tag's Gradle config sets
+   versionCode 4; this source metadata has not been confirmed against the APK bytes or an installed
+   production copy. The ledger currently records 697, the latest v697 QA build. The resolver fails closed unless the new
    code is strictly higher. On a successful release, advance this ledger to the released code in
    the next release-preparation commit. A plain semver branch derives `major*10000 + minor*100 +
    patch` (minor and patch must each be 0–99); derived values below the ledger are rejected. For

@@ -23,24 +23,23 @@ Release version resolution now also enforces a checked-in high-water mark of 697
 0.6.1 (601) is rejected, and the next candidate must use a higher explicit code or a version whose
 derived code is higher. Before production release, reconcile the ledger with the actual previous
 production APK and advance it after each successful release.
+Read-only GitHub Releases metadata currently lists [`v0.5.1-reconciled`](https://github.com/mbaliga/Form-analyser/releases/tag/v0.5.1-reconciled)
+as the latest published release; that tag's Android Gradle config sets versionCode 4. This is
+supporting source-history evidence only: the APK itself has not been fetched/inspected or installed
+as an update test, so the actual previous-production-artifact gate remains open.
 
-Navbar follow-up (2026-10-13): the owner correctly identified that the previous “Bocal-style”
-change reproduced only the lower rail. Crocodyl now implements the shared Hyle two-arc stage:
-curved contextual rail with a destination label and drag-to-preview/release-to-select, left Train
-shortcut, right Add control, and five tangent-positioned primary destinations on the lower arc.
-`assembleDebug` and both debug APK assembly tasks passed for QA versionCode 695. The isolated
-`upperArcDragPreviewsAndSelectsCalendar` instrumentation test passed 1/1 on the API-36 16 KB AVD.
-After the final path-position, compact-hero and Hyle haptic source edits, Android debug/release
-unit tests and `lintRelease` also exited successfully (89 actionable tasks); the final v695 debug
-and instrumentation APKs assembled. Both the isolated upper-arc swipe test and the complete
-primary-tab flow passed 1/1 when run directly on emulator-5556.
-Manual API-36 compact-width review also verified that a horizontal upper-rail swipe changed Home to
-Calendar. The broader test no longer asserts on an off-screen lazy row that is unrelated to tab
-navigation; the visible Progress screen assertions remain. Gradle's connected task timed out while
-querying the second attached emulator, so the target device runs used the Android instrumentation
-runner directly. The later v697 section below records final navbar and large-font captures and test
-results. Physical-device review remains open. This is QA/debug evidence, not production signing or
-physical-device acceptance.
+Navbar parity correction (2026-10-13): owner review caught that Crocodyl's custom two-arc,
+drag-to-scrub navigation did not match Bocal. Current source now follows Bocal's mobile interaction:
+one shallow molded arc, five tangent-seated direct-tap destinations, and a raised active keycap
+that contains its label. Train and Add remain separate contextual controls above the arc; the
+second navigation arc and scrub-preview gesture are removed. `bocalStyleArcNavigationSelectsCalendar`
+now covers direct selection. Earlier two-arc QA remains historical evidence only. Capture a fresh
+post-change device screenshot and rerun the complete debug/minified-release smoke suites before
+claiming this revision's visual/test acceptance. Physical-device review remains open.
+
+Earlier two-arc implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
+tests, `lintRelease`, and the upper-arc swipe instrumentation on API-36 16 KB AVDs. Those results
+validate the superseded custom interaction only, not the Bocal-parity navbar now in source.
 
 Previous signed minified artifact (2026-10-13): version `0.6.0-navbar-qa-20261013`, versionCode 696.
 It is superseded by current-source v697 below.
@@ -582,12 +581,11 @@ Rig editing shows a validation message and disables Save. JVM coverage includes 
 zero, negative, malformed, NaN and infinity cases. The broader rig and handedness acceptance item
 remains open for physical-device verification.
 
-Navigation correction history (2026-10-13): the first correction implemented only a curved
-five-destination lower rail. It was not full Hyle/Bocal parity; see the navbar follow-up above and
-the cinematic refresh log. The earlier screenshot
-`visuals/screenshots/home-bocal-arc-navigation-api36.png` shows that superseded lower-rail design
-and must not be used as evidence for the current two-arc implementation. Earlier 1/1 and 10/10
-connected runs validate that prior lower-rail build only.
+Navigation correction history (2026-10-13): successive earlier revisions implemented a curved
+five-destination lower rail and then a custom two-arc scrub stage. Both were superseded by the
+owner-requested Bocal-parity single-arc interaction above. Checked-in navigation screenshots show
+historical builds and must not be presented as captures of current source. Earlier 1/1 and 10/10
+connected runs validate their respective historical builds only.
 
 Debug instrumentation follow-up (2026-10-13): the complete current-source API-36 16 KB debug
 `ProductionSmokeTest` generated a JUnit report with 10 tests, 0 failures, 0 errors and 0 skips

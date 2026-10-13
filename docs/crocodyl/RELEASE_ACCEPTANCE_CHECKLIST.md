@@ -15,7 +15,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       `88143b1fc001072cad1e26bf5788755cda638ea7a326138e4a0e510cdb0f724b`; AAB SHA-256
       `645089dbd26284cbdb438b84d1faad62b977584252449dd95ef686317bff1a91`.
 - [x] The exact v696 minified APK passed full `ProductionSmokeTest` 11/11 on the API-36 ARM64
-      16 KB AVD (`getconf PAGE_SIZE` = 16384), including the two-arc swipe regression and all
+      16 KB AVD (`getconf PAGE_SIZE` = 16384), including the then-current two-arc swipe regression and all
       primary destinations. It then cold-launched with `Status: ok`, remained live, and emitted
       no fatal/class-loading match in the checked logcat. Tests were invoked directly on
       `emulator-5556` because Gradle's connected-device discovery timed out querying another
@@ -36,6 +36,8 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       checked in at `visuals/screenshots/home-hyle-two-arc-v696-api36-16kb.png` and
       `visuals/screenshots/home-large-font-1_3x-v697-api36-16kb.png`. These artifacts use the QA
       key and are not production-distributable.
+      These v696/v697 navbar captures and test results predate the requested Bocal-parity correction
+      to a single direct-select arc; they are historical evidence, not acceptance of current source.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,

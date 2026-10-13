@@ -116,7 +116,7 @@ class ProductionSmokeTest {
     }
 
     @Test
-    fun upperArcDragPreviewsAndSelectsCalendar() {
+    fun bocalStyleArcNavigationSelectsCalendar() {
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(
             ApplicationProvider.getApplicationContext(),
         )
@@ -126,8 +126,9 @@ class ProductionSmokeTest {
             runBlocking { prefs.setOnboarded(true) }
             ActivityScenario.launch(MainActivity::class.java).use {
                 assertTextEventually(instrumentation, "Find your rhythm.")
-                swipeContextArcEventually(instrumentation)
-                assertTextEventually(instrumentation, "Swipe across the upper arc to preview and select Calendar")
+                assertTextEventually(instrumentation, "Home")
+                clickBottomTabEventually(instrumentation, "Calendar")
+                assertTextEventually(instrumentation, "← prev")
             }
         } finally {
             runBlocking { prefs.setOnboarded(wasOnboarded) }
@@ -515,44 +516,6 @@ class ProductionSmokeTest {
             SystemClock.sleep(50)
         }
         throw AssertionError("Could not click bottom navigation tab: $label")
-    }
-
-    private fun swipeContextArcEventually(instrumentation: android.app.Instrumentation) {
-        val deadline = SystemClock.uptimeMillis() + 8_000
-        var bounds: Rect? = null
-        while (SystemClock.uptimeMillis() < deadline) {
-            instrumentation.waitForIdleSync()
-            val root = rootInActiveWindowOrNull(instrumentation)
-            val node = root?.findContentDescriptionPrefix("Swipe across the upper arc to preview and select Home")
-            if (node != null) {
-                bounds = Rect().also(node::getBoundsInScreen)
-                break
-            }
-            SystemClock.sleep(50)
-        }
-        val targetBounds = bounds ?: throw AssertionError("Upper-arc scrub control is not accessible")
-        val y = targetBounds.centerY().toFloat()
-        val startX = (targetBounds.left + targetBounds.width() * .08f)
-        val endX = (targetBounds.right - targetBounds.width() * .08f)
-        val automation = instrumentation.uiAutomation
-        val downTime = SystemClock.uptimeMillis()
-        fun inject(action: Int, x: Float) {
-            val eventTime = SystemClock.uptimeMillis()
-            val event = MotionEvent.obtain(downTime, eventTime, action, x, y, 0).apply {
-                source = InputDevice.SOURCE_TOUCHSCREEN
-            }
-            try {
-                assertTrue("Could not inject upper-arc navigation gesture", automation.injectInputEvent(event, true))
-            } finally {
-                event.recycle()
-            }
-        }
-        inject(MotionEvent.ACTION_DOWN, startX)
-        repeat(8) { step ->
-            inject(MotionEvent.ACTION_MOVE, startX + (endX - startX) * (step + 1) / 8f)
-            SystemClock.sleep(20)
-        }
-        inject(MotionEvent.ACTION_UP, endX)
     }
 
     private fun scrollHomeUntilText(
