@@ -129,6 +129,8 @@ class ProductionSmokeTest {
             ActivityScenario.launch(MainActivity::class.java).use {
                 assertTextEventually(instrumentation, "Find your rhythm.")
                 assertTextEventually(instrumentation, "Home")
+                assertTextEventually(instrumentation, "Train")
+                assertTextEventually(instrumentation, "Score")
                 if (InstrumentationRegistry.getArguments().getString("captureDockVisual") == "true") {
                     val values = ContentValues().apply {
                         put(MediaStore.Images.Media.DISPLAY_NAME, "crocodyl-bocal-floating-dock-home.png")

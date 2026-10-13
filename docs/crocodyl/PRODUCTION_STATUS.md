@@ -49,18 +49,20 @@ Navbar owner correction (2026-10-13): the owner pointed out Crocodyl's curved na
 not match Bocal's visible mobile interaction. Bocal's screenshot shows a floating rounded bottom
 dock with five direct destinations, persistent icon/label pairs and a tinted active item. Crocodyl
 now uses that pattern; Quick Add and Settings are in the upper action row, not attached to the dock.
-The prior v705 arc implementation and screenshots are historical only. The revised source still
-compiled and assembled as QA version 706, and the focused Calendar direct-navigation smoke passed
-on the API-36 ARM64 16 KB emulator. The fresh Home capture is
-`visuals/screenshots/home-bocal-floating-dock-v706-api36-16kb.png`. Four navbar contract tests also
-pass. The focused navigation smoke also passed at 1.3× font scale; all five dock labels remain
-visible and the emulator scale was restored to 1.0. Capture:
-`visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v706-api36-16kb.png`. Compact-width
-review remains open. The broader debug unit-test task reported 24 failures because Robolectric could not create its
-lock file at `/Users/tulikapandey/.robolectric-download-lock` (`Operation not permitted`); this is
-sandbox filesystem denial, not evidence of failed app assertions. A retry redirecting `user.home`
-to `/private/tmp` could not start because the cached Gradle distribution/native platform requires
-writes under the protected Gradle home.
+The prior v705 arc implementation and v706 initial flat-dock screenshots are historical only. QA
+version 707 (`0.6.4-compact-hero-qa`) contains the current Bocal-style floating dock and fixes a
+compact-width clipping defect in Home's Train/Score actions by stacking icon over label below
+400dp. Debug/release unit tests, `lintRelease`, and app/instrumentation APK plus AAB assembly pass.
+Full 11/11 debug and minified-release instrumentation suites passed by direct runner on API-36 ARM64
+16 KB; focused navigation passed at 1.3× font on both variants and at 720×1600 on debug and release.
+The emulator was restored to 840×1920, font scale 1.0. Visual evidence:
+`visuals/screenshots/home-bocal-floating-dock-v707-api36-16kb.png`,
+`visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v707-release-api36-16kb.png`, and
+`visuals/screenshots/home-bocal-floating-dock-compact-720x1600-v707-api36-16kb.png`. Five navbar
+contract tests pass. Release APK/AAB passed local preflight with the QA/debug signer only: APK SHA256
+`3ba579b0ad237261d24916e3ec8714de96b01bb7cec5bd22a69fdb7aeb5caf05`; AAB SHA256
+`da5f29a8548705411bf84cf99bc9284d33bbddb664fdc9dbd5632069a4553d38`. Production signing, hosted
+CI, physical-device/range acceptance, 30-real-session evidence and owner approval remain open.
 
 Prior arc-source QA release v705 (`0.6.4-curved-dock-qa`) passed artifact preflight: APK SHA-256
 `392551f44fccc1a72b7ba9bb96766c588e270a27c26af10279abcbce5639239e`; AAB SHA-256
@@ -503,7 +505,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Current Bocal-style floating dock source compiled/assembled as temporary QA v706; focused Calendar navigation passed on API-36 ARM64 16 KB and four navbar contract tests passed. Current screenshot at `visuals/screenshots/home-bocal-floating-dock-v706-api36-16kb.png`. Broader debug unit run is blocked by sandbox denial creating `/Users/tulikapandey/.robolectric-download-lock`; no full-suite pass is claimed. Prior v705 artifacts/screenshots are historical. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain open. |
+| Recurve Android build | QA-only, not production releasable | QA v707 debug/release unit tests, release lint, APK/AAB assembly and artifact preflight pass. Direct 11/11 debug/release instrumentation passes on API-36 ARM64 16 KB; dock interaction also passes compact-width and 1.3× font checks. v707 release artifacts remain QA/debug-signed. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain open. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

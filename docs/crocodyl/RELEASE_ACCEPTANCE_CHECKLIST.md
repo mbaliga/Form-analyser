@@ -8,18 +8,36 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-13)
 
-- [x] Current-source navbar correction (commit `b404f91`): Crocodyl now follows the Bocal mobile
+- [x] Current-source QA v707 (`0.6.4-compact-hero-qa`): fixes Home Train/Score label clipping
+      below 400dp by switching to icon-over-label controls, while retaining Bocal's floating
+      five-tab dock. Debug/release unit tests, `lintRelease`, APK/AAB assembly and
+      `tools/release/verify_android_release.sh` all pass. Full 11/11 debug and minified-release
+      instrumentation suites pass by direct runner on API-36 ARM64 16 KB. Focused dock navigation
+      passes at 1.3× font on both variants and at 720×1600 on both variants; emulator restored to
+      840×1920 and 1.0×. Screenshots:
+      `visuals/screenshots/home-bocal-floating-dock-v707-api36-16kb.png`,
+      `visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v707-release-api36-16kb.png`,
+      `visuals/screenshots/home-bocal-floating-dock-compact-720x1600-v707-api36-16kb.png`. Five
+      navbar contract tests pass. QA APK SHA-256
+      `3ba579b0ad237261d24916e3ec8714de96b01bb7cec5bd22a69fdb7aeb5caf05`; AAB SHA-256
+      `da5f29a8548705411bf84cf99bc9284d33bbddb664fdc9dbd5632069a4553d38`. QA signing is not
+      production signing; physical-device/range matrix, 30-real-session acceptance, hosted release
+      workflow and owner approval remain open.
+
+- [x] Initial QA v706 navbar correction (commit `b404f91`, superseded for current source by v707): Crocodyl follows the Bocal mobile
       reference's single floating bottom dock, five always-labeled destinations and highlighted
       active tab; Quick Add/Settings are outside the dock. Temporary QA v706 compiled and both app
       and instrumentation APKs assembled. The focused Calendar direct-navigation smoke passed on
       the API-36 ARM64 16 KB emulator; four navbar contract tests passed. Fresh 840×1920 capture:
-      `visuals/screenshots/home-bocal-floating-dock-v706-api36-16kb.png`. Debug unit-test execution
-      is not accepted as passing: Robolectric could not create `/Users/tulikapandey/.robolectric-download-lock`
-      under the sandbox. The focused smoke passed again at 1.3× font scale; all five labels remained
-      visible and font scale was restored to 1.0. Capture:
+      `visuals/screenshots/home-bocal-floating-dock-v706-api36-16kb.png`. The earlier debug
+      unit-test attempt was blocked by Robolectric's sandbox-denied lock path; v707 debug/release
+      unit tests passed after specific cache-path permissions were granted. The focused smoke
+      passed again at 1.3× font scale; all five labels remained visible and font scale was restored
+      to 1.0. Capture:
       `visuals/screenshots/home-bocal-floating-dock-large-font-1_3x-v706-api36-16kb.png`.
-      Compact-width visuals, minified-release current-source smoke, physical-device review,
-      production signing, hosted CI and owner approval remain open.
+      v706 is historical; see the current v707 entry above for compact-width and minified-release
+      verification. Physical-device review, production signing, hosted CI and owner approval remain
+      open.
 
 - [x] Previous-source QA release `0.6.0-navbar-qa-20261013` / versionCode 696 APK and AAB passed
       `tools/release/verify_android_release.sh`: targetSdk 36, merged-manifest policy, matching

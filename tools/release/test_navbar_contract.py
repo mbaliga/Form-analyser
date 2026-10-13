@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MAIN_ACTIVITY = ROOT / "app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/MainActivity.kt"
 ARC_DOCK = ROOT / "app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/ArcNavigationDock.kt"
 SMOKE_TEST = ROOT / "app-android/src/androidTest/kotlin/xyz/mdhv/formanalyser/app/ProductionSmokeTest.kt"
+HERO = ROOT / "app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/ui/components/AthleteVisuals.kt"
 
 
 def bottom_bar_source() -> str:
@@ -50,6 +51,13 @@ class NavbarContractTest(unittest.TestCase):
         tests = SMOKE_TEST.read_text(encoding="utf-8")
         self.assertIn('getString("captureDockVisual") == "true"', tests)
         self.assertIn("MediaStore.Images.Media.RELATIVE_PATH", tests)
+
+    def test_home_actions_stack_at_compact_width_and_large_font(self) -> None:
+        hero = HERO.read_text(encoding="utf-8")
+        self.assertIn("val stackedActions = compactWidth || largeFont", hero)
+        self.assertGreaterEqual(hero.count("if (stackedActions)"), 2)
+        self.assertIn('Text("Train", maxLines = 1, softWrap = false)', hero)
+        self.assertIn('Text("Score", maxLines = 1, softWrap = false)', hero)
 
 
 if __name__ == "__main__":

@@ -365,12 +365,23 @@ action, with Train and Score as its primary shortcuts. These utility controls no
 visually reshape the navigation dock. The current screenshot `145483.jpg` in the Bocal checkout is the visual comparison
 reference; the Hyle arc directive describes a separate design proposal and is not treated as shipped
 Bocal parity evidence. Previous Crocodyl arc captures and test results are retained as historical
-records, not current UI evidence. QA version 706 compiled and assembled, and the focused Calendar
-direct-navigation smoke passed on the API-36 ARM64 16 KB emulator. Four source-contract tests pass.
-Fresh Home evidence is [`home-bocal-floating-dock-v706-api36-16kb.png`](screenshots/home-bocal-floating-dock-v706-api36-16kb.png).
-The debug unit-test task still has 24 unrelated dependency-resolution failures; see
-`../PRODUCTION_STATUS.md`. Large-font/compact viewport and physical-device visual acceptance remain
-open, so this is an interaction-pattern correction, not a claim of complete product parity.
+records, not current UI evidence. QA version 706 was the initial correction; v707 below supersedes it
+after finding a compact-width Home action-label clipping defect.
+
+## 2026-10-13 Bocal dock v707 compact-width follow-up
+
+At a 720×1600 viewport, the Home hero's side-by-side Train/Score actions clipped their text even
+though the bottom dock itself fit. Below 400dp, these actions now stack icon over label (also the
+large-font layout). QA v707 passed debug/release unit tests, release lint, APK/AAB assembly and
+artifact preflight. Full debug and minified-release instrumentation suites passed 11/11 each on
+API-36 ARM64 16 KB; focused direct-navigation smokes passed at compact width and at 1.3× font scale.
+The emulator was restored to normal size and font scale. Captures:
+[`home-bocal-floating-dock-v707-api36-16kb.png`](screenshots/home-bocal-floating-dock-v707-api36-16kb.png),
+[`home-bocal-floating-dock-compact-720x1600-v706-api36-16kb.png`](screenshots/home-bocal-floating-dock-compact-720x1600-v706-api36-16kb.png) (before fix),
+[`home-bocal-floating-dock-compact-720x1600-v707-api36-16kb.png`](screenshots/home-bocal-floating-dock-compact-720x1600-v707-api36-16kb.png), and
+[`home-bocal-floating-dock-large-font-1_3x-v707-release-api36-16kb.png`](screenshots/home-bocal-floating-dock-large-font-1_3x-v707-release-api36-16kb.png).
+The v706 compact capture is retained only to document the regression and its resolution. QA signing
+and physical-device acceptance remain separate production gates.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 

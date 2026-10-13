@@ -70,6 +70,7 @@ fun CrocodylHero(
     }
     BoxWithConstraints(modifier.fillMaxWidth()) {
         val compactWidth = maxWidth < 400.dp
+        val stackedActions = compactWidth || largeFont
         Box(
             Modifier.fillMaxWidth()
                 .height(if (largeFont) 360.dp else if (compactWidth) 288.dp else 260.dp)
@@ -177,11 +178,11 @@ fun CrocodylHero(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = onStartSession,
-                            modifier = Modifier.weight(1f).heightIn(min = if (largeFont) 76.dp else 52.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = if (stackedActions) 76.dp else 52.dp),
                             shape = RoundedCornerShape(18.dp),
-                            contentPadding = if (largeFont) PaddingValues(horizontal = 8.dp, vertical = 8.dp) else ButtonDefaults.ContentPadding,
+                            contentPadding = if (stackedActions) PaddingValues(horizontal = 8.dp, vertical = 8.dp) else ButtonDefaults.ContentPadding,
                         ) {
-                            if (largeFont) {
+                            if (stackedActions) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Icon(Icons.Filled.CameraAlt, null, modifier = Modifier.size(20.dp))
                                     Text("Train", maxLines = 1, softWrap = false)
@@ -194,12 +195,12 @@ fun CrocodylHero(
                         }
                         OutlinedButton(
                             onClick = onScore,
-                            modifier = Modifier.weight(1f).heightIn(min = if (largeFont) 76.dp else 52.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = if (stackedActions) 76.dp else 52.dp),
                             shape = RoundedCornerShape(18.dp),
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                            contentPadding = if (largeFont) PaddingValues(horizontal = 8.dp, vertical = 8.dp) else ButtonDefaults.ContentPadding,
+                            contentPadding = if (stackedActions) PaddingValues(horizontal = 8.dp, vertical = 8.dp) else ButtonDefaults.ContentPadding,
                         ) {
-                            if (largeFont) {
+                            if (stackedActions) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
                                     Text("Score", maxLines = 1, softWrap = false)
