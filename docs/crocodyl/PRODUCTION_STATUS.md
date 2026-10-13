@@ -45,9 +45,13 @@ backup resources and QA signer agreement); exact APK SHA-256
 `5b3fe80fa514ab7ddd982a1c3ed6a2e3d441eaea0abeb6d1e5818d8e0a48eeed`, AAB SHA-256
 `de84277ff8237a5ff63518db27fae10844e47685f95265b8d01c74e1e51aa508`. The exact APK cold-launched
 with `Status: ok`, and its process remained live after four seconds without fatal/class-loading
-errors in the checked logs. This is still QA-key evidence, not production distribution proof. The
-corrected navbar still needs a fresh checked-in visual capture and physical-device acceptance.
-Production signing, hosted CI, and range validation remain open.
+errors in the checked logs. This is still QA-key evidence, not production distribution proof. Fresh
+840×1920 screenshots of corrected v701 Home are checked in at
+`visuals/screenshots/home-bocal-two-rail-v701-api36-16kb.png` (font scale 1.0) and
+`visuals/screenshots/home-bocal-two-rail-large-font-1_3x-v701-api36-16kb.png` (font scale 1.3).
+Both show the synthetic QA profile on the API-36 ARM64 16 KB emulator; emulator font scale was
+restored to 1.0 after capture. Physical-device acceptance remains open. Production signing, hosted
+CI, and range validation remain open.
 
 Earlier two-rail implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and upper-rail swipe instrumentation on API-36 16 KB AVDs. Their screenshots

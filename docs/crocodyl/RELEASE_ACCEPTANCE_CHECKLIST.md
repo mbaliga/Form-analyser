@@ -56,7 +56,10 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       `5b3fe80fa514ab7ddd982a1c3ed6a2e3d441eaea0abeb6d1e5818d8e0a48eeed`, AAB SHA-256
       `de84277ff8237a5ff63518db27fae10844e47685f95265b8d01c74e1e51aa508`. The exact APK cold-launched
       and remained live for four seconds without a fatal/class-loading error in checked logs. Fresh
-      checked-in capture and physical-device acceptance remain open.
+      840×1920 v701 Home captures at 1.0× and 1.3× font scale are checked in at
+      `visuals/screenshots/home-bocal-two-rail-v701-api36-16kb.png` and
+      `visuals/screenshots/home-bocal-two-rail-large-font-1_3x-v701-api36-16kb.png`. These use a
+      synthetic QA profile; physical-device acceptance remains open.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,

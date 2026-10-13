@@ -338,8 +338,12 @@ share one scale/inset stage. The v698 screenshots below depict the superseded on
 must not be used to judge current-source parity. Corrected-source QA v700 passed the 11-test debug
 suite and v701 passed the 11-test minified-release suite on API-36 ARM64 16 KB, including
 swipe-to-preview/commit and direct tab taps; `lintRelease` passed on v701. Both used the QA/debug
-signing identity. A fresh checked-in visual capture and physical-device review of the corrected
-navbar remain pending.
+signing identity. Current v701 Home captures are checked in at
+[`home-bocal-two-rail-v701-api36-16kb.png`](screenshots/home-bocal-two-rail-v701-api36-16kb.png)
+and
+[`home-bocal-two-rail-large-font-1_3x-v701-api36-16kb.png`](screenshots/home-bocal-two-rail-large-font-1_3x-v701-api36-16kb.png).
+Both are 840×1920 API-36 ARM64 16 KB emulator renders with synthetic QA profile data; the latter is
+at 1.3× system font scale. Physical-device visual acceptance remains open.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 
