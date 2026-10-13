@@ -562,7 +562,7 @@ signing remains open.
 
 ## Current commits
 
-- Crocodyl: pending commit — clear the FOC validator compiler warning and record exact-source v709 API-35/16 KB QA evidence.
+- Crocodyl: `994ed7a` — clear the FOC validator compiler warning and record exact-source v709 API-35/16 KB QA evidence.
 - Crocodyl: `596bc1b` — correct R8 artifact accessibility claims for the public repository.
 - Crocodyl: `2169d26` — require and preserve the versioned R8 mapping and digest for crash diagnostics.
 - Crocodyl: `a1d61ae` — align the mobile navigation interaction with current Bocal source; add v708 screenshots and runtime coverage.
