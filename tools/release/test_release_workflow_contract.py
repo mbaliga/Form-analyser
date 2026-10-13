@@ -72,9 +72,9 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("CROCODYL_RELEASE_CERT_SHA256", self.workflow)
         self.assertIn("tools/release/verify_android_release.sh", self.workflow)
 
-    def test_release_preserves_versioned_r8_mapping_privately(self) -> None:
+    def test_release_preserves_versioned_r8_mapping_outside_public_release_assets(self) -> None:
         mapping = self.workflow.index("- name: Preserve minified-release mapping for crash diagnostics")
-        upload = self.workflow.index("- name: Upload private R8 mapping and digest")
+        upload = self.workflow.index("- name: Upload R8 mapping and digest as CI-only artifact")
         cleanup = self.workflow.index("- name: Remove signing material")
         self.assertLess(mapping, upload)
         self.assertLess(upload, cleanup)

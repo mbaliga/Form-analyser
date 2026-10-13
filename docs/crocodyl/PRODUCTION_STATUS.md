@@ -28,8 +28,9 @@ artifact or production-signing/device-acceptance result.
 
 Crash-diagnostics hardening (2026-10-13): the production release workflow now fails if the minified
 build does not produce a non-empty, version-matched R8 mapping. It uploads that mapping and a
-SHA-256 digest to a private, 90-day Actions artifact, deliberately separate from public release
-assets. The runbook/checklist require verifying and archiving it durably with restricted access.
+SHA-256 digest as a 90-day Actions artifact, deliberately separate from public release assets.
+Actions artifacts are downloadable by signed-in users with repository read access; do not treat
+this artifact as confidential. The runbook/checklist require verifying and archiving it durably.
 The new 52-test release contract suite, immutable action-ref check and workflow YAML parse pass
 locally; this workflow change has not yet run in hosted CI. Full Gradle replay could not run in this
 shell because `/usr/bin/java` is only a launcher shim and no Java runtime is installed here.
@@ -546,7 +547,7 @@ signing remains open.
 
 ## Current commits
 
-- Crocodyl: `2169d26` — require and privately preserve the versioned R8 mapping and digest for crash diagnostics.
+- Crocodyl: `2169d26` — require and preserve the versioned R8 mapping and digest for crash diagnostics.
 - Crocodyl: `a1d61ae` — align the mobile navigation interaction with current Bocal source; add v708 screenshots and runtime coverage.
 - Crocodyl: `a4fd94e` — reject debuggable and test-only Android release artifacts.
 

@@ -238,7 +238,7 @@ jobs:
           test -s "$mapping"
           cp "$mapping" "crocodyl-${RELEASE_VERSION}-r8-mapping.txt"
           sha256sum "crocodyl-${RELEASE_VERSION}-r8-mapping.txt" > "crocodyl-${RELEASE_VERSION}-r8-mapping.sha256"
-      - name: Upload private R8 mapping and digest
+      - name: Upload R8 mapping and digest as CI-only artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: crocodyl-release-r8-mapping-${{ steps.ver.outputs.version }}

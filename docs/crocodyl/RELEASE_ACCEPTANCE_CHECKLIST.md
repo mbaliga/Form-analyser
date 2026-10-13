@@ -625,9 +625,9 @@ leaks private data, or leaves the user unable to recover without clearing app st
       release contract tests cover QA-certificate rejection, malformed fingerprints and acceptance
       of a well-formed non-QA fingerprint. This policy check does not substitute for a real
       production keystore or a signed production artifact.
-- [x] Production release workflow requires and privately retains the versioned minified-release
-      R8 mapping plus SHA-256 digest for 90 days; the runbook requires verifying and moving it to
-      restricted durable storage. The mapping is intentionally excluded from public release assets.
+- [x] Production release workflow requires and retains the versioned minified-release R8 mapping
+      plus SHA-256 digest as a 90-day Actions artifact, separate from public release assets. It is
+      accessible to signed-in repository readers, not confidential; see the runbook for details.
 - [x] Android CI runs connected debug smoke on API-36 `google_apis_ps16k`; release CI runs the
       signed minified release smoke on the same 16 KB image and asserts the live page size is
       16384. The newly-added GitHub Actions lanes still require a successful hosted run.
@@ -641,7 +641,7 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, absence of staging files, and the expected production
       certificate fingerprint (`CROCODYL_RELEASE_CERT_SHA256`) in both APK and AAB.
-- [ ] Verify the same-run R8 mapping digest and record its restricted durable archive location.
+- [ ] Verify the same-run R8 mapping digest and record its durable archive location.
 - [ ] APK is installed over the previous production build and launches on the acceptance matrix.
 - [ ] Owner approves the release notes and selected distribution channel.
 
