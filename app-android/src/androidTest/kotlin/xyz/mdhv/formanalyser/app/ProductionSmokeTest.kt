@@ -116,7 +116,7 @@ class ProductionSmokeTest {
     }
 
     @Test
-    fun bocalStyleArcNavigationSelectsCalendar() {
+    fun bocalStyleDockNavigationSelectsCalendar() {
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(
             ApplicationProvider.getApplicationContext(),
         )
@@ -131,33 +131,6 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "← prev")
                 clickBottomTabEventually(instrumentation, "Home")
                 assertTextEventually(instrumentation, "Find your rhythm.")
-                val navRoot = rootInActiveWindowOrNull(instrumentation) ?: error("Missing Home accessibility tree")
-                val contextRail = navRoot.findContentDescriptionPrefix("Swipe across the upper arc")
-                    ?: error("Bocal upper-rail interaction is not exposed to accessibility")
-                val railBounds = Rect().also(contextRail::getBoundsInScreen)
-                contextRail.recycle()
-                navRoot.recycle()
-                val downTime = SystemClock.uptimeMillis()
-                val xStart = railBounds.left + railBounds.width() * .12f
-                val xEnd = railBounds.left + railBounds.width() * .88f
-                val y = railBounds.centerY().toFloat()
-                fun injectRail(action: Int, x: Float) {
-                    val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0).apply {
-                        source = InputDevice.SOURCE_TOUCHSCREEN
-                    }
-                    try {
-                        assertTrue("Could not inject upper-rail navigation gesture", instrumentation.uiAutomation.injectInputEvent(event, true))
-                    } finally {
-                        event.recycle()
-                    }
-                }
-                injectRail(MotionEvent.ACTION_DOWN, xStart)
-                repeat(8) { step ->
-                    injectRail(MotionEvent.ACTION_MOVE, xStart + (xEnd - xStart) * (step + 1) / 8f)
-                    SystemClock.sleep(35)
-                }
-                injectRail(MotionEvent.ACTION_UP, xEnd)
-                assertTextEventually(instrumentation, "← prev")
             }
         } finally {
             runBlocking { prefs.setOnboarded(wasOnboarded) }

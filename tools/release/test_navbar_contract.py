@@ -1,4 +1,4 @@
-"""Keep Crocodyl's mobile primary navigation aligned with Bocal's arc interaction."""
+"""Keep Crocodyl's mobile primary navigation aligned with Bocal's floating dock."""
 
 from pathlib import Path
 import unittest
@@ -17,35 +17,27 @@ def bottom_bar_source() -> str:
 
 
 class NavbarContractTest(unittest.TestCase):
-    def test_mobile_nav_uses_bocal_two_rail_geometry_and_five_tabs(self) -> None:
+    def test_mobile_nav_uses_bocal_floating_dock_and_five_tabs(self) -> None:
         source = bottom_bar_source()
-        self.assertEqual(source.count("quadraticTo("), 2, "primary nav must have both Bocal rails")
-        self.assertIn("height(150.dp * scale)", source)
-        self.assertIn("moveTo(22f * s, 112f * s)", source)
-        self.assertIn("quadraticTo(200f * s, 77f * s, 378f * s, 112f * s)", source)
-        self.assertIn("moveTo(82.52f * s, 40.12f * s)", source)
-        self.assertIn("quadraticTo(200f * s, 24.88f * s, 317.48f * s, 40.12f * s)", source)
+        self.assertIn("RoundedCornerShape(26.dp)", source)
+        self.assertIn("Arrangement.spacedBy(4.dp)", source)
         for route in ("HOME", "TRAIN", "PROGRESS", "BODY", "CALENDAR"):
             self.assertIn(f"Routes.{route} to", source)
         self.assertIn("selectable(selected = selected, role = Role.Tab", source)
-        self.assertIn("Text(\n                                label,\n                                color = Hyle.Background,", source)
+        self.assertIn("Text(label, color = if (selected) Hyle.AccentBright", source)
+        self.assertIn("contentDescription = label", source)
 
-    def test_context_actions_are_anchored_to_the_upper_rail(self) -> None:
+    def test_destination_icons_are_above_labels_and_active_tab_is_filled(self) -> None:
         source = bottom_bar_source()
-        self.assertIn("ContextDockButton(", source)
-        self.assertIn("18.dp - 22.dp", source)
-        self.assertIn("382.dp - 22.dp", source)
-        self.assertIn('contentDescription = "Swipe across the upper arc', source)
-        self.assertIn('testTag("nav-context-arc")', source)
+        self.assertIn("Icon(icon, label", source)
+        self.assertIn("Spacer(Modifier.height(5.dp))", source)
+        self.assertIn("if (selected) Modifier.background(Hyle.Accent.copy(alpha = .16f))", source)
 
-    def test_upper_rail_preview_and_direct_tab_selection_are_supported(self) -> None:
+    def test_direct_tab_selection_is_exercised_in_android_smoke_test(self) -> None:
         source = bottom_bar_source()
-        self.assertIn("detectDragGestures(", source)
-        self.assertIn("scrubbedDestination = preview", source)
-        self.assertIn("onDragEnd = { preview?.let(selectDestination)", source)
         self.assertIn("selectable(selected = selected, role = Role.Tab", source)
         tests = SMOKE_TEST.read_text(encoding="utf-8")
-        self.assertIn("fun bocalStyleArcNavigationSelectsCalendar()", tests)
+        self.assertIn("fun bocalStyleDockNavigationSelectsCalendar()", tests)
         self.assertIn('clickBottomTabEventually(instrumentation, "Calendar")', tests)
 
 

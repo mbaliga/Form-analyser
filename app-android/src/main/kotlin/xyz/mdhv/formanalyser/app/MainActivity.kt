@@ -511,151 +511,48 @@ private fun BottomBar(
         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         onSelect(destination)
     }
-    BoxWithConstraints(
-        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-    ) {
-        // Bocal/Hyle navigation is one coordinated 400×150 stage: contextual upper rail and
-        // destination lower rail. Both curves and their side controls scale together.
-        val scale = maxWidth / 400.dp
-        val stageWidth = maxWidth
-        val seatsX = listOf(.117f, .309f, .5f, .691f, .883f)
-        val seatsY = listOf(.716f, .652f, .630f, .652f, .716f)
-        val tilts = listOf(-9.6f, -4.83f, 0f, 4.83f, 9.6f)
-        var scrubbedDestination by remember { mutableStateOf<String?>(null) }
-        val selectedLabel = items.firstOrNull { it.first == (scrubbedDestination ?: current) }?.second?.second ?: "Home"
-        Column(Modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(150.dp * scale)) {
-            Canvas(Modifier.fillMaxSize()) {
-                val s = size.width / 400f
-                val lower = Path().apply {
-                    moveTo(22f * s, 112f * s)
-                    quadraticTo(200f * s, 77f * s, 378f * s, 112f * s)
-                }
-                val upper = Path().apply {
-                    moveTo(82.52f * s, 40.12f * s)
-                    quadraticTo(200f * s, 24.88f * s, 317.48f * s, 40.12f * s)
-                }
-                listOf(lower to 61f, upper to 44f).forEach { (path, width) ->
-                    drawPath(path, color = Hyle.Background.copy(alpha = .96f), style = Stroke(width * s, cap = StrokeCap.Round))
-                    drawPath(path, brush = Brush.verticalGradient(0f to Hyle.SurfaceVariant, .55f to Hyle.Surface, 1f to Hyle.Background), style = Stroke((width - 3f) * s, cap = StrokeCap.Round))
-                    drawPath(path, color = Hyle.OnBackground.copy(alpha = .045f), style = Stroke(1f * s, cap = StrokeCap.Round))
-                }
-                val textPath = android.graphics.Path().apply {
-                    moveTo(82.52f * s, 40.12f * s)
-                    quadTo(200f * s, 24.88f * s, 317.48f * s, 40.12f * s)
-                }
-                val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                    color = Hyle.OnBackground.toArgb()
-                    textSize = 14f * s
-                    typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD)
-                    textAlign = android.graphics.Paint.Align.CENTER
-                }
-                drawContext.canvas.nativeCanvas.drawTextOnPath(selectedLabel, textPath, 0f, 5f * s, paint)
-            }
-
-            Box(
-                Modifier.offset(x = 82.52.dp * scale, y = 15.dp * scale)
-                    .width(234.96.dp * scale).height(50.dp * scale)
-                    .pointerInput(items, current) {
-                        var preview: String? = null
-                        detectDragGestures(
-                            onDragStart = { point ->
-                                val index = ((point.x / size.width) * items.size).toInt().coerceIn(items.indices)
-                                preview = items[index].first
-                                scrubbedDestination = preview
-                            },
-                            onDrag = { change, _ ->
-                                val index = ((change.position.x / size.width) * items.size).toInt().coerceIn(items.indices)
-                                preview = items[index].first
-                                scrubbedDestination = preview
-                                change.consume()
-                            },
-                            onDragEnd = { preview?.let(selectDestination); scrubbedDestination = null },
-                            onDragCancel = { scrubbedDestination = null },
-                        )
-                    }
-                    .semantics { contentDescription = "Swipe across the upper arc to preview and select $selectedLabel" }
-                    .testTag("nav-context-arc"),
-            )
-
-            items.forEachIndexed { index, (dest, pair) ->
-                val (icon: ImageVector, label) = pair
-                val selected = current == dest
-                Box(
-                    Modifier.align(Alignment.TopStart)
-                        .offset(x = stageWidth * seatsX[index] - 48.dp * scale, y = 150.dp * seatsY[index] - 21.dp * scale)
-                        .width(96.dp * scale).height(42.dp * scale)
-                        .graphicsLayer { rotationZ = tilts[index] }
-                        .testTag("nav-tab-$dest"),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Row(
-                        Modifier.widthIn(min = 44.dp * scale).height(42.dp * scale)
-                            .clip(CircleShape)
-                            .then(if (selected) Modifier
-                                .background(Brush.radialGradient(listOf(Hyle.AccentBright, Hyle.Accent, Hyle.AccentDim)))
-                                .border(1.dp * scale, Hyle.OnBackground.copy(alpha = .18f), CircleShape) else Modifier)
-                            .selectable(selected = selected, role = Role.Tab, onClick = { selectDestination(dest) })
-                            .semantics(mergeDescendants = true) { contentDescription = label }
-                            .padding(horizontal = if (selected) 12.dp * scale else 10.dp * scale),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        if (dest == Routes.BODY && badge) {
-                            BadgedBox({ Badge { Text("!") } }) {
-                                Icon(icon, label, tint = if (selected) Hyle.Background else Hyle.OnSurfaceDim, modifier = Modifier.size(19.dp * scale))
-                            }
-                        } else {
-                            Icon(icon, label, tint = if (selected) Hyle.Background else Hyle.OnSurfaceDim, modifier = Modifier.size(19.dp * scale))
-                        }
-                        if (selected) {
-                            Spacer(Modifier.width(7.dp * scale))
-                            Text(
-                                label,
-                                color = Hyle.Background,
-                                fontSize = 11.sp * scale,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-            }
-
-            ContextDockButton(
-                modifier = Modifier.offset(x = (18.dp - 22.dp) * scale, y = (50.79.dp - 22.dp) * scale),
-                icon = Icons.Filled.CameraAlt, label = "Train", stageScale = scale, rotation = -11.37f,
-                onClick = { selectDestination(Routes.TRAIN) },
-            )
-            ContextDockButton(
-                modifier = Modifier.offset(x = (382.dp - 22.dp) * scale, y = (50.79.dp - 22.dp) * scale),
-                icon = Icons.Filled.Add, label = "Add", stageScale = scale, rotation = 11.37f,
-                onClick = { haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove); onAdd() },
-            )
-
-        }
+    Column(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars).padding(horizontal = 8.dp, vertical = 4.dp)) {
+    Row(Modifier.fillMaxWidth().height(38.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+        IconButton(
+            onClick = onAdd,
+            modifier = Modifier.size(36.dp).clip(CircleShape).background(Hyle.SurfaceVariant)
+                .border(1.dp, Hyle.HairlineStrong, CircleShape),
+        ) {
+            Icon(Icons.Filled.Add, "Quick add", tint = Hyle.AccentBright, modifier = Modifier.size(19.dp))
         }
     }
-}
-
-@Composable
-private fun ContextDockButton(
-    modifier: Modifier,
-    icon: ImageVector,
-    label: String,
-    stageScale: Float,
-    rotation: Float,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier.size(44.dp * stageScale).clip(CircleShape).background(Hyle.SurfaceVariant)
-            .border(1.dp * stageScale, Hyle.HairlineStrong, CircleShape)
-            .graphicsLayer { rotationZ = rotation }
-            .clickable(onClickLabel = label, role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
+    Row(
+        Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(26.dp)).background(Hyle.Surface.copy(alpha = .96f))
+            .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(26.dp)).padding(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, label, tint = Hyle.AccentBright, modifier = Modifier.size(20.dp * stageScale))
+        items.forEach { (dest, pair) ->
+            val (icon: ImageVector, label) = pair
+            val selected = current == dest
+            Column(
+                Modifier.weight(1f).heightIn(min = 62.dp).clip(RoundedCornerShape(17.dp))
+                    .then(if (selected) Modifier.background(Hyle.Accent.copy(alpha = .16f)) else Modifier)
+                    .selectable(selected = selected, role = Role.Tab, onClick = { selectDestination(dest) })
+                    .semantics(mergeDescendants = true) { contentDescription = label }
+                    .testTag("nav-tab-$dest").padding(vertical = 7.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                if (dest == Routes.BODY && badge) {
+                    BadgedBox({ Badge { Text("!") } }) {
+                        Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim, modifier = Modifier.size(20.dp))
+                    }
+                } else {
+                    Icon(icon, label, tint = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim, modifier = Modifier.size(20.dp))
+                }
+                Spacer(Modifier.height(5.dp))
+                Text(label, color = if (selected) Hyle.AccentBright else Hyle.OnSurfaceDim,
+                    style = MaterialTheme.typography.labelSmall, maxLines = 1, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
+            }
+        }
+    }
     }
 }
 

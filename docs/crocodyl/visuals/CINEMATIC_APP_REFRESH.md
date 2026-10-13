@@ -241,12 +241,12 @@ baseline v666; screenless motion capture remains a separate proposal pending own
 
 ## Navigation direction
 
-Owner direction: Crocodyl's primary navigation should visibly and behaviorally follow Bocal's
-current Hyle arc dock. It is one coordinated 400×150 stage with a lower destination rail, an upper
-context rail, and side actions aligned to the upper curve. Preserve tangent-aligned tabs, active
-destination styling, upper-rail preview/commit, and Compose route/state/accessibility semantics.
-Device screenshots, large-font/compact viewport behavior, gesture insets and touch-target acceptance
-remain required.
+Owner direction: Crocodyl's primary navigation should follow the Bocal mobile reference: a single
+floating dock, five icon-over-label destinations, and a filled capsule behind the active destination.
+Keep Crocodyl's sport-specific labels, Hyle violet active color, haptic feedback, badges, and Compose
+route/state/accessibility semantics. Do not substitute the separate Hyle two-arc exploration for
+this product-level Bocal interaction. Device screenshots, large-font/compact viewport behavior,
+gesture insets and touch-target acceptance remain required.
 
 ## Acceptance checks for each visual slice
 
@@ -329,21 +329,17 @@ review described above.
 
 ## 2026-10-13 Bocal navigation correction
 
-Owner review on 2026-10-13 identified that the v698 single-rail correction did not match Bocal and
-is superseded. Current source restores Bocal's Hyle two-rail contract: lower destination curve
-`M22 112 Q200 77 378 112`, upper contextual curve
-`M82.52 40.12 Q200 24.88 317.48 40.12`, side actions anchored at `(18, 50.79)` and
-`(382, 50.79)`, and upper-rail drag preview that commits on release. The curves, controls and tabs
-share one scale/inset stage. The v698 screenshots below depict the superseded one-rail version and
-must not be used to judge current-source parity. Corrected-source QA v700 passed the 11-test debug
-suite and v701 passed the 11-test minified-release suite on API-36 ARM64 16 KB, including
-swipe-to-preview/commit and direct tab taps; `lintRelease` passed on v701. Both used the QA/debug
-signing identity. Current v701 Home captures are checked in at
-[`home-bocal-two-rail-v701-api36-16kb.png`](screenshots/home-bocal-two-rail-v701-api36-16kb.png)
-and
-[`home-bocal-two-rail-large-font-1_3x-v701-api36-16kb.png`](screenshots/home-bocal-two-rail-large-font-1_3x-v701-api36-16kb.png).
-Both are 840×1920 API-36 ARM64 16 KB emulator renders with synthetic QA profile data; the latter is
-at 1.3× system font scale. Physical-device visual acceptance remains open.
+Owner feedback identified that the navbar still did not look like Bocal. Comparing against the
+actual mobile reference (`Bocal/android/docs/reference-ui/145483.jpg`) clarified the intended
+pattern: five icon-over-label destinations in one floating dock, with the current destination
+highlighted in a filled capsule. The two-arc Hyle version is superseded, despite matching a separate
+shared navigation directive. Crocodyl now uses the Bocal dock interaction with Home, Train, Progress,
+Body and Calendar; its Hyle accent, accessibility labels, badge and haptics remain. The navbar
+contract test now asserts this structure, and the API-36 ARM64 16 KB debug `ProductionSmokeTest`
+passed 11/11 using temporary QA versionCode 702. Debug unit tests and `assembleDebug` also passed.
+Fresh rendered visual confirmation is pending; prior v701 two-arc captures are historical and do not
+represent current source. Production distribution and physical-device acceptance remain separate
+open gates.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 

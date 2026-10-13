@@ -47,19 +47,15 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       on an emulator, not production signing, artifact preflight or physical-device acceptance.
       Owner review later established that the one-rail interaction still diverged from Bocal; v698
       is superseded and its screenshot is not evidence for current-source parity.
-- [x] Three CI-discovered navbar contract tests now guard Bocal's two-rail geometry, curve-anchored
-      context actions, upper-rail preview/commit, and direct destination tabs. Corrected-source QA
-      v700 passed `testDebugUnitTest` and all 11 connected `ProductionSmokeTest` cases; QA v701 passed
-      all 11 in the minified release variant on the API-36 ARM64 16 KB emulator. Both release-test
-      installables used only the committed QA/debug signer, and `lintRelease` passed. The v701
-      release APK/AAB passed local artifact preflight; APK SHA-256
-      `5b3fe80fa514ab7ddd982a1c3ed6a2e3d441eaea0abeb6d1e5818d8e0a48eeed`, AAB SHA-256
-      `de84277ff8237a5ff63518db27fae10844e47685f95265b8d01c74e1e51aa508`. The exact APK cold-launched
-      and remained live for four seconds without a fatal/class-loading error in checked logs. Fresh
-      840×1920 v701 Home captures at 1.0× and 1.3× font scale are checked in at
-      `visuals/screenshots/home-bocal-two-rail-v701-api36-16kb.png` and
-      `visuals/screenshots/home-bocal-two-rail-large-font-1_3x-v701-api36-16kb.png`. These use a
-      synthetic QA profile; physical-device acceptance remains open.
+- [x] Historical two-arc navigation contract and v700/v701 QA evidence are retained as historical
+      records only. Owner review found the two-arc Hyle experiment still visually unlike Bocal's
+      mobile reference, so it is superseded by the single floating dock pattern. Current source uses
+      five icon-over-label tabs and highlights the selected tab with a filled capsule; three
+      contract tests guard this structure and direct navigation. Debug unit tests and assembly pass,
+      and all 11 connected debug smoke tests pass on the API-36 ARM64 16 KB emulator using temporary
+      QA versionCode 702. New visual confirmation, minified-release validation and physical-device
+      review for this correction remain pending. Older two-arc screenshots are not current-source
+      acceptance evidence.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,

@@ -26,8 +26,11 @@ production APK and advance it after each successful release.
 Previous-production APK/update replay (2026-10-13): fetched the public `v0.5.1-reconciled`
 release asset and matched its SHA-256 `84e21831c085905f2beedea704c3998b32e76c4ed84966c1e797ab006c2a440b`
 to GitHub's release metadata. The APK is `xyz.mdhv.formanalyser`, versionCode 4, targetSdk 35, and
-uses certificate `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. The checked-in
-high-water mark is 697, safely above the actual published code 4. On the disposable API-36 ARM64
+uses certificate `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`, matching the
+committed QA/debug key. The release workflow's signer guard rejects that certificate for a new
+production release; the update below is compatibility/migration evidence under the same signer,
+not proof of production-key continuity. The checked-in high-water mark is 697, safely above the
+actual published code 4. On the disposable API-36 ARM64
 16 KB AVD (`PAGE_SIZE=16384`), clean-installed and cold-launched v0.5.1, completed onboarding as
 synthetic athlete `Test` with active rig `My bow`, then updated it in place to the exact v701
 minified QA APK using the same certificate. Package Manager reported versionCode 701; the updated
@@ -39,30 +42,16 @@ acceptance remain open. Android displayed its 16 KB compatibility warning for th
 (`ELF alignment check failed`) and ran it in compatible mode; v701's current artifact preflight
 confirmed all packaged 64-bit native libraries are 16 KB aligned. Production signing remains open.
 
-Navbar parity correction (2026-10-13): owner review correctly noted that current Crocodyl did not
-match Bocal. The previous single-rail correction was wrong: Bocal's current Hyle contract is one
-coordinated 400×150 stage with parallel contextual and destination rails, curved-context preview,
-and side controls following the upper-curve continuation. Crocodyl source now restores that
-two-rail geometry, preview/commit gesture, tangent-seated destination tabs, and curve-anchored Train
-and Add controls. All five destination tabs now expose explicit accessible labels. The v698
-single-rail screenshot and its related test evidence are historical, not acceptance of the corrected
-source. QA candidate v700 compiled; `testDebugUnitTest` passed, and all 11 `ProductionSmokeTest`
-cases passed on the API-36 ARM64 16 KB emulator, including an injected upper-rail swipe to Calendar
-and direct Calendar/Home tab selection. Corrected-source v701 also passed all 11 tests in the
-minified release variant on that emulator; `lintRelease` passed as well. The v701 test APK was signed
-with the QA/debug key only. Its release APK/AAB passed the local `verify_android_release.sh`
-preflight (APK ZIP alignment, AAB 16 KB alignment, manifest/version/target SDK, pose-model hash,
-backup resources and QA signer agreement); exact APK SHA-256
-`5b3fe80fa514ab7ddd982a1c3ed6a2e3d441eaea0abeb6d1e5818d8e0a48eeed`, AAB SHA-256
-`de84277ff8237a5ff63518db27fae10844e47685f95265b8d01c74e1e51aa508`. The exact APK cold-launched
-with `Status: ok`, and its process remained live after four seconds without fatal/class-loading
-errors in the checked logs. This is still QA-key evidence, not production distribution proof. Fresh
-840×1920 screenshots of corrected v701 Home are checked in at
-`visuals/screenshots/home-bocal-two-rail-v701-api36-16kb.png` (font scale 1.0) and
-`visuals/screenshots/home-bocal-two-rail-large-font-1_3x-v701-api36-16kb.png` (font scale 1.3).
-Both show the synthetic QA profile on the API-36 ARM64 16 KB emulator; emulator font scale was
-restored to 1.0 after capture. Physical-device acceptance remains open. Production signing, hosted
-CI, and range validation remain open.
+Navbar parity correction (2026-10-13): owner review noted Crocodyl still did not visually follow
+Bocal. Inspection of Bocal's mobile reference (`Bocal/android/docs/reference-ui/145483.jpg`) showed
+the intended interaction: one floating five-destination dock, each destination showing its icon
+above its label, with the selected destination on a filled capsule. Crocodyl's subsequent two-arc
+Hyle experiment was a separate visual language and is now superseded. Crocodyl's current source
+uses the Bocal dock pattern with its own Home, Train, Progress, Body and Calendar destinations,
+Hyle violet active treatment, haptics, badge, and accessible tab labels. The older upper-arc gesture
+test and two-arc screenshots are historical only; new connected verification and screenshot review
+are required for this correction. Prior v701 QA artifact and release preflight evidence remains
+valid for that exact older artifact, not the current source or a production-signed distribution.
 
 Earlier two-rail implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit
 tests, `lintRelease`, and upper-rail swipe instrumentation on API-36 16 KB AVDs. Their screenshots
@@ -609,11 +598,12 @@ Rig editing shows a validation message and disables Save. JVM coverage includes 
 zero, negative, malformed, NaN and infinity cases. The broader rig and handedness acceptance item
 remains open for physical-device verification.
 
-Navigation correction history (2026-10-13): Crocodyl iterated from a curved lower-only rail to a
-two-rail design, then briefly regressed to lower-only v698. The owner clarified Bocal parity; v700
-restores the canonical Hyle two-rail geometry and preview/commit interaction, with fresh connected
-behavior evidence recorded above. Existing checked-in navigation screenshots show earlier builds;
-do not present them as captures of the current source render.
+Navigation correction history (2026-10-13): Crocodyl iterated from a curved lower-only rail, to a
+single-arc v698 design, then a two-arc Hyle experiment in v700/v701. Owner review of the actual
+Bocal mobile reference clarified that the desired pattern is the floating five-destination dock,
+not either arc variation. Current source now matches that dock; new 11/11 connected debug smoke
+results are recorded in the current navbar correction entry above. The v700/v701 screenshots and
+artifact checks are historical for those exact builds, not current-source visual evidence.
 
 Debug instrumentation follow-up (2026-10-13): the complete current-source API-36 16 KB debug
 `ProductionSmokeTest` generated a JUnit report with 10 tests, 0 failures, 0 errors and 0 skips
