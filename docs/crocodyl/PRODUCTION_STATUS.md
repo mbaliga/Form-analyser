@@ -26,6 +26,14 @@ the updated integrated preflight, including signer, manifest, package/version/ta
 alignment, model and backup-resource checks. This is a verifier safeguard, not a new production
 artifact or production-signing/device-acceptance result.
 
+Crash-diagnostics hardening (2026-10-13): the production release workflow now fails if the minified
+build does not produce a non-empty, version-matched R8 mapping. It uploads that mapping and a
+SHA-256 digest to a private, 90-day Actions artifact, deliberately separate from public release
+assets. The runbook/checklist require verifying and archiving it durably with restricted access.
+The new 52-test release contract suite, immutable action-ref check and workflow YAML parse pass
+locally; this workflow change has not yet run in hosted CI. Full Gradle replay could not run in this
+shell because `/usr/bin/java` is only a launcher shim and no Java runtime is installed here.
+
 Large-font visual QA follow-up (2026-10-13): the exact v696 Home screen is now captured at normal
 scale in `visuals/screenshots/home-hyle-two-arc-v696-api36-16kb.png`. Review at 1.3× exposed Home
 action-label wrapping; the current source fixes it with an icon-above-label action layout at larger
@@ -537,6 +545,10 @@ signing remains open.
 | Production distribution | Not yet releasable | Workflow actions are now immutably pinned and guarded. Production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance remain. |
 
 ## Current commits
+
+- Crocodyl: `2169d26` — require and privately preserve the versioned R8 mapping and digest for crash diagnostics.
+- Crocodyl: `a1d61ae` — align the mobile navigation interaction with current Bocal source; add v708 screenshots and runtime coverage.
+- Crocodyl: `a4fd94e` — reject debuggable and test-only Android release artifacts.
 
 - Crocodyl: `18ea047` — refine cinematic Home/onboarding; current-tree v679 QA artifact preflight and API-35 debug/minified-release 10/10 instrumentation pass.
 - Crocodyl: `5623cfe` — reject the committed QA/debug signer for production and execute fingerprint-policy negative tests.
