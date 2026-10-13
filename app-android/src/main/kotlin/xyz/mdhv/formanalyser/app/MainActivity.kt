@@ -143,7 +143,7 @@ private fun AppRoot() {
             }
     }
     when (val state = databaseState) {
-        DatabaseState.Loading -> Box(Modifier.fillMaxSize())
+        DatabaseState.Loading -> DatabaseLoadingScreen()
         is DatabaseState.Blocked ->
             DatabaseRecoveryScreen(
                 state.failure,
@@ -168,6 +168,51 @@ private fun AppRoot() {
                 }
                 else -> MainShell()
             }
+        }
+    }
+}
+
+/** Keep the cold-start database check visible while preserving the no-screen-before-safe-open rule. */
+@Composable
+private fun DatabaseLoadingScreen() {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Hyle.Background, Hyle.SurfaceRich, Hyle.Background),
+                ),
+            )
+            .testTag("database-startup-loading"),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            Text(
+                "CROCODYL  /  RECURVE",
+                color = Hyle.RadiumGreen,
+                style = MaterialTheme.typography.labelMedium,
+                letterSpacing = 2.sp,
+            )
+            CircularProgressIndicator(
+                modifier = Modifier.size(30.dp),
+                color = Hyle.RadiumGreen,
+                trackColor = Hyle.HairlineStrong,
+                strokeWidth = 2.dp,
+            )
+            Text(
+                "Opening your training space",
+                color = Hyle.OnBackground,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                "Checking saved sessions before we open the range.",
+                color = Hyle.OnSurfaceDim,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     }
 }

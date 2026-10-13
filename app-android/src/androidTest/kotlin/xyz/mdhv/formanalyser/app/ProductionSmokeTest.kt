@@ -127,7 +127,12 @@ class ProductionSmokeTest {
         try {
             runBlocking { prefs.setOnboarded(true) }
             ActivityScenario.launch(MainActivity::class.java).use {
-                assertTextEventually(instrumentation, "Find your rhythm.")
+                assertAnyTextEventually(
+                    instrumentation,
+                    listOf("Opening your training space", "Find your rhythm.", "Saved data needs recovery"),
+                    timeoutMs = 30_000,
+                )
+                assertTextEventually(instrumentation, "Find your rhythm.", timeoutMs = 30_000)
                 assertTextEventually(instrumentation, "Home")
                 assertTextEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "Score")
@@ -159,6 +164,8 @@ class ProductionSmokeTest {
                         screenshot.recycle()
                     }
                 }
+                swipePrimaryNavigationRail(instrumentation, "Home", "Calendar")
+                assertTextEventually(instrumentation, "← prev")
                 clickBottomTabEventually(instrumentation, "Calendar")
                 assertTextEventually(instrumentation, "← prev")
                 clickBottomTabEventually(instrumentation, "Home")
@@ -219,7 +226,6 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "← prev")
 
                 clickBottomTabEventually(instrumentation, "Home")
-                scrollHomeUntilText(instrumentation, "CROCODYL  /  RECURVE", forward = false)
                 assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
 
                 scrollHomeUntilText(instrumentation, "Score", forward = false)
@@ -527,8 +533,9 @@ class ProductionSmokeTest {
     private fun assertTextEventually(
         instrumentation: android.app.Instrumentation,
         expected: String,
+        timeoutMs: Long = 8_000,
     ) {
-        val deadline = SystemClock.uptimeMillis() + 8_000
+        val deadline = SystemClock.uptimeMillis() + timeoutMs
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
@@ -551,8 +558,9 @@ class ProductionSmokeTest {
     private fun assertAnyTextEventually(
         instrumentation: android.app.Instrumentation,
         expected: List<String>,
+        timeoutMs: Long = 8_000,
     ) {
-        val deadline = SystemClock.uptimeMillis() + 8_000
+        val deadline = SystemClock.uptimeMillis() + timeoutMs
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
@@ -584,6 +592,45 @@ class ProductionSmokeTest {
         }
         val visibleText = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
         throw AssertionError("Could not click bottom navigation tab: $label. Visible: $visibleText")
+    }
+
+    private fun swipePrimaryNavigationRail(
+        instrumentation: android.app.Instrumentation,
+        from: String,
+        to: String,
+    ) {
+        val root = rootInActiveWindowOrNull(instrumentation)
+            ?: throw AssertionError("Primary navigation is not accessible")
+        val dock = root.findTextNode("Current sport: Recurve")
+            ?: throw AssertionError("Could not locate the Bocal arc navigation stage")
+        val bounds = Rect().also(dock::getBoundsInScreen)
+        val seatX = mapOf("Home" to 46.8f, "Train" to 123.6f, "Progress" to 200f, "Body" to 276.4f, "Calendar" to 353.2f)
+        val startX = bounds.left + bounds.width() * seatX.getValue(from) / 400f
+        val endX = bounds.left + bounds.width() * seatX.getValue(to) / 400f
+        val railY = bounds.top + bounds.width() * 107.4f / 400f
+        val downTime = SystemClock.uptimeMillis()
+        val automation = instrumentation.uiAutomation
+        fun inject(action: Int, fraction: Float) {
+            val event = MotionEvent.obtain(
+                downTime,
+                SystemClock.uptimeMillis(),
+                action,
+                startX + (endX - startX) * fraction,
+                railY,
+                0,
+            ).apply { source = InputDevice.SOURCE_TOUCHSCREEN }
+            try {
+                assertTrue("Could not inject primary navigation scrub", automation.injectInputEvent(event, true))
+            } finally {
+                event.recycle()
+            }
+        }
+        inject(MotionEvent.ACTION_DOWN, 0f)
+        repeat(12) { step ->
+            inject(MotionEvent.ACTION_MOVE, (step + 1) / 12f)
+            SystemClock.sleep(40)
+        }
+        inject(MotionEvent.ACTION_UP, 1f)
     }
 
     private fun scrollHomeUntilText(

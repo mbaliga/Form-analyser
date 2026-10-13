@@ -60,6 +60,15 @@ class NavbarContractTest(unittest.TestCase):
         self.assertIn('getString("captureDockVisual") == "true"', tests)
         self.assertIn("MediaStore.Images.Media.RELATIVE_PATH", tests)
 
+    def test_database_open_never_leaves_a_blank_startup_surface(self) -> None:
+        source = MAIN_ACTIVITY.read_text(encoding="utf-8")
+        self.assertIn("DatabaseState.Loading -> DatabaseLoadingScreen()", source)
+        self.assertIn('testTag("database-startup-loading")', source)
+        self.assertIn('"Opening your training space"', source)
+        tests = SMOKE_TEST.read_text(encoding="utf-8")
+        self.assertIn('"Opening your training space"', tests)
+        self.assertIn("timeoutMs = 30_000", tests)
+
     def test_home_actions_stack_at_compact_width_and_large_font(self) -> None:
         hero = HERO.read_text(encoding="utf-8")
         self.assertIn("val stackedActions = compactWidth || largeFont", hero)
