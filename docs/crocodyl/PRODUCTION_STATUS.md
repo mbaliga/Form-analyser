@@ -37,8 +37,10 @@ and Add controls. All five destination tabs now expose explicit accessible label
 single-rail screenshot and its related test evidence are historical, not acceptance of the corrected
 source. QA candidate v700 compiled; `testDebugUnitTest` passed, and all 11 `ProductionSmokeTest`
 cases passed on the API-36 ARM64 16 KB emulator, including an injected upper-rail swipe to Calendar
-and direct Calendar/Home tab selection. The corrected navbar still needs a fresh checked-in visual
-capture and physical-device acceptance. Production signing, artifact preflight, CI, and range
+and direct Calendar/Home tab selection. Corrected-source v701 also passed all 11 tests in the
+minified release variant on that emulator; `lintRelease` passed as well. The v701 test APK was signed
+with the QA/debug key only. The corrected navbar still needs a fresh checked-in visual capture and
+physical-device acceptance. Production signing, artifact preflight for v701, hosted CI, and range
 validation remain open.
 
 Earlier two-rail implementation QA (2026-10-13): QA v695/v696 builds passed debug/release unit

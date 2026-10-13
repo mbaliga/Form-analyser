@@ -48,9 +48,11 @@ an update over the actual previous production APK, 30-real-session acceptance, o
       Owner review later established that the one-rail interaction still diverged from Bocal; v698
       is superseded and its screenshot is not evidence for current-source parity.
 - [x] Three CI-discovered navbar contract tests now guard Bocal's two-rail geometry, curve-anchored
-      context actions, upper-rail preview/commit, and direct destination tabs. Current QA v700
-      compiled; `testDebugUnitTest` and all 11 connected `ProductionSmokeTest` cases passed on the
-      API-36 ARM64 16 KB emulator. Fresh checked-in capture and physical-device acceptance remain open.
+      context actions, upper-rail preview/commit, and direct destination tabs. Corrected-source QA
+      v700 passed `testDebugUnitTest` and all 11 connected `ProductionSmokeTest` cases; QA v701 passed
+      all 11 in the minified release variant on the API-36 ARM64 16 KB emulator. Both release-test
+      installables used only the committed QA/debug signer, and `lintRelease` passed. Fresh
+      checked-in capture and physical-device acceptance remain open.
 
 - [x] Portable verification sweep passed: root JVM build/test task (50 tasks, up-to-date), 77 Python
       contract tests across release, version, manifest, ELF, shared checkout, community directory,

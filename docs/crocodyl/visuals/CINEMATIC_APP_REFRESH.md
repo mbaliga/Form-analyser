@@ -335,9 +335,11 @@ is superseded. Current source restores Bocal's Hyle two-rail contract: lower des
 `M82.52 40.12 Q200 24.88 317.48 40.12`, side actions anchored at `(18, 50.79)` and
 `(382, 50.79)`, and upper-rail drag preview that commits on release. The curves, controls and tabs
 share one scale/inset stage. The v698 screenshots below depict the superseded one-rail version and
-must not be used to judge current-source parity. QA candidate v700 passed the full 11-test debug
-instrumentation suite on API-36 ARM64 16 KB, including swipe-to-preview/commit and direct tab taps.
-A fresh checked-in visual capture and physical-device review of the corrected navbar remain pending.
+must not be used to judge current-source parity. Corrected-source QA v700 passed the 11-test debug
+suite and v701 passed the 11-test minified-release suite on API-36 ARM64 16 KB, including
+swipe-to-preview/commit and direct tab taps; `lintRelease` passed on v701. Both used the QA/debug
+signing identity. A fresh checked-in visual capture and physical-device review of the corrected
+navbar remain pending.
 
 ## 2026-10-13 Bocal-parity navbar runtime verification
 
