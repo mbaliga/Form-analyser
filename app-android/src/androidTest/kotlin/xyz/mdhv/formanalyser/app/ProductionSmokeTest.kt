@@ -530,6 +530,20 @@ class ProductionSmokeTest {
     private fun rootInActiveWindowOrNull(instrumentation: android.app.Instrumentation): AccessibilityNodeInfo? =
         runCatching { instrumentation.uiAutomation.rootInActiveWindow }.getOrNull()
 
+    private fun accessibilityRoots(instrumentation: android.app.Instrumentation): List<AccessibilityNodeInfo> {
+        val automation = instrumentation.uiAutomation
+        return runCatching {
+            val info = automation.serviceInfo
+            val retrieveWindows =
+                android.accessibilityservice.AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            if (info.flags and retrieveWindows == 0) {
+                info.flags = info.flags or retrieveWindows
+                automation.serviceInfo = info
+            }
+            automation.windows.mapNotNull { it.root }
+        }.getOrElse { listOfNotNull(rootInActiveWindowOrNull(instrumentation)) }
+    }
+
     private fun assertTextEventually(
         instrumentation: android.app.Instrumentation,
         expected: String,
@@ -698,40 +712,56 @@ class ProductionSmokeTest {
     private fun dismissCameraPermissionPromptIfShown(
         instrumentation: android.app.Instrumentation,
     ) {
-        val deadline = SystemClock.uptimeMillis() + 8_000
-        var denyClicked = false
+        // The API-36 permission controller can take several seconds to create its window on a
+        // software-rendered 16 KB emulator. Inspect all accessibility windows and allow that
+        // controller time to settle instead of treating an empty active-window tree as dismissal.
+        val deadline = SystemClock.uptimeMillis() + 20_000
+        var denyAttempts = 0
+        var lastDenyAttemptAt = 0L
         var backSent = false
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
-            val root = rootInActiveWindowOrNull(instrumentation)
-            if (root == null) {
-                SystemClock.sleep(50)
+            val roots = accessibilityRoots(instrumentation)
+            val activeRoot = rootInActiveWindowOrNull(instrumentation)
+            if (
+                activeRoot != null && (
+                    containsText(activeRoot, "Grant camera") ||
+                        containsText(activeRoot, "Camera access is blocked. Allow it in app settings to analyse form.") ||
+                        containsText(activeRoot, "Camera permission is required to analyse form.") ||
+                        containsText(
+                            activeRoot,
+                            "This device has no camera, so form capture is unavailable here. " +
+                                "Scoring, training logs and everything else still work.",
+                        )
+                    )
+            ) return
+
+            val systemPromptVisible = roots.any {
+                containsText(it, "Allow Crocodyl to take pictures and record video?")
+            }
+            val now = SystemClock.uptimeMillis()
+            val deny = listOf("Don't allow", "Don’t allow")
+                .firstNotNullOfOrNull { label -> roots.firstNotNullOfOrNull { it.findTextNode(label) } }
+            if (
+                systemPromptVisible && deny != null && denyAttempts < 2 &&
+                (denyAttempts == 0 || now - lastDenyAttemptAt >= 2_000)
+            ) {
+                // The permission controller's text nodes are not always marked clickable. A touch
+                // at the label's bounds activates the actual button; allow time for the window to
+                // transition before trying again (some Android versions require a second denial).
+                val bounds = Rect().also(deny::getBoundsInScreen)
+                tap(instrumentation, bounds.centerX().toFloat(), bounds.centerY().toFloat())
+                denyAttempts++
+                lastDenyAttemptAt = now
+                SystemClock.sleep(500)
                 continue
             }
             if (
-                containsText(root, "Grant camera") ||
-                containsText(root, "Camera access is blocked. Allow it in app settings to analyse form.") ||
-                containsText(root, "Camera permission is required to analyse form.") ||
-                containsText(
-                    root,
-                    "This device has no camera, so form capture is unavailable here. " +
-                        "Scoring, training logs and everything else still work.",
-                )
-            ) return
-
-            val systemPromptVisible =
-                containsText(root, "Allow Crocodyl to take pictures and record video?")
-            val deny = listOf("Don't allow", "Don’t allow")
-                .firstNotNullOfOrNull { root.findClickableText(it) }
-            if (!denyClicked && deny != null && deny.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
-                denyClicked = true
-                SystemClock.sleep(250)
-                continue
-            }
-            if (systemPromptVisible && !backSent) {
-                // Some API-36 permission-controller builds report a successful accessibility click
-                // without dismissing the dialog. Back cancels the request (the denied path under
-                // test); keep waiting for the app's own safe-state UI before accepting the smoke.
+                systemPromptVisible && !backSent && denyAttempts >= 2 &&
+                now - lastDenyAttemptAt >= 2_000
+            ) {
+                // If the dialog remains after two explicit denials, Back cancels it. Acceptance
+                // still requires the app's own denial UI below.
                 instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
                 backSent = true
                 SystemClock.sleep(250)
@@ -739,7 +769,10 @@ class ProductionSmokeTest {
             }
             SystemClock.sleep(50)
         }
-        val visible = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
+        val visible = listOfNotNull(rootInActiveWindowOrNull(instrumentation))
+            .plus(accessibilityRoots(instrumentation))
+            .flatMap(::collectVisibleText)
+            .distinct()
         throw AssertionError("Camera prompt or safe denial/no-camera UI was not visible: $visible")
     }
 
