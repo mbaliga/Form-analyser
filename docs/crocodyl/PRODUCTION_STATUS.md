@@ -12,7 +12,11 @@ the `.croc` signature interoperability test passed. This revalidation did not re
 unit/lint/connected tests: the current temporary toolchain has no Android SDK/emulator, and
 `app-android` is intentionally included in Gradle only with `-PwithAndroid`. Earlier v711 Android
 evidence remains the last Android-source validation; production signing, hosted CI and physical
-acceptance remain open.
+acceptance remain open. A read-only GitHub Actions audit found the newest push-triggered `main`
+CI and Android runs on 2026-09-18 at `d0987ce8` ([CI](https://github.com/mbaliga/Form-analyser/actions/runs/35334586525),
+[Android](https://github.com/mbaliga/Form-analyser/actions/runs/35334586097)); the latest visible
+push-triggered `feat/immersive-visuals` CI run is 2026-09-16. Current local commits have not been
+pushed and therefore have no hosted-run evidence.
 
 ## Current-turn evidence and commit trace
 
