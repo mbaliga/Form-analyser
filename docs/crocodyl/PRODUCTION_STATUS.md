@@ -2,6 +2,25 @@
 
 Last reviewed: 2026-10-14
 
+Current-source revalidation after the desktop-report work (2026-10-14): provisioned a temporary
+JDK 21 from Eclipse Temurin and verified the vendor-published SHA-256 before use. A forced
+`./gradlew test --rerun-tasks` completed successfully (50/50 Gradle tasks executed). Python
+contracts passed: release 54/54, shared checkout 4/4, Community Directory 4/4, Atelier 20/20, and
+desktop viewer 11/11; the seven-workflow immutable-action verifier passed. The Node report test
+passed with hostile labels rendered escaped and set-match points kept out of target-score rates;
+the `.croc` signature interoperability test passed. This revalidation did not rerun Android
+unit/lint/connected tests: the current temporary toolchain has no Android SDK/emulator, and
+`app-android` is intentionally included in Gradle only with `-PwithAndroid`. Earlier v711 Android
+evidence remains the last Android-source validation; production signing, hosted CI and physical
+acceptance remain open.
+
+## Current-turn evidence and commit trace
+
+- Crocodyl: `dfd36f4` — index report-renderer escaping and match-display safeguards.
+- Crocodyl: `d92047f` — verify report HTML escaping for hostile round/feature labels and verify set-match display semantics.
+- Crocodyl: `34b78b9` — index offline desktop coach analysis and remaining visual/coach acceptance gate.
+- Crocodyl: `ef0ba57` — implement the offline coach report and CI/release regression execution.
+
 Current web-source arc parity update (2026-10-14): following the owner's confirmation to match
 Bocal's current web-source arc (not its older flat Android screenshot), the mobile dock now draws
 its Recurve/destination readout along the upper Bézier, angles the 44 dp context controls to the
