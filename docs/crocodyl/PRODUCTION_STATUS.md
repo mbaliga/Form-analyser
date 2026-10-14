@@ -598,7 +598,7 @@ signing remains open.
 - Crocodyl: `33841c9` — index QA v711 artifact digests, API-35 debug/minified instrumentation evidence and current-source screenshot.
 - Crocodyl: `7cfacf1` — make camera-permission instrumentation robust to API-36 permission-controller windows; API-35 and API-36/16 KB minified release suites pass 11/11.
 - Crocodyl: `7ac4ec9` — index completed API-36/16 KB v711 smoke evidence and the permission-window test fix.
-- Crocodyl: pending — update v711's APK digest after the final integrated preflight pass.
+- Crocodyl: `4ee9757` — refresh v711's APK digest after the final integrated preflight pass.
 - Crocodyl: `55b8490` — record current-source QA v710 hashes, lint/unit/preflight evidence, and open connected-smoke gate.
 - Crocodyl: `b537196` — index the current web-source arc parity implementation and its v710 validation boundary.
 - Crocodyl: `5ff0d53` — match Bocal's current web-source arc with curved contextual text, angled controls, and rail scrub preview/release navigation; record validation boundary.
