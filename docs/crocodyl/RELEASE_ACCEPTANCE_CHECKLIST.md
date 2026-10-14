@@ -20,7 +20,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       only the active app window as proof of Crocodyl's denial state, and taps the actual denial
       control. This resolves the earlier API-36 accessibility false positive. Current-source
       Home screenshot: `visuals/screenshots/home-bocal-web-arc-current-api35.png`. QA APK SHA-256
-      `a1eb2623a2bccf0f84f72f0734fdbce1fcaf06368bfef00e5cedcd5a6e0d28cc`; AAB SHA-256
+      `d873b44871ac05e8ece5ee6448c5923f1e0e0a90ec0e1c3ce3b31c96427de883`; AAB SHA-256
       `6e08cddc70cdca9b19f67d622b12bddc250705348c15066fd008f375a243e961`; R8 mapping SHA-256
       `6afc7de40e03df932e91ac664ea6542ce489e91c397732d407e16e4b0de5a949` (34,935,687 bytes).
       This is QA/debug signing, not production distribution. Physical device/range, production
