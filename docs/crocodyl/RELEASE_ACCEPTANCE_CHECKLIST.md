@@ -8,6 +8,15 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Incremental evidence after the current QA artifact (2026-10-14)
 
+- [x] Offline desktop viewer now renders a read-only training analysis for validated local archives:
+      form/session and scored-shot summaries, cumulative-round trend (without converting set-match
+      points to a target percentage), and latest non-baseline feature measurements relative to
+      baseline samples. Retracted rows are excluded, missing data is shown as missing, and all
+      analysis stays local. Regression coverage uses the Android exporter’s numeric SQLite booleans
+      (`0/1`). Node analytics tests, viewer contracts, release workflow contracts and signature
+      interoperability pass. [ ] Review with representative real `.croc` and `.crocbak` files in
+      a desktop browser; confirm readability, accessibility and coach workflow before production.
+
 - [x] Current-source QA v711 (`0.6.4-bocal-arc-qa`, versionCode 711): startup now presents a
       branded accessible loading surface during the safe database-open gate; it never exposes a
       blank screen or app content before that gate completes. The API-35 ARM64 debug instrumentation

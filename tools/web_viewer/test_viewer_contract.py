@@ -16,6 +16,7 @@ class ViewerContract(unittest.TestCase):
         cls.html = (VIEWER / "index.html").read_text()
         cls.script = (VIEWER / "viewer.js").read_text()
         cls.signature = (VIEWER / "signature.js").read_text()
+        cls.report = (VIEWER / "report.js").read_text()
         cls.interop = (ROOT / "tools/web_viewer/test_signature_interop.mjs").read_text()
         cls.readme = (VIEWER / "README.md").read_text()
 
@@ -77,6 +78,17 @@ class ViewerContract(unittest.TestCase):
         self.assertIn("table-preview", self.script)
         self.assertIn("JSON.stringify", self.script)
         self.assertIn("read-only preview", self.script)
+
+    def test_report_is_offline_descriptive_and_keeps_match_scoring_distinct(self) -> None:
+        self.assertIn('src="report.js"', self.html)
+        self.assertIn("CrocodylReport.summarize(entries)", self.script)
+        self.assertIn("Training analysis", self.script)
+        self.assertIn("SET_MATCH", self.report)
+        self.assertIn("baselineFeatures", self.report)
+        self.assertIn("deletedAt", self.report)
+        self.assertIn("latest non-baseline shot", self.script)
+        self.assertIn("do not establish cause", self.script)
+        self.assertNotIn("fetch(", self.report)
 
     def test_croc_requires_local_ecdsa_signature_verification(self) -> None:
         self.assertIn("endsWith('.croc')", self.signature)

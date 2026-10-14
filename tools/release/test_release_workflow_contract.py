@@ -128,6 +128,13 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn('"tools/release/**"', ci)
         self.assertIn("python3 -m unittest discover -s tools/release -p 'test_*.py'", ci)
 
+    def test_ci_and_release_execute_offline_report_analysis_tests(self) -> None:
+        ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
+        release = (ROOT / ".github" / "workflows" / "release.yml").read_text()
+        command = "node tools/web_viewer/test_report_analysis.mjs"
+        self.assertIn(command, ci)
+        self.assertIn(command, release)
+
     def test_play_candidate_targets_api_36_in_build_and_emulator_jobs(self) -> None:
         app_build = (ROOT / "app-android" / "build.gradle.kts").read_text()
         self.assertRegex(app_build, r"compileSdk\s*=\s*36\b")

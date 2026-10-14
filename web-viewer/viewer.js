@@ -86,6 +86,7 @@ function validateTablePayloads(manifest, entries) {
 }
 
 function render(file, manifest, entries, integrity) {
+  const analysis = CrocodylReport.summarize(entries);
   const tables = Object.keys(entries).filter(name => name.startsWith('tables/') && name.endsWith('.json'));
   const included = Array.isArray(manifest.includedTables) ? manifest.includedTables : [];
   const parsedTables = tables.map(name => {
@@ -114,12 +115,76 @@ function render(file, manifest, entries, integrity) {
     ${fact('Tier', escapeHtml(manifest.tierName || 'Not supplied'))}
     ${fact('Integrity', escapeHtml(integrity.state))}
   </div></div>
+  ${renderAnalysis(analysis)}
   <div class="card"><h2>Included data</h2><p>${included.length} manifest table(s), ${tables.length} readable payload(s).</p>
     <ul>${tableRows || (included.length ? included.map(t => `<li><code>${escapeHtml(t)}</code></li>`).join('') : '<li>No table list supplied</li>')}</ul>
     <div class="table-previews">${tablePreviews}</div>
   </div>
   <div class="card"><h2>Privacy boundary</h2><p>This read-only preview inspects the included manifest and table rows locally. It does not send data to a server or silently import anything into a device.</p><p class="hint">${escapeHtml(integrity.detail)}</p></div>`;
   report.hidden = false;
+}
+
+function renderAnalysis(analysis) {
+  const { totals, rounds, formSessions, baselineFeatures, roundTrend } = analysis;
+  const enoughForTrend = roundTrend.previousCount >= 3 && roundTrend.recentCount >= 3;
+  const change = enoughForTrend ? roundTrend.recentAverage - roundTrend.previousAverage : null;
+  const trendText = enoughForTrend
+    ? `${change >= 0 ? '+' : ''}${change.toFixed(1)} percentage points across ${roundTrend.recentCount} recent vs ${roundTrend.previousCount} prior rounds`
+    : 'Add at least 6 completed cumulative rounds to compare recent and prior scoring';
+  const formRows = formSessions.slice(0, 25).map(session => `<tr>
+    <td>${escapeHtml(formatDate(session.at))}</td><td>${session.distance == null ? '—' : `${session.distance} m`}</td>
+    <td>${session.duration == null ? '—' : `${formatNumber(session.duration / 60, 1)} min`}</td>
+    <td>${session.shotCount}</td><td>${session.baselineCount}</td>
+    <td>${session.averageScore == null ? '—' : formatNumber(session.averageScore, 2)}</td></tr>`).join('');
+  const roundRows = rounds.slice(0, 25).map(round => `<tr>
+    <td>${escapeHtml(formatDate(round.at))}</td><td>${escapeHtml(round.name)}</td>
+    <td>${round.total == null ? '—' : formatNumber(round.total, 0)}</td>
+    <td>${round.maximum == null ? (round.scoringKind === 'SET_MATCH' ? 'Set match' : '—') : formatNumber(round.maximum, 0)}</td>
+    <td>${round.percentage == null ? '—' : `${formatNumber(round.percentage, 1)}%`}</td>
+    <td>${round.xCount == null ? '—' : formatNumber(round.xCount, 0)}</td></tr>`).join('');
+  const featureRows = baselineFeatures.slice(0, 32).map(feature => `<tr>
+    <td><code>${escapeHtml(feature.name)}</code></td><td>${feature.baselineCount}</td>
+    <td>${feature.mean == null ? '—' : formatNumber(feature.mean, 3)}</td>
+    <td>${feature.standardDeviation == null ? 'Need 2+ baseline shots' : formatNumber(feature.standardDeviation, 3)}</td>
+    <td>${feature.latest == null ? '—' : formatNumber(feature.latest, 3)}</td>
+    <td>${feature.zScore == null ? '—' : `${feature.zScore >= 0 ? '+' : ''}${formatNumber(feature.zScore, 2)} SD`}</td></tr>`).join('');
+  const hasData = totals.formSessions > 0 || totals.completedRounds > 0;
+  return `<section class="card analysis-card" aria-labelledby="analysis-title">
+    <h2 id="analysis-title">Training analysis</h2>
+    <p class="hint">Descriptive summaries of data included in this file. Missing rows are not treated as zero; comparisons do not establish cause or predict future performance.</p>
+    <div class="facts analysis-facts">
+      ${fact('Form sessions', formatNumber(totals.formSessions, 0))}
+      ${fact('Captured shots', formatNumber(totals.formShots, 0))}
+      ${fact('Scored shots', formatNumber(totals.scoredShots, 0))}
+      ${fact('Mean scored shot', totals.averageShotScore == null ? '—' : `${formatNumber(totals.averageShotScore, 2)} / 10`)}
+      ${fact('Baseline shots', formatNumber(totals.baselineShots, 0))}
+      ${fact('Completed rounds', formatNumber(totals.completedRounds, 0))}
+    </div>
+    ${hasData ? '' : '<p class="empty-state">This export contains no shareable form-session or completed-round rows. Check its consent and included-table list; the viewer does not infer missing training.</p>'}
+    ${rounds.length ? `<div class="analysis-section"><h3>Scoring trend</h3><p>${escapeHtml(trendText)}</p>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Round</th><th>Score</th><th>Maximum</th><th>Score rate</th><th>X</th></tr></thead><tbody>${roundRows}</tbody></table></div>
+      ${rounds.length > 25 ? `<p class="hint">Showing the 25 most recent of ${rounds.length} completed rounds.</p>` : ''}</div>` : ''}
+    ${formSessions.length ? `<div class="analysis-section"><h3>Form-session history</h3>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Distance</th><th>Duration</th><th>Shots</th><th>Baseline</th><th>Mean shot</th></tr></thead><tbody>${formRows}</tbody></table></div>
+      ${formSessions.length > 25 ? `<p class="hint">Showing the 25 most recent of ${formSessions.length} form sessions.</p>` : ''}</div>` : ''}
+    ${featureRows.length ? `<div class="analysis-section"><h3>Latest form relative to baseline</h3>
+      <p class="hint">The latest non-baseline shot is compared feature-by-feature with available baseline samples. “SD” is a descriptive sample-standard-deviation difference, not Crocodyl’s on-device stability score.</p>
+      <div class="table-wrap"><table><thead><tr><th>Feature</th><th>Baseline n</th><th>Mean</th><th>Sample SD</th><th>Latest</th><th>Difference</th></tr></thead><tbody>${featureRows}</tbody></table></div>
+      ${baselineFeatures.length > 32 ? `<p class="hint">Showing 32 of ${baselineFeatures.length} baseline features.</p>` : ''}</div>` : ''}
+  </section>`;
+}
+
+function formatDate(timestamp) {
+  if (!Number.isFinite(timestamp)) return 'Not supplied';
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? 'Invalid date' : date.toLocaleString();
+}
+
+function formatNumber(value, digits) {
+  return Number.isFinite(value) ? new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits,
+  }).format(value) : '—';
 }
 
 function fact(label, value) { return `<div class="fact"><small>${label}</small><code>${value}</code></div>`; }
