@@ -6,6 +6,27 @@ const source = await fs.readFile(new URL('../../web-viewer/report.js', import.me
 const context = vm.createContext({ TextDecoder });
 vm.runInContext(`${source}\nglobalThis.summarizeReport = CrocodylReport.summarize;`, context);
 
+const element = () => ({
+  addEventListener() {},
+  classList: { add() {}, remove() {} },
+  click() {},
+  files: [],
+  hidden: false,
+  textContent: '',
+});
+const dom = new Map([
+  ['#file', element()],
+  ['#dropzone', element()],
+  ['#status', element()],
+  ['#report', element()],
+]);
+const renderContext = vm.createContext({
+  document: { querySelector: selector => dom.get(selector) },
+  CrocodylReport: { summarize() {} },
+});
+const viewerSource = await fs.readFile(new URL('../../web-viewer/viewer.js', import.meta.url), 'utf8');
+vm.runInContext(`${viewerSource}\nglobalThis.renderAnalysisForTest = renderAnalysis;`, renderContext);
+
 const encode = value => new TextEncoder().encode(JSON.stringify(value));
 const sessions = [
   { id: 'form-1', startedAtEpochMs: 1_000, distanceMeters: 70, durationS: 3_600, arrowsActual: 6 },
@@ -75,4 +96,26 @@ const empty = context.summarizeReport({});
 assert.equal(empty.totals.formSessions, 0);
 assert.equal(empty.totals.completedRounds, 0);
 assert.deepEqual(JSON.parse(JSON.stringify(empty.baselineFeatures)), []);
+
+const rendered = renderContext.renderAnalysisForTest({
+  totals: {
+    formSessions: 1, formShots: 1, scoredShots: 1, averageShotScore: 9,
+    baselineShots: 1, completedRounds: 1,
+  },
+  rounds: [{
+    id: 'round', at: 1_000, name: '<script>alert(1)</script>', total: 9,
+    maximum: null, percentage: null, xCount: 0, scoringKind: 'SET_MATCH',
+  }],
+  formSessions: [],
+  baselineFeatures: [{
+    name: '<img src=x onerror=alert(1)>', baselineCount: 1, mean: 1,
+    standardDeviation: null, latest: 2, zScore: null,
+  }],
+  roundTrend: { previousCount: 0, recentCount: 1, previousAverage: null, recentAverage: null },
+});
+assert.ok(!rendered.includes('<script>alert(1)</script>'), 'round names must be escaped before HTML rendering');
+assert.ok(rendered.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
+assert.ok(!rendered.includes('<img src=x onerror=alert(1)>'), 'feature names must be escaped before HTML rendering');
+assert.ok(rendered.includes('Set match'), 'set-match score points must remain distinct in the report');
+assert.ok(!rendered.includes('9.0%'), 'set-match points must not render as a cumulative score percentage');
 console.log('Offline report analysis passed');
