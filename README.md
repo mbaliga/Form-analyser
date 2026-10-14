@@ -66,6 +66,7 @@ Requires JDK 21. The Android app requires the Android toolchain and is built thr
 - [`docs/crocodyl/blueprint/01-product-direction.md`](docs/crocodyl/blueprint/01-product-direction.md) — product definition, scope, laws, roles and commercial boundaries.
 - [`docs/crocodyl/blueprint/02-architecture-requirements-roadmap-ux.md`](docs/crocodyl/blueprint/02-architecture-requirements-roadmap-ux.md) — architecture, requirements, parity/release direction and UX architecture.
 - [`docs/crocodyl/CROCODYL_PHASED_IMPLEMENTATION_PLAN.md`](docs/crocodyl/CROCODYL_PHASED_IMPLEMENTATION_PLAN.md) — phased execution plan from current build through Recurve v1 and later sports.
+- [`docs/crocodyl/CROCODYL_PORTING_PLAN.md`](docs/crocodyl/CROCODYL_PORTING_PLAN.md) — multi-platform porting plan (Ubuntu Touch, Linux, iOS/iPadOS, macOS, Windows); a plan only, nothing built.
 
 ## Launch focus
 
