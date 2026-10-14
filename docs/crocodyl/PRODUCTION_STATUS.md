@@ -594,6 +594,7 @@ signing remains open.
 
 ## Current commits
 
+- Crocodyl: `ef0ba57` — add offline desktop coach analysis for form, scoring and baseline data; handle SQLite-exported boolean values; run report regression tests in CI/release and document the remaining visual/coach acceptance gate.
 
 - Crocodyl: `e15c557` — replace the blank database-open frame with an accessible branded loading surface; exercise the curved dock swipe and correct the Home-header test assumption.
 - Crocodyl: `33841c9` — index QA v711 artifact digests, API-35 debug/minified instrumentation evidence and current-source screenshot.
