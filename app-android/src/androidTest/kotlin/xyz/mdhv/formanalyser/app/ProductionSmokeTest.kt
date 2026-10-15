@@ -23,6 +23,7 @@ import androidx.room.withTransaction
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import org.junit.Assert.assertFalse
@@ -34,6 +35,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import xyz.mdhv.formanalyser.app.data.ScoringRepository
 import xyz.mdhv.formanalyser.app.data.Repository
+import xyz.mdhv.formanalyser.app.data.AppDataReset
+import xyz.mdhv.formanalyser.app.data.AppDatabase
+import xyz.mdhv.formanalyser.app.data.AppPrefs
+import xyz.mdhv.formanalyser.app.data.AthleteEntity
 
 /**
  * Small on-device contract for the release-critical app boundary.
@@ -44,6 +49,41 @@ import xyz.mdhv.formanalyser.app.data.Repository
  */
 @RunWith(AndroidJUnit4::class)
 class ProductionSmokeTest {
+    @Test
+    fun fullLocalDataWipeRemovesDatabaseFilesAndResetsPreferencesOnDevice() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = AppPrefs(context)
+        val database = AppDatabase.get(context)
+        withContext(kotlinx.coroutines.Dispatchers.IO) {
+            database.athleteDao().upsert(AthleteEntity("wipe-smoke-athlete", "Wipe smoke", 70.0))
+        }
+        prefs.setOnboarded(true)
+        prefs.setThemeMode("DARK")
+        val cachedPrivateExport = File(context.cacheDir, ".wipe-smoke.partial").apply {
+            writeText("private")
+        }
+        val vaultMarker = File(context.filesDir, "vault/wipe-smoke").apply {
+            parentFile?.mkdirs()
+            writeText("private")
+        }
+
+        AppDataReset.wipe(context)
+
+        assertFalse("Wipe left the Room database file", context.getDatabasePath("form-analyser.db").exists())
+        assertFalse("Wipe left private export cache data", cachedPrivateExport.exists())
+        assertFalse("Wipe left encrypted vault data", vaultMarker.exists())
+        assertFalse("Wipe did not reset onboarding", prefs.onboarded.first())
+        assertEquals("SYSTEM", prefs.themeMode.first())
+        val freshDatabase = withContext(kotlinx.coroutines.Dispatchers.IO) { AppDatabase.get(context) }
+        assertEquals(
+            "Wipe left the seeded athlete in the replacement database",
+            null,
+            withContext(kotlinx.coroutines.Dispatchers.IO) {
+                freshDatabase.athleteDao().firstOrNull()
+            },
+        )
+    }
+
     @Test
     fun mainActivityLaunchesWithoutProcessFailure() {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->

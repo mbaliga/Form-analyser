@@ -37,12 +37,12 @@ keystore. A passing local preflight with that certificate is QA evidence only an
 as production signing evidence.
 
 Never commit the keystore, passwords, or fingerprint-bearing private key material. The release
-workflow validates all five inputs before materializing anything, then runs the unsigned unit,
-lint, source-contract, and debug-smoke lanes before writing the keystore into the ephemeral CI
-workspace with owner-only permissions. The keystore remains only for signed release assembly and
-instrumentation, is removed before the remaining unsigned checks, and is also covered by an
-`always()` cleanup step. The workflow fails closed if the
-signing inputs or expected certificate fingerprint are absent.
+workflow checks the expected certificate fingerprint before running tests; the four password and
+keystore inputs are checked only after unsigned unit, lint, source-contract, and debug-smoke lanes
+pass. It then writes the keystore into the ephemeral CI workspace with owner-only permissions. The
+keystore remains only for signed release assembly and instrumentation, is removed before the
+remaining unsigned checks, and is also covered by an `always()` cleanup step. The workflow fails
+closed if any signing input or the expected certificate fingerprint is absent.
 
 ## Trigger and verify
 

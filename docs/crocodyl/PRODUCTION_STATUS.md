@@ -18,6 +18,16 @@ These are QA/debug-signed only. Current-source device/UI verification remains un
 latest disposable API-36 emulator run was blocked by launcher instability; production signer,
 hosted CI, physical-device/range acceptance, and real-session evidence remain open.
 
+Wipe device-smoke safeguard (2026-10-16): added a real Android instrumentation test that seeds a
+Room athlete, first-run/preferences state, a private vault marker and cached export, invokes the
+same full-wipe service used by Settings, then verifies database recreation is empty and the files
+and preferences are gone. The instrumentation APK compiles, and Android debug/release unit tasks,
+`lintRelease`, and the 57 release-tool contract tests pass. The test has not yet run on a device:
+the local API-35 x86_64 AVD references a system image absent from the temporary SDK, and the
+available API-36 ARM64/16 KB AVD's latest run was launcher-unstable. The hosted release workflow
+will execute it once these commits are available to CI; until then this remains an unverified
+device-side assertion, not a pass.
+
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and
 source/generated-asset contracts complete. Password and keystore-base64 checks also run only after

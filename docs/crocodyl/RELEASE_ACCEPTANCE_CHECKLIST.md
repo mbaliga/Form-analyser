@@ -19,6 +19,12 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       `95c848ca72894906e2573aa91b296b3e14066a09057d94b77ea8658447a58d48`; AAB SHA-256
       `6a25d8507609e0190d27f79c8e8838407b8149621f8257b9dd9fcffcc1c75938`. QA signing is not
       production signing; current-source device UI acceptance remains open.
+- [x] Added a connected Android smoke that performs the wipe against a seeded on-device Room
+      database and checks database/data-store reset and private file deletion. Debug instrumentation
+      APK compiles; 57 release-tool contract tests pass. [ ] Run this connected test in hosted CI or
+      on a supported device before treating runtime wipe behavior as accepted. The local API-35
+      x86_64 AVD's referenced image is absent from the temporary SDK; the latest API-36 ARM64 16 KB
+      attempt was blocked by emulator launcher instability.
 
 ### Current-source JVM/unit/lint replay (2026-10-16)
 
