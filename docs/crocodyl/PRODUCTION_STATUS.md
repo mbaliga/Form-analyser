@@ -36,6 +36,7 @@ pushed and therefore have no hosted-run evidence.
 
 ## Current-turn evidence and commit trace
 
+- Crocodyl: `44f9aa4` — remove unnecessary nullability warnings and record current-source 50/50 Android debug/release suites, lint, QA v711 artifact preflight, hashes and emulator `SIGILL` boundary.
 - Crocodyl: `dfd36f4` — index report-renderer escaping and match-display safeguards.
 - Crocodyl: `d92047f` — verify report HTML escaping for hostile round/feature labels and verify set-match display semantics.
 - Crocodyl: `34b78b9` — index offline desktop coach analysis and remaining visual/coach acceptance gate.
