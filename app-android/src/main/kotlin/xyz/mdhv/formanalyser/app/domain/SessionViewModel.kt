@@ -170,7 +170,7 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
                     }
                 val soreness =
                     if (checkinId != null)
-                        pre?.sorenessRegionIds.orEmpty().distinct().map { SorenessEntity(checkinId, it) }
+                        pre.sorenessRegionIds.distinct().map { SorenessEntity(checkinId, it) }
                     else emptyList()
                 withContext(Dispatchers.IO) {
                     repo.createSessionWithPreCheckin(

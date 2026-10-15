@@ -1,6 +1,22 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-14
+Last reviewed: 2026-10-15
+
+Current-source Android replay (2026-10-15): removed an unnecessary safe call in session soreness
+creation and redundant non-null assertions in the model-import test. With JDK 21, temporary API 35/36
+SDK packages, build-tools 35/36, and Kotlin compilation in-process, the forced Android debug and
+release unit suites passed 50/50 each and `lintRelease` passed. QA v711 (`0.6.4-bocal-arc-qa`)
+debug/release APK and release AAB assembled; `tools/release/verify_android_release.sh` passed on
+the exact QA APK/AAB. The APK signer is the committed debug/QA certificate, never a production key.
+APK SHA-256 `cb7196cbb7ffe13b3a8776c68fd8444656458cb38d0a089725c74e4bbb6380bd` (76,017,131 bytes),
+AAB SHA-256 `d929d981ce23072d106b40888b1d4aac7ebc7b2d7c8b2626afb8294426feccc6` (42,256,133 bytes),
+and R8 mapping SHA-256 `6cf8ed314eb300b02874a3b9ac1a3813889943577c51f473f69eeef7ff49b080` (34,935,496
+bytes). Preflight confirms target/compile SDK 36, version metadata, signer agreement, manifest
+security, bundled model hash, backup resources, App Bundle 16 KB configuration, and 11 aligned
+64-bit libraries in both APK and AAB. Connected tests were not rerun: the temporary API-36 16 KB
+ARM64 emulator exits before boot when `qemu-system-aarch64-headless` raises `SIGILL` during process
+initialization. Earlier v711 connected-test evidence remains the last runtime validation. Production
+signing, current-source hosted CI, physical-device/range acceptance and 30-session evidence remain.
 
 Current-source revalidation after the desktop-report work (2026-10-14): provisioned a temporary
 JDK 21 from Eclipse Temurin and verified the vendor-published SHA-256 before use. A forced

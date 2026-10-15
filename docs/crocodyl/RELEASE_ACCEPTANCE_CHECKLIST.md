@@ -6,6 +6,18 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
+### Incremental QA v711 rebuild evidence (2026-10-15)
+
+- [x] Rebuilt current source as QA v711 on 2026-10-15 after removing unnecessary Kotlin nullability
+      warnings. Android debug and release unit tests pass 50/50 each; `lintRelease`, debug/release
+      APK and release AAB assembly, and exact-artifact preflight pass. APK SHA-256
+      `cb7196cbb7ffe13b3a8776c68fd8444656458cb38d0a089725c74e4bbb6380bd`; AAB SHA-256
+      `d929d981ce23072d106b40888b1d4aac7ebc7b2d7c8b2626afb8294426feccc6`; R8 mapping SHA-256
+      `6cf8ed314eb300b02874a3b9ac1a3813889943577c51f473f69eeef7ff49b080`. The artifacts use the
+      QA/debug signer, not a production signing identity. A fresh API-36 16 KB emulator boot attempt
+      terminated in QEMU with `SIGILL` before Android startup, so no fresh connected test or visual
+      screenshot is claimed for this rebuilt output. Prior v711 runtime evidence remains separate.
+
 ### Incremental evidence after the current QA artifact (2026-10-14)
 
 - [x] Offline desktop viewer now renders a read-only training analysis for validated local archives:

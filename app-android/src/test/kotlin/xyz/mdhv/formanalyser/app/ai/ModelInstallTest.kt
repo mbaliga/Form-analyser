@@ -49,10 +49,11 @@ class ModelInstallTest {
         var installed: String? = null
         try {
             installed = ModelInstall.install(context, Uri.fromFile(source))
-            assertTrue(ModelInstall.isInstalled(installed))
-            assertTrue(installed!!.contains("gemma-"))
-            assertArrayEquals(bytes, File(installed).readBytes())
-            assertFalse(installed!!.substringAfterLast('/').endsWith(".partial"))
+            val installedPath = requireNotNull(installed)
+            assertTrue(ModelInstall.isInstalled(installedPath))
+            assertTrue(installedPath.contains("gemma-"))
+            assertArrayEquals(bytes, File(installedPath).readBytes())
+            assertFalse(installedPath.substringAfterLast('/').endsWith(".partial"))
         } finally {
             installed?.let { ModelInstall.remove(context, it) }
             source.delete()
