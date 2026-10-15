@@ -4,8 +4,9 @@ Last reviewed: 2026-10-16
 
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and
-source/generated-asset contracts complete. The certificate fingerprint, password inputs, and
-keystore base64 are step-scoped instead of being exposed together. The keystore is removed after
+source/generated-asset contracts complete. Password and keystore-base64 checks also run only after
+those validation lanes. The certificate fingerprint, password inputs, and keystore base64 are
+step-scoped instead of being exposed together. The keystore is removed after
 signed connected instrumentation and before later launch/preflight/archive checks, with the existing
 `always()` cleanup retained for failures. Release workflow contracts now lock down step ordering,
 credential scope and early cleanup. Local verification: 57 release contract tests passed, immutable

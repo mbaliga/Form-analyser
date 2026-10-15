@@ -36,9 +36,9 @@ class ReleaseWorkflowContract(unittest.TestCase):
     def test_signing_credentials_are_scoped_to_the_steps_that_need_them(self) -> None:
         verify = self.workflow.index("- name: Verify production signing inputs")
         password_check = self.workflow.index("- name: Verify release password inputs")
-        resolve = self.workflow.index("- name: Resolve version name")
+        prepare = self.workflow.index("- name: Prepare release signing")
         verify_step = self.workflow[verify:password_check]
-        password_step = self.workflow[password_check:resolve]
+        password_step = self.workflow[password_check:prepare]
         self.assertIn("CROCODYL_RELEASE_CERT_SHA256", verify_step)
         self.assertNotIn("CROCODYL_RELEASE_KEYSTORE_BASE64", verify_step)
         self.assertNotIn("CROCODYL_RELEASE_STORE_PASSWORD", verify_step)
@@ -87,8 +87,10 @@ class ReleaseWorkflowContract(unittest.TestCase):
         assemble = self.workflow.index("- name: Assemble signed release artifacts")
         debug_smoke = self.workflow.index("- name: Run on-device Android smoke tests")
         source_contracts = self.workflow.index("- name: Validate packaged equipment source contracts")
+        password_check = self.workflow.index("- name: Verify release password inputs")
         self.assertLess(debug_smoke, source_contracts)
-        self.assertLess(source_contracts, prepare)
+        self.assertLess(source_contracts, password_check)
+        self.assertLess(password_check, prepare)
         self.assertLess(prepare, assemble)
 
     def test_keystore_is_removed_before_non_signing_release_checks(self) -> None:

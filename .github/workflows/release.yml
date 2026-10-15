@@ -48,15 +48,6 @@ jobs:
         env:
           CERT_SHA256: ${{ secrets.CROCODYL_RELEASE_CERT_SHA256 }}
         run: bash tools/release/verify_production_signer.sh "$CERT_SHA256"
-      - name: Verify release password inputs
-        env:
-          STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
-        run: |
-          test -n "$STORE_PASSWORD"
-          test -n "$KEY_ALIAS"
-          test -n "$KEY_PASSWORD"
       - name: Resolve version name
         id: ver
         env:
@@ -115,6 +106,15 @@ jobs:
           git diff --exit-code -- app-android/src/main/assets/atelier/models
           python3 tools/atelier/build_arrow_reference_library.py
           git diff --exit-code -- app-android/src/main/assets/atelier/arrow-reference-library
+      - name: Verify release password inputs
+        env:
+          STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+        run: |
+          test -n "$STORE_PASSWORD"
+          test -n "$KEY_ALIAS"
+          test -n "$KEY_PASSWORD"
       - name: Prepare release signing
         env:
           KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}

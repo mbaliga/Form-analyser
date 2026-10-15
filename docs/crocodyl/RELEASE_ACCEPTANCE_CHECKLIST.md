@@ -15,8 +15,8 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Release signing secret-lifetime safeguard (2026-10-16)
 
-- [x] Production keystore creation follows unsigned unit, lint, debug-smoke, and generated-source
-      validation. Fingerprint, password, and keystore-base64 values are scoped to only their
+- [x] Production keystore and password checks follow unsigned unit, lint, debug-smoke, and
+      generated-source validation. Fingerprint, password, and keystore-base64 values are scoped to only their
       required steps; the keystore is removed after signed connected tests and before standalone
       launch, artifact preflight and archive steps, with failure cleanup retained. All 57 release
       workflow contracts, the seven-workflow immutable-action verifier, YAML syntax parsing, and
