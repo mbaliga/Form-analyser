@@ -55,6 +55,11 @@ debug/release unit tests; parsed test XML totals 280 tests, 0 failures/errors/sk
 verify across seven workflows, and the three release workflow YAML files parse. Strict dependency
 verification remains enabled.
 
+Current cross-surface contract replay (2026-10-16): Atelier/photos and arrow component libraries
+pass 20/20; community-directory validation passes 4/4; shared-checkout verification passes 4/4;
+desktop viewer contracts pass 11/11; offline report analysis and `.croc` ECDSA interoperability
+both pass. These repository checks complement (but do not replace) connected Android UI acceptance.
+
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and
 source/generated-asset contracts complete. Password and keystore-base64 checks also run only after

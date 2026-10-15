@@ -49,6 +49,9 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       and Guava parent 33.3.1 POM checksums against Maven Central. The forced full Gradle replay
       succeeds (113/113 tasks), all 57 release-tool tests pass, immutable actions verify in seven
       workflows, and CI/Android/release workflow YAML parses. Dependency verification stays enabled.
+- [x] Current repository-contract replay passes: Atelier/photos and arrow component libraries 20/20,
+      community-directory 4/4, shared-checkout 4/4, desktop viewer 11/11, offline report analysis,
+      and `.croc` signature interoperability. Connected Android and real-device gates remain distinct.
 
 ### Release signing secret-lifetime safeguard (2026-10-16)
 
