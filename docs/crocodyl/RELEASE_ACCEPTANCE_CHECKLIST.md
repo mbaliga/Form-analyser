@@ -10,14 +10,14 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 - [x] Wipe now clears the entire SQLite database and sidecars, encrypted vault, installed on-device
       models, recovery snapshots/notice, cache, private credential/vault/recovery preferences,
-      app DataStore, and related Android Keystore aliases. Partial failures are surfaced and do not
-      falsely report success. Regression test seeds and verifies the stores and confirms a fresh
-      database is empty.
-- [x] Current-source debug and release Android unit suites pass 51/51 each; `lintRelease` passes.
-      QA v713 release APK/AAB pass integrated release preflight (versionCode 713, target/compile
-      SDK 36, QA signer, manifest, bundled model and 16 KB checks). APK SHA-256
-      `95c848ca72894906e2573aa91b296b3e14066a09057d94b77ea8658447a58d48`; AAB SHA-256
-      `6a25d8507609e0190d27f79c8e8838407b8149621f8257b9dd9fcffcc1c75938`. QA signing is not
+      app and AI coach DataStores, and related Android Keystore aliases. Partial failures are
+      surfaced and do not falsely report success. Regression tests seed and verify those stores,
+      restore privacy defaults, and confirm a fresh database is empty.
+- [x] Focused wipe regression passes freshly in debug and release; `lintRelease` passes. QA v714
+      release APK/AAB pass integrated release preflight (versionCode 714, target/compile SDK 36,
+      QA signer, manifest, bundled model and 16 KB checks). APK SHA-256
+      `6d0ca1707dc6f96c4dcd76e121c76c9d52b655abd71a7f2acc1831298ae04d28`; AAB SHA-256
+      `d9476a9065257a68e674fe227855f2f7c0dad2719e1e35d081ca4604bf8e2d82`. QA signing is not
       production signing; current-source device UI acceptance remains open.
 - [x] Added a connected Android smoke that performs the wipe against a seeded on-device Room
       database and checks database/data-store reset and private file deletion. Debug instrumentation
@@ -27,8 +27,8 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       attempt was blocked by emulator launcher instability.
 - [x] Complete app-store inventory added the AI coach DataStore to the wipe, including model path
       and privacy/consent defaults. The focused reset regression passes freshly in both debug and
-      minified release; instrumentation APK recompiles and release lint passes. QA v713 predates
-      this correction; rebuild the QA package before using artifact evidence.
+      minified release; instrumentation APK recompiles and release lint passes. QA v714 includes
+      this correction and has passed artifact preflight.
 
 ### Current-source JVM/unit/lint replay (2026-10-16)
 

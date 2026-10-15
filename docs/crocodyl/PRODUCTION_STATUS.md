@@ -9,14 +9,15 @@ and cache contents, clears private credential/vault/recovery preferences and app
 the recovery notice, and deletes the BYOK, vault, and exchange-signing Android Keystore aliases.
 Cleanup attempts every store and reports partial failure instead of claiming success; cancellation
 is preserved. A focused Robolectric test covers seeded DB data, files, preferences, and key aliases.
-Current-source Android debug/release unit suites: 51/51 each; `lintRelease` passes; XML totals 102
-tests, 0 failures/errors/skips. QA candidate v713 (`0.6.4-full-wipe-qa`, versionCode 713) APK and
-AAB both pass integrated Android release preflight. APK SHA-256
-`95c848ca72894906e2573aa91b296b3e14066a09057d94b77ea8658447a58d48` (76,017,127 bytes); AAB
-SHA-256 `6a25d8507609e0190d27f79c8e8838407b8149621f8257b9dd9fcffcc1c75938` (42,263,287 bytes).
-These are QA/debug-signed only. Current-source device/UI verification remains unproven because the
-latest disposable API-36 emulator run was blocked by launcher instability; production signer,
-hosted CI, physical-device/range acceptance, and real-session evidence remain open.
+Current-source Android debug/release wipe regressions pass freshly, `lintRelease` passes, and the
+updated debug instrumentation APK compiles. QA candidate v714 (`0.6.4-full-wipe-qa`, versionCode
+714), including the AI preference correction, passes integrated Android release preflight. APK
+SHA-256 `6d0ca1707dc6f96c4dcd76e121c76c9d52b655abd71a7f2acc1831298ae04d28` (76,017,127 bytes);
+AAB SHA-256 `d9476a9065257a68e674fe227855f2f7c0dad2719e1e35d081ca4604bf8e2d82` (42,264,035
+bytes). The artifacts are QA/debug-signed only. Current-source device/UI verification remains
+unproven because the latest disposable API-36 emulator run was blocked by launcher instability;
+production signer, hosted CI, physical-device/range acceptance, and real-session evidence remain
+open.
 
 Wipe device-smoke safeguard (2026-10-16): added a real Android instrumentation test that seeds a
 Room athlete, first-run/preferences state, a private vault marker and cached export, invokes the
@@ -34,8 +35,8 @@ The full wipe now clears its selected-model, model-path, medical-consent default
 retention settings, returning each to its privacy-preserving/default value. The focused wipe
 regression passes freshly in both debug and release variants; updated debug instrumentation APK
 compiles and `lintRelease` passes. The device smoke now asserts those AI settings are reset too.
-The older QA v713 artifacts predate this source change and must not be treated as current; a new
-QA build is required for artifact-level evidence.
+QA v714 is built from this source and passes integrated release preflight; it remains a QA artifact,
+not production-signed or device-accepted.
 
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and
