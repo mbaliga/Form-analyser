@@ -16,14 +16,15 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [x] Focused wipe regression passes freshly in debug and release; `lintRelease` passes. QA v714
       release APK/AAB pass integrated release preflight (versionCode 714, target/compile SDK 36,
       QA signer, manifest, bundled model and 16 KB checks). APK SHA-256
-      `72bcf74b7cf4aa416e2e659e4a865739eeaa6980077439307c6a18028e597914`; AAB SHA-256
+      `92c491eb3296d116ec5ca5c328eb7d5db11c55311ded332a071a8ed1b6963eb3`; AAB SHA-256
       `d9476a9065257a68e674fe227855f2f7c0dad2719e1e35d081ca4604bf8e2d82`. QA signing is not
       production signing; current-source device UI acceptance remains open.
-- [x] Added a connected Android smoke that performs the wipe against a seeded on-device Room
-      database and checks database/data-store reset and private file deletion. On a disposable
-      API-36 ARM64 emulator (`PAGE_SIZE=16384`), the complete debug suite passes 12/12; the complete
-      minified QA release suite passes 12/12 at 1.3× font. The emulator font scale was restored
-      to 1.0. Hosted production CI and physical-device acceptance remain open.
+- [x] Connected Android coverage includes the seeded on-device wipe plus an end-to-end Settings
+      flow: tapping Erase without `WIPE` leaves confirmation pending; entering the exact phrase
+      wipes the data and returns to onboarding. On a disposable API-36 ARM64 emulator
+      (`PAGE_SIZE=16384`), all 13 debug tests and all 13 minified QA release tests pass; release
+      runs at 1.3× font. Font scale was restored to 1.0. Hosted production CI and physical-device
+      acceptance remain open.
 - [x] Complete app-store inventory added the AI coach DataStore to the wipe, including model path
       and privacy/consent defaults. The focused reset regression passes freshly in both debug and
       minified release; instrumentation APK recompiles and release lint passes. QA v714 includes
@@ -42,7 +43,8 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       AI-store wipe correction: all 113 Gradle tasks executed successfully; root/module and Android
       debug/release unit XML totals 340 tests, 0 failures/errors/skips. All 57 release contracts
       and immutable action references in seven workflows pass. QA v714 APK/AAB pass integrated
-      preflight; debug and minified release instrumentation both pass 12/12 on API 36 / 16 KB.
+      preflight; debug and minified release instrumentation both pass 13/13 on API 36 / 16 KB,
+      including the Settings UI wipe confirmation and post-wipe onboarding checks.
 
 ### Release signing secret-lifetime safeguard (2026-10-16)
 

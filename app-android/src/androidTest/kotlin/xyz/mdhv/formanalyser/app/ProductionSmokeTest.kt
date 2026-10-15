@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
+import android.os.Bundle
 import android.os.SystemClock
 import android.provider.MediaStore
 import android.view.KeyEvent
@@ -93,6 +94,67 @@ class ProductionSmokeTest {
                 freshDatabase.athleteDao().firstOrNull()
             },
         )
+    }
+
+    @Test
+    fun settingsWipeRequiresTypedConfirmationAndReturnsToOnboarding() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = AppPrefs(context)
+        val aiSettings = AiSettings(context)
+        val wasOnboarded = prefs.onboarded.first()
+        val previousTheme = prefs.themeMode.first()
+        withContext(kotlinx.coroutines.Dispatchers.IO) {
+            AppDatabase.get(context).athleteDao()
+                .upsert(AthleteEntity("wipe-ui-athlete", "Wipe UI", 70.0))
+        }
+        prefs.setOnboarded(true)
+        prefs.setThemeMode("DARK")
+        aiSettings.setMedicalGrantDefault(true)
+        val cachedPrivateExport = File(context.cacheDir, ".wipe-ui.partial").apply {
+            writeText("private")
+        }
+        val vaultMarker = File(context.filesDir, "vault/wipe-ui").apply {
+            parentFile?.mkdirs()
+            writeText("private")
+        }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+
+        try {
+            ActivityScenario.launch(MainActivity::class.java).use {
+                assertTextEventually(instrumentation, "Find your rhythm.")
+                clickBottomTabEventually(instrumentation, "Settings")
+                assertTextEventually(instrumentation, "Settings")
+                scrollScreenUntilText(instrumentation, "Data", forward = true)
+                clickTextEventually(instrumentation, "Data")
+                assertTextEventually(instrumentation, "Everything runs on this device — nothing is stored anywhere else, so a wipe has no undo.")
+                scrollScreenUntilText(instrumentation, "Wipe everything", forward = true)
+                clickTextEventually(instrumentation, "Wipe everything")
+                assertTextEventually(instrumentation, "Type WIPE to confirm")
+                scrollScreenUntilText(instrumentation, "Erase all data", forward = true)
+                assertTextEventually(instrumentation, "Erase all data")
+                clickTextEventually(instrumentation, "Erase all data")
+                assertTextEventually(instrumentation, "Type WIPE to confirm")
+
+                setEditableTextEventually(instrumentation, "WIPE")
+                assertTextEventually(instrumentation, "WIPE")
+                scrollScreenUntilText(instrumentation, "Erase all data", forward = true)
+                clickTextEventually(instrumentation, "Erase all data")
+
+                assertTextEventually(instrumentation, "What do you do?", timeoutMs = 20_000)
+                val replacementDatabase = withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    AppDatabase.get(context).athleteDao().firstOrNull()
+                }
+                assertNull("Settings wipe retained the seeded athlete", replacementDatabase)
+                assertFalse("Settings wipe left private vault content", vaultMarker.exists())
+                assertFalse("Settings wipe left cached export data", cachedPrivateExport.exists())
+                assertFalse("Settings wipe did not reset onboarding", prefs.onboarded.first())
+                assertEquals("SYSTEM", prefs.themeMode.first())
+                assertFalse(aiSettings.medicalGrantDefault.first())
+            }
+        } finally {
+            prefs.setOnboarded(wasOnboarded)
+            prefs.setThemeMode(previousTheme)
+        }
     }
 
     @Test
@@ -249,7 +311,7 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, "Settings")
-                scrollHomeUntilText(instrumentation, "Arrow, down to each part.", forward = true)
+                scrollScreenUntilText(instrumentation, "Arrow, down to each part.", forward = true)
                 assertTextEventually(instrumentation, "Arrow, down to each part.")
                 clickBottomTabEventually(instrumentation, "Train")
                 assertTextEventually(instrumentation, "New session")
@@ -277,10 +339,10 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "← prev")
 
                 clickBottomTabEventually(instrumentation, "Home")
-                scrollHomeUntilText(instrumentation, "Find your rhythm.", forward = false)
+                scrollScreenUntilText(instrumentation, "Find your rhythm.", forward = false)
                 assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
 
-                scrollHomeUntilText(instrumentation, "Score", forward = false)
+                scrollScreenUntilText(instrumentation, "Score", forward = false)
                 clickTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, "Every arrow,\naccounted for.")
                 assertTextEventually(instrumentation, "Quick score")
@@ -605,7 +667,8 @@ class ProductionSmokeTest {
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
-            if (root != null && containsText(root, expected)) return
+            val target = root?.findTextNode(expected)
+            if (target?.isVisibleToUser == true) return
             SystemClock.sleep(50)
         }
         val visibleText = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
@@ -646,9 +709,9 @@ class ProductionSmokeTest {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
             val target = root?.findClickableText(label)
-            if (target != null && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+            if (target?.isVisibleToUser == true && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
             val named = root?.findTextNode(label)
-            if (named != null) {
+            if (named?.isVisibleToUser == true) {
                 val bounds = Rect()
                 named.getBoundsInScreen(bounds)
                 tap(instrumentation, bounds.centerX().toFloat(), bounds.centerY().toFloat())
@@ -699,7 +762,7 @@ class ProductionSmokeTest {
         inject(MotionEvent.ACTION_UP, 1f)
     }
 
-    private fun scrollHomeUntilText(
+    private fun scrollScreenUntilText(
         instrumentation: android.app.Instrumentation,
         expected: String,
         forward: Boolean,
@@ -723,7 +786,7 @@ class ProductionSmokeTest {
                     source = InputDevice.SOURCE_TOUCHSCREEN
                 }
                 try {
-                    assertTrue("Could not inject Home feed scroll", automation.injectInputEvent(event, true))
+                    assertTrue("Could not inject screen scroll", automation.injectInputEvent(event, true))
                 } finally {
                     event.recycle()
                 }
@@ -736,7 +799,7 @@ class ProductionSmokeTest {
             inject(MotionEvent.ACTION_UP, endY)
             SystemClock.sleep(250)
         }
-        throw AssertionError("Could not scroll Home to visible UI text: $expected")
+        throw AssertionError("Could not scroll to visible UI text: $expected")
     }
 
     private fun clickTextEventually(
@@ -759,6 +822,25 @@ class ProductionSmokeTest {
             SystemClock.sleep(50)
         }
         throw AssertionError("Could not click visible UI text: $label")
+    }
+
+    private fun setEditableTextEventually(
+        instrumentation: android.app.Instrumentation,
+        value: String,
+    ) {
+        val deadline = SystemClock.uptimeMillis() + 8_000
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.waitForIdleSync()
+            val editable = rootInActiveWindowOrNull(instrumentation)?.findEditableNode()
+            if (editable?.isVisibleToUser == true) {
+                val arguments = Bundle().apply {
+                    putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
+                }
+                if (editable.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)) return
+            }
+            SystemClock.sleep(50)
+        }
+        throw AssertionError("Could not enter text into the visible confirmation field")
     }
 
     private fun dismissCameraPermissionPromptIfShown(
@@ -893,6 +975,14 @@ class ProductionSmokeTest {
         if (text?.toString() == expected || contentDescription?.toString() == expected) return this
         for (index in 0 until childCount) {
             getChild(index)?.findTextNode(expected)?.let { return it }
+        }
+        return null
+    }
+
+    private fun AccessibilityNodeInfo.findEditableNode(): AccessibilityNodeInfo? {
+        if (isEditable) return this
+        for (index in 0 until childCount) {
+            getChild(index)?.findEditableNode()?.let { return it }
         }
         return null
     }
