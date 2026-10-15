@@ -56,4 +56,7 @@ class AppPrefs(private val context: Context) {
 
     suspend fun setPairedSessionWalkthroughSeen(v: Boolean) =
         context.dataStore.edit { it[Keys.PAIRED_SESSION_WALKTHROUGH_SEEN] = v }
+
+    /** Reset every app preference to its documented first-run default during a full data wipe. */
+    suspend fun clearAll() = context.dataStore.edit { it.clear() }
 }

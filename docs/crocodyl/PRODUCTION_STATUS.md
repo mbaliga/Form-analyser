@@ -2,6 +2,22 @@
 
 Last reviewed: 2026-10-16
 
+Full local-data wipe correction (2026-10-16): Settings → Data → Wipe previously cleared Room
+rows and onboarding state but left other app-owned personal data behind. The confirmed wipe now
+closes and deletes the SQLite database plus journal sidecars, removes vault/model/recovery files
+and cache contents, clears private credential/vault/recovery preferences and app DataStore, removes
+the recovery notice, and deletes the BYOK, vault, and exchange-signing Android Keystore aliases.
+Cleanup attempts every store and reports partial failure instead of claiming success; cancellation
+is preserved. A focused Robolectric test covers seeded DB data, files, preferences, and key aliases.
+Current-source Android debug/release unit suites: 51/51 each; `lintRelease` passes; XML totals 102
+tests, 0 failures/errors/skips. QA candidate v713 (`0.6.4-full-wipe-qa`, versionCode 713) APK and
+AAB both pass integrated Android release preflight. APK SHA-256
+`95c848ca72894906e2573aa91b296b3e14066a09057d94b77ea8658447a58d48` (76,017,127 bytes); AAB
+SHA-256 `6a25d8507609e0190d27f79c8e8838407b8149621f8257b9dd9fcffcc1c75938` (42,263,287 bytes).
+These are QA/debug-signed only. Current-source device/UI verification remains unproven because the
+latest disposable API-36 emulator run was blocked by launcher instability; production signer,
+hosted CI, physical-device/range acceptance, and real-session evidence remain open.
+
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and
 source/generated-asset contracts complete. Password and keystore-base64 checks also run only after

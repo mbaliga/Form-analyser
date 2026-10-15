@@ -381,6 +381,8 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
     // has partly opened itself. It costs a few seconds to re-arm and re-type.
     var arming by remember { mutableStateOf(false) }
     var confirm by remember { mutableStateOf("") }
+    var wiping by remember { mutableStateOf(false) }
+    var wipeFailed by remember { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
     val retracted by vm.retracted.collectAsState()
     LaunchedEffect(Unit) { vm.loadRetracted() }
@@ -437,6 +439,13 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
             "Everything runs on this device — nothing is stored anywhere else, so a wipe has no undo.",
             color = Hyle.OnSurfaceDim,
         )
+        if (wipeFailed) {
+            Text(
+                "Some local data could not be removed. Your request was not reported as complete; please retry the wipe.",
+                color = Hyle.Danger,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
         if (!arming) {
             OutlinedButton(onClick = { arming = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Wipe everything")
@@ -449,12 +458,19 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(
-                onClick = { vm.wipe(onWiped) },
-                enabled = confirm.trim() == "WIPE",
+                onClick = {
+                    wipeFailed = false
+                    wiping = true
+                    vm.wipe(onWiped) {
+                        wiping = false
+                        wipeFailed = true
+                    }
+                },
+                enabled = confirm.trim() == "WIPE" && !wiping,
                 colors = ButtonDefaults.buttonColors(containerColor = Hyle.Danger),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Erase all data")
+                Text(if (wiping) "Erasing local data…" else "Erase all data")
             }
         }
     }

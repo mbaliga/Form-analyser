@@ -6,6 +6,20 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
+### Complete local data wipe (2026-10-16)
+
+- [x] Wipe now clears the entire SQLite database and sidecars, encrypted vault, installed on-device
+      models, recovery snapshots/notice, cache, private credential/vault/recovery preferences,
+      app DataStore, and related Android Keystore aliases. Partial failures are surfaced and do not
+      falsely report success. Regression test seeds and verifies the stores and confirms a fresh
+      database is empty.
+- [x] Current-source debug and release Android unit suites pass 51/51 each; `lintRelease` passes.
+      QA v713 release APK/AAB pass integrated release preflight (versionCode 713, target/compile
+      SDK 36, QA signer, manifest, bundled model and 16 KB checks). APK SHA-256
+      `95c848ca72894906e2573aa91b296b3e14066a09057d94b77ea8658447a58d48`; AAB SHA-256
+      `6a25d8507609e0190d27f79c8e8838407b8149621f8257b9dd9fcffcc1c75938`. QA signing is not
+      production signing; current-source device UI acceptance remains open.
+
 ### Current-source JVM/unit/lint replay (2026-10-16)
 
 - [x] Forced complete root/module JVM tests, Android debug/release unit tests, and `lintRelease`
@@ -680,7 +694,8 @@ leaks private data, or leaves the user unable to recover without clearing app st
       and open it in the offline viewer with local producer-signature verification.
 - [ ] Offline rule-coach works without a key; BYOK cloud paths are opt-in; invalid keys/models fail
       visibly without corrupting existing settings or installed models.
-- [ ] Data wipe, database recovery notice, explicit reset-after-backup, and post-reset disclosure work.
+- [x] Data wipe implementation and store-level regression coverage. [ ] Verify the wipe UX,
+      recovery notice, explicit reset-after-backup, and post-reset disclosure on a physical device.
 
 ## 3. Resilience and privacy checks
 

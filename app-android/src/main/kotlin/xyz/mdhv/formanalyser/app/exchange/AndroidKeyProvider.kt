@@ -36,6 +36,11 @@ class AndroidKeyProvider : KeyProvider {
     fun signEnvelope(checksum: String, includedTables: List<String>, tierName: String): ByteArray =
         signBytes(envelopePayload(checksum, includedTables, tierName))
 
+    /** Remove this install's export identity as part of an explicit in-app data wipe. */
+    fun deleteIdentity() {
+        KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }.deleteEntry(ALIAS)
+    }
+
     private fun signBytes(payload: String): ByteArray {
         val ks = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
         val privateKey = ks.getKey(ALIAS, null) as? PrivateKey ?: run {

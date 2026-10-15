@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import java.io.File
 
 /**
  * Raised when an existing database cannot be opened or migrated safely. The app must show the
@@ -84,6 +85,45 @@ abstract class AppDatabase : RoomDatabase() {
                 ?: synchronized(this) {
                     instance ?: openResilient(context.applicationContext).also { instance = it }
                 }
+
+        /** Delete the SQLite file as well as its journal sidecars after explicit user confirmation. */
+        fun deleteForUserWipe(context: Context) =
+            synchronized(this) {
+                val app = context.applicationContext
+                val failures = mutableListOf<Exception>()
+                try {
+                    instance?.close()
+                } catch (error: Exception) {
+                    failures += error
+                } finally {
+                    instance = null
+                }
+
+                val database = app.getDatabasePath(DB_NAME)
+                try {
+                    check(app.deleteDatabase(DB_NAME) || !database.exists()) {
+                        "Could not delete the Crocodyl database"
+                    }
+                } catch (error: Exception) {
+                    failures += error
+                }
+                listOf("-wal", "-shm", "-journal").forEach { suffix ->
+                    val sidecar = File(database.parentFile, database.name + suffix)
+                    try {
+                        check(!sidecar.exists() || sidecar.delete()) {
+                            "Could not delete database sidecar ${sidecar.name}"
+                        }
+                    } catch (error: Exception) {
+                        failures += error
+                    }
+                }
+                if (failures.isNotEmpty()) {
+                    throw IllegalStateException(
+                        "Could not fully close and delete the Crocodyl database",
+                        failures.first(),
+                    ).also { aggregate -> failures.drop(1).forEach(aggregate::addSuppressed) }
+                }
+            }
 
         private fun build(app: Context) =
             Room.databaseBuilder(app, AppDatabase::class.java, DB_NAME)
