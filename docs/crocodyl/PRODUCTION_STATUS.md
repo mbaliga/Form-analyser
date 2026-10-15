@@ -39,11 +39,21 @@ not production-signed or device-accepted.
 
 Post-fix full source replay (2026-10-16): `./gradlew test :app-android:lintRelease -PwithAndroid
 --rerun-tasks` completed successfully with all 113 Gradle tasks executed. Parsed root/module plus
-Android debug/release unit-test XML totals 340 tests, 0 failures/errors/skips; release lint passes.
+Android debug/release unit-test XML totals 280 tests, 0 failures/errors/skips; release lint passes.
 All 57 release-tool contracts and immutable action references across seven workflow files pass.
 All 13 debug plus 13 minified QA-release connected smokes pass on API 36 / 16 KB; the release run
 also passes at 1.3× font scale, including the exact Settings wipe confirmation flow. Exact QA v714
 APK/AAB passed release preflight; neither artifact is production-signed.
+
+Dependency-verification repair (2026-10-16): a forced replay exposed missing strict-mode checksums
+for the JUnit 5.10.1 BOM POM and Guava 33.3.1-jre parent POM. Each cached POM was byte-for-byte
+matched by SHA-256 against its Maven Central artifact (the JUnit checksum also matched Maven
+Central's published `.sha256` file) before adding the checksum to `gradle/verification-metadata.xml`.
+The forced full replay then completed successfully: 113/113 Gradle tasks, root/module and Android
+debug/release unit tests; parsed test XML totals 280 tests, 0 failures/errors/skips; and
+`lintRelease`. All 57 release-tool tests pass, immutable action refs
+verify across seven workflows, and the three release workflow YAML files parse. Strict dependency
+verification remains enabled.
 
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and

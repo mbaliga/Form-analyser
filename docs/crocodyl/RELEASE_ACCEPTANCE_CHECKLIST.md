@@ -41,10 +41,14 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 - [x] Forced `./gradlew test :app-android:lintRelease -PwithAndroid --rerun-tasks` after the
       AI-store wipe correction: all 113 Gradle tasks executed successfully; root/module and Android
-      debug/release unit XML totals 340 tests, 0 failures/errors/skips. All 57 release contracts
+      debug/release unit XML totals 280 tests, 0 failures/errors/skips. All 57 release contracts
       and immutable action references in seven workflows pass. QA v714 APK/AAB pass integrated
       preflight; debug and minified release instrumentation both pass 13/13 on API 36 / 16 KB,
       including the Settings UI wipe confirmation and post-wipe onboarding checks.
+- [x] Strict dependency-verification coverage repaired only after checking missing JUnit BOM 5.10.1
+      and Guava parent 33.3.1 POM checksums against Maven Central. The forced full Gradle replay
+      succeeds (113/113 tasks), all 57 release-tool tests pass, immutable actions verify in seven
+      workflows, and CI/Android/release workflow YAML parses. Dependency verification stays enabled.
 
 ### Release signing secret-lifetime safeguard (2026-10-16)
 
