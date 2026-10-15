@@ -37,6 +37,14 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       totals 378 tests, 0 failures, 0 errors, 0 skipped. This is not connected-device evidence and
       does not replace signed production CI or physical acceptance.
 
+### Post-wipe-correction full replay (2026-10-16)
+
+- [x] Forced `./gradlew test :app-android:lintRelease -PwithAndroid --rerun-tasks` after the
+      AI-store wipe correction: all 113 Gradle tasks executed successfully; root/module and Android
+      debug/release unit XML totals 340 tests, 0 failures/errors/skips. All 57 release contracts
+      and immutable action references in seven workflows pass. QA v714 APK/AAB pass integrated
+      preflight; the updated wipe instrumentation compiles but has not run on a device.
+
 ### Release signing secret-lifetime safeguard (2026-10-16)
 
 - [x] Production keystore and password checks follow unsigned unit, lint, debug-smoke, and

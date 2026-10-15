@@ -38,6 +38,13 @@ compiles and `lintRelease` passes. The device smoke now asserts those AI setting
 QA v714 is built from this source and passes integrated release preflight; it remains a QA artifact,
 not production-signed or device-accepted.
 
+Post-fix full source replay (2026-10-16): `./gradlew test :app-android:lintRelease -PwithAndroid
+--rerun-tasks` completed successfully with all 113 Gradle tasks executed. Parsed root/module plus
+Android debug/release unit-test XML totals 340 tests, 0 failures/errors/skips; release lint passes.
+All 57 release-tool contracts and immutable action references across seven workflow files pass.
+The connected instrumentation APK compiles, but no connected runtime is claimed. Exact QA v714
+APK/AAB passed the release preflight; neither artifact is production-signed.
+
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and
 source/generated-asset contracts complete. Password and keystore-base64 checks also run only after
