@@ -15,6 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import xyz.mdhv.formanalyser.app.ai.AiSettings
 import xyz.mdhv.formanalyser.app.exchange.AndroidKeyProvider
 
 @RunWith(RobolectricTestRunner::class)
@@ -36,6 +37,11 @@ class AppDataResetTest {
         preferences.setOnboarded(true)
         preferences.setThemeMode("DARK")
         preferences.setKeepRawVideo(true)
+        val aiSettings = AiSettings(context)
+        aiSettings.setSelectedModelId("wipe-test-model")
+        aiSettings.setMedicalGrantDefault(true)
+        aiSettings.setKeepPrivate(false)
+        aiSettings.setOnDeviceModelPath("/private/model.task")
 
         val privateDirectories = listOf("vault", "on-device-models", "db-recovery")
         privateDirectories.forEach { name ->
@@ -73,6 +79,10 @@ class AppDataResetTest {
         assertFalse(preferences.onboarded.first())
         assertEquals("SYSTEM", preferences.themeMode.first())
         assertFalse(preferences.keepRawVideo.first())
+        assertEquals(AiSettings.DEFAULT_MODEL_ID, aiSettings.selectedModelId.first())
+        assertFalse(aiSettings.medicalGrantDefault.first())
+        assertTrue(aiSettings.keepPrivate.first())
+        assertNull(aiSettings.onDeviceModelPath.first())
         privateDirectories.forEach { assertFalse(File(context.filesDir, it).exists()) }
         assertFalse(cachedExport.exists())
         preferenceNames.forEach { name ->

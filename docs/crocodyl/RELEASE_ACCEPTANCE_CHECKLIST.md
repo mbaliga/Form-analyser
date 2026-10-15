@@ -25,6 +25,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       on a supported device before treating runtime wipe behavior as accepted. The local API-35
       x86_64 AVD's referenced image is absent from the temporary SDK; the latest API-36 ARM64 16 KB
       attempt was blocked by emulator launcher instability.
+- [x] Complete app-store inventory added the AI coach DataStore to the wipe, including model path
+      and privacy/consent defaults. The focused reset regression passes freshly in both debug and
+      minified release; instrumentation APK recompiles and release lint passes. QA v713 predates
+      this correction; rebuild the QA package before using artifact evidence.
 
 ### Current-source JVM/unit/lint replay (2026-10-16)
 

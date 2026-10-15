@@ -4,6 +4,7 @@ import android.content.Context
 import java.io.File
 import java.security.KeyStore
 import kotlinx.coroutines.CancellationException
+import xyz.mdhv.formanalyser.app.ai.AiSettings
 import xyz.mdhv.formanalyser.app.exchange.AndroidKeyProvider
 
 /**
@@ -63,6 +64,7 @@ internal object AppDataReset {
             }
         }
         attempt("app preferences") { AppPrefs(app).clearAll() }
+        attempt("AI coach preferences") { AiSettings(app).clearAll() }
         attempt("recovery notice") { DbRecovery.dismissNotice(app) }
         attempt("Android Keystore aliases") { deleteAliases(keystoreAliases) }
 

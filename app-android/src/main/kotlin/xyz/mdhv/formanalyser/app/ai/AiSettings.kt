@@ -50,6 +50,9 @@ class AiSettings(private val context: Context) {
         if (v == null) it.remove(Keys.ON_DEVICE_MODEL_PATH) else it[Keys.ON_DEVICE_MODEL_PATH] = v
     }
 
+    /** Reset AI model and consent defaults during the full user-confirmed local-data wipe. */
+    suspend fun clearAll() = context.aiDataStore.edit { it.clear() }
+
     companion object {
         /** First BYOK cloud model in the registry — a stable, always-present default. */
         val DEFAULT_MODEL_ID: String =

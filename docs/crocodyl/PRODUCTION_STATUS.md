@@ -28,6 +28,15 @@ available API-36 ARM64/16 KB AVD's latest run was launcher-unstable. The hosted 
 will execute it once these commits are available to CI; until then this remains an unverified
 device-side assertion, not a pass.
 
+AI preference erasure correction (2026-10-16): a subsequent complete inventory of Android
+DataStores found the separate `crocodyl_ai_prefs` store used by BYOK/on-device coach configuration.
+The full wipe now clears its selected-model, model-path, medical-consent default, and private-data
+retention settings, returning each to its privacy-preserving/default value. The focused wipe
+regression passes freshly in both debug and release variants; updated debug instrumentation APK
+compiles and `lintRelease` passes. The device smoke now asserts those AI settings are reset too.
+The older QA v713 artifacts predate this source change and must not be treated as current; a new
+QA build is required for artifact-level evidence.
+
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and
 source/generated-asset contracts complete. Password and keystore-base64 checks also run only after

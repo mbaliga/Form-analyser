@@ -29,6 +29,7 @@ import java.util.UUID
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -39,6 +40,7 @@ import xyz.mdhv.formanalyser.app.data.AppDataReset
 import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.data.AthleteEntity
+import xyz.mdhv.formanalyser.app.ai.AiSettings
 
 /**
  * Small on-device contract for the release-critical app boundary.
@@ -53,12 +55,17 @@ class ProductionSmokeTest {
     fun fullLocalDataWipeRemovesDatabaseFilesAndResetsPreferencesOnDevice() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = AppPrefs(context)
+        val aiSettings = AiSettings(context)
         val database = AppDatabase.get(context)
         withContext(kotlinx.coroutines.Dispatchers.IO) {
             database.athleteDao().upsert(AthleteEntity("wipe-smoke-athlete", "Wipe smoke", 70.0))
         }
         prefs.setOnboarded(true)
         prefs.setThemeMode("DARK")
+        aiSettings.setSelectedModelId("wipe-smoke-model")
+        aiSettings.setMedicalGrantDefault(true)
+        aiSettings.setKeepPrivate(false)
+        aiSettings.setOnDeviceModelPath("/private/wipe-smoke.task")
         val cachedPrivateExport = File(context.cacheDir, ".wipe-smoke.partial").apply {
             writeText("private")
         }
@@ -74,6 +81,10 @@ class ProductionSmokeTest {
         assertFalse("Wipe left encrypted vault data", vaultMarker.exists())
         assertFalse("Wipe did not reset onboarding", prefs.onboarded.first())
         assertEquals("SYSTEM", prefs.themeMode.first())
+        assertEquals(AiSettings.DEFAULT_MODEL_ID, aiSettings.selectedModelId.first())
+        assertFalse(aiSettings.medicalGrantDefault.first())
+        assertTrue(aiSettings.keepPrivate.first())
+        assertNull(aiSettings.onDeviceModelPath.first())
         val freshDatabase = withContext(kotlinx.coroutines.Dispatchers.IO) { AppDatabase.get(context) }
         assertEquals(
             "Wipe left the seeded athlete in the replacement database",
