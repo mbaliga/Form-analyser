@@ -6,6 +6,13 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
+### Current-source JVM/unit/lint replay (2026-10-16)
+
+- [x] Forced complete root/module JVM tests, Android debug/release unit tests, and `lintRelease`
+      on the committed current source: 113/113 Gradle tasks executed successfully; parsed test XML
+      totals 378 tests, 0 failures, 0 errors, 0 skipped. This is not connected-device evidence and
+      does not replace signed production CI or physical acceptance.
+
 ### Incremental QA v711 rebuild evidence (2026-10-15)
 
 - [x] Rebuilt current source as QA v711 on 2026-10-15 after removing unnecessary Kotlin nullability

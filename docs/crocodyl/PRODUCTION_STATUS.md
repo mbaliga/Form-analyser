@@ -1,6 +1,13 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-15
+Last reviewed: 2026-10-16
+
+Current-source test/lint replay (2026-10-16): from the committed checkout, forced all root/module
+JVM tests plus Android debug and release unit tests and `lintRelease` with the isolated JDK 21/API 36
+toolchain. `BUILD SUCCESSFUL`; all 113 Gradle tasks executed. XML evidence totals 378 tests, 0
+failures, 0 errors and 0 skipped. This validates source and lint only; it does not change or promote
+the QA-signed v711 APK/AAB, and does not clear the separate emulator UI, production-signing, hosted
+CI or physical-device gates below.
 
 Current-source Android replay (2026-10-15): removed an unnecessary safe call in session soreness
 creation and redundant non-null assertions in the model-import test. With JDK 21, temporary API 35/36
