@@ -14,9 +14,13 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       `cb7196cbb7ffe13b3a8776c68fd8444656458cb38d0a089725c74e4bbb6380bd`; AAB SHA-256
       `d929d981ce23072d106b40888b1d4aac7ebc7b2d7c8b2626afb8294426feccc6`; R8 mapping SHA-256
       `6cf8ed314eb300b02874a3b9ac1a3813889943577c51f473f69eeef7ff49b080`. The artifacts use the
-      QA/debug signer, not a production signing identity. A fresh API-36 16 KB emulator boot attempt
-      terminated in QEMU with `SIGILL` before Android startup, so no fresh connected test or visual
-      screenshot is claimed for this rebuilt output. Prior v711 runtime evidence remains separate.
+      QA/debug signer, not a production signing identity. A later API-36 ARM64/16 KB AVD booted
+      (`PAGE_SIZE` = 16384), but its Pixel Launcher repeatedly became unresponsive during the
+      11-test debug instrumentation run: 5 tests passed and 6 UI checks timed out on the launcher
+      ANR screen. This is an emulator-wide failure, not a passing current-run UI result. A retry with
+      a 4 GB software-graphics AVD profile was started but had not reached Android boot when this
+      record was written. Prior passing v711 runtime evidence is separate; this fresh replay does
+      not replace it, and no screenshot is claimed.
 
 ### Incremental evidence after the current QA artifact (2026-10-14)
 

@@ -13,10 +13,15 @@ AAB SHA-256 `d929d981ce23072d106b40888b1d4aac7ebc7b2d7c8b2626afb8294426feccc6` (
 and R8 mapping SHA-256 `6cf8ed314eb300b02874a3b9ac1a3813889943577c51f473f69eeef7ff49b080` (34,935,496
 bytes). Preflight confirms target/compile SDK 36, version metadata, signer agreement, manifest
 security, bundled model hash, backup resources, App Bundle 16 KB configuration, and 11 aligned
-64-bit libraries in both APK and AAB. Connected tests were not rerun: the temporary API-36 16 KB
-ARM64 emulator exits before boot when `qemu-system-aarch64-headless` raises `SIGILL` during process
-initialization. Earlier v711 connected-test evidence remains the last runtime validation. Production
-signing, current-source hosted CI, physical-device/range acceptance and 30-session evidence remain.
+64-bit libraries in both APK and AAB. A temporary API-36 ARM64/16 KB AVD subsequently booted and
+reported `PAGE_SIZE` = 16384. Its current-source debug connected suite ran 11 tests: five
+non-UI/resource checks passed; six UI smoke tests failed because the emulator displayed
+“Pixel Launcher isn't responding” throughout app launch/navigation assertions. The AVD was then
+reconfigured in temporary storage for 4 GB RAM and SwiftShader graphics and restarted; a clean boot
+and retry are still pending. This is an emulator stability failure, not evidence that those six app
+flows pass or fail on a stable device. Earlier passing v711 runtime evidence remains separately
+recorded. Production signing, current-source hosted CI, physical-device/range acceptance and
+30-session evidence remain.
 
 Current-source revalidation after the desktop-report work (2026-10-14): provisioned a temporary
 JDK 21 from Eclipse Temurin and verified the vendor-published SHA-256 before use. A forced
