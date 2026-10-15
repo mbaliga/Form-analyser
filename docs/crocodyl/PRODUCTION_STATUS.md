@@ -12,22 +12,21 @@ is preserved. A focused Robolectric test covers seeded DB data, files, preferenc
 Current-source Android debug/release wipe regressions pass freshly, `lintRelease` passes, and the
 updated debug instrumentation APK compiles. QA candidate v714 (`0.6.4-full-wipe-qa`, versionCode
 714), including the AI preference correction, passes integrated Android release preflight. APK
-SHA-256 `6d0ca1707dc6f96c4dcd76e121c76c9d52b655abd71a7f2acc1831298ae04d28` (76,017,127 bytes);
+SHA-256 `72bcf74b7cf4aa416e2e659e4a865739eeaa6980077439307c6a18028e597914` (76,017,127 bytes);
 AAB SHA-256 `d9476a9065257a68e674fe227855f2f7c0dad2719e1e35d081ca4604bf8e2d82` (42,264,035
-bytes). The artifacts are QA/debug-signed only. Current-source device/UI verification remains
-unproven because the latest disposable API-36 emulator run was blocked by launcher instability;
-production signer, hosted CI, physical-device/range acceptance, and real-session evidence remain
+bytes). The artifacts are QA/debug-signed only. Emulator verification now passes on API 36 / 16 KB
+pages, including the minified release at 1.3× font; this is not physical-device or range acceptance.
+Production signer, hosted CI, physical-device/range acceptance, and real-session evidence remain
 open.
 
 Wipe device-smoke safeguard (2026-10-16): added a real Android instrumentation test that seeds a
-Room athlete, first-run/preferences state, a private vault marker and cached export, invokes the
-same full-wipe service used by Settings, then verifies database recreation is empty and the files
-and preferences are gone. The instrumentation APK compiles, and Android debug/release unit tasks,
-`lintRelease`, and the 57 release-tool contract tests pass. The test has not yet run on a device:
-the local API-35 x86_64 AVD references a system image absent from the temporary SDK, and the
-available API-36 ARM64/16 KB AVD's latest run was launcher-unstable. The hosted release workflow
-will execute it once these commits are available to CI; until then this remains an unverified
-device-side assertion, not a pass.
+Room athlete, first-run/app/AI preference state, private vault/model markers and cached export,
+invokes the same full-wipe service used by Settings, then verifies database recreation is empty and
+all stores are reset. On a disposable API-36 ARM64 emulator with `PAGE_SIZE=16384`, all 12 debug
+instrumentation tests pass. All 12 minified QA-release instrumentation tests also pass at font
+scale 1.3; the focused wipe case passes in both runs. The Home-navigation smoke explicitly scrolls
+the preserved Home list back to its hero before asserting hero content. Emulator font scale was
+restored to 1.0. Hosted production CI and physical-device acceptance remain outstanding.
 
 AI preference erasure correction (2026-10-16): a subsequent complete inventory of Android
 DataStores found the separate `crocodyl_ai_prefs` store used by BYOK/on-device coach configuration.
@@ -42,8 +41,9 @@ Post-fix full source replay (2026-10-16): `./gradlew test :app-android:lintRelea
 --rerun-tasks` completed successfully with all 113 Gradle tasks executed. Parsed root/module plus
 Android debug/release unit-test XML totals 340 tests, 0 failures/errors/skips; release lint passes.
 All 57 release-tool contracts and immutable action references across seven workflow files pass.
-The connected instrumentation APK compiles, but no connected runtime is claimed. Exact QA v714
-APK/AAB passed the release preflight; neither artifact is production-signed.
+The connected instrumentation APK compiles and all 12 debug plus 12 minified QA-release connected
+smokes pass on API 36 / 16 KB; the release run also passes at 1.3× font scale. Exact QA v714 APK/AAB
+passed release preflight; neither artifact is production-signed.
 
 Release-workflow secret-lifetime hardening (2026-10-16): production keystore materialization now
 occurs only after unsigned JVM/Android unit tests, Android release lint, debug connected smoke, and

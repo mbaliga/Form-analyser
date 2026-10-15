@@ -277,6 +277,7 @@ class ProductionSmokeTest {
                 assertTextEventually(instrumentation, "← prev")
 
                 clickBottomTabEventually(instrumentation, "Home")
+                scrollHomeUntilText(instrumentation, "Find your rhythm.", forward = false)
                 assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
 
                 scrollHomeUntilText(instrumentation, "Score", forward = false)
