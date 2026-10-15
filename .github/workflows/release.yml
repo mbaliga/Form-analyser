@@ -46,25 +46,17 @@ jobs:
           python3 tools/shared/verify_shared_checkout.py .ci/shared-libraries-asoc
       - name: Verify production signing inputs
         env:
-          KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
+          CERT_SHA256: ${{ secrets.CROCODYL_RELEASE_CERT_SHA256 }}
+        run: bash tools/release/verify_production_signer.sh "$CERT_SHA256"
+      - name: Verify release password inputs
+        env:
           STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
-          CERT_SHA256: ${{ secrets.CROCODYL_RELEASE_CERT_SHA256 }}
         run: |
-          test -n "$KEYSTORE_BASE64"
           test -n "$STORE_PASSWORD"
           test -n "$KEY_ALIAS"
           test -n "$KEY_PASSWORD"
-          bash tools/release/verify_production_signer.sh "$CERT_SHA256"
-      - name: Prepare release signing
-        env:
-          KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
-        run: |
-          test -n "$KEYSTORE_BASE64"
-          umask 077
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app-android/release.keystore
-          chmod 600 app-android/release.keystore
       - name: Resolve version name
         id: ver
         env:
@@ -123,6 +115,14 @@ jobs:
           git diff --exit-code -- app-android/src/main/assets/atelier/models
           python3 tools/atelier/build_arrow_reference_library.py
           git diff --exit-code -- app-android/src/main/assets/atelier/arrow-reference-library
+      - name: Prepare release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE_BASE64"
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app-android/release.keystore
+          chmod 600 app-android/release.keystore
       - name: Assemble signed release artifacts
         env:
           CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore
@@ -204,6 +204,8 @@ jobs:
             app-android/build/reports/androidTests/connected/release/**
             app-android/build/diagnostics/release-minified-logcat.txt
           if-no-files-found: warn
+      - name: Remove signing material after signed instrumentation
+        run: rm -f app-android/release.keystore
       - name: Run minified release smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:

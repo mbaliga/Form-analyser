@@ -13,6 +13,15 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       totals 378 tests, 0 failures, 0 errors, 0 skipped. This is not connected-device evidence and
       does not replace signed production CI or physical acceptance.
 
+### Release signing secret-lifetime safeguard (2026-10-16)
+
+- [x] Production keystore creation follows unsigned unit, lint, debug-smoke, and generated-source
+      validation. Fingerprint, password, and keystore-base64 values are scoped to only their
+      required steps; the keystore is removed after signed connected tests and before standalone
+      launch, artifact preflight and archive steps, with failure cleanup retained. All 57 release
+      workflow contracts, the seven-workflow immutable-action verifier, YAML syntax parsing, and
+      whitespace checks pass locally. A successful hosted production run remains required.
+
 ### Incremental QA v711 rebuild evidence (2026-10-15)
 
 - [x] Rebuilt current source as QA v711 on 2026-10-15 after removing unnecessary Kotlin nullability

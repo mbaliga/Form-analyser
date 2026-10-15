@@ -29,6 +29,20 @@ class ReleaseWorkflowContract(unittest.TestCase):
         for token in ("STORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD"):
             self.assertIn(f'test -n "${token}"', self.workflow[verify:prepare])
         self.assertIn('bash tools/release/verify_production_signer.sh "$CERT_SHA256"', self.workflow[verify:prepare])
+        prepare_step = self.workflow[prepare:self.workflow.index("- name: Assemble signed release artifacts")]
+        self.assertIn('test -n "$KEYSTORE_BASE64"', prepare_step)
+        self.assertIn('printf \'%s\' "$KEYSTORE_BASE64" | base64 --decode > app-android/release.keystore', prepare_step)
+
+    def test_signing_credentials_are_scoped_to_the_steps_that_need_them(self) -> None:
+        verify = self.workflow.index("- name: Verify production signing inputs")
+        password_check = self.workflow.index("- name: Verify release password inputs")
+        resolve = self.workflow.index("- name: Resolve version name")
+        verify_step = self.workflow[verify:password_check]
+        password_step = self.workflow[password_check:resolve]
+        self.assertIn("CROCODYL_RELEASE_CERT_SHA256", verify_step)
+        self.assertNotIn("CROCODYL_RELEASE_KEYSTORE_BASE64", verify_step)
+        self.assertNotIn("CROCODYL_RELEASE_STORE_PASSWORD", verify_step)
+        self.assertNotIn("KEYSTORE_BASE64", password_step)
 
     def test_production_release_rejects_the_committed_qa_signer(self) -> None:
         verify = self.workflow.index("- name: Verify production signing inputs")
@@ -68,6 +82,23 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn("if: ${{ always() }}", self.workflow)
         self.assertIn("run: rm -f app-android/release.keystore", self.workflow)
 
+    def test_production_keystore_is_materialized_only_after_unsigned_validation(self) -> None:
+        prepare = self.workflow.index("- name: Prepare release signing")
+        assemble = self.workflow.index("- name: Assemble signed release artifacts")
+        debug_smoke = self.workflow.index("- name: Run on-device Android smoke tests")
+        source_contracts = self.workflow.index("- name: Validate packaged equipment source contracts")
+        self.assertLess(debug_smoke, source_contracts)
+        self.assertLess(source_contracts, prepare)
+        self.assertLess(prepare, assemble)
+
+    def test_keystore_is_removed_before_non_signing_release_checks(self) -> None:
+        remove = self.workflow.index("- name: Remove signing material after signed instrumentation")
+        standalone_smoke = self.workflow.index("- name: Run minified release smoke tests")
+        verify = self.workflow.index("- name: Verify signed release artifacts")
+        self.assertLess(remove, standalone_smoke)
+        self.assertLess(standalone_smoke, verify)
+        self.assertIn("run: rm -f app-android/release.keystore", self.workflow[remove:standalone_smoke])
+
     def test_release_requires_certificate_fingerprint_and_preflight(self) -> None:
         self.assertIn("CROCODYL_RELEASE_CERT_SHA256", self.workflow)
         self.assertIn("tools/release/verify_android_release.sh", self.workflow)
@@ -75,7 +106,7 @@ class ReleaseWorkflowContract(unittest.TestCase):
     def test_release_preserves_versioned_r8_mapping_outside_public_release_assets(self) -> None:
         mapping = self.workflow.index("- name: Preserve minified-release mapping for crash diagnostics")
         upload = self.workflow.index("- name: Upload R8 mapping and digest as CI-only artifact")
-        cleanup = self.workflow.index("- name: Remove signing material")
+        cleanup = self.workflow.rindex("- name: Remove signing material")
         self.assertLess(mapping, upload)
         self.assertLess(upload, cleanup)
         mapping_steps = self.workflow[mapping:cleanup]
