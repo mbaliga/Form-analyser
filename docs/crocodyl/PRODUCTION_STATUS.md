@@ -17,8 +17,10 @@ security, bundled model hash, backup resources, App Bundle 16 KB configuration, 
 reported `PAGE_SIZE` = 16384. Its current-source debug connected suite ran 11 tests: five
 non-UI/resource checks passed; six UI smoke tests failed because the emulator displayed
 “Pixel Launcher isn't responding” throughout app launch/navigation assertions. The AVD was then
-reconfigured in temporary storage for 4 GB RAM and SwiftShader graphics and restarted; a clean boot
-and retry are still pending. This is an emulator stability failure, not evidence that those six app
+reconfigured in temporary storage for 4 GB RAM and SwiftShader graphics; after resetting only this
+task-created AVD's generated user data, it still did not register with ADB after more than three
+minutes. QEMU was observed sleeping at 0% CPU before it was stopped. This is an emulator stability
+failure, not evidence that those six app
 flows pass or fail on a stable device. Earlier passing v711 runtime evidence remains separately
 recorded. Production signing, current-source hosted CI, physical-device/range acceptance and
 30-session evidence remain.

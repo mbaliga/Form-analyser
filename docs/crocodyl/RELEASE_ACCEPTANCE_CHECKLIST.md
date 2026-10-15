@@ -19,8 +19,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       11-test debug instrumentation run: 5 tests passed and 6 UI checks timed out on the launcher
       ANR screen. This is an emulator-wide failure, not a passing current-run UI result. A retry with
       a 4 GB software-graphics AVD profile was started but had not reached Android boot when this
-      record was written. Prior passing v711 runtime evidence is separate; this fresh replay does
-      not replace it, and no screenshot is claimed.
+      record was written. A clean 4 GB software-graphics reboot (including reset of this task-created
+      AVD's generated user data) still did not register a device with ADB after more than three
+      minutes. QEMU was observed sleeping at 0% CPU and then stopped. Prior passing v711 runtime
+      evidence is separate; this fresh replay does not replace it, and no screenshot is claimed.
 
 ### Incremental evidence after the current QA artifact (2026-10-14)
 
