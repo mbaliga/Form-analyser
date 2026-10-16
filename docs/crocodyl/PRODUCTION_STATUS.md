@@ -31,6 +31,12 @@ until explicit discard, and distinguishes the accessible toolbar Back action fro
 Front/Back selector. Emulator font scale was restored to 1.0. Hosted production CI and
 physical-device acceptance remain outstanding.
 
+Form discard protection (2026-10-16): the injury and physio-plan editors both require explicit
+confirmation before Back can discard unsaved edits. The connected API-35 ARM64 suite now exercises
+both editors through toolbar Back, Keep editing, system Back and explicit Discard; all 15/15 tests
+pass. This newest replay is debug instrumentation on API 35; it does not yet update the prior
+14/14 API-36 debug or minified-release evidence, and is not physical-device acceptance.
+
 AI preference erasure correction (2026-10-16): a subsequent complete inventory of Android
 DataStores found the separate `crocodyl_ai_prefs` store used by BYOK/on-device coach configuration.
 The full wipe now clears its selected-model, model-path, medical-consent default, and private-data
@@ -44,7 +50,7 @@ Post-fix full source replay (2026-10-16): `./gradlew test :app-android:lintRelea
 --rerun-tasks` completed successfully with all 113 Gradle tasks executed. Parsed root/module plus
 Android debug/release unit-test XML totals 280 tests, 0 failures/errors/skips; release lint passes.
 All 57 release-tool contracts and immutable action references across seven workflow files pass.
-All 14 debug plus 14 minified QA-release connected smokes pass on API 36 / 16 KB; the release run
+At the time of this replay, all 14 debug plus 14 minified QA-release connected smokes pass on API 36 / 16 KB; the release run
 also passes at 1.3× font scale, including Settings wipe confirmation, unsaved-injury back guard,
 and long-feed accessibility scroll checks. Final QA v714 APK/AAB passed release preflight; neither
 artifact is production-signed.
@@ -711,7 +717,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Current-source QA v714 has passing debug and minified-release instrumentation (14/14 each) on API 36 ARM64/16 KB; release passes at 1.3× font, with debug/release unit tests (280 total), release lint, APK/AAB assembly and preflight. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
+| Recurve Android build | QA-only, not production releasable | QA v714 has passing artifact preflight; the last API-36 ARM64/16 KB debug and minified-release runs passed 14/14 each, with release at 1.3× font. The newer API-35 ARM64 debug replay passes 15/15, including injury and physio unsaved-edit guards. Unit tests (280 total), release lint, APK/AAB assembly and preflight passed before that test-only change. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -722,7 +728,8 @@ signing remains open.
 
 ## Current commits
 
-- Pending commit in this checkout: add unsaved-injury Back confirmation coverage, clarify toolbar accessibility, verify missing Maven checksums, and refresh current QA v714 acceptance evidence.
+- Pending commit in this checkout: add connected physio-plan unsaved-edit discard coverage (API-35 ARM64, 15/15).
+- Crocodyl: `25426c8` — guard unsaved injury edits on system/toolbar Back and record verified release evidence.
 
 - Crocodyl: `d92047f` — verify the actual report renderer escapes untrusted archive labels and never displays set-match points as a cumulative score percentage.
 - Crocodyl: `ef0ba57` — add offline desktop coach analysis for form, scoring and baseline data; handle SQLite-exported boolean values; run report regression tests in CI/release and document the remaining visual/coach acceptance gate.

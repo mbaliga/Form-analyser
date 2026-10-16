@@ -392,6 +392,40 @@ class ProductionSmokeTest {
     }
 
     @Test
+    fun unsavedPhysioPlanChangesRequireConfirmationForSystemAndToolbarBack() {
+        val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        try {
+            runBlocking { prefs.setOnboarded(true) }
+            ActivityScenario.launch(MainActivity::class.java).use {
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
+                clickBottomTabEventually(instrumentation, "Body")
+                assertTextEventually(instrumentation, "Body & recovery")
+                clickTextEventually(instrumentation, "Physio")
+                scrollScreenUntilText(instrumentation, "New physio plan", forward = true)
+                clickTextEventually(instrumentation, "New physio plan")
+                assertTextEventually(instrumentation, "New physio plan")
+                setEditableTextEventually(instrumentation, "Unsent rehab plan")
+                assertTextEventually(instrumentation, "Unsent rehab plan")
+
+                clickTextEventually(instrumentation, "Back to previous screen")
+                assertTextEventually(instrumentation, "Discard changes?")
+                clickTextEventually(instrumentation, "Keep editing")
+                assertTextEventually(instrumentation, "Unsent rehab plan")
+
+                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+                assertTextEventually(instrumentation, "Discard changes?")
+                clickTextEventually(instrumentation, "Discard")
+                assertTextEventually(instrumentation, "Body & recovery")
+            }
+        } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
     fun startingTrainingPersistsTheSelectedRoundAndSkippedPrecheckin() {
         val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
