@@ -34,8 +34,9 @@ physical-device acceptance remain outstanding.
 Form discard protection (2026-10-16): the injury and physio-plan editors both require explicit
 confirmation before Back can discard unsaved edits. The connected API-35 ARM64 suite now exercises
 both editors through toolbar Back, Keep editing, system Back and explicit Discard; all 15/15 tests
-pass. This newest replay is debug instrumentation on API 35; it does not yet update the prior
-14/14 API-36 debug or minified-release evidence, and is not physical-device acceptance.
+pass in both debug and minified release. The release instrumentation used only the repository's
+QA/debug key; neither run is production-signer or physical-device acceptance. These API-35 results
+do not update the prior 14/14 API-36 16 KB runs.
 
 AI preference erasure correction (2026-10-16): a subsequent complete inventory of Android
 DataStores found the separate `crocodyl_ai_prefs` store used by BYOK/on-device coach configuration.
@@ -717,7 +718,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | QA v714 has passing artifact preflight; the last API-36 ARM64/16 KB debug and minified-release runs passed 14/14 each, with release at 1.3× font. The newer API-35 ARM64 debug replay passes 15/15, including injury and physio unsaved-edit guards. Unit tests (280 total), release lint, APK/AAB assembly and preflight passed before that test-only change. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
+| Recurve Android build | QA-only, not production releasable | QA v714 has passing artifact preflight; the last API-36 ARM64/16 KB debug and minified-release runs passed 14/14 each, with release at 1.3× font. API-35 ARM64 debug and minified-release QA-signed replays now pass 15/15 each, including injury and physio unsaved-edit guards. Unit tests (280 total), release lint, APK/AAB assembly and preflight passed before that test-only change. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
