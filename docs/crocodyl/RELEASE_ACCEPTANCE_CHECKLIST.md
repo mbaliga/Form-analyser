@@ -16,8 +16,9 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [x] Focused wipe regression passes freshly in debug and release; `lintRelease` passes. QA v714
       release APK/AAB pass integrated release preflight (versionCode 714, target/compile SDK 36,
       QA signer, manifest, bundled model and 16 KB checks). APK SHA-256
-      `bf734453dc2c26adcbd2f87a83194ff168c1cca7ea24be87830776e7696142fc`; AAB SHA-256
-      `154875827915da3b61c2101f44a292bdba3274cdf735ca7381f9b3539b6a8869`. QA signing is not
+      `816b37ba9f2c98d691a8ea97d251bf72ff98c71513fd1f8a040d9964535e4cae`; AAB SHA-256
+      `3a2de677b01e28043d1a9f4403dd2ad976af9d8058a79625713eaea90fe8a769`. These are the latest
+      rebuilt v714 artifacts and pass the exact-artifact preflight. QA signing is not
       production signing; current-source device UI acceptance remains open.
 - [x] Connected Android coverage includes the seeded on-device wipe plus an end-to-end Settings
       flow: tapping Erase without `WIPE` leaves confirmation pending; entering the exact phrase

@@ -13,8 +13,8 @@ Current-source Android debug/release wipe regressions pass freshly, `lintRelease
 updated debug instrumentation APK compiles. QA candidate v714 (`0.6.4-full-wipe-qa`, versionCode
 714), including the AI preference and navigation accessibility-label corrections, passes integrated
 Android release preflight. APK SHA-256
-`bf734453dc2c26adcbd2f87a83194ff168c1cca7ea24be87830776e7696142fc` (76,017,127 bytes); AAB
-SHA-256 `154875827915da3b61c2101f44a292bdba3274cdf735ca7381f9b3539b6a8869` (42,263,848 bytes).
+`816b37ba9f2c98d691a8ea97d251bf72ff98c71513fd1f8a040d9964535e4cae` (76,017,127 bytes); AAB
+SHA-256 `3a2de677b01e28043d1a9f4403dd2ad976af9d8058a79625713eaea90fe8a769` (42,263,848 bytes).
 The artifacts are QA/debug-signed only. Emulator verification passes on API 36 / 16 KB pages,
 including the minified release at 1.3× font; this is not physical-device or range acceptance.
 Production signer, hosted CI, physical-device/range acceptance, and real-session evidence remain
@@ -38,6 +38,13 @@ through toolbar Back, Keep editing, system Back and explicit Discard. API-36 rel
 at 1.3× font and reports 16,384-byte pages; emulator font scale was restored to 1.0 afterward.
 Release instrumentation used only the repository QA/debug key; neither emulated run is
 production-signer or physical-device acceptance.
+
+Current QA artifact replay (2026-10-16): rebuilt v714 APK and AAB from this checkout with the
+committed QA/debug certificate and reran `tools/release/verify_android_release.sh`; APK v2 signature,
+matching APK/AAB signer, manifest/permission contract, version `0.6.4-full-wipe-qa` / 714, target
+SDK 36, pose-model hash, 16 KB ZIP and all 64-bit ELF alignments pass. On API-36 ARM64/16 KB, both
+debug and minified release suites pass 15/15; release was at 1.3× font. API-35 ARM64 debug/release
+also pass 15/15 each. The self-signed QA certificate is explicitly not a production identity.
 
 AI preference erasure correction (2026-10-16): a subsequent complete inventory of Android
 DataStores found the separate `crocodyl_ai_prefs` store used by BYOK/on-device coach configuration.
@@ -730,8 +737,8 @@ signing remains open.
 
 ## Current commits
 
-- Pending commit in this checkout: record current-source API-36/16 KB debug and minified-release
-  15/15 smokes at 1.3× font and API-35 debug/release evidence.
+- Pending commit in this checkout: record latest v714 APK/AAB hashes and artifact preflight plus
+  current-source API-36/16 KB and API-35 debug/release connected results.
 - Crocodyl: `c9c99f4` — document API-35 minified smoke results and physio-form discard coverage.
 - Crocodyl: `8b64c62` — add connected coverage for unsaved physio-plan Back/discard flow.
 - Crocodyl: `25426c8` — guard unsaved injury edits on system/toolbar Back and record verified release evidence.
