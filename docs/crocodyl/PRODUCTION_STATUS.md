@@ -737,8 +737,8 @@ signing remains open.
 
 ## Current commits
 
-- Pending commit in this checkout: record latest v714 APK/AAB hashes and artifact preflight plus
-  current-source API-36/16 KB and API-35 debug/release connected results.
+- Crocodyl: `ae6f6c8` — record current v714 APK/AAB digests, exact-artifact preflight, and the API-36/16 KB plus API-35 connected matrix.
+- Crocodyl: `3ad5286` — document current API-36/16 KB and API-35 debug/release smoke results.
 - Crocodyl: `c9c99f4` — document API-35 minified smoke results and physio-form discard coverage.
 - Crocodyl: `8b64c62` — add connected coverage for unsaved physio-plan Back/discard flow.
 - Crocodyl: `25426c8` — guard unsaved injury edits on system/toolbar Back and record verified release evidence.
