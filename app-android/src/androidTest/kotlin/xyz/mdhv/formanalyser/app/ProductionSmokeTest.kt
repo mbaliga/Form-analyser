@@ -357,6 +357,41 @@ class ProductionSmokeTest {
     }
 
     @Test
+    fun unsavedInjuryChangesRequireConfirmationForSystemAndToolbarBack() {
+        val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        try {
+            runBlocking { prefs.setOnboarded(true) }
+            ActivityScenario.launch(MainActivity::class.java).use {
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
+                clickBottomTabEventually(instrumentation, "Body")
+                assertTextEventually(instrumentation, "Body & recovery")
+                clickTextEventually(instrumentation, "Injuries")
+                scrollScreenUntilText(instrumentation, "Log injury", forward = true)
+                clickTextEventually(instrumentation, "Log injury")
+                scrollScreenUntilText(instrumentation, "Notes", forward = true)
+                setEditableTextEventually(instrumentation, "unsaved QA note")
+                assertTextEventually(instrumentation, "unsaved QA note")
+
+                clickTextEventually(instrumentation, "Back to previous screen")
+                assertTextEventually(instrumentation, "Discard changes?")
+                assertTextEventually(instrumentation, "What you have filled in here has not been saved.")
+                clickTextEventually(instrumentation, "Keep editing")
+                assertTextEventually(instrumentation, "unsaved QA note")
+
+                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+                assertTextEventually(instrumentation, "Discard changes?")
+                clickTextEventually(instrumentation, "Discard")
+                assertTextEventually(instrumentation, "Body & recovery")
+            }
+        } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
     fun startingTrainingPersistsTheSelectedRoundAndSkippedPrecheckin() {
         val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
@@ -664,11 +699,17 @@ class ProductionSmokeTest {
         timeoutMs: Long = 8_000,
     ) {
         val deadline = SystemClock.uptimeMillis() + timeoutMs
+        var consecutiveVisibleSamples = 0
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
-            val target = root?.findTextNode(expected)
-            if (target?.isVisibleToUser == true) return
+            if (root?.findVisibleTextNode(expected) != null) {
+                consecutiveVisibleSamples++
+                if (consecutiveVisibleSamples >= 2) return
+                SystemClock.sleep(75)
+                continue
+            }
+            consecutiveVisibleSamples = 0
             SystemClock.sleep(50)
         }
         val visibleText = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
@@ -709,9 +750,9 @@ class ProductionSmokeTest {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
             val target = root?.findClickableText(label)
-            if (target?.isVisibleToUser == true && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
-            val named = root?.findTextNode(label)
-            if (named?.isVisibleToUser == true) {
+            if (target != null && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
+            val named = root?.findVisibleTextNode(label)
+            if (named != null) {
                 val bounds = Rect()
                 named.getBoundsInScreen(bounds)
                 tap(instrumentation, bounds.centerX().toFloat(), bounds.centerY().toFloat())
@@ -730,7 +771,7 @@ class ProductionSmokeTest {
     ) {
         val root = rootInActiveWindowOrNull(instrumentation)
             ?: throw AssertionError("Primary navigation is not accessible")
-        val dock = root.findTextNode("Current sport: Recurve")
+        val dock = root.findVisibleTextNode("Current sport: Recurve")
             ?: throw AssertionError("Could not locate the Bocal arc navigation stage")
         val bounds = Rect().also(dock::getBoundsInScreen)
         val seatX = mapOf("Home" to 46.8f, "Train" to 123.6f, "Progress" to 200f, "Body" to 276.4f, "Calendar" to 353.2f)
@@ -770,16 +811,23 @@ class ProductionSmokeTest {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val width = context.resources.displayMetrics.widthPixels.toFloat()
         val height = context.resources.displayMetrics.heightPixels.toFloat()
-        // Use short, deliberate swipes so a fast fling cannot skip past the target card.
+        // Small, deliberate swipes avoid skipping a specific card at larger accessibility sizes.
         val startY = height * if (forward) .66f else .52f
         val endY = height * if (forward) .52f else .66f
         val x = width * .5f
         val automation = instrumentation.uiAutomation
-        val deadline = SystemClock.uptimeMillis() + 8_000
+        val deadline = SystemClock.uptimeMillis() + 20_000
+        var consecutiveVisibleSamples = 0
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
-            if (root != null && containsText(root, expected)) return
+            if (root?.findVisibleTextNode(expected) != null) {
+                consecutiveVisibleSamples++
+                if (consecutiveVisibleSamples >= 2) return
+                SystemClock.sleep(75)
+                continue
+            }
+            consecutiveVisibleSamples = 0
             val downTime = SystemClock.uptimeMillis()
             fun inject(action: Int, y: Float) {
                 val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0).apply {
@@ -812,7 +860,7 @@ class ProductionSmokeTest {
             val root = rootInActiveWindowOrNull(instrumentation)
             val target = root?.findClickableText(label)
             if (target != null && target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return
-            val named = root?.findTextNode(label)
+            val named = root?.findVisibleTextNode(label)
             if (named != null) {
                 val bounds = Rect()
                 named.getBoundsInScreen(bounds)
@@ -964,11 +1012,31 @@ class ProductionSmokeTest {
     }
 
     private fun AccessibilityNodeInfo.findClickableText(expected: String): AccessibilityNodeInfo? {
-        if (isClickable && (text?.toString() == expected || contentDescription?.toString() == expected)) return this
+        if (
+            isVisiblyOnScreen() && isClickable &&
+                (text?.toString() == expected || contentDescription?.toString() == expected)
+        ) return this
         for (index in 0 until childCount) {
             getChild(index)?.findClickableText(expected)?.let { return it }
         }
         return null
+    }
+
+    private fun AccessibilityNodeInfo.findVisibleTextNode(expected: String): AccessibilityNodeInfo? {
+        if (isVisiblyOnScreen() && (text?.toString() == expected || contentDescription?.toString() == expected)) return this
+        for (index in 0 until childCount) {
+            getChild(index)?.findVisibleTextNode(expected)?.let { return it }
+        }
+        return null
+    }
+
+    private fun AccessibilityNodeInfo.isVisiblyOnScreen(): Boolean {
+        if (!isVisibleToUser) return false
+        val metrics = ApplicationProvider.getApplicationContext<android.content.Context>()
+            .resources.displayMetrics
+        val bounds = Rect()
+        getBoundsInScreen(bounds)
+        return bounds.intersect(0, 0, metrics.widthPixels, metrics.heightPixels)
     }
 
     private fun AccessibilityNodeInfo.findTextNode(expected: String): AccessibilityNodeInfo? {

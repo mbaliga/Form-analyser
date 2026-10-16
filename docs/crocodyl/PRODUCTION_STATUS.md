@@ -11,11 +11,12 @@ Cleanup attempts every store and reports partial failure instead of claiming suc
 is preserved. A focused Robolectric test covers seeded DB data, files, preferences, and key aliases.
 Current-source Android debug/release wipe regressions pass freshly, `lintRelease` passes, and the
 updated debug instrumentation APK compiles. QA candidate v714 (`0.6.4-full-wipe-qa`, versionCode
-714), including the AI preference correction, passes integrated Android release preflight. APK
-SHA-256 `92c491eb3296d116ec5ca5c328eb7d5db11c55311ded332a071a8ed1b6963eb3` (76,017,127 bytes);
-AAB SHA-256 `d9476a9065257a68e674fe227855f2f7c0dad2719e1e35d081ca4604bf8e2d82` (42,264,035
-bytes). The artifacts are QA/debug-signed only. Emulator verification now passes on API 36 / 16 KB
-pages, including the minified release at 1.3× font; this is not physical-device or range acceptance.
+714), including the AI preference and navigation accessibility-label corrections, passes integrated
+Android release preflight. APK SHA-256
+`bf734453dc2c26adcbd2f87a83194ff168c1cca7ea24be87830776e7696142fc` (76,017,127 bytes); AAB
+SHA-256 `154875827915da3b61c2101f44a292bdba3274cdf735ca7381f9b3539b6a8869` (42,263,848 bytes).
+The artifacts are QA/debug-signed only. Emulator verification passes on API 36 / 16 KB pages,
+including the minified release at 1.3× font; this is not physical-device or range acceptance.
 Production signer, hosted CI, physical-device/range acceptance, and real-session evidence remain
 open.
 
@@ -24,8 +25,10 @@ first-run/app/AI preference state, private vault marker and cached export, then 
 wipe removes the seeded data. A second end-to-end Settings test navigates the UI, confirms tapping
 Erase before typing `WIPE` is a no-op, enters the exact phrase, completes the wipe and verifies the
 app returns to onboarding with privacy defaults restored. On a disposable API-36 ARM64 emulator
-with `PAGE_SIZE=16384`, all 13 debug instrumentation tests pass. All 13 minified QA-release tests
-also pass at 1.3× font scale. Emulator font scale was restored to 1.0. Hosted production CI and
+with `PAGE_SIZE=16384`, all 14 debug instrumentation tests pass. All 14 minified QA-release tests
+also pass at 1.3× font scale. Coverage proves unsaved injury notes survive system/toolbar Back
+until explicit discard, and distinguishes the accessible toolbar Back action from the Body tab's
+Front/Back selector. Emulator font scale was restored to 1.0. Hosted production CI and
 physical-device acceptance remain outstanding.
 
 AI preference erasure correction (2026-10-16): a subsequent complete inventory of Android
@@ -41,14 +44,16 @@ Post-fix full source replay (2026-10-16): `./gradlew test :app-android:lintRelea
 --rerun-tasks` completed successfully with all 113 Gradle tasks executed. Parsed root/module plus
 Android debug/release unit-test XML totals 280 tests, 0 failures/errors/skips; release lint passes.
 All 57 release-tool contracts and immutable action references across seven workflow files pass.
-All 13 debug plus 13 minified QA-release connected smokes pass on API 36 / 16 KB; the release run
-also passes at 1.3× font scale, including the exact Settings wipe confirmation flow. Exact QA v714
-APK/AAB passed release preflight; neither artifact is production-signed.
+All 14 debug plus 14 minified QA-release connected smokes pass on API 36 / 16 KB; the release run
+also passes at 1.3× font scale, including Settings wipe confirmation, unsaved-injury back guard,
+and long-feed accessibility scroll checks. Final QA v714 APK/AAB passed release preflight; neither
+artifact is production-signed.
 
 Dependency-verification repair (2026-10-16): a forced replay exposed missing strict-mode checksums
-for the JUnit 5.10.1 BOM POM and Guava 33.3.1-jre parent POM. Each cached POM was byte-for-byte
-matched by SHA-256 against its Maven Central artifact (the JUnit checksum also matched Maven
-Central's published `.sha256` file) before adding the checksum to `gradle/verification-metadata.xml`.
+for the JUnit 5.10.1 BOM POM, JUnit 5.9.2 BOM module metadata, and Guava 33.3.1-jre parent POM.
+Each cached artifact was byte-for-byte matched by SHA-256 against Maven Central (the JUnit 5.10.1
+POM also matched Maven Central's published `.sha256` file) before adding checksums to
+`gradle/verification-metadata.xml`.
 The forced full replay then completed successfully: 113/113 Gradle tasks, root/module and Android
 debug/release unit tests; parsed test XML totals 280 tests, 0 failures/errors/skips; and
 `lintRelease`. All 57 release-tool tests pass, immutable action refs
@@ -706,7 +711,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Current-source QA v711 has passing debug and minified-release instrumentation (11/11 each on API 35) and minified-release instrumentation 11/11 on API 36 ARM64/16 KB at 1.3× font (page size 16,384), plus debug/release unit tests, release lint, APK/AAB assembly and artifact preflight. The camera-permission test now inspects all interactive windows while requiring denial UI from the active app window, closing an API-36 false positive. Dock screenshot is archived. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
+| Recurve Android build | QA-only, not production releasable | Current-source QA v714 has passing debug and minified-release instrumentation (14/14 each) on API 36 ARM64/16 KB; release passes at 1.3× font, with debug/release unit tests (280 total), release lint, APK/AAB assembly and preflight. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -716,6 +721,8 @@ signing remains open.
 | Production distribution | Not yet releasable | Workflow actions are now immutably pinned and guarded. Production keystore/CI identity, final versioning, clean install/update acceptance, physical-device matrix and range acceptance remain. |
 
 ## Current commits
+
+- Pending commit in this checkout: add unsaved-injury Back confirmation coverage, clarify toolbar accessibility, verify missing Maven checksums, and refresh current QA v714 acceptance evidence.
 
 - Crocodyl: `d92047f` — verify the actual report renderer escapes untrusted archive labels and never displays set-match points as a cumulative score percentage.
 - Crocodyl: `ef0ba57` — add offline desktop coach analysis for form, scoring and baseline data; handle SQLite-exported boolean values; run report regression tests in CI/release and document the remaining visual/coach acceptance gate.

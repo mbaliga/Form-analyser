@@ -16,25 +16,29 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [x] Focused wipe regression passes freshly in debug and release; `lintRelease` passes. QA v714
       release APK/AAB pass integrated release preflight (versionCode 714, target/compile SDK 36,
       QA signer, manifest, bundled model and 16 KB checks). APK SHA-256
-      `92c491eb3296d116ec5ca5c328eb7d5db11c55311ded332a071a8ed1b6963eb3`; AAB SHA-256
-      `d9476a9065257a68e674fe227855f2f7c0dad2719e1e35d081ca4604bf8e2d82`. QA signing is not
+      `bf734453dc2c26adcbd2f87a83194ff168c1cca7ea24be87830776e7696142fc`; AAB SHA-256
+      `154875827915da3b61c2101f44a292bdba3274cdf735ca7381f9b3539b6a8869`. QA signing is not
       production signing; current-source device UI acceptance remains open.
 - [x] Connected Android coverage includes the seeded on-device wipe plus an end-to-end Settings
       flow: tapping Erase without `WIPE` leaves confirmation pending; entering the exact phrase
       wipes the data and returns to onboarding. On a disposable API-36 ARM64 emulator
-      (`PAGE_SIZE=16384`), all 13 debug tests and all 13 minified QA release tests pass; release
+      (`PAGE_SIZE=16384`), all 14 debug tests and all 14 minified QA release tests pass; release
       runs at 1.3× font. Font scale was restored to 1.0. Hosted production CI and physical-device
       acceptance remain open.
+- [x] Unsaved injury notes are guarded against both system Back and detail-bar Back; Keep editing
+      preserves the note and explicit Discard exits. The toolbar button has a unique accessible
+      label so it cannot be confused with the Body tab's Front/Back selector.
 - [x] Complete app-store inventory added the AI coach DataStore to the wipe, including model path
       and privacy/consent defaults. The focused reset regression passes freshly in both debug and
       minified release; instrumentation APK recompiles and release lint passes. QA v714 includes
       this correction and has passed artifact preflight.
 
-### Current-source JVM/unit/lint replay (2026-10-16)
+### Earlier-source JVM/unit/lint replay (2026-10-16; QA v711)
 
 - [x] Forced complete root/module JVM tests, Android debug/release unit tests, and `lintRelease`
       on the committed current source: 113/113 Gradle tasks executed successfully; parsed test XML
-      totals 378 tests, 0 failures, 0 errors, 0 skipped. This is not connected-device evidence and
+      totals 378 tests, 0 failures, 0 errors, 0 skipped. This earlier replay is retained as history
+      and superseded by the post-wipe-correction replay below. It is not connected-device evidence and
       does not replace signed production CI or physical acceptance.
 
 ### Post-wipe-correction full replay (2026-10-16)
@@ -43,10 +47,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       AI-store wipe correction: all 113 Gradle tasks executed successfully; root/module and Android
       debug/release unit XML totals 280 tests, 0 failures/errors/skips. All 57 release contracts
       and immutable action references in seven workflows pass. QA v714 APK/AAB pass integrated
-      preflight; debug and minified release instrumentation both pass 13/13 on API 36 / 16 KB,
-      including the Settings UI wipe confirmation and post-wipe onboarding checks.
+      preflight; debug and minified release instrumentation both pass 14/14 on API 36 / 16 KB,
+      including Settings wipe confirmation, injury edit discard protection and 1.3× font scroll checks.
 - [x] Strict dependency-verification coverage repaired only after checking missing JUnit BOM 5.10.1
-      and Guava parent 33.3.1 POM checksums against Maven Central. The forced full Gradle replay
+      POM, JUnit 5.9.2 module, and Guava parent 33.3.1 POM checksums against Maven Central. The forced full Gradle replay
       succeeds (113/113 tasks), all 57 release-tool tests pass, immutable actions verify in seven
       workflows, and CI/Android/release workflow YAML parses. Dependency verification stays enabled.
 - [x] Current repository-contract replay passes: Atelier/photos and arrow component libraries 20/20,

@@ -583,7 +583,7 @@ private fun DetailBar(title: String, onBack: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Hyle.OnBackground)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back to previous screen", tint = Hyle.OnBackground)
         }
         Text(
             title,
