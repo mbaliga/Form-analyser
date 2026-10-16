@@ -28,10 +28,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [x] Unsaved injury notes are guarded against both system Back and detail-bar Back; Keep editing
       preserves the note and explicit Discard exits. The toolbar button has a unique accessible
       label so it cannot be confused with the Body tab's Front/Back selector.
-- [x] The same discard-flow regression now covers a new physio plan. Current API-35 ARM64 debug
-      and QA/debug-signed minified-release connected suites pass 15/15 each, including title entry,
-      toolbar Back, Keep editing, system Back and explicit Discard. This newest replay is API 35;
-      the earlier API-36 16 KB results remain at 14/14 for their prior test source. QA signing does
+- [x] The same discard-flow regression now covers a new physio plan. Current API-35 ARM64 and
+      API-36 ARM64/16 KB debug and QA/debug-signed minified-release connected suites pass 15/15
+      each, including title entry, toolbar Back, Keep editing, system Back and explicit Discard.
+      API-36 minified release passed at 1.3× font; font scale was restored to 1.0. QA signing does
       not satisfy production signing or physical-device acceptance.
 - [x] Complete app-store inventory added the AI coach DataStore to the wipe, including model path
       and privacy/consent defaults. The focused reset regression passes freshly in both debug and
