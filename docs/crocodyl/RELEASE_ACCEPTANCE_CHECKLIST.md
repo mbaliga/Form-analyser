@@ -15,19 +15,17 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       drag-preview/release navigation. This is the owner-confirmed interaction target.
 - [x] Injury regions and physio target regions, weekly schedule, and exercise drafts are saveable
       across activity recreation. API-36/16 KB debug suite passed 17/17 including recreation tests.
-- [ ] Re-run the minified-release injury editor at 1.3× font on the intended phone emulator. The
-      earlier API-36 replay was 16/17 because the test could not scroll to Notes. The updated test
-      helper now attempts an accessibility scroll action before touch gestures, but its latest
-      run was accidentally dispatched to stale Wear OS AVDs and failed before the editor flow.
-      That run does not count as pass/fail evidence for Crocodyl UI behavior. The temporary
-      API-36 phone emulator could not be started because the workspace approval service was out of
-      credits; schedule a fresh run when that execution gate is available.
-- [ ] Rebuild exact-source APK/AAB and rerun release preflight after these source changes. The
-      previously documented v714 hashes are stale for the current modified tree and remain QA-key
-      artifacts, not distributable production outputs.
-- [ ] Compile and run the new named body-region list and recreation tests for injury/physio editors.
-      The alternative list selector is implemented in source, but these latest UI/test edits have
-      not passed Android compilation or runtime verification yet.
+- [ ] Run current-source debug and minified-release connected suites on a stable phone emulator.
+      The prior API-36 minified replay passed 16/17, failing only at its 1.3× font scroll to Notes.
+      The updated smoke helper compiles. Disposable API-35 and API-36/16 KB phone emulators now
+      both terminate with `SIGILL` before ADB connection, so no current-source UI flow was tested.
+- [x] Compile the named body-region list and injury/physio recreation instrumentation in both
+      debug and release variants. Runtime execution of the two new region recreation tests remains
+      part of the connected-suite item above.
+- [x] Build and preflight exact-source QA candidate `0.6.4-region-picker-qa`, versionCode 715.
+      APK SHA-256 `164e1951f034e4b6a72de1d8909a3c63de4a42645ae47ad711128ce05b3bd621`;
+      AAB SHA-256 `a640a5be89dda400cb6f5a19b91ed4f38e902f71cae3ef4cdba848447e4696d4`. Both are
+      QA/debug-signed only; production signing and device acceptance are not established.
 
 ### Complete local data wipe (2026-10-16)
 

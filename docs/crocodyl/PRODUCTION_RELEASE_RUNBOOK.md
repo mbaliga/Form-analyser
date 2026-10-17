@@ -50,13 +50,17 @@ closed if any signing input or the expected certificate fingerprint is absent.
    highest issued code and set `tools/release/highest_issued_version_code.txt` to the greater value.
    The latest public GitHub Release is currently `v0.5.1-reconciled`, whose tag's Gradle config sets
    versionCode 4; this source metadata has not been confirmed against the APK bytes or an installed
-   production copy. The ledger currently records 697, the latest v697 QA build. The resolver fails closed unless the new
-   code is strictly higher. On a successful release, advance this ledger to the released code in
-   the next release-preparation commit. A plain semver branch derives `major*10000 + minor*100 +
-   patch` (minor and patch must each be 0–99); derived values below the ledger are rejected. For
-   example, `0.6.1` derives 601 and is rejected against the current 697 floor, so use workflow
-   dispatch with an explicit code of at least 698 (and higher if the previous production APK
-   requires it). Prerelease/build labels also require an explicit versionCode.
+   production copy. The production-issued ledger currently records 697. The latest locally recorded
+   QA artifacts are versionCode 715 (`0.6.4-region-picker-qa`); they were QA/debug-signed, were
+   never issued as production, and do not advance that ledger. Those v715 artifacts were built from
+   source commit `d768fce`, pass local artifact preflight, and are not evidence of production
+   signing or device acceptance. The resolver
+   fails closed unless the new code is strictly higher. On a successful release, advance this
+   ledger to the released code in the next release-preparation commit. A plain semver branch derives
+   `major*10000 + minor*100 + patch` (minor and patch must each be 0–99); derived values below the
+   ledger are rejected. For example, `0.6.1` derives 601 and is rejected against the current 697
+   floor; workflow dispatch therefore needs an explicit code of at least 698, and higher if the
+   previous production APK requires it. Prerelease/build labels also require an explicit versionCode.
 2. Require the release workflow to pass JVM tests, Android debug/release unit tests, release lint,
    Android 15 (API 35) signed minified-release smoke, debug connected smoke, signed minified-release
    smoke on standard and explicit 16 KB page-size API-36 emulators, generated-asset drift checks,

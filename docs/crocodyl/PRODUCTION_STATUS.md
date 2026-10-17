@@ -11,28 +11,39 @@ minified-release replay from the same earlier run passed 16/17; the remaining in
 could not scroll to Notes at 1.3× font. The smoke helper now tries the accessibility scroll action
 before coordinate gestures and includes the visible accessibility text in failure diagnostics.
 Its latest compile/package succeeded, but runtime verification is still open: the connected-test
-task selected stale Wear OS AVDs and failed before reaching the injury editor. The isolated API-36
-phone AVD could not be launched because the workspace approval service was out of credits. Do not
-count that run as app-flow evidence. Bocal navbar parity remains the current web-source curved arc
-dock already present in `ArcNavigationDock.kt`; no flat-bar replacement is intended. No production
-APK/AAB was rebuilt from these current source changes; previously recorded v714 digests therefore do
-not describe this source tree.
+task selected stale Wear OS AVDs and failed before reaching the injury editor. That run is not
+app-flow evidence. Separately created API-35 and API-36/16 KB phone AVDs both crash with `SIGILL`
+before ADB connection. Bocal navbar parity remains the current web-source curved arc dock already
+present in `ArcNavigationDock.kt`; no flat-bar replacement is intended.
 
 Toolchain-independent contract replay (2026-10-17): release tooling tests pass 57/57 and the
 Bocal arc navigation contract passes 6/6. Shared-checkout, arrow library/assets/reference library,
 community directory, and desktop viewer Python contracts pass 39/39; offline report analysis and
 `.croc` signature interoperability both pass. Immutable GitHub Action references verify across all
-7 workflow files. These checks are local source contracts, not Android lint/build or connected UI
-acceptance. Android runtime and exact-source release packaging remain open as recorded above.
+7 workflow files. These checks are local source contracts, separate from the current Android unit,
+lint, and QA package evidence below; they do not substitute for connected UI acceptance.
 
 Named injury/physio body-region selection (2026-10-17): both editors now expose the existing
-Body “Today” screen's human-readable region list as a keyboard/screen-reader-friendly alternative
-to tapping the body canvas. The dialog shows selection state and supports multi-select on the
-currently chosen body face. Instrumentation coverage was added for injury and physio region drafts
-surviving activity recreation. This new UI/test source has not compiled or run yet: Gradle was
-blocked by its external user-cache lock permission, and the earlier workspace approval service
-failure still prevents escalation. Do not count the new tests as passing until compile and phone
-emulator execution are completed.
+Body “Today” screen's human-readable region list as an accessible alternative to tapping the body
+canvas. The dialog shows selection state and supports multi-select on the selected body face.
+Instrumentation coverage for injury and physio region drafts surviving activity recreation
+compiles in both debug and release test variants. The root/module plus Android debug/release unit
+run and `lintRelease` pass: 113 Gradle tasks (32 executed, 81 up-to-date); parsed test XML totals
+280 tests, 0 failures/errors/skips.
+Disposable API-35 and API-36/16 KB phone emulator launches both terminate with `SIGILL` before
+Android connects; the new UI instrumentation has not run.
+
+Exact-source QA candidate (2026-10-17, source commit `d768fce`): minified APK and AAB
+`0.6.4-region-picker-qa`, versionCode 715, assemble successfully with the committed QA/debug key.
+The exact APK/AAB pass `tools/release/verify_android_release.sh`: APK v2 signature and matching
+APK/AAB signer, version metadata, target SDK 36, permission/exported-component and backup/cleartext
+policy, BlazePose digest, 16 KB APK alignment, App Bundle 16 KB configuration and 16 KB alignment
+for all 11 packaged 64-bit libraries. APK SHA-256
+`164e1951f034e4b6a72de1d8909a3c63de4a42645ae47ad711128ce05b3bd621` (76,033,515 bytes); AAB
+SHA-256 `a640a5be89dda400cb6f5a19b91ed4f38e902f71cae3ef4cdba848447e4696d4` (42,269,325 bytes);
+R8 mapping SHA-256 `f757ff9ec7aa27b71720d38d141f467c35b0a9fc82d1c246965a802354a8a4b1`
+(34,938,775 bytes). These are QA/debug-signed artifacts, not production-signed or runtime-accepted.
+Hosted release and physical-device acceptance remain required.
 
 Full local-data wipe correction (2026-10-16): Settings → Data → Wipe previously cleared Room
 rows and onboarding state but left other app-owned personal data behind. The confirmed wipe now
