@@ -6,6 +6,26 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
+### In-progress editor state and current navbar parity (2026-10-17)
+
+- [x] The current Recurve navbar is Bocal's current web-source curved arc dock, not the older
+      flat Android reference: `app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/ArcNavigationDock.kt`
+      draws the paired curved rails, places the Recurve/destination label on the upper rail,
+      angles contextual controls to the rail and supports direct selection plus lower-rail
+      drag-preview/release navigation. This is the owner-confirmed interaction target.
+- [x] Injury regions and physio target regions, weekly schedule, and exercise drafts are saveable
+      across activity recreation. API-36/16 KB debug suite passed 17/17 including recreation tests.
+- [ ] Re-run the minified-release injury editor at 1.3× font on the intended phone emulator. The
+      earlier API-36 replay was 16/17 because the test could not scroll to Notes. The updated test
+      helper now attempts an accessibility scroll action before touch gestures, but its latest
+      run was accidentally dispatched to stale Wear OS AVDs and failed before the editor flow.
+      That run does not count as pass/fail evidence for Crocodyl UI behavior. The temporary
+      API-36 phone emulator could not be started because the workspace approval service was out of
+      credits; schedule a fresh run when that execution gate is available.
+- [ ] Rebuild exact-source APK/AAB and rerun release preflight after these source changes. The
+      previously documented v714 hashes are stale for the current modified tree and remain QA-key
+      artifacts, not distributable production outputs.
+
 ### Complete local data wipe (2026-10-16)
 
 - [x] Wipe now clears the entire SQLite database and sidecars, encrypted vault, installed on-device

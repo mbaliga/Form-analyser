@@ -39,6 +39,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import xyz.mdhv.formanalyser.app.domain.BodyViewModel
 import xyz.mdhv.formanalyser.app.domain.JsonLists
 import xyz.mdhv.formanalyser.app.ui.components.BodyAtlasCanvas
@@ -48,6 +53,40 @@ import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.app.ui.theme.HyleStepper
 import xyz.mdhv.formanalyser.body.BodyFace
+
+@Serializable
+private data class PhysioExerciseDraft(
+    val name: String,
+    val sets: Int,
+    val reps: Int?,
+    val holdS: Int?,
+) {
+    fun toEditorValue(): Triple<String, Int, Pair<Int?, Int?>> =
+        Triple(name, sets, reps to holdS)
+
+    companion object {
+        fun fromEditorValue(value: Triple<String, Int, Pair<Int?, Int?>>) =
+            PhysioExerciseDraft(value.first, value.second, value.third.first, value.third.second)
+    }
+}
+
+private val physioDraftJson = Json { ignoreUnknownKeys = true }
+private val physioExerciseDraftsSerializer = ListSerializer(PhysioExerciseDraft.serializer())
+
+private fun encodePhysioExercises(values: List<Triple<String, Int, Pair<Int?, Int?>>>): String =
+    physioDraftJson.encodeToString(
+        physioExerciseDraftsSerializer,
+        values.map { PhysioExerciseDraft.fromEditorValue(it) },
+    )
+
+private fun decodePhysioExercises(
+    value: String,
+    fallback: List<Triple<String, Int, Pair<Int?, Int?>>>,
+): List<Triple<String, Int, Pair<Int?, Int?>>> =
+    runCatching {
+        physioDraftJson.decodeFromString(physioExerciseDraftsSerializer, value)
+            .map(PhysioExerciseDraft::toEditorValue)
+    }.getOrDefault(fallback)
 
 /**
  * Guards a half-filled editor on the way out, and returns the function Cancel should call.
@@ -111,8 +150,10 @@ fun InjuryEditScreen(
     val vaultError by vm.vaultError.collectAsState()
     val existing = injuries.firstOrNull { it.id == injuryId }
 
-    var regions by
-        remember(existing?.id) { mutableStateOf(JsonLists.decode(existing?.regionsJson).toSet()) }
+    var regionsJson by rememberSaveable(existing?.id) {
+        mutableStateOf(JsonLists.encode(JsonLists.decode(existing?.regionsJson)))
+    }
+    val regions = JsonLists.decode(regionsJson).toSet()
     var severity by rememberSaveable(existing?.id) { mutableIntStateOf(existing?.severity ?: 1) }
     var mechanism by
         rememberSaveable(existing?.id) { mutableStateOf(existing?.mechanism ?: "OVERUSE") }
@@ -203,7 +244,7 @@ fun InjuryEditScreen(
         )
         HyleSectionHeader("Regions")
         RegionPicker(selected = regions) { id ->
-            regions = if (id in regions) regions - id else regions + id
+            regionsJson = JsonLists.encode((if (id in regions) regions - id else regions + id).toList())
         }
         HyleSectionHeader("Severity")
         HyleSegmented(listOf(1, 2, 3), severity, { "$it" }) { severity = it }
@@ -324,26 +365,30 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
     val existing = plans.firstOrNull { it.id == planId }
 
     var title by rememberSaveable(existing?.id) { mutableStateOf(existing?.title ?: "") }
-    var regions by
-        remember(existing?.id) {
-            mutableStateOf(JsonLists.decode(existing?.targetRegionsJson).toSet())
-        }
-    var schedule by
-        remember(existing?.id) { mutableStateOf(JsonLists.decode(existing?.scheduleJson).toSet()) }
-    var exercises by
-        remember(existing?.id) {
-            mutableStateOf(
-                planExercises[existing?.id]?.map { Triple(it.name, it.sets, it.reps to it.holdS) }
-                    ?: listOf(Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null)))
-            )
-        }
+    val defaultExercises = listOf(Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null)))
+    val persistedExercises =
+        planExercises[existing?.id]?.map { Triple(it.name, it.sets, it.reps to it.holdS) }
+            ?: defaultExercises
+    var regionsJson by rememberSaveable(existing?.id) {
+        mutableStateOf(JsonLists.encode(JsonLists.decode(existing?.targetRegionsJson)))
+    }
+    val regions = JsonLists.decode(regionsJson).toSet()
+    var scheduleJson by rememberSaveable(existing?.id) {
+        mutableStateOf(JsonLists.encode(JsonLists.decode(existing?.scheduleJson)))
+    }
+    val schedule = JsonLists.decode(scheduleJson).toSet()
+    var exercisesJson by rememberSaveable(existing?.id, persistedExercises) {
+        mutableStateOf(encodePhysioExercises(persistedExercises))
+    }
+    val exercises = decodePhysioExercises(exercisesJson, persistedExercises)
+    fun updateExercises(value: List<Triple<String, Int, Pair<Int?, Int?>>>) {
+        exercisesJson = encodePhysioExercises(value)
+    }
     val dirty =
         title != (existing?.title ?: "") ||
             regions != JsonLists.decode(existing?.targetRegionsJson).toSet() ||
             schedule != JsonLists.decode(existing?.scheduleJson).toSet() ||
-            exercises !=
-                (planExercises[existing?.id]?.map { Triple(it.name, it.sets, it.reps to it.holdS) }
-                    ?: listOf(Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null))))
+            exercises != persistedExercises
     val leave = rememberDiscardGuard(dirty, onDone)
 
     Column(
@@ -363,14 +408,20 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
         )
         HyleSectionHeader("Target regions")
         RegionPicker(selected = regions) { id ->
-            regions = if (id in regions) regions - id else regions + id
+            regionsJson =
+                JsonLists.encode((if (id in regions) regions - id else regions + id).toList())
         }
         HyleSectionHeader("Days")
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("MO", "TU", "WE", "TH", "FR", "SA", "SU").forEach { d ->
                 FilterChip(
                     selected = d in schedule,
-                    onClick = { schedule = if (d in schedule) schedule - d else schedule + d },
+                    onClick = {
+                        scheduleJson =
+                            JsonLists.encode(
+                                (if (d in schedule) schedule - d else schedule + d).toList()
+                            )
+                    },
                     label = { Text(d) },
                 )
             }
@@ -380,10 +431,11 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
             OutlinedTextField(
                 value = name,
                 onValueChange = { v ->
-                    exercises =
+                    updateExercises(
                         exercises.toMutableList().also {
                             it[i] = Triple(v.take(60), sets, repsHold)
                         }
+                    )
                 },
                 label = { Text("Exercise ${i + 1}") },
                 modifier = Modifier.fillMaxWidth(),
@@ -394,8 +446,9 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
                     HyleStepper(
                         sets,
                         { v ->
-                            exercises =
+                            updateExercises(
                                 exercises.toMutableList().also { it[i] = Triple(name, v, repsHold) }
+                            )
                         },
                         1..10,
                     )
@@ -405,7 +458,7 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
                     HyleStepper(
                         repsHold.first ?: 0,
                         { v ->
-                            exercises =
+                            updateExercises(
                                 exercises.toMutableList().also {
                                     it[i] =
                                         Triple(
@@ -414,6 +467,7 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
                                             (if (v == 0) null else v) to repsHold.second,
                                         )
                                 }
+                            )
                         },
                         0..50,
                     )
@@ -422,7 +476,9 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
         }
         OutlinedButton(
             onClick = {
-                exercises = exercises + Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null))
+                updateExercises(
+                    exercises + Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null))
+                )
             },
             modifier = Modifier.fillMaxWidth(),
         ) {

@@ -1,6 +1,22 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-16
+Last reviewed: 2026-10-17
+
+Configuration-change draft preservation (2026-10-17): injury-region selection and physio target
+regions, weekly schedule, and exercise edits now use saveable state, so Android activity recreation
+does not silently discard those in-progress edits. The physio exercise draft is encoded as a small
+serializable value rather than relying on a non-saveable in-memory list. API-36/16 KB debug
+instrumentation previously passed 17/17, including new schedule and exercise recreation cases. A
+minified-release replay from the same earlier run passed 16/17; the remaining injury-editor test
+could not scroll to Notes at 1.3× font. The smoke helper now tries the accessibility scroll action
+before coordinate gestures and includes the visible accessibility text in failure diagnostics.
+Its latest compile/package succeeded, but runtime verification is still open: the connected-test
+task selected stale Wear OS AVDs and failed before reaching the injury editor. The isolated API-36
+phone AVD could not be launched because the workspace approval service was out of credits. Do not
+count that run as app-flow evidence. Bocal navbar parity remains the current web-source curved arc
+dock already present in `ArcNavigationDock.kt`; no flat-bar replacement is intended. No production
+APK/AAB was rebuilt from these current source changes; previously recorded v714 digests therefore do
+not describe this source tree.
 
 Full local-data wipe correction (2026-10-16): Settings → Data → Wipe previously cleared Room
 rows and onboarding state but left other app-owned personal data behind. The confirmed wipe now

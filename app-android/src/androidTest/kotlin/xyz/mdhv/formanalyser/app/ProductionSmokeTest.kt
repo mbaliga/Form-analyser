@@ -426,6 +426,68 @@ class ProductionSmokeTest {
     }
 
     @Test
+    fun unsavedPhysioScheduleSurvivesActivityRecreation() {
+        val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        try {
+            runBlocking { prefs.setOnboarded(true) }
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
+                clickBottomTabEventually(instrumentation, "Body")
+                clickTextEventually(instrumentation, "Physio")
+                scrollScreenUntilText(instrumentation, "New physio plan", forward = true)
+                clickTextEventually(instrumentation, "New physio plan")
+                scrollScreenUntilText(instrumentation, "MO", forward = true)
+                clickTextEventually(instrumentation, "MO")
+
+                scenario.recreate()
+
+                scrollScreenUntilText(instrumentation, "MO", forward = true)
+                clickTextEventually(instrumentation, "Back to previous screen")
+                assertTextEventually(instrumentation, "Discard changes?")
+                clickTextEventually(instrumentation, "Discard")
+                assertTextEventually(instrumentation, "Body & recovery")
+            }
+        } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
+    fun unsavedPhysioExerciseSurvivesActivityRecreation() {
+        val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        try {
+            runBlocking { prefs.setOnboarded(true) }
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
+                clickBottomTabEventually(instrumentation, "Body")
+                clickTextEventually(instrumentation, "Physio")
+                scrollScreenUntilText(instrumentation, "New physio plan", forward = true)
+                clickTextEventually(instrumentation, "New physio plan")
+                scrollScreenUntilText(instrumentation, "Exercise 1", forward = true)
+                setEditableTextEventually(instrumentation, "Unsent exercise")
+                assertTextEventually(instrumentation, "Unsent exercise")
+
+                scenario.recreate()
+
+                scrollScreenUntilText(instrumentation, "Exercise 1", forward = true)
+                assertTextEventually(instrumentation, "Unsent exercise")
+                clickTextEventually(instrumentation, "Back to previous screen")
+                assertTextEventually(instrumentation, "Discard changes?")
+                clickTextEventually(instrumentation, "Discard")
+                assertTextEventually(instrumentation, "Body & recovery")
+            }
+        } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
     fun startingTrainingPersistsTheSelectedRoundAndSkippedPrecheckin() {
         val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
@@ -862,6 +924,13 @@ class ProductionSmokeTest {
                 continue
             }
             consecutiveVisibleSamples = 0
+            // Compose's scrollable semantics are more reliable than coordinate swipes in the
+            // minified build at large font scales. Keep the touch fallback for screens whose
+            // accessibility tree does not expose a scroll action.
+            if (root?.scrollForwardOnce() == true) {
+                SystemClock.sleep(250)
+                continue
+            }
             val downTime = SystemClock.uptimeMillis()
             fun inject(action: Int, y: Float) {
                 val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0).apply {
@@ -881,7 +950,8 @@ class ProductionSmokeTest {
             inject(MotionEvent.ACTION_UP, endY)
             SystemClock.sleep(250)
         }
-        throw AssertionError("Could not scroll to visible UI text: $expected")
+        val visible = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty().distinct()
+        throw AssertionError("Could not scroll to visible UI text: $expected. Visible: $visible")
     }
 
     private fun clickTextEventually(
@@ -914,7 +984,7 @@ class ProductionSmokeTest {
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val editable = rootInActiveWindowOrNull(instrumentation)?.findEditableNode()
-            if (editable?.isVisibleToUser == true) {
+            if (editable != null) {
                 val arguments = Bundle().apply {
                     putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, value)
                 }
@@ -1082,7 +1152,7 @@ class ProductionSmokeTest {
     }
 
     private fun AccessibilityNodeInfo.findEditableNode(): AccessibilityNodeInfo? {
-        if (isEditable) return this
+        if (isEditable && isVisiblyOnScreen()) return this
         for (index in 0 until childCount) {
             getChild(index)?.findEditableNode()?.let { return it }
         }
