@@ -18,6 +18,13 @@ dock already present in `ArcNavigationDock.kt`; no flat-bar replacement is inten
 APK/AAB was rebuilt from these current source changes; previously recorded v714 digests therefore do
 not describe this source tree.
 
+Toolchain-independent contract replay (2026-10-17): release tooling tests pass 57/57 and the
+Bocal arc navigation contract passes 6/6. Shared-checkout, arrow library/assets/reference library,
+community directory, and desktop viewer Python contracts pass 39/39; offline report analysis and
+`.croc` signature interoperability both pass. Immutable GitHub Action references verify across all
+7 workflow files. These checks are local source contracts, not Android lint/build or connected UI
+acceptance. Android runtime and exact-source release packaging remain open as recorded above.
+
 Full local-data wipe correction (2026-10-16): Settings → Data → Wipe previously cleared Room
 rows and onboarding state but left other app-owned personal data behind. The confirmed wipe now
 closes and deletes the SQLite database plus journal sidecars, removes vault/model/recovery files
@@ -155,6 +162,7 @@ pushed and therefore have no hosted-run evidence.
 
 ## Current-turn evidence and commit trace
 
+- Crocodyl: 2026-10-17 — replay release/navigation/cross-surface source contracts; Android emulator and exact-source packaging remain unverified.
 - Crocodyl: `e10c11e` — preserve injury/physio editor drafts through activity recreation, strengthen the large-font scroll smoke diagnostics, and record the verification boundary.
 - Crocodyl: `44f9aa4` — remove unnecessary nullability warnings and record current-source 50/50 Android debug/release suites, lint, QA v711 artifact preflight, hashes and emulator `SIGILL` boundary.
 - Crocodyl: `dfd36f4` — index report-renderer escaping and match-display safeguards.
