@@ -183,6 +183,7 @@ pushed and therefore have no hosted-run evidence.
 
 ## Current-turn evidence and commit trace
 
+- Crocodyl: `66b98dd` — test every body-region label in debug/release and record the current 284-test/lint replay.
 - Crocodyl: `b9fb4c9` — record current-source unit/lint, exact QA v715 APK/AAB preflight and hashes, correct the release-version ledger context, and document emulator startup failure.
 - Crocodyl: `70a68a8` — add named multi-select body-region access to injury/physio forms and recreation tests; debug/release instrumentation compiles, runtime remains pending.
 - Crocodyl: `6d76366` — record the 2026-10-17 release/navigation/cross-surface contract replay and preserve the Android emulator/exact-source packaging boundary.
