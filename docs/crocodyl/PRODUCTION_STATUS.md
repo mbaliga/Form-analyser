@@ -162,7 +162,7 @@ pushed and therefore have no hosted-run evidence.
 
 ## Current-turn evidence and commit trace
 
-- Crocodyl: 2026-10-17 — replay release/navigation/cross-surface source contracts; Android emulator and exact-source packaging remain unverified.
+- Crocodyl: `6d76366` — record the 2026-10-17 release/navigation/cross-surface contract replay and preserve the Android emulator/exact-source packaging boundary.
 - Crocodyl: `e10c11e` — preserve injury/physio editor drafts through activity recreation, strengthen the large-font scroll smoke diagnostics, and record the verification boundary.
 - Crocodyl: `44f9aa4` — remove unnecessary nullability warnings and record current-source 50/50 Android debug/release suites, lint, QA v711 artifact preflight, hashes and emulator `SIGILL` boundary.
 - Crocodyl: `dfd36f4` — index report-renderer escaping and match-display safeguards.
