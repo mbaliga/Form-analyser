@@ -27,9 +27,10 @@ Named injury/physio body-region selection (2026-10-17): both editors now expose 
 Body “Today” screen's human-readable region list as an accessible alternative to tapping the body
 canvas. The dialog shows selection state and supports multi-select on the selected body face.
 Instrumentation coverage for injury and physio region drafts surviving activity recreation
-compiles in both debug and release test variants. The root/module plus Android debug/release unit
-run and `lintRelease` pass: 113 Gradle tasks (32 executed, 81 up-to-date); parsed test XML totals
-280 tests, 0 failures/errors/skips.
+compiles in both debug and release test variants. A new unit contract checks that all 52 atlas
+regions have distinct, human-readable picker labels; it passes 2/2 in both debug and release.
+The root/module plus Android debug/release unit run and `lintRelease` pass: 113 Gradle tasks (5
+executed, 108 up-to-date); parsed test XML totals 284 tests, 0 failures/errors/skips.
 Disposable API-35 and API-36/16 KB phone emulator launches both terminate with `SIGILL` before
 Android connects; the new UI instrumentation has not run.
 

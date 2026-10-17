@@ -22,6 +22,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [x] Compile the named body-region list and injury/physio recreation instrumentation in both
       debug and release variants. Runtime execution of the two new region recreation tests remains
       part of the connected-suite item above.
+- [x] The new body-region label contract covers all 52 atlas IDs, rejects missing, non-human, or
+      duplicate labels, and passes 2/2 in Android debug and release unit-test variants. Current
+      complete JVM/Android unit and release-lint replay passes with 284 tests, 0 failures/errors/
+      skips (113 tasks; 5 executed, 108 up-to-date).
 - [x] Build and preflight exact-source QA candidate `0.6.4-region-picker-qa`, versionCode 715.
       APK SHA-256 `164e1951f034e4b6a72de1d8909a3c63de4a42645ae47ad711128ce05b3bd621`;
       AAB SHA-256 `a640a5be89dda400cb6f5a19b91ed4f38e902f71cae3ef4cdba848447e4696d4`. Both are
