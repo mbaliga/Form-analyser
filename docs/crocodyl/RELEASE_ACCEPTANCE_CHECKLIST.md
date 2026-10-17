@@ -25,6 +25,9 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [ ] Rebuild exact-source APK/AAB and rerun release preflight after these source changes. The
       previously documented v714 hashes are stale for the current modified tree and remain QA-key
       artifacts, not distributable production outputs.
+- [ ] Compile and run the new named body-region list and recreation tests for injury/physio editors.
+      The alternative list selector is implemented in source, but these latest UI/test edits have
+      not passed Android compilation or runtime verification yet.
 
 ### Complete local data wipe (2026-10-16)
 

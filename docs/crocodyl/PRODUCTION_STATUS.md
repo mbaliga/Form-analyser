@@ -25,6 +25,15 @@ community directory, and desktop viewer Python contracts pass 39/39; offline rep
 7 workflow files. These checks are local source contracts, not Android lint/build or connected UI
 acceptance. Android runtime and exact-source release packaging remain open as recorded above.
 
+Named injury/physio body-region selection (2026-10-17): both editors now expose the existing
+Body “Today” screen's human-readable region list as a keyboard/screen-reader-friendly alternative
+to tapping the body canvas. The dialog shows selection state and supports multi-select on the
+currently chosen body face. Instrumentation coverage was added for injury and physio region drafts
+surviving activity recreation. This new UI/test source has not compiled or run yet: Gradle was
+blocked by its external user-cache lock permission, and the earlier workspace approval service
+failure still prevents escalation. Do not count the new tests as passing until compile and phone
+emulator execution are completed.
+
 Full local-data wipe correction (2026-10-16): Settings → Data → Wipe previously cleared Room
 rows and onboarding state but left other app-owned personal data behind. The confirmed wipe now
 closes and deletes the SQLite database plus journal sidecars, removes vault/model/recovery files

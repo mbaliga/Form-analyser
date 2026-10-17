@@ -293,7 +293,7 @@ private fun BodyRegionPickerDialog(
     )
 }
 
-private fun bodyRegionDisplayName(regionId: String): String {
+internal fun bodyRegionDisplayName(regionId: String): String {
     val side = when {
         regionId.endsWith("_l") -> "left"
         regionId.endsWith("_r") -> "right"

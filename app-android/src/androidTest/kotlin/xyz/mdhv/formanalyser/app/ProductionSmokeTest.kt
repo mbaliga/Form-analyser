@@ -488,6 +488,68 @@ class ProductionSmokeTest {
     }
 
     @Test
+    fun unsavedInjuryRegionSurvivesActivityRecreation() {
+        val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        try {
+            runBlocking { prefs.setOnboarded(true) }
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
+                clickBottomTabEventually(instrumentation, "Body")
+                clickTextEventually(instrumentation, "Injuries")
+                scrollScreenUntilText(instrumentation, "Log injury", forward = true)
+                clickTextEventually(instrumentation, "Log injury")
+                scrollScreenUntilText(instrumentation, "Choose regions from list", forward = true)
+                clickTextEventually(instrumentation, "Choose regions from list")
+                clickTextEventually(instrumentation, "Back of neck")
+                clickTextEventually(instrumentation, "Done")
+
+                scenario.recreate()
+
+                clickTextEventually(instrumentation, "Back to previous screen")
+                assertTextEventually(instrumentation, "Discard changes?")
+                clickTextEventually(instrumentation, "Discard")
+                assertTextEventually(instrumentation, "Body & recovery")
+            }
+        } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
+    fun unsavedPhysioRegionSurvivesActivityRecreation() {
+        val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)
+        val wasOnboarded = runBlocking { prefs.onboarded.first() }
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        try {
+            runBlocking { prefs.setOnboarded(true) }
+            ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+                assertTextEventually(instrumentation, "CROCODYL  /  RECURVE")
+                clickBottomTabEventually(instrumentation, "Body")
+                clickTextEventually(instrumentation, "Physio")
+                scrollScreenUntilText(instrumentation, "New physio plan", forward = true)
+                clickTextEventually(instrumentation, "New physio plan")
+                scrollScreenUntilText(instrumentation, "Choose regions from list", forward = true)
+                clickTextEventually(instrumentation, "Choose regions from list")
+                clickTextEventually(instrumentation, "Back of neck")
+                clickTextEventually(instrumentation, "Done")
+
+                scenario.recreate()
+
+                clickTextEventually(instrumentation, "Back to previous screen")
+                assertTextEventually(instrumentation, "Discard changes?")
+                clickTextEventually(instrumentation, "Discard")
+                assertTextEventually(instrumentation, "Body & recovery")
+            }
+        } finally {
+            runBlocking { prefs.setOnboarded(wasOnboarded) }
+        }
+    }
+
+    @Test
     fun startingTrainingPersistsTheSelectedRoundAndSkippedPrecheckin() {
         val appContext = ApplicationProvider.getApplicationContext<android.content.Context>()
         val prefs = xyz.mdhv.formanalyser.app.data.AppPrefs(appContext)

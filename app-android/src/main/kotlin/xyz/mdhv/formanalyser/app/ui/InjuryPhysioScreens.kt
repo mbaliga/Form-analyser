@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -52,6 +53,7 @@ import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.app.ui.theme.HyleStepper
+import xyz.mdhv.formanalyser.body.BodyAtlas
 import xyz.mdhv.formanalyser.body.BodyFace
 
 @Serializable
@@ -127,6 +129,7 @@ private fun rememberDiscardGuard(dirty: Boolean, onLeave: () -> Unit): () -> Uni
 @Composable
 fun RegionPicker(selected: Set<String>, onToggle: (String) -> Unit) {
     var face by rememberSaveable { mutableStateOf(BodyFace.BACK) }
+    var regionListOpen by rememberSaveable { mutableStateOf(false) }
     HyleSegmented(
         listOf(BodyFace.FRONT, BodyFace.BACK),
         face,
@@ -134,7 +137,42 @@ fun RegionPicker(selected: Set<String>, onToggle: (String) -> Unit) {
     ) {
         face = it
     }
+    OutlinedButton(
+        onClick = { regionListOpen = true },
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+    ) {
+        Text("Choose regions from list")
+    }
     BodyAtlasCanvas(face = face, selected = selected, onTap = onToggle)
+    if (regionListOpen) {
+        val regions = BodyAtlas.forFace(face).map { it.id }.sortedBy(::bodyRegionDisplayName)
+        AlertDialog(
+            onDismissRequest = { regionListOpen = false },
+            title = { Text("Choose body regions") },
+            text = {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 440.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text("Select each region to include or remove it.", color = Hyle.OnSurfaceDim)
+                    regions.forEach { region ->
+                        FilterChip(
+                            selected = region in selected,
+                            onClick = { onToggle(region) },
+                            label = { Text(bodyRegionDisplayName(region)) },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { regionListOpen = false }) { Text("Done") }
+            },
+        )
+    }
 }
 
 @Composable
