@@ -175,11 +175,15 @@ the `.croc` signature interoperability test passed. This revalidation did not re
 unit/lint/connected tests: the current temporary toolchain has no Android SDK/emulator, and
 `app-android` is intentionally included in Gradle only with `-PwithAndroid`. Earlier v711 Android
 evidence remains the last Android-source validation; production signing, hosted CI and physical
-acceptance remain open. A read-only GitHub Actions audit found the newest push-triggered `main`
-CI and Android runs on 2026-09-18 at `d0987ce8` ([CI](https://github.com/mbaliga/Form-analyser/actions/runs/35334586525),
-[Android](https://github.com/mbaliga/Form-analyser/actions/runs/35334586097)); the latest visible
-push-triggered `feat/immersive-visuals` CI run is 2026-09-16. Current local commits have not been
-pushed and therefore have no hosted-run evidence.
+acceptance remain open. Read-only GitHub Actions recheck (2026-10-17): the latest push-triggered
+`main` CI and Android runs remain the successful 2026-09-18 runs at `d0987ce8`
+([CI](https://github.com/mbaliga/Form-analyser/actions/runs/35334586525),
+[Android](https://github.com/mbaliga/Form-analyser/actions/runs/35334586097)). The latest visible
+push-triggered `feat/immersive-visuals` PR CI and Android runs are successful at `ce133b0a` on
+2026-09-16 ([CI](https://github.com/mbaliga/Form-analyser/actions/runs/35159949499),
+[Android](https://github.com/mbaliga/Form-analyser/actions/runs/35159949498)). Scheduled cleanup
+workflow runs on `main` continue, but do not validate source changes. The current local branch is
+not pushed and has no hosted-run evidence.
 
 ## Current-turn evidence and commit trace
 
