@@ -2,6 +2,13 @@
 
 Last reviewed: 2026-10-17
 
+Continuation check (2026-10-17): the attached environment has no `adb` or Android emulator
+executable available, and macOS denies the CPU-feature `sysctl` query. No new connected-device
+result is claimed. The 57 release-tool tests pass again, immutable GitHub Action references verify
+across all seven workflow files, and the working tree was clean before this status note. The
+owner-confirmed Bocal web-source curved arc dock remains the implemented navbar target; no
+replacement or redesign was made.
+
 Configuration-change draft preservation (2026-10-17): injury-region selection and physio target
 regions, weekly schedule, and exercise edits now use saveable state, so Android activity recreation
 does not silently discard those in-progress edits. The physio exercise draft is encoded as a small
