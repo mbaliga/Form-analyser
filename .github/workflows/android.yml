@@ -42,9 +42,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      # ubuntu-latest ships an Android SDK; this ensures cmdline-tools + accepted licenses
-      # so AGP can fetch any missing platform/build-tools.
+      # setup-android's default package list includes Google's removed `tools` package; AGP
+      # downloads the required platforms/build-tools, so install only platform-tools here.
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: platform-tools
       # -PwithAndroid opts :app-android into the build (see settings.gradle.kts).
       - name: Run JVM unit tests
         run: ./gradlew test --no-daemon

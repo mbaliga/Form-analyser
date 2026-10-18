@@ -2,6 +2,15 @@
 
 Last reviewed: 2026-10-18
 
+Hosted Android workflow bootstrap repair (2026-10-18): both `.github/workflows/android.yml` and
+`.github/workflows/release.yml` previously invoked `android-actions/setup-android@v3` with its
+default package list, which requests Google's removed `tools` SDK package and fails before Gradle
+starts. Both now explicitly install only `platform-tools` (AGP resolves required platforms and
+build-tools); a release-contract test protects this setting. Release workflow contracts pass 63/63,
+all eight workflows pass immutable-action verification, both changed workflows parse as YAML, and
+`git diff --check` is clean. Hosted execution is still pending because this local branch is not
+published to GitHub.
+
 Export retraction privacy fix (2026-10-18): `ExportViewModel` previously omitted `checkin`,
 `pain_log`, and `injury` from the SQL tombstone filter, so rows users had retracted could be
 included in subsequent `.croc`/`.crocbak` exports. The filter now covers all six tables whose Room

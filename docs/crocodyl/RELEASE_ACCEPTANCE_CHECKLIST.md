@@ -8,6 +8,11 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
 
+- [x] Repaired Android SDK bootstrap in both CI and release workflows: they explicitly request
+      `platform-tools` rather than the removed default `tools` package, leaving platform/build-tool
+      resolution to AGP. A workflow contract covers both, release contracts pass 63/63, YAML parses,
+      and immutable action references verify across eight workflows. Hosted CI still must run on
+      GitHub after this branch is published.
 - [x] Fixed an export privacy defect: `.croc`/`.crocbak` serialization now filters tombstones from
       all six Room tables with `deletedAt`, including check-ins, pain logs and injuries. A
       pure-JVM guard derives the table set from `AppDatabase` migration/schema DDL and asserts exact

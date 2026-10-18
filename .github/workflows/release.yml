@@ -38,6 +38,8 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: platform-tools
       - name: Fetch and verify locked shared-library checkout
         run: |
           SHARED_REPOSITORY="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["repository"])')"

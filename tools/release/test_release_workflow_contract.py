@@ -212,6 +212,18 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn(":app-android:testReleaseUnitTest", self.workflow)
         self.assertIn(":app-android:lintRelease", self.workflow)
 
+    def test_android_sdk_setup_avoids_the_removed_tools_package(self) -> None:
+        setup_action = "android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407"
+        for workflow_path in (
+            ROOT / ".github" / "workflows" / "android.yml",
+            WORKFLOW,
+        ):
+            workflow = workflow_path.read_text()
+            self.assertIn(setup_action, workflow)
+            setup_step = workflow.split(setup_action, maxsplit=1)[1].split("\n      - ", maxsplit=1)[0]
+            self.assertIn("packages: platform-tools", setup_step, workflow_path.name)
+            self.assertNotIn("packages: tools", setup_step, workflow_path.name)
+
     def test_release_contracts_run_when_release_workflow_or_tests_change(self) -> None:
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
         self.assertIn('".github/workflows/**"', ci)
