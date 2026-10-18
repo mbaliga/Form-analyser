@@ -810,7 +810,8 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [x] Current-tree v679 QA APK/AAB (`0.6.0-qa-20261018`) passed artifact preflight, including 16 KB
       ELF alignment for all 11 native libraries. Connected debug and QA/debug-signed minified-release
       smoke each passed 19/19 on API-36 ARM64 `crocodyl-current-api36-ps16k` (`PAGE_SIZE=16384`);
-      clean JVM/Android tests passed 284/284 and release lint passed (2026-10-18). This is QA evidence
+      minified-release smoke also passed 19/19 at 1.3× font scale, restored to 1.0× afterward.
+      Clean JVM/Android tests passed 284/284 and release lint passed (2026-10-18). This is QA evidence
       only; production signing, hosted CI evidence, physical-device/range acceptance, 30 real sessions
       and owner sign-off remain pending. See `PRODUCTION_STATUS.md` for the full replay record.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.

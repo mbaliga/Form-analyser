@@ -1,27 +1,32 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-17
+Last reviewed: 2026-10-18
 
-Continuation check (2026-10-17): the attached environment has no `adb` or Android emulator
-executable available, and macOS denies the CPU-feature `sysctl` query. No new connected-device
-result is claimed. The 57 release-tool tests pass again, immutable GitHub Action references verify
-across all seven workflow files, and the working tree was clean before this status note. The
-owner-confirmed Bocal web-source curved arc dock remains the implemented navbar target; no
-replacement or redesign was made.
+Current release-gate replay (2026-10-18): the source at commit `3f86f7d` passed a fresh full
+`./gradlew test :app-android:lintRelease -PwithAndroid --rerun-tasks` (113/113 Gradle tasks;
+284 JVM/Android tests, zero failures/errors/skips; release lint passed). On API-36 ARM64
+`crocodyl-current-api36-ps16k` (`PAGE_SIZE=16384`), connected debug and QA/debug-signed minified
+release instrumentation each passed all 19 `ProductionSmokeTest` cases. The complete minified
+release suite also passed 19/19 at 1.3× font scale; the emulator was verified back at 1.0× afterward.
+QA APK/AAB `0.6.0-qa-20261018` / versionCode 679 passed release preflight and 16 KB alignment for
+all 11 native libraries. APK SHA-256 `e60f99a00cfd31e792e2dd8275988c7c14033abcecbf8bd21ec8c7af7b762a2c`
+(76,033,515 bytes); AAB SHA-256
+`4eac9861e66e57a0cea692839638f1770082876f4f12b97961f5871b3e81b3f3` (42,269,543 bytes); local R8
+mapping SHA-256 `4c9eb00ce6b5a6bb21c1ce1c131e988ddf9af8dd4e4be8c34c8194ef8d63f21b`
+(34,940,456 bytes). APK/AAB use the known QA certificate
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`; they are not distributable.
+The 57 release-tool tests and immutable-action verification across seven workflow files pass. This is
+strong QA/emulator evidence, not production signing, hosted CI, or physical-device/range acceptance.
+The Bocal web-source curved arc remains the intended and implemented navbar pattern; no flat-bar
+replacement is intended.
 
-Configuration-change draft preservation (2026-10-17): injury-region selection and physio target
-regions, weekly schedule, and exercise edits now use saveable state, so Android activity recreation
-does not silently discard those in-progress edits. The physio exercise draft is encoded as a small
-serializable value rather than relying on a non-saveable in-memory list. API-36/16 KB debug
-instrumentation previously passed 17/17, including new schedule and exercise recreation cases. A
-minified-release replay from the same earlier run passed 16/17; the remaining injury-editor test
-could not scroll to Notes at 1.3× font. The smoke helper now tries the accessibility scroll action
-before coordinate gestures and includes the visible accessibility text in failure diagnostics.
-Its latest compile/package succeeded, but runtime verification is still open: the connected-test
-task selected stale Wear OS AVDs and failed before reaching the injury editor. That run is not
-app-flow evidence. Separately created API-35 and API-36/16 KB phone AVDs both crash with `SIGILL`
-before ADB connection. Bocal navbar parity remains the current web-source curved arc dock already
-present in `ArcNavigationDock.kt`; no flat-bar replacement is intended.
+Configuration-change draft preservation (2026-10-17, reverified 2026-10-18): injury-region
+selection and physio target regions, weekly schedule, and exercise edits use saveable state, so
+Android activity recreation preserves in-progress edits. The physio exercise draft is encoded as a
+small serializable value. The 19-case debug and minified-release suites pass on API 36 / 16 KB,
+including injury and physio draft recreation and the injury unsaved-change guard. Minified release
+also passes at 1.3× font. The prior October 17 run's Wear OS AVD selection and stale emulator
+`SIGILL` failures are historical environment failures, superseded by these completed 16 KB runs.
 
 Toolchain-independent contract replay (2026-10-17): release tooling tests pass 57/57 and the
 Bocal arc navigation contract passes 6/6. Shared-checkout, arrow library/assets/reference library,
@@ -787,7 +792,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | QA v714 has passing artifact preflight. Current API-36 ARM64/16 KB and API-35 ARM64 debug and minified-release connected replays pass 15/15 each; API-36 minified release ran at 1.3× font. All include injury and physio unsaved-edit guards. Unit tests (280 total), release lint, APK/AAB assembly and preflight passed before the instrumentation-only additions. Production signer/hosted CI, physical/range matrix, real-athlete data and 30-session evidence remain. |
+| Recurve Android build | QA-only, not production releasable | Current QA v679 passes APK/AAB preflight and 16 KB ELF alignment. Current API-36 ARM64/16 KB debug and minified-release instrumentation each pass 19/19; minified release also passes 19/19 at 1.3× font. Fresh JVM/Android tests pass 284/284 and release lint passes. Production signer/hosted CI, physical-device/range matrix, clean update from the actual production APK, 30 real sessions and owner sign-off remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
