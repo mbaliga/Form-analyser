@@ -14,3 +14,14 @@ plugins {
 // :archery-module and depends on the sport-agnostic Baseline engine.
 group = "xyz.mdhv.formanalyser"
 version = "0.1.0"
+
+allprojects {
+    // The optional performance report is substituted from a checksum-verified pinned checkout by
+    // tools/performance/run_beta_report.sh; its dependency graph belongs to that composite build.
+    if (name != "performance-report") {
+        dependencyLocking {
+            lockAllConfigurations()
+            lockMode.set(LockMode.STRICT)
+        }
+    }
+}

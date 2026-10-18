@@ -6,6 +6,8 @@ on:
       - "**/*.gradle"
       - "**/*.gradle.kts"
       - "**/gradle.lockfile"
+      - "**/gradle.properties"
+      - "**/libs.versions.toml"
       - "gradle/**"
       - "gradle.properties"
       - "settings.gradle.kts"

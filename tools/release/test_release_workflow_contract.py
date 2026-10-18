@@ -31,6 +31,8 @@ class ReleaseWorkflowContract(unittest.TestCase):
             '"**/*.gradle"',
             '"**/*.gradle.kts"',
             '"**/gradle.lockfile"',
+            '"**/gradle.properties"',
+            '"**/libs.versions.toml"',
             '"gradle/**"',
             '"settings.gradle.kts"',
             '"shared-libraries.lock"',
@@ -44,6 +46,22 @@ class ReleaseWorkflowContract(unittest.TestCase):
             workflow,
         )
         self.assertIn("fail-on-severity: moderate", workflow)
+
+    def test_gradle_dependencies_are_strictly_locked_for_every_project(self) -> None:
+        build = (ROOT / "build.gradle.kts").read_text()
+        self.assertIn("lockAllConfigurations()", build)
+        self.assertIn("lockMode.set(LockMode.STRICT)", build)
+        projects = [
+            path.parent
+            for path in ROOT.rglob("build.gradle.kts")
+            if path.parent != ROOT
+            and path.parent.name != "performance-report"
+            and "build" not in path.parts
+            and ".gradle" not in path.parts
+        ]
+        for project in projects:
+            with self.subTest(project=project.relative_to(ROOT)):
+                self.assertTrue((project / "gradle.lockfile").is_file())
 
     def test_all_signing_inputs_are_checked_before_keystore_materialization(self) -> None:
         verify = self.workflow.index("- name: Verify production signing inputs")

@@ -38,6 +38,18 @@ tests enforce the event/path scope, pin and permissions. This checks newly intro
 for dependencies present in GitHub's dependency graph; hosted execution and graph availability have
 not been verified, and it is not a complete baseline dependency audit.
 
+Dependency reproducibility follow-up (2026-10-18): enabled Gradle strict dependency locking and
+checked in generated `gradle.lockfile` state for the Android app and every production/JVM module.
+The Android lock state includes debug/release unit tests, release lint, debug instrumentation-test
+compilation and debug APK packaging; the conditional `performance-report` bridge remains governed
+by the pinned Shared-Libraries-asoc checkout and isolated composite runner described in the release
+runbook. The dependency-review path contract now covers nested Gradle properties, version catalogs
+and lockfiles. Verified the full JVM test task and Android debug/release unit tests, release lint and
+instrumentation compilation with strict lock enforcement (no lock-update flag); the release-tool
+contract suite passes 59/59, shared-checkout contracts 4/4, and immutable action references verify
+across all 8 workflows. This does not confirm hosted dependency-review execution or GitHub graph
+availability.
+
 Beta performance diagnostic (2026-10-18): the pinned Shared-Libraries-asoc pure-JVM modules
 `performance-analysis`, `local-session-core` and `search-core` were compiled from revision `da50c62`
 and measured with five warmups and 30 samples per operation. Search ranking p50/p95: 2.265/3.568 ms;

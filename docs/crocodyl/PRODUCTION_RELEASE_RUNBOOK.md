@@ -125,3 +125,27 @@ All third-party workflow actions are pinned to reviewed upstream commit SHAs. Th
 jobs run `tools/release/verify_workflow_actions.py`, which fails closed if a future edit uses a
 mutable tag or branch. Dependabot is configured for weekly GitHub Actions updates in
 `.github/dependabot.yml`; every proposed SHA change remains reviewable before release.
+
+Production and standalone JVM project dependencies use strict dependency locking in addition to the checked-in SHA-256
+verification metadata. `gradle.lockfile` records the selected module versions; verification
+metadata separately authenticates the downloaded artifacts. When intentionally changing a
+dependency, update the resolved graph for both supported build shapes and review the lockfile diff:
+
+```bash
+./gradlew test --write-locks
+./gradlew :app-android:testDebugUnitTest :app-android:testReleaseUnitTest \
+  :app-android:lintRelease -PwithAndroid --write-locks
+```
+
+The first command updates the self-contained JVM build. The second includes `app-android`, which is
+opted into the settings only with `-PwithAndroid`. Use the repository's pinned JDK/SDK setup and
+verification metadata when resolving new artifacts. Plugin versions remain explicitly pinned in
+the root build and their artifacts are covered by Gradle dependency verification; Gradle's project
+dependency locking does not lock plugin/buildscript classpaths.
+
+The optional `performance-report` bridge is intentionally excluded from Gradle module locking: its
+three declared coordinates are substituted at build time with unchanged source modules from the
+revision pinned in `shared-libraries.lock`. `tools/performance/run_beta_report.sh` verifies that
+checkout and builds an isolated composite under strict artifact checksum verification. Update that
+pin and its verification metadata through the shared-library review flow rather than editing a
+generated Crocodyl lockfile for the substituted coordinates.
