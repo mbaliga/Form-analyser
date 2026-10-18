@@ -992,7 +992,7 @@ class ProductionSmokeTest {
             // Compose's scrollable semantics are more reliable than coordinate swipes in the
             // minified build at large font scales. Keep the touch fallback for screens whose
             // accessibility tree does not expose a scroll action.
-            if (root?.scrollForwardOnce() == true) {
+            if (root?.scrollOnce(forward) == true) {
                 SystemClock.sleep(250)
                 continue
             }
@@ -1137,7 +1137,7 @@ class ProductionSmokeTest {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
             if (root?.findVisibleTextNode(expected) != null) return
-            if (root != null) root.scrollForwardOnce()
+            if (root != null) root.scrollOnce(forward = true)
             SystemClock.sleep(100)
         }
         throw AssertionError("Could not scroll to visible UI text: $expected")
@@ -1150,6 +1150,17 @@ class ProductionSmokeTest {
         }
         return false
     }
+
+    private fun AccessibilityNodeInfo.scrollBackwardOnce(): Boolean {
+        if (isScrollable && performAction(AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) return true
+        for (index in 0 until childCount) {
+            if (getChild(index)?.scrollBackwardOnce() == true) return true
+        }
+        return false
+    }
+
+    private fun AccessibilityNodeInfo.scrollOnce(forward: Boolean): Boolean =
+        if (forward) scrollForwardOnce() else scrollBackwardOnce()
 
     private fun waitForAthlete(repository: ScoringRepository) {
         val deadline = SystemClock.uptimeMillis() + 8_000

@@ -51,10 +51,12 @@ closed if any signing input or the expected certificate fingerprint is absent.
    The latest public GitHub Release is currently `v0.5.1-reconciled`, whose tag's Gradle config sets
    versionCode 4; this source metadata has not been confirmed against the APK bytes or an installed
    production copy. The production-issued ledger currently records 697. The latest locally recorded
-   QA artifacts are versionCode 715 (`0.6.4-region-picker-qa`); they were QA/debug-signed, were
-   never issued as production, and do not advance that ledger. Those v715 artifacts were built from
-   source commit `d768fce`, pass local artifact preflight, and are not evidence of production
-   signing or device acceptance. The resolver
+   QA artifacts are versionCode 716 (`0.6.4-current-production-hardening-qa`); they are
+   QA/debug-signed, have not been issued as production, and do not advance that ledger. The exact
+   v716 APK/AAB pass local artifact preflight, and the minified release passes connected API-36
+   16 KB instrumentation at normal and 1.3× font scale. These results are not evidence of production
+   signing, hosted release-workflow execution, or physical-device acceptance; see
+   [`PRODUCTION_STATUS.md`](PRODUCTION_STATUS.md) for artifact digests and replay scope. The resolver
    fails closed unless the new code is strictly higher. On a successful release, advance this
    ledger to the released code in the next release-preparation commit. A plain semver branch derives
    `major*10000 + minor*100 + patch` (minor and patch must each be 0–99); derived values below the

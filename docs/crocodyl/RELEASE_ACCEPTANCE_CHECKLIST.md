@@ -6,7 +6,7 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
-### In-progress editor state and current navbar parity (2026-10-17)
+### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
 
 - [x] The current Recurve navbar is Bocal's current web-source curved arc dock, not the older
       flat Android reference: `app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/ArcNavigationDock.kt`
@@ -14,22 +14,33 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       angles contextual controls to the rail and supports direct selection plus lower-rail
       drag-preview/release navigation. This is the owner-confirmed interaction target.
 - [x] Injury regions and physio target regions, weekly schedule, and exercise drafts are saveable
-      across activity recreation. API-36/16 KB debug suite passed 17/17 including recreation tests.
-- [ ] Run current-source debug and minified-release connected suites on a stable phone emulator.
-      The prior API-36 minified replay passed 16/17, failing only at its 1.3× font scroll to Notes.
-      The updated smoke helper compiles. Disposable API-35 and API-36/16 KB phone emulators now
-      both terminate with `SIGILL` before ADB connection, so no current-source UI flow was tested.
+      across activity recreation. Current API-36/16 KB connected debug and minified-release suites
+      passed 19/19 after correcting the smoke helper's backward-scroll action; the injury draft
+      survives recreation and still triggers its unsaved-change guard.
+- [x] Current-source debug and minified-release connected suites ran on API-36 ARM64
+      `crocodyl-current-api36-ps16k` (`PAGE_SIZE=16384`), 19/19 each. Minified release also passed
+      19/19 at both 1.0× and 1.3× font scale; the emulator was restored to 1.0× after each run.
 - [x] Compile the named body-region list and injury/physio recreation instrumentation in both
-      debug and release variants. Runtime execution of the two new region recreation tests remains
-      part of the connected-suite item above.
+      debug and release variants. Both injury and physio region recreation flows pass in the
+      connected debug and minified-release suites.
 - [x] The new body-region label contract covers all 52 atlas IDs, rejects missing, non-human, or
       duplicate labels, and passes 2/2 in Android debug and release unit-test variants. Current
       complete JVM/Android unit and release-lint replay passes with 284 tests, 0 failures/errors/
       skips (113 tasks; 5 executed, 108 up-to-date).
-- [x] Build and preflight exact-source QA candidate `0.6.4-region-picker-qa`, versionCode 715.
-      APK SHA-256 `164e1951f034e4b6a72de1d8909a3c63de4a42645ae47ad711128ce05b3bd621`;
-      AAB SHA-256 `a640a5be89dda400cb6f5a19b91ed4f38e902f71cae3ef4cdba848447e4696d4`. Both are
-      QA/debug-signed only; production signing and device acceptance are not established.
+- [x] Build and preflight exact-source QA candidate `0.6.4-current-production-hardening-qa`,
+      versionCode 716. APK SHA-256
+      `5be4643489e22070d180c0916bb496454d712425f526e5a7731de9c0848dbb0f`; AAB SHA-256
+      `25de605a66e2ed1b48b77b3b95b1a458cafc21f3b2903e733975ec689b9c10b1`; R8 mapping SHA-256
+      `4c9eb00ce6b5a6bb21c1ce1c131e988ddf9af8dd4e4be8c34c8194ef8d63f21b`. APK/AAB align for
+      16 KB pages, including all 11 native libraries. The exact v716 minified-release 19/19 suite
+      passed at 1.0× and 1.3× font scale. Artifacts use the committed QA/debug certificate, not production
+      signing; hosted CI and physical-device acceptance remain open.
+- [x] Fresh source replay completed all 113 Gradle tasks: root/module and Android debug/release
+      unit tests total 284/284 with zero failures/errors/skips; `lintRelease` passed. The 57 local
+      release-tool tests and seven-workflow immutable-action check passed as well.
+- [ ] Production signer/hosted release-workflow pass, physical-device/range matrix, real-athlete
+      data, 30-real-session evidence and owner approval remain open. QA artifact evidence does not
+      clear these release gates.
 
 ### Complete local data wipe (2026-10-16)
 
@@ -390,11 +401,10 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
 - [ ] Production signer and hosted release-workflow pass, physical-device/range matrix,
       real-athlete-data and 30-real-session acceptance, and owner approval remain open. The v0.5.1
       V4→V9 synthetic replay verifies legacy session/shot-score row preservation; V4 had no
-      standalone scorecards to migrate. No real athlete database was used. The latest v707 APK/AAB
-      and instrumentation are QA/debug-signed and not distributable. Current floating-dock captures
-      at normal, compact width and 1.3× font scale are checked in above; physical-device visual
-      acceptance remains open. The version ledger (697) is still above the actual published v4; v707
-      was temporary QA and did not advance the ledger.
+      standalone scorecards to migrate. No real athlete database was used. The current v716 APK/AAB
+      is QA/debug-signed and not distributable; exact hashes are in the 2026-10-18 entry above.
+      Physical-device visual acceptance remains open. The version ledger (697) remains above the
+      actual published v4; QA candidate builds have not advanced that production ledger.
 
 ## 1. Required device matrix
 
@@ -422,7 +432,7 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
 - [ ] Production signer, hosted CI, physical-device/range matrix, 30-session gate and owner approval
       remain outstanding; these emulator artifacts are debug-key QA only.
 
-### 1.1 Current local evidence (not release sign-off)
+### 1.1 Historical local evidence (QA only; superseded by the 2026-10-18 current-source replay above)
 
 - Current-tree Recurve QA candidate (2026-10-11): `0.6.0-current-tree-qa` / versionCode 669.
   Root/JVM tests, Android debug/release unit tests, and release lint passed (113 Gradle tasks).
@@ -807,7 +817,7 @@ leaks private data, or leaves the user unable to recover without clearing app st
       Body region selection, and current primary-tab smoke. SAF staging unit tests cover archive
       writer failure, staged success and destination-copy cleanup. APK/AAB digests and test evidence
       are recorded above. QA signing is not production signing or physical-device acceptance.
-- [x] Current-tree v679 QA APK/AAB (`0.6.0-qa-20261018`) passed artifact preflight, including 16 KB
+- [x] Current-tree v716 QA APK/AAB (`0.6.4-current-production-hardening-qa`) passed artifact preflight, including 16 KB
       ELF alignment for all 11 native libraries. Connected debug and QA/debug-signed minified-release
       smoke each passed 19/19 on API-36 ARM64 `crocodyl-current-api36-ps16k` (`PAGE_SIZE=16384`);
       minified-release smoke also passed 19/19 at 1.3× font scale, restored to 1.0× afterward.

@@ -2,18 +2,21 @@
 
 Last reviewed: 2026-10-18
 
-Current release-gate replay (2026-10-18): the source at commit `3f86f7d` passed a fresh full
+Current release-gate replay (2026-10-18): the app source at commit `3f86f7d` passed a fresh full
 `./gradlew test :app-android:lintRelease -PwithAndroid --rerun-tasks` (113/113 Gradle tasks;
 284 JVM/Android tests, zero failures/errors/skips; release lint passed). On API-36 ARM64
 `crocodyl-current-api36-ps16k` (`PAGE_SIZE=16384`), connected debug and QA/debug-signed minified
-release instrumentation each passed all 19 `ProductionSmokeTest` cases. The complete minified
-release suite also passed 19/19 at 1.3× font scale; the emulator was verified back at 1.0× afterward.
-QA APK/AAB `0.6.0-qa-20261018` / versionCode 679 passed release preflight and 16 KB alignment for
-all 11 native libraries. APK SHA-256 `e60f99a00cfd31e792e2dd8275988c7c14033abcecbf8bd21ec8c7af7b762a2c`
-(76,033,515 bytes); AAB SHA-256
-`4eac9861e66e57a0cea692839638f1770082876f4f12b97961f5871b3e81b3f3` (42,269,543 bytes); local R8
-mapping SHA-256 `4c9eb00ce6b5a6bb21c1ce1c131e988ddf9af8dd4e4be8c34c8194ef8d63f21b`
-(34,940,456 bytes). APK/AAB use the known QA certificate
+release instrumentation each passed all 19 `ProductionSmokeTest` cases after the helper was fixed
+to honor backward as well as forward scrolling. The exact QA v716 minified release passed 19/19 at
+both 1.0× and 1.3× font scale; the emulator was verified back at 1.0× afterward. A focused physio
+schedule recreation rerun passed 1/1 after a single transient full-suite failure.
+QA APK/AAB `0.6.4-current-production-hardening-qa` / versionCode 716 passed release preflight and
+16 KB alignment for all 11 native libraries. APK SHA-256
+`5be4643489e22070d180c0916bb496454d712425f526e5a7731de9c0848dbb0f` (76,033,527 bytes); AAB
+SHA-256 `25de605a66e2ed1b48b77b3b95b1a458cafc21f3b2903e733975ec689b9c10b1`
+(42,269,615 bytes); local R8 mapping SHA-256
+`4c9eb00ce6b5a6bb21c1ce1c131e988ddf9af8dd4e4be8c34c8194ef8d63f21b` (34,940,456 bytes). APK/AAB
+use the known QA certificate
 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`; they are not distributable.
 The 57 release-tool tests and immutable-action verification across seven workflow files pass. This is
 strong QA/emulator evidence, not production signing, hosted CI, or physical-device/range acceptance.
@@ -792,7 +795,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Current QA v679 passes APK/AAB preflight and 16 KB ELF alignment. Current API-36 ARM64/16 KB debug and minified-release instrumentation each pass 19/19; minified release also passes 19/19 at 1.3× font. Fresh JVM/Android tests pass 284/284 and release lint passes. Production signer/hosted CI, physical-device/range matrix, clean update from the actual production APK, 30 real sessions and owner sign-off remain. |
+| Recurve Android build | QA-only, not production releasable | Current QA v716 passes APK/AAB preflight and 16 KB ELF alignment. Current API-36 ARM64/16 KB debug and minified-release instrumentation each pass 19/19; the exact v716 minified release also passes 19/19 at 1.3× font. Fresh JVM/Android tests pass 284/284 and release lint passes. Production signer/hosted CI, physical-device/range matrix, clean update from the actual production APK, 30 real sessions and owner sign-off remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
@@ -963,9 +966,10 @@ and QA/debug-signed `:app-android:connectedReleaseAndroidTest -PcrocodylInstrume
 each exited successfully with 19/19 `ProductionSmokeTest` cases (0 failures/errors/skips). A fresh
 `./gradlew test :app-android:lintRelease -PwithAndroid --rerun-tasks` completed all 113 tasks;
 Gradle reports 79 JVM XML suites, 284 tests, 0 failures/errors/skips, and release lint passed.
-QA APK/AAB `0.6.0-qa-20261018` / versionCode 679 passed `tools/release/verify_android_release.sh`,
-including APK/AAB signatures, expected package/version/target SDK, privacy manifest, ZIP alignment,
-16 KB ELF alignment (11 native libraries), model hash, backup resources and staging-file checks.
+QA APK/AAB `0.6.4-current-production-hardening-qa` / versionCode 716 passed
+`tools/release/verify_android_release.sh`, including APK/AAB signatures, expected package/version/
+target SDK, privacy manifest, ZIP alignment, 16 KB ELF alignment (11 native libraries), model hash,
+backup resources and staging-file checks. The exact minified v716 release passed 19/19 at 1.3× font.
 This release uses the repository's committed QA/debug certificate; it is not distributable as a
 production release. Hosted CI, production certificate/secrets, physical-device and range acceptance,
 30 real sessions, and owner sign-off remain open.
