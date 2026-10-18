@@ -2,6 +2,17 @@
 
 Last reviewed: 2026-10-18
 
+Fresh exact-source QA package preflight (2026-10-18): built minified APK/AAB from the current
+release source as `0.6.4-export-sql-qa`, versionCode 720. The integrated verifier passed APK/AAB
+signatures against the known QA/debug certificate, package and version identity, target SDK 36,
+manifest security policy, bundled pose-model digest, backup resources, absence of `.partial` files,
+16 KB bundle/ZIP configuration, and 16 KB ELF alignment for all 11 native libraries. APK SHA-256
+`0471072911c0e9016f22037f42098eab44f908c04c93a65678713f7a51bbc24c`; AAB SHA-256
+`a11bc081db063ee0d6eae63a1aec6dede9656dd96716e672ab320591c9f1619a`. These are QA artifacts
+signed with the committed debug key, not production candidates; code 720 does not advance the
+production issuance ledger. Production signing, hosted CI, physical-device/range acceptance,
+real-session evidence and owner approval remain open.
+
 Export query regression hardening (2026-10-18): the archive writer now routes its fixed-name table
 selection through a testable query builder. Android debug and release unit tests execute its SQL
 against SQLite fixtures: all six retraction-capable tables export only active rows, a normal table

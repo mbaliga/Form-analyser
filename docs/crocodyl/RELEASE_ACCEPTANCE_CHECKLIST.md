@@ -8,6 +8,11 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
 
+- [x] Fresh exact-source QA minified APK/AAB (`0.6.4-export-sql-qa`, versionCode 720) pass the
+      integrated release preflight, including matching QA signatures, package/version, manifest,
+      target SDK, model and backup resources, no staging files, and APK/AAB 16 KB configuration
+      plus 11/11 native-library alignment. Digests are recorded in `PRODUCTION_STATUS.md`; the
+      artifacts use the QA/debug key, are not distributable and do not satisfy production signing.
 - [x] Export privacy regression is covered at both the Room-schema inventory and SQL-query
       generation layers: SQLite fixture execution confirms every retracted table exports only
       active rows, non-retractable tables remain queryable, and invalid table names are rejected.
