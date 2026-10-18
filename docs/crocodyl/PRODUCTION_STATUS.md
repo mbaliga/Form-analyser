@@ -69,6 +69,14 @@ five production signing environment inputs are unset, `release-signing.propertie
 the only attached ADB target is the emulator; no production signer, physical-device acceptance or
 hosted release/dependency-review execution can be evidenced locally.
 
+Cinematic photo provenance recheck (2026-10-18): visually inspected the four bundled Recurve,
+Fencing, Muay Thai and Bouldering hero photographs. Their manifest entries record photographer,
+Unsplash source page, license URL, byte size, dimensions and SHA-256; the 20 Atelier asset tests pass,
+including all four checksum/dimension/source/license contracts and the check that the removed
+AI-generated range image has not returned. The current Unsplash license page states free commercial
+and non-commercial use, and each of the four source pages identifies the named photographer and Unsplash
+License. Decorative-photo use is not an endorsement or technique reference.
+
 Beta performance diagnostic (2026-10-18): the pinned Shared-Libraries-asoc pure-JVM modules
 `performance-analysis`, `local-session-core` and `search-core` were compiled from revision `da50c62`
 and measured with five warmups and 30 samples per operation. Search ranking p50/p95: 2.265/3.568 ms;
