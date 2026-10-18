@@ -379,6 +379,24 @@ class ReleaseWorkflowContract(unittest.TestCase):
                 artifact_count += 1
         self.assertGreater(artifact_count, 0)
 
+    def test_kotlin_plugin_coroutines_bom_checksum_is_pinned(self) -> None:
+        metadata = ET.parse(DEPENDENCY_METADATA).getroot()
+        namespace = metadata.tag.partition("}")[0].removeprefix("{")
+        qualified = lambda name: f"{{{namespace}}}{name}"
+        component = metadata.find(
+            f"./{qualified('components')}/{qualified('component')}"
+            "[@group='org.jetbrains.kotlinx'][@name='kotlinx-coroutines-bom'][@version='1.8.0']"
+        )
+        self.assertIsNotNone(component, "fresh-cache plugin resolution must verify the 1.8.0 BOM")
+        assert component is not None
+        artifact = component.find(qualified("artifact"))
+        self.assertIsNotNone(artifact)
+        assert artifact is not None
+        checksum = artifact.find(qualified("sha256"))
+        self.assertIsNotNone(checksum)
+        assert checksum is not None
+        self.assertEqual(checksum.get("value"), "1239e9dbe1397cd5971342956b2511bc3ace7b641842e4372a088dcfa8b9ad55")
+
     def test_ci_path_filters_watch_sport_modules_and_dependency_lock(self) -> None:
         for workflow_name in ("ci.yml", "android.yml"):
             workflow = (ROOT / ".github" / "workflows" / workflow_name).read_text()

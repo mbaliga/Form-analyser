@@ -2,6 +2,16 @@
 
 Last reviewed: 2026-10-18
 
+Fresh-cache dependency verification (2026-10-18): an isolated Gradle user home exposed a missing
+strict-verification checksum for the Kotlin plugin's `kotlinx-coroutines-bom:1.8.0` POM. The cached
+POM was independently downloaded from Maven Central and matched byte-for-byte before its SHA-256
+was pinned; a release-contract regression test now protects the entry. With strict verification
+still enabled and no lock-update flag, `./gradlew test :app-android:lintRelease -PwithAndroid
+--no-daemon` completed successfully (113 tasks: 21 executed, 92 up-to-date), including debug and
+release Android unit tests and release lint. Release-tool contracts pass 62/62 and immutable action
+references verify across all eight workflow files. Connected 16 KB emulator verification is being
+replayed separately; this record does not claim a new device run.
+
 Offline viewer end-to-end integrity coverage (2026-10-18): added a Node runtime harness that runs
 the actual viewer file-open path against generated ZIP archives with synthetic training rows. The
 signed `.croc` renders its analysis only after checksum, consent-envelope signature and row-count
