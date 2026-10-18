@@ -8,6 +8,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
 
+- [x] Offline desktop viewer keyboard access is exercised by dispatching Enter/Space through the
+      runtime harness and asserting native-picker activation; the static contract checks the
+      accessible picker name and polite status announcement. Viewer runtime and contract suites
+      pass 11/11 each. Desktop visual browser and coach-workflow acceptance remain open.
 - [x] Fresh exact-source QA minified APK/AAB (`0.6.4-export-sql-qa`, versionCode 720) pass the
       integrated release preflight, including matching QA signatures, package/version, manifest,
       target SDK, model and backup resources, no staging files, and APK/AAB 16 KB configuration

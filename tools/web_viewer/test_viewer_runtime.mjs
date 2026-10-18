@@ -10,9 +10,17 @@ const [reportSource, signatureSource, viewerSource] = await Promise.all([
   fs.readFile(new URL('viewer.js', viewerDirectory), 'utf8'),
 ]);
 
+const listeners = new Map();
+let pickerClickCount = 0;
 const elements = {
-  '#file': { addEventListener() {}, click() {} },
-  '#dropzone': { addEventListener() {}, classList: { add() {}, remove() {} } },
+  '#file': {
+    addEventListener(name, callback) { listeners.set(`#file:${name}`, callback); },
+    click() { pickerClickCount++; },
+  },
+  '#dropzone': {
+    addEventListener(name, callback) { listeners.set(`#dropzone:${name}`, callback); },
+    classList: { add() {}, remove() {} },
+  },
   '#status': { textContent: '' },
   '#report': { hidden: true, innerHTML: '' },
 };
@@ -37,6 +45,18 @@ vm.runInContext(
   `${reportSource}\n${signatureSource}\n${viewerSource}\nglobalThis.openFileForTest = openFile;`,
   context,
 );
+
+for (const key of ['Enter', ' ']) {
+  let prevented = false;
+  listeners.get('#dropzone:keydown')({
+    key,
+    preventDefault() { prevented = true; },
+  });
+  assert.equal(prevented, true, `${key === ' ' ? 'Space' : key} should be handled as a button action`);
+}
+assert.equal(pickerClickCount, 2, 'Enter and Space should both open the native file picker');
+listeners.get('#dropzone:keydown')({ key: 'Tab', preventDefault() { assert.fail('Tab must remain available'); } });
+assert.equal(pickerClickCount, 2, 'unrelated keys must not open the native file picker');
 
 const encoder = new TextEncoder();
 const tables = {

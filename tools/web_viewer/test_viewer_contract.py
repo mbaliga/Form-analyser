@@ -18,6 +18,7 @@ class ViewerContract(unittest.TestCase):
         cls.signature = (VIEWER / "signature.js").read_text()
         cls.report = (VIEWER / "report.js").read_text()
         cls.interop = (ROOT / "tools/web_viewer/test_signature_interop.mjs").read_text()
+        cls.runtime = (ROOT / "tools/web_viewer/test_viewer_runtime.mjs").read_text()
         cls.readme = (VIEWER / "README.md").read_text()
 
     def test_picker_accepts_current_and_forward_extensions(self) -> None:
@@ -65,8 +66,12 @@ class ViewerContract(unittest.TestCase):
     def test_file_drop_zone_is_keyboard_accessible(self) -> None:
         self.assertIn('role="button"', self.html)
         self.assertIn('aria-controls="file"', self.html)
+        self.assertIn('aria-label="Choose a Crocodyl training file"', self.html)
+        self.assertRegex(self.html, r'<section id="status"[^>]*aria-live="polite"')
         self.assertIn("e.key === 'Enter'", self.script)
         self.assertIn("e.key === ' '", self.script)
+        self.assertIn("#dropzone:keydown", self.runtime)
+        self.assertIn("pickerClickCount, 2", self.runtime)
 
     def test_viewer_fails_closed_on_unknown_manifest_schema(self) -> None:
         self.assertIn("manifest.schemaVersion !== 1", self.script)

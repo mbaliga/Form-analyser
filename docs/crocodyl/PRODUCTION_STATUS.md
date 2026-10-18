@@ -2,6 +2,14 @@
 
 Last reviewed: 2026-10-18
 
+Offline desktop viewer keyboard-accessibility regression (2026-10-18): the runtime harness now
+dispatches Enter and Space through the viewer's actual drop-zone handler and asserts that both open
+the native file picker while Tab remains unaffected. The static contract also requires the picker
+to have an accessible name and the status message to use a polite live region. Viewer runtime and
+contract tests pass (11/11 each). This does not constitute visual browser or coach-workflow review;
+the configured browser tool rejected local-file navigation, so no workaround was attempted and
+that manual review remains open.
+
 Fresh exact-source QA package preflight (2026-10-18): built minified APK/AAB from the current
 release source as `0.6.4-export-sql-qa`, versionCode 720. The integrated verifier passed APK/AAB
 signatures against the known QA/debug certificate, package and version identity, target SDK 36,
