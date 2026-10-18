@@ -272,8 +272,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         val rows = ArrayList<JsonElement>()
         // A retracted row must not ride out in an archive the athlete believes they cleaned up.
         // The athlete deleted it here; handing it to a coach anyway would make the delete a lie.
-        val where = if (sqlName in RETRACTABLE) " WHERE deletedAt IS NULL" else ""
-        db.query("SELECT * FROM `$sqlName`$where").use { c ->
+        db.query(tableDumpQuery(sqlName)).use { c ->
             val cols = c.columnCount
             while (c.moveToNext()) {
                 val obj = LinkedHashMap<String, JsonElement>(cols)
@@ -344,5 +343,12 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                 "pain_log",
                 "injury",
             )
+
+        /** Build the fixed-name cursor query, excluding retracted rows wherever the schema allows it. */
+        internal fun tableDumpQuery(sqlName: String): String {
+            require(sqlName.matches(Regex("[a-z_]+"))) { "Unexpected export table name" }
+            val where = if (sqlName in RETRACTABLE) " WHERE deletedAt IS NULL" else ""
+            return "SELECT * FROM `$sqlName`$where"
+        }
     }
 }
