@@ -225,6 +225,13 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn(command, ci)
         self.assertIn(command, release)
 
+    def test_ci_and_release_exercise_offline_viewer_archive_flows(self) -> None:
+        ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
+        release = (ROOT / ".github" / "workflows" / "release.yml").read_text()
+        command = "node tools/web_viewer/test_viewer_runtime.mjs"
+        self.assertIn(command, ci)
+        self.assertIn(command, release)
+
     def test_play_candidate_targets_api_36_in_build_and_emulator_jobs(self) -> None:
         app_build = (ROOT / "app-android" / "build.gradle.kts").read_text()
         self.assertRegex(app_build, r"compileSdk\s*=\s*36\b")

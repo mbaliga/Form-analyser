@@ -96,6 +96,7 @@ jobs:
           python3 -m unittest discover -s tools/shared -p 'test_*.py'
           python3 -m unittest discover -s tools/web_viewer -p 'test_*.py'
           node tools/web_viewer/test_signature_interop.mjs
+          node tools/web_viewer/test_viewer_runtime.mjs
           node tools/web_viewer/test_report_analysis.mjs
           python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
           python3 tools/community_directory/validate_directory.py docs/crocodyl/community-directory/entries

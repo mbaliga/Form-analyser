@@ -151,8 +151,11 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       baseline samples. Retracted rows are excluded, missing data is shown as missing, and all
       analysis stays local. Regression coverage uses the Android exporter’s numeric SQLite booleans
       (`0/1`). Node analytics tests, viewer contracts, release workflow contracts and signature
-      interoperability pass. [ ] Review with representative real `.croc` and `.crocbak` files in
-      a desktop browser; confirm readability, accessibility and coach workflow before production.
+      interoperability pass. Runtime archive tests exercise signed `.croc` success, checksum and
+      signature rejection, and unsigned-but-checksummed `.crocbak` rendering using synthetic data.
+      CI and release workflows run this path. [ ] Review with representative real `.croc` and
+      `.crocbak` files in a desktop browser; confirm readability, accessibility and coach workflow
+      before production.
 
 - [x] Current-source QA v711 (`0.6.4-bocal-arc-qa`, versionCode 711): startup now presents a
       branded accessible loading surface during the safe database-open gate; it never exposes a

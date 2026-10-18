@@ -2,6 +2,15 @@
 
 Last reviewed: 2026-10-18
 
+Offline viewer end-to-end integrity coverage (2026-10-18): added a Node runtime harness that runs
+the actual viewer file-open path against generated ZIP archives with synthetic training rows. The
+signed `.croc` renders its analysis only after checksum, consent-envelope signature and row-count
+validation; a payload checksum mismatch and a stale signature both fail closed without rendering;
+an unsigned `.crocbak` renders only after checksum validation and is identified as unsigned. The
+new test is required by both CI and release workflows, with a release-workflow contract asserting
+both invocations. Synthetic coverage does not replace desktop-browser usability review with
+representative real exports, which remains open.
+
 Current release-gate replay (2026-10-18): the app source at commit `3f86f7d` passed a fresh full
 `./gradlew test :app-android:lintRelease -PwithAndroid --rerun-tasks` (113/113 Gradle tasks;
 284 JVM/Android tests, zero failures/errors/skips; release lint passed). On API-36 ARM64
