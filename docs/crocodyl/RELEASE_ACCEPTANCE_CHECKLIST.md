@@ -9,8 +9,9 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
 
 - [x] Export privacy regression is covered at both the Room-schema inventory and SQL-query
-      generation layers: every retracted table gets `deletedAt IS NULL`, non-retractable tables do
-      not, and invalid table names cannot be interpolated. Debug/release unit tests and lint pass;
+      generation layers: SQLite fixture execution confirms every retracted table exports only
+      active rows, non-retractable tables remain queryable, and invalid table names are rejected.
+      Debug/release unit tests and lint pass;
       current API-36/16 KB connected debug and QA-signed minified release suites each pass 19/19.
       QA artifacts are not distributable. See `PRODUCTION_STATUS.md` for details.
 - [x] Repaired Android SDK bootstrap in both CI and release workflows: they explicitly request

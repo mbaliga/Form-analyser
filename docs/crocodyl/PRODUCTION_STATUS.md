@@ -3,13 +3,13 @@
 Last reviewed: 2026-10-18
 
 Export query regression hardening (2026-10-18): the archive writer now routes its fixed-name table
-selection through a testable query builder. New Android debug and release unit tests assert that all
-six retraction-capable tables add `WHERE deletedAt IS NULL`, an ordinary table does not, and an
-injected table name is rejected. Both unit-test variants and release lint pass (89 tasks; 18
-executed, 71 up-to-date). Current-source API-36 ARM64/16 KB connected debug and QA/debug-signed
-minified-release suites both pass 19/19 (zero failures, errors or skips). The QA signer is not a
-production signing identity; hosted CI, production signing, physical-device/range acceptance, real
-session evidence and owner approval remain open.
+selection through a testable query builder. Android debug and release unit tests execute its SQL
+against SQLite fixtures: all six retraction-capable tables export only active rows, a normal table
+without a tombstone column still exports, and an injected table name is rejected. Both unit-test
+variants and release lint pass (89 tasks; 10 executed, 79 up-to-date). Current-source API-36 ARM64/
+16 KB connected debug and QA/debug-signed minified-release suites both pass 19/19 (zero failures,
+errors or skips). The QA signer is not a production signing identity; hosted CI, production signing,
+physical-device/range acceptance, real-session evidence and owner approval remain open.
 
 Current-checkout verification replay (2026-10-18, HEAD `f93fe35`): reran the full configured
 `./gradlew test :app-android:testDebugUnitTest :app-android:testReleaseUnitTest
