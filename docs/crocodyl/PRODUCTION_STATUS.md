@@ -2,6 +2,14 @@
 
 Last reviewed: 2026-10-18
 
+Current-build visual review (2026-10-18): manually completed the first-run flow on the API-36 /
+16 KB emulator with a synthetic QA profile and inspected the rendered Home screen at 1080×2400.
+The real bundled Recurve photograph, training/score actions, Arrow Atelier component entry, other
+discipline cards and Bocal two-rail arc dock are all visible and render without a blank/placeholder
+state; no obvious Home layout regression was found. Screenshot:
+[`home-current-api36-16kb-20261018.png`](visuals/screenshots/home-current-api36-16kb-20261018.png).
+This is a debug/QA emulator screenshot with synthetic data, not physical-device visual acceptance.
+
 Current-source connected replay (2026-10-18, HEAD `5a0b6ec`): on the booted API-36 ARM64 phone
 emulator `emulator-5554`, `getconf PAGE_SIZE` returned 16384 and `sys.boot_completed` returned 1.
 The 19-case debug `ProductionSmokeTest` passed 19/19 (zero failures/errors/skips). The same 19

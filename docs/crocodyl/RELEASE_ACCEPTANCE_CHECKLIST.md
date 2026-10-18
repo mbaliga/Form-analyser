@@ -16,6 +16,11 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       distributable artifact. The connected run was restricted to the phone because an unrelated
       Wear emulator is also attached and Recurve tests do not apply to it. Physical-device/range
       and production-signing gates remain open; details are in `PRODUCTION_STATUS.md`.
+- [x] Current debug build visually inspected at 1080×2400 after a complete synthetic first-run
+      setup. Recurve hero photography, Train/Score actions, the arrow-component Atelier entry,
+      other-discipline cards and the Bocal two-rail arc dock render on Home. QA screenshot is
+      `visuals/screenshots/home-current-api36-16kb-20261018.png`; physical-device visual acceptance
+      remains required.
 - [x] The exact minified QA APK and AAB from this current-source replay pass integrated release
       preflight, including signer agreement, manifest security, bundled model hash, backup rules,
       absence of staging files, APK/AAB 16 KB configuration and all 11 native-library alignments.
