@@ -63,6 +63,22 @@ class ReleaseWorkflowContract(unittest.TestCase):
             with self.subTest(project=project.relative_to(ROOT)):
                 self.assertTrue((project / "gradle.lockfile").is_file())
 
+    def test_android_lock_covers_connected_debug_and_minified_release_graphs(self) -> None:
+        lockfile = (ROOT / "app-android" / "gradle.lockfile").read_text()
+        for configuration in (
+            "debugAndroidTestCompileClasspath",
+            "debugAndroidTestRuntimeClasspath",
+            "debugAndroidTestAnnotationProcessorClasspath",
+            "releaseAndroidTestCompileClasspath",
+            "releaseAndroidTestRuntimeClasspath",
+            "releaseAndroidTestAnnotationProcessorClasspath",
+            "kspReleaseAndroidTestKotlinProcessorClasspath",
+            "composeMappingProducerClasspath",
+            "androidTestUtil",
+        ):
+            with self.subTest(configuration=configuration):
+                self.assertIn(configuration, lockfile)
+
     def test_all_signing_inputs_are_checked_before_keystore_materialization(self) -> None:
         verify = self.workflow.index("- name: Verify production signing inputs")
         prepare = self.workflow.index("- name: Prepare release signing")

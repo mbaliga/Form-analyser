@@ -134,7 +134,9 @@ dependency, update the resolved graph for both supported build shapes and review
 ```bash
 ./gradlew test --write-locks
 ./gradlew :app-android:testDebugUnitTest :app-android:testReleaseUnitTest \
-  :app-android:lintRelease -PwithAndroid --write-locks
+  :app-android:lintRelease :app-android:compileDebugAndroidTestKotlin \
+  -PwithAndroid --write-locks
+./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --write-locks
 ```
 
 The first command updates the self-contained JVM build. The second includes `app-android`, which is
@@ -142,6 +144,19 @@ opted into the settings only with `-PwithAndroid`. Use the repository's pinned J
 verification metadata when resolving new artifacts. Plugin versions remain explicitly pinned in
 the root build and their artifacts are covered by Gradle dependency verification; Gradle's project
 dependency locking does not lock plugin/buildscript classpaths.
+
+The debug and minified release connected-test tasks are also part of the supported production
+verification graph. For intentional lock regeneration of the minified test lane, provide a local
+QA-only signing identity (never production release credentials) and run:
+
+```bash
+./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid \
+  -PcrocodylInstrumentRelease=true --write-locks
+```
+
+Release assembly configurations such as `composeMappingProducerClasspath` are resolved by that
+lane. Use a connected emulator for these commands; a successful compile/lint-only lock update is not
+evidence that instrumentation configurations are locked.
 
 The optional `performance-report` bridge is intentionally excluded from Gradle module locking: its
 three declared coordinates are substituted at build time with unchanged source modules from the

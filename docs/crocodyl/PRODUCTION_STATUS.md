@@ -26,7 +26,7 @@ after five seconds. The old and new APK signer fingerprints match
 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. This was an empty-data
 install/update check; synthetic profile/rig survival and V4→V9 data migration are documented
 separately in the acceptance checklist. It does not satisfy real-athlete or physical-device testing.
-The 58 release-tool tests and immutable-action verification across eight workflow files pass. This is
+The 60 release-tool tests and immutable-action verification across eight workflow files pass. This is
 strong QA/emulator evidence, not production signing, hosted CI, or physical-device/range acceptance.
 The Bocal web-source curved arc remains the intended and implemented navbar pattern; no flat-bar
 replacement is intended.
@@ -46,9 +46,28 @@ by the pinned Shared-Libraries-asoc checkout and isolated composite runner descr
 runbook. The dependency-review path contract now covers nested Gradle properties, version catalogs
 and lockfiles. Verified the full JVM test task and Android debug/release unit tests, release lint and
 instrumentation compilation with strict lock enforcement (no lock-update flag); the release-tool
-contract suite passes 59/59, shared-checkout contracts 4/4, and immutable action references verify
+contract suite passes 60/60, shared-checkout contracts 4/4, and immutable action references verify
 across all 8 workflows. This does not confirm hosted dependency-review execution or GitHub graph
 availability.
+
+Strict-lock Android task-graph completion (2026-10-18): connected execution uncovered configurations
+not touched by the original unit/lint lock generation (debug/release instrumentation annotation
+processors, release instrumentation compile/runtime, `androidTestUtil`, and the release Compose
+mapping producer). Those exact generated states are now recorded in `app-android/gradle.lockfile`
+and guarded by release-contract tests. With strict mode and without `--write-locks`, current-source
+API-36 ARM64/16 KB emulator tests pass 19/19 debug (QA versionCode 718) and 19/19 minified release
+(QA versionCode 719). The exact minified QA APK/AAB passed release preflight, including matching
+signer, version 719 / name `0.6.4-strict-lock-minified-qa`, target SDK 36, manifest/model checks,
+APK v2 signing, 16 KB APK/AAB configuration and all 11 native libraries. APK SHA-256
+`e67fcb15d64f31edd46639ce83fbeb9dca54e0f1115526ed2b88826c0f54ac6f` (76,033,531 bytes); AAB
+SHA-256 `855d990be8b5f950a8d422fe67a1900fdb44a03b1b1d6b8c24c9b03c45eb915f` (42,269,741 bytes);
+R8 mapping SHA-256 `e58dc57f2f1609462e29078b9906083f388b2341fa9ab0810b7036e5f90c9e3e` (34,940,456 bytes).
+They use the known QA/debug certificate, not a production identity. The final root/JVM and Android
+debug/release unit plus release-lint replay passes all 113 Gradle tasks (30 executed, 83 up-to-date);
+the existing parsed unit suite remains 284 tests with zero failures/errors/skips. On this host all
+five production signing environment inputs are unset, `release-signing.properties` is absent, and
+the only attached ADB target is the emulator; no production signer, physical-device acceptance or
+hosted release/dependency-review execution can be evidenced locally.
 
 Beta performance diagnostic (2026-10-18): the pinned Shared-Libraries-asoc pure-JVM modules
 `performance-analysis`, `local-session-core` and `search-core` were compiled from revision `da50c62`
