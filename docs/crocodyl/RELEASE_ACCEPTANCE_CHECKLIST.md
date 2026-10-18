@@ -8,6 +8,14 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
 
+- [x] Fresh current-source phone replay on API 36 / ARM64 / 16 KB pages: debug and minified release
+      each passed all 19 `ProductionSmokeTest` cases on `emulator-5554`, with zero failures,
+      errors or skips. The minified APK was signed only with the committed QA/debug certificate
+      and has SHA-256
+      `272a8abcb722cee702c830292bbb01065efa7927d4f6514c898b23751f8a28a0`; it is not a
+      distributable artifact. The connected run was restricted to the phone because an unrelated
+      Wear emulator is also attached and Recurve tests do not apply to it. Physical-device/range
+      and production-signing gates remain open; details are in `PRODUCTION_STATUS.md`.
 - [x] Fresh-cache Gradle resolution uncovered and fixed a missing strict-verification checksum for
       `kotlinx-coroutines-bom:1.8.0`; the cached POM was byte-matched to an independent Maven Central
       download before pinning. The exact checksum is guarded by a release-contract test. A clean

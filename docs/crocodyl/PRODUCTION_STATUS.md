@@ -2,6 +2,19 @@
 
 Last reviewed: 2026-10-18
 
+Current-source connected replay (2026-10-18, HEAD `5a0b6ec`): on the booted API-36 ARM64 phone
+emulator `emulator-5554`, `getconf PAGE_SIZE` returned 16384 and `sys.boot_completed` returned 1.
+The 19-case debug `ProductionSmokeTest` passed 19/19 (zero failures/errors/skips). The same 19
+cases passed 19/19 against the minified release APK. To run that lane locally, the repository's
+committed Android Debug certificate was supplied as a temporary QA signer; its SHA-256 is
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. The installed release APK
+reports package `xyz.mdhv.formanalyser`, versionCode 6, versionName `0.6.0-spec-dev`, target SDK 36,
+and SHA-256 `272a8abcb722cee702c830292bbb01065efa7927d4f6514c898b23751f8a28a0`. These are QA
+instrumentation results, not a production release artifact. An initial unscoped connected run also
+discovered a Wear emulator; sport-specific Recurve tests are not applicable there, so final results
+are from the intended API-36 phone emulator only. Production signing, hosted release workflow,
+physical-device/range acceptance, real-session evidence and owner approval remain open.
+
 Fresh-cache dependency verification (2026-10-18): an isolated Gradle user home exposed a missing
 strict-verification checksum for the Kotlin plugin's `kotlinx-coroutines-bom:1.8.0` POM. The cached
 POM was independently downloaded from Maven Central and matched byte-for-byte before its SHA-256
