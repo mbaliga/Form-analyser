@@ -18,6 +18,14 @@ SHA-256 `25de605a66e2ed1b48b77b3b95b1a458cafc21f3b2903e733975ec689b9c10b1`
 `4c9eb00ce6b5a6bb21c1ce1c131e988ddf9af8dd4e4be8c34c8194ef8d63f21b` (34,940,456 bytes). APK/AAB
 use the known QA certificate
 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`; they are not distributable.
+Exact public-release update replay: the GitHub `v0.5.1-reconciled` APK asset (versionCode 4,
+SHA-256 `84e21831c085905f2beedea704c3998b32e76c4ed84966c1e797ab006c2a440b`) clean-installed and
+cold-launched on this API-36/16 KB ARM64 emulator. `adb install -r` then updated it in place to the
+v716 APK; Package Manager reported code 716, the app cold-launched and its process remained alive
+after five seconds. The old and new APK signer fingerprints match
+`36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. This was an empty-data
+install/update check; synthetic profile/rig survival and V4→V9 data migration are documented
+separately in the acceptance checklist. It does not satisfy real-athlete or physical-device testing.
 The 57 release-tool tests and immutable-action verification across seven workflow files pass. This is
 strong QA/emulator evidence, not production signing, hosted CI, or physical-device/range acceptance.
 The Bocal web-source curved arc remains the intended and implemented navbar pattern; no flat-bar

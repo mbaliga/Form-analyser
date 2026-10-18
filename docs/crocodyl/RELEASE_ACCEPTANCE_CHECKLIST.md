@@ -35,6 +35,15 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       16 KB pages, including all 11 native libraries. The exact v716 minified-release 19/19 suite
       passed at 1.0× and 1.3× font scale. Artifacts use the committed QA/debug certificate, not production
       signing; hosted CI and physical-device acceptance remain open.
+- [x] Exact current-candidate update replay: the published `v0.5.1-reconciled` APK
+      (versionCode 4, SHA-256
+      `84e21831c085905f2beedea704c3998b32e76c4ed84966c1e797ab006c2a440b`) clean-installed and
+      cold-launched on the API-36 ARM64 16 KB emulator, then `adb install -r` updated it to v716.
+      Package Manager reported versionCode 716; the updated app cold-launched and remained alive
+      after five seconds. Both APKs use the same QA signer fingerprint recorded above. This was an
+      empty-data install/update check; it does not replace the separately recorded v0.5.1→v701
+      onboarding/active-rig continuity replay or synthetic V4→V9 database migration, and does not
+      constitute physical-device or real-athlete acceptance.
 - [x] Fresh source replay completed all 113 Gradle tasks: root/module and Android debug/release
       unit tests total 284/284 with zero failures/errors/skips; `lintRelease` passed. The 57 local
       release-tool tests and seven-workflow immutable-action check passed as well.
@@ -412,9 +421,10 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
 - [ ] ARM64 phone, Android 12–15, flagship performance and a different camera vendor.
 - [ ] Camera-less or large-screen Android device (the app must still support scoring, logging,
       progress, body, coach, and export without capture).
-- [x] At least one clean install and update over the previous published production APK; see the
-      v0.5.1 → v701 API-36 16 KB emulator replay above. Onboarding profile and active rig survived;
-      the synthetic V4→V9 session/shot-score replay is also recorded above. Physical-device and
+- [x] Exact current QA candidate installed as an update over the previous published APK; see the
+      v0.5.1 → v716 API-36 16 KB replay in the current-source section above. Data-bearing onboarding
+      profile/active-rig continuity is separately evidenced by the v0.5.1 → v701 replay, and
+      synthetic V4→V9 session/shot-score preservation is recorded above. Physical-device and
       real-user data acceptance remain open.
 - [ ] If a supported x86 emulator is used, repeat the non-camera flows and record the emulator image.
 
