@@ -16,6 +16,12 @@ Production builds remain self-contained and do not silently consume an unpinned 
 
 ## Before triggering CI
 
+Dependency changes are also checked on pull requests by the pinned Dependency Review workflow.
+It fails when a PR introduces a known moderate-or-higher vulnerability in a dependency represented
+in GitHub's dependency graph. This is a change-level gate, not a scan of every existing dependency;
+confirm that the repository dependency graph is enabled and review any manifest the graph cannot
+parse. See [GitHub dependency review](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-dependency-changes-in-a-pull-request).
+
 Configure these repository secrets from the production signing identity:
 
 - `CROCODYL_RELEASE_KEYSTORE_BASE64` — base64-encoded production keystore.

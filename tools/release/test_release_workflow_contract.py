@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
+DEPENDENCY_REVIEW = ROOT / ".github" / "workflows" / "dependency-review.yml"
 DEPENDENCY_METADATA = ROOT / "gradle" / "verification-metadata.xml"
 
 
@@ -21,6 +22,28 @@ class ReleaseWorkflowContract(unittest.TestCase):
     def test_signing_material_is_created_with_owner_only_permissions(self) -> None:
         self.assertIn("umask 077", self.workflow)
         self.assertIn("chmod 600 app-android/release.keystore", self.workflow)
+
+    def test_dependency_review_is_scoped_least_privilege_and_immutable(self) -> None:
+        workflow = DEPENDENCY_REVIEW.read_text()
+        self.assertIn("pull_request:", workflow)
+        self.assertNotIn("\n  push:", workflow)
+        for manifest in (
+            '"**/*.gradle"',
+            '"**/*.gradle.kts"',
+            '"**/gradle.lockfile"',
+            '"gradle/**"',
+            '"settings.gradle.kts"',
+            '"shared-libraries.lock"',
+            '".github/workflows/dependency-review.yml"',
+        ):
+            self.assertIn(manifest, workflow)
+        self.assertIn("permissions:\n  contents: read\n  pull-requests: read", workflow)
+        self.assertNotIn("contents: write", workflow)
+        self.assertIn(
+            "actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0",
+            workflow,
+        )
+        self.assertIn("fail-on-severity: moderate", workflow)
 
     def test_all_signing_inputs_are_checked_before_keystore_materialization(self) -> None:
         verify = self.workflow.index("- name: Verify production signing inputs")

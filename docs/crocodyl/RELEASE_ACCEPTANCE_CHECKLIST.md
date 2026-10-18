@@ -45,8 +45,12 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       onboarding/active-rig continuity replay or synthetic V4→V9 database migration, and does not
       constitute physical-device or real-athlete acceptance.
 - [x] Fresh source replay completed all 113 Gradle tasks: root/module and Android debug/release
-      unit tests total 284/284 with zero failures/errors/skips; `lintRelease` passed. The 57 local
-      release-tool tests and seven-workflow immutable-action check passed as well.
+      unit tests total 284/284 with zero failures/errors/skips; `lintRelease` passed. The 58 local
+      release-tool tests and eight-workflow immutable-action check passed as well.
+- [x] A pull-request dependency-review gate is configured for Gradle manifests, lockfiles and the
+      shared-library pin. It uses a commit-pinned action, read-only permissions, and fails for newly
+      introduced moderate-or-higher advisories. Hosted execution and repository dependency-graph
+      availability are not yet verified; this does not constitute an audit of existing dependencies.
 - [ ] Production signer/hosted release-workflow pass, physical-device/range matrix, real-athlete
       data, 30-real-session evidence and owner approval remain open. QA artifact evidence does not
       clear these release gates.

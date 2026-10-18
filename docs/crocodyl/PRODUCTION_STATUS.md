@@ -26,10 +26,17 @@ after five seconds. The old and new APK signer fingerprints match
 `36f33a33f9415fbe4f31556a3dde9bc010d03c502bb3dfe6b2bfaf0cbafdaebc`. This was an empty-data
 install/update check; synthetic profile/rig survival and V4→V9 data migration are documented
 separately in the acceptance checklist. It does not satisfy real-athlete or physical-device testing.
-The 57 release-tool tests and immutable-action verification across seven workflow files pass. This is
+The 58 release-tool tests and immutable-action verification across eight workflow files pass. This is
 strong QA/emulator evidence, not production signing, hosted CI, or physical-device/range acceptance.
 The Bocal web-source curved arc remains the intended and implemented navbar pattern; no flat-bar
 replacement is intended.
+
+Dependency supply-chain gate (2026-10-18): added a pull-request-only GitHub Dependency Review
+workflow, pinned to action commit `a1d282b36b6f3519aa1f3fc636f609c47dddb294` (v5.0.0), with
+read-only contents/pull-request permissions and a moderate-or-higher advisory threshold. Contract
+tests enforce the event/path scope, pin and permissions. This checks newly introduced advisories
+for dependencies present in GitHub's dependency graph; hosted execution and graph availability have
+not been verified, and it is not a complete baseline dependency audit.
 
 Beta performance diagnostic (2026-10-18): the pinned Shared-Libraries-asoc pure-JVM modules
 `performance-analysis`, `local-session-core` and `search-core` were compiled from revision `da50c62`
