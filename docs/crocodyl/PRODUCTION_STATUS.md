@@ -2,6 +2,16 @@
 
 Last reviewed: 2026-10-18
 
+Current-checkout verification replay (2026-10-18, HEAD `f93fe35`): reran the full configured
+`./gradlew test :app-android:testDebugUnitTest :app-android:testReleaseUnitTest
+:app-android:lintRelease -PwithAndroid --no-daemon` gate; all 113 tasks succeeded (5 executed,
+108 up-to-date). The repository's explicit Python test entry points pass 102/102 across release,
+manifest, navbar, version, shared-checkout, viewer, asset, arrow-reference and community-directory
+suites. All three Node viewer/signature/report suites pass, immutable-action verification succeeds
+for all eight workflow files, and `git diff --check` is clean. This is a local current-source
+replay; it does not replace hosted CI, production signing, physical-device/range acceptance, real
+session evidence or owner approval.
+
 Hosted Android workflow bootstrap repair (2026-10-18): both `.github/workflows/android.yml` and
 `.github/workflows/release.yml` previously invoked `android-actions/setup-android@v3` with its
 default package list, which requests Google's removed `tools` SDK package and fails before Gradle

@@ -44,7 +44,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       download before pinning. The exact checksum is guarded by a release-contract test. A clean
       isolated Gradle user home then passed `./gradlew test :app-android:lintRelease -PwithAndroid
       --no-daemon` with strict verification (113 tasks; 21 executed, 92 up-to-date). The current
-      release-contract suite passes 62/62, all other repository Python contract suites pass, and
+      release-contract suite passes 63/63; all repository Python suites pass 102/102, and
       Node viewer runtime, report-analysis, signature-interoperability and eight-workflow immutable
       action checks pass. This fresh-cache replay does not replace physical-device acceptance.
 
