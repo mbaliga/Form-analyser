@@ -16,6 +16,11 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       distributable artifact. The connected run was restricted to the phone because an unrelated
       Wear emulator is also attached and Recurve tests do not apply to it. Physical-device/range
       and production-signing gates remain open; details are in `PRODUCTION_STATUS.md`.
+- [x] The exact minified QA APK and AAB from this current-source replay pass integrated release
+      preflight, including signer agreement, manifest security, bundled model hash, backup rules,
+      absence of staging files, APK/AAB 16 KB configuration and all 11 native-library alignments.
+      Their hashes and QA/development-only version metadata are recorded in `PRODUCTION_STATUS.md`;
+      do not distribute these artifacts.
 - [x] Fresh-cache Gradle resolution uncovered and fixed a missing strict-verification checksum for
       `kotlinx-coroutines-bom:1.8.0`; the cached POM was byte-matched to an independent Maven Central
       download before pinning. The exact checksum is guarded by a release-contract test. A clean

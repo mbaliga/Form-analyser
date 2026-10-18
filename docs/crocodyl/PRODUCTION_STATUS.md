@@ -15,6 +15,16 @@ discovered a Wear emulator; sport-specific Recurve tests are not applicable ther
 are from the intended API-36 phone emulator only. Production signing, hosted release workflow,
 physical-device/range acceptance, real-session evidence and owner approval remain open.
 
+Exact local package preflight (same source/QA signing identity, versionCode 6 / `0.6.0-spec-dev`):
+the APK and AAB both pass `tools/release/verify_android_release.sh`, including APK v2 signature,
+manifest/permission/exported-component policy, target SDK 36, BlazePose asset digest, backup rules,
+absence of staged `.partial` files, App Bundle 16 KB configuration, APK ZIP alignment and all 11
+packaged 64-bit native-library ELF alignments. APK SHA-256 is
+`272a8abcb722cee702c830292bbb01065efa7927d4f6514c898b23751f8a28a0`; AAB SHA-256 is
+`decfb78b924a698bf05b2978ad8926ce5ad4f8bb87e84bab1340937a3edb623a`. The signer is the committed
+QA/debug key, and the development version label is not release metadata; neither artifact is
+distributable or production-signed.
+
 Fresh-cache dependency verification (2026-10-18): an isolated Gradle user home exposed a missing
 strict-verification checksum for the Kotlin plugin's `kotlinx-coroutines-bom:1.8.0` POM. The cached
 POM was independently downloaded from Maven Central and matched byte-for-byte before its SHA-256
