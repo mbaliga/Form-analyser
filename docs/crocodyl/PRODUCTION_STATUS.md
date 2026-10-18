@@ -2,6 +2,22 @@
 
 Last reviewed: 2026-10-18
 
+Export retraction privacy fix (2026-10-18): `ExportViewModel` previously omitted `checkin`,
+`pain_log`, and `injury` from the SQL tombstone filter, so rows users had retracted could be
+included in subsequent `.croc`/`.crocbak` exports. The filter now covers all six tables whose Room
+schema adds or declares `deletedAt`: `sessions`, `score_session`, `sport_session`, `checkin`,
+`pain_log`, and `injury`. Added a pure-JVM regression in `core-wellness` that derives this set from
+`AppDatabase` DDL and compares it with the export filter; it was confirmed to fail before the fix.
+Full root/JVM and Android debug/release unit tests plus `lintRelease` pass (113 Gradle tasks).
+Current-source API-36 ARM64/16 KB connected debug and QA-signed minified release each pass 19/19.
+The exact QA APK/AAB pass integrated release preflight, including manifest, model, signature, and
+all 11 native-library 16 KB alignment checks. APK SHA-256
+`d2676890c849976a87dd80495ef70ca440fb48f508298fa2b0837d9ac90fd85d`; AAB SHA-256
+`e6e9ae23cd65afa6bb6e2d2f0499ad2a7fe99b6abadbcc17d3519e956022e678`. Both use the committed
+debug certificate and development version `0.6.0-spec-dev`; they are not distributable. The source
+change and its Android test pass are locally verified; hosted CI, production signing and physical
+acceptance remain open.
+
 Current-build visual review (2026-10-18): manually completed the first-run flow on the API-36 /
 16 KB emulator with a synthetic QA profile and inspected the rendered Home screen at 1080×2400.
 The real bundled Recurve photograph, training/score actions, Arrow Atelier component entry, other

@@ -8,6 +8,14 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
 
+- [x] Fixed an export privacy defect: `.croc`/`.crocbak` serialization now filters tombstones from
+      all six Room tables with `deletedAt`, including check-ins, pain logs and injuries. A
+      pure-JVM guard derives the table set from `AppDatabase` migration/schema DDL and asserts exact
+      equality with `ExportViewModel`; confirmed red before the fix and green afterward. Full
+      root/JVM and Android debug/release unit tests plus `lintRelease` pass. Current-source API-36 /
+      16 KB phone debug and QA-signed minified-release smoke each pass 19/19; exact QA APK/AAB pass
+      integrated release preflight. Hashes and QA-only signing scope are recorded in
+      `PRODUCTION_STATUS.md`.
 - [x] Fresh current-source phone replay on API 36 / ARM64 / 16 KB pages: debug and minified release
       each passed all 19 `ProductionSmokeTest` cases on `emulator-5554`, with zero failures,
       errors or skips. The minified APK was signed only with the committed QA/debug certificate
