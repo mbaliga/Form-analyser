@@ -12,9 +12,11 @@ Run it from the Crocodyl repository with a local checkout of Shared-Libraries-as
 export JAVA_HOME=/path/to/jdk-21
 ./tools/performance/run_beta_report.sh \
   /absolute/path/to/Shared-Libraries-asoc \
-  build/reports/beta/performance-report.json
+  performance-report/build/reports/beta/performance-report.json
 ```
 
-The report measures the shared search ranking path and local-session event path, then writes JSON
-with the shared-library revision. Share that JSON with the Crocodyl task; it is evidence, not a
-device-independent performance guarantee.
+The runner verifies the checkout against `shared-libraries.lock`, checks that any requested revision
+matches the checkout's actual HEAD, and resolves relative output paths from the Crocodyl repository
+root. It measures the shared search ranking path and local-session event path, then writes JSON
+with the verified shared-library revision. Share that JSON with the Crocodyl task; it is evidence,
+not a device-independent performance guarantee.

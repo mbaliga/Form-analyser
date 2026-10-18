@@ -90,11 +90,12 @@ beta source set compiled against the same shared revision, and Crocodyl debug/re
 release lint passed. This confirms build compatibility, not physical two-device behavior.
 
 The beta runner at `tools/performance/run_beta_report.sh` measures the shared search and session
-paths and writes JSON under `performance-report/build/reports/beta/`. The latest run against
-`6b54b98` completed successfully: 30 measured iterations after 5 warmups for each measurement,
-with session-event p50 `3,916 ns` and p95 `159,834 ns`; shared-search rank p50 was `4,183,917 ns`.
-These are synthetic JVM measurements, not camera, rendering, thermal or two-device network
-acceptance results.
+paths and writes JSON under `performance-report/build/reports/beta/`. Its 2026-10-18 run used the
+locked `da50c62` module sources in an isolated pure-JVM composite: 30 measured iterations after five
+warmups for each measurement. Search-rank p50/p95 were `2,436,708/3,259,458 ns`; session-event
+p50/p95 were `2,667/8,667 ns`. See
+[`PERFORMANCE_REPORT_2026-10-18.md`](PERFORMANCE_REPORT_2026-10-18.md) and its JSON output. These are
+synthetic JVM measurements, not camera, rendering, thermal or two-device network acceptance results.
 
 The user-facing name is now **Local Multiplayer**. Crocodyl presents a persisted first-run walkthrough
 covering host/join roles, trusted-network setup, six-digit code verification and the file-transfer

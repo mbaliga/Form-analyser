@@ -31,6 +31,21 @@ strong QA/emulator evidence, not production signing, hosted CI, or physical-devi
 The Bocal web-source curved arc remains the intended and implemented navbar pattern; no flat-bar
 replacement is intended.
 
+Beta performance diagnostic (2026-10-18): the pinned Shared-Libraries-asoc pure-JVM modules
+`performance-analysis`, `local-session-core` and `search-core` were compiled from revision `da50c62`
+and measured with five warmups and 30 samples per operation. Search ranking p50/p95: 2.437/3.259 ms;
+in-memory session event p50/p95: 2.667/8.667 µs. Full source and machine-readable output are in
+[`PERFORMANCE_REPORT_2026-10-18.md`](PERFORMANCE_REPORT_2026-10-18.md). This synthetic JVM result is
+not device, camera, UI, thermal, battery, network or release acceptance. The shared repo's full
+composite also configures an unrelated AGP 8.9.1 Android graph whose 96 artifacts are not in
+Crocodyl's dependency-verification lock, so the benchmark used only the unchanged pinned JVM module
+sources in an isolated temporary composite; dependency verification was not disabled. The 8.9.1
+Google plugin-marker POM and alternate Maven Central Kotlin plugin-marker POM checksums were verified
+against the corresponding authoritative repositories and recorded in `gradle/verification-metadata.xml`.
+After that lock update, forced current-source verification completed all 113 Gradle tasks:
+284 JVM/Android tests passed with zero failures/errors/skips and release lint passed. The beta runner
+also rejects a caller-supplied revision that does not match the verified checkout.
+
 Configuration-change draft preservation (2026-10-17, reverified 2026-10-18): injury-region
 selection and physio target regions, weekly schedule, and exercise edits use saveable state, so
 Android activity recreation preserves in-progress edits. The physio exercise draft is encoded as a
@@ -803,7 +818,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Current QA v716 passes APK/AAB preflight and 16 KB ELF alignment. Current API-36 ARM64/16 KB debug and minified-release instrumentation each pass 19/19; the exact v716 minified release also passes 19/19 at 1.3× font. Fresh JVM/Android tests pass 284/284 and release lint passes. Production signer/hosted CI, physical-device/range matrix, clean update from the actual production APK, 30 real sessions and owner sign-off remain. |
+| Recurve Android build | QA-only, not production releasable | Current QA v716 passes APK/AAB preflight and 16 KB ELF alignment. Current API-36 ARM64/16 KB debug and minified-release instrumentation each pass 19/19; the exact v716 minified release also passes 19/19 at 1.0× and 1.3× font. Fresh JVM/Android tests pass 284/284 and release lint passes. An empty-data update from the inspected public v0.5.1 APK to v716 passed on that emulator; data-bearing v701 continuity and V4→V9 migration evidence are separate. Production signer/hosted CI, physical-device/range matrix, 30 real sessions and owner sign-off remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |
