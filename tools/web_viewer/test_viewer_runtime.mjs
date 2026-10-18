@@ -197,10 +197,27 @@ await context.openFileForTest(file('tampered-signature.croc', archive(staleSigna
 assert.match(elements['#status'].textContent, /Signature verification failed/);
 assert.equal(elements['#report'].hidden, true, 'invalid signature must not render a report');
 
+const unsafeArchive = createZip([
+  ['manifest.json', encoder.encode(JSON.stringify(baseManifest))],
+  ...tableEntries,
+  ['tables/../outside.json', encoder.encode('[]')],
+]);
+await context.openFileForTest(file('unsafe-path.crocbak', unsafeArchive));
+assert.match(elements['#status'].textContent, /Unsafe ZIP entry path/);
+assert.equal(elements['#report'].hidden, true, 'unsafe ZIP paths must not render a report');
+
+const wrongRowCounts = {
+  ...baseManifest,
+  rowCounts: { ...baseManifest.rowCounts, shot: tables.shot.length - 1 },
+};
+await context.openFileForTest(file('wrong-row-count.crocbak', archive(wrongRowCounts)));
+assert.match(elements['#status'].textContent, /Manifest row count mismatch: shot/);
+assert.equal(elements['#report'].hidden, true, 'inconsistent row counts must not render a report');
+
 await context.openFileForTest(file('synthetic-recovery.crocbak', archive(baseManifest)));
 assert.match(elements['#status'].textContent, /Opened synthetic-recovery\.crocbak locally/);
 assert.match(elements['#report'].innerHTML, /Payload checksum verified; recovery archive is unsigned/);
 assert.equal(elements['#report'].hidden, false);
 
-console.log('Offline viewer runtime passed signed .croc, checksum rejection, signature rejection, and .crocbak flows');
+console.log('Offline viewer runtime passed signed .croc, tamper rejection, unsafe-path and row-count rejection, and .crocbak flows');
 

@@ -6,9 +6,10 @@ Offline viewer end-to-end integrity coverage (2026-10-18): added a Node runtime 
 the actual viewer file-open path against generated ZIP archives with synthetic training rows. The
 signed `.croc` renders its analysis only after checksum, consent-envelope signature and row-count
 validation; a payload checksum mismatch and a stale signature both fail closed without rendering;
-an unsigned `.crocbak` renders only after checksum validation and is identified as unsigned. The
-new test is required by both CI and release workflows, with a release-workflow contract asserting
-both invocations. Synthetic coverage does not replace desktop-browser usability review with
+unsafe ZIP traversal paths and inconsistent manifest row counts are rejected; an unsigned
+`.crocbak` renders only after checksum validation and is identified as unsigned. The new test is
+required by both CI and release workflows, with a release-workflow contract asserting both
+invocations. Synthetic coverage does not replace desktop-browser usability review with
 representative real exports, which remains open.
 
 Current release-gate replay (2026-10-18): the app source at commit `3f86f7d` passed a fresh full

@@ -152,8 +152,9 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       analysis stays local. Regression coverage uses the Android exporter’s numeric SQLite booleans
       (`0/1`). Node analytics tests, viewer contracts, release workflow contracts and signature
       interoperability pass. Runtime archive tests exercise signed `.croc` success, checksum and
-      signature rejection, and unsigned-but-checksummed `.crocbak` rendering using synthetic data.
-      CI and release workflows run this path. [ ] Review with representative real `.croc` and
+      signature rejection, unsafe ZIP path and inconsistent row-count rejection, and
+      unsigned-but-checksummed `.crocbak` rendering using synthetic data. CI and release workflows
+      run this path. [ ] Review with representative real `.croc` and
       `.crocbak` files in a desktop browser; confirm readability, accessibility and coach workflow
       before production.
 
