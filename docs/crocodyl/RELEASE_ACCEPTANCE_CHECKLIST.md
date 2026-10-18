@@ -807,6 +807,12 @@ leaks private data, or leaves the user unable to recover without clearing app st
       Body region selection, and current primary-tab smoke. SAF staging unit tests cover archive
       writer failure, staged success and destination-copy cleanup. APK/AAB digests and test evidence
       are recorded above. QA signing is not production signing or physical-device acceptance.
+- [x] Current-tree v679 QA APK/AAB (`0.6.0-qa-20261018`) passed artifact preflight, including 16 KB
+      ELF alignment for all 11 native libraries. Connected debug and QA/debug-signed minified-release
+      smoke each passed 19/19 on API-36 ARM64 `crocodyl-current-api36-ps16k` (`PAGE_SIZE=16384`);
+      clean JVM/Android tests passed 284/284 and release lint passed (2026-10-18). This is QA evidence
+      only; production signing, hosted CI evidence, physical-device/range acceptance, 30 real sessions
+      and owner sign-off remain pending. See `PRODUCTION_STATUS.md` for the full replay record.
 - [ ] Release APK/AAB are built by CI with the production keystore and requested version metadata.
 - [ ] CI verifies APK signature, AAB signature, manifest security, bundled BlazePose hash, backup
       resources, APK ZIP alignment, absence of staging files, and the expected production

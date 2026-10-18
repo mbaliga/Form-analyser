@@ -501,10 +501,11 @@ class ProductionSmokeTest {
                 clickTextEventually(instrumentation, "Injuries")
                 scrollScreenUntilText(instrumentation, "Log injury", forward = true)
                 clickTextEventually(instrumentation, "Log injury")
-                scrollScreenUntilText(instrumentation, "Choose regions from list", forward = true)
+                scrollScreenUntilText(instrumentation, "Choose regions from list", forward = false)
                 clickTextEventually(instrumentation, "Choose regions from list")
                 clickTextEventually(instrumentation, "Back of neck")
                 clickTextEventually(instrumentation, "Done")
+                assertTextAbsent(instrumentation, "Choose body regions")
 
                 scenario.recreate()
 
@@ -770,7 +771,9 @@ class ProductionSmokeTest {
             assertTextEventually(instrumentation, "Read the moment.")
             scrollForwardUntilText(instrumentation, "MANUAL REFEREE")
             assertTextEventually(instrumentation, "MANUAL REFEREE")
+            scrollForwardUntilText(instrumentation, "Prêt")
             assertTextEventually(instrumentation, "Prêt")
+            scrollForwardUntilText(instrumentation, "Allez")
             assertTextEventually(instrumentation, "Allez")
         }
         ActivityScenario.launch(CommunityDirectoryActivity::class.java).use { directory ->
@@ -1035,7 +1038,8 @@ class ProductionSmokeTest {
             }
             SystemClock.sleep(50)
         }
-        throw AssertionError("Could not click visible UI text: $label")
+        val visible = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty().distinct()
+        throw AssertionError("Could not click visible UI text: $label. Visible: $visible")
     }
 
     private fun setEditableTextEventually(
@@ -1132,7 +1136,7 @@ class ProductionSmokeTest {
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
-            if (root != null && containsText(root, expected)) return
+            if (root?.findVisibleTextNode(expected) != null) return
             if (root != null) root.scrollForwardOnce()
             SystemClock.sleep(100)
         }

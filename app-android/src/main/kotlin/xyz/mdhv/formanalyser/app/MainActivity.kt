@@ -582,8 +582,13 @@ private fun DetailBar(title: String, onBack: () -> Unit) {
         Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back to previous screen", tint = Hyle.OnBackground)
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.semantics(mergeDescendants = true) {
+                contentDescription = "Back to previous screen"
+            },
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Hyle.OnBackground)
         }
         Text(
             title,

@@ -950,6 +950,21 @@ The JUnit XML records 10 tests, 0 failures, 0 errors and 0 skips; the Gradle tas
 run through standalone release preflight or prepared for distribution; the production signer remains
 absent.
 
+Current-tree 16 KB release gate (2026-10-18): corrected the injury-editor recreation smoke workflow
+to assert persisted unsaved-change behavior rather than chip accessibility metadata, and gave the
+shared detail-toolbar back action a merged, stable accessibility label. On API 36 ARM64
+`crocodyl-current-api36-ps16k` (`getconf PAGE_SIZE` = 16384), `:app-android:connectedDebugAndroidTest`
+and QA/debug-signed `:app-android:connectedReleaseAndroidTest -PcrocodylInstrumentRelease=true`
+each exited successfully with 19/19 `ProductionSmokeTest` cases (0 failures/errors/skips). A fresh
+`./gradlew test :app-android:lintRelease -PwithAndroid --rerun-tasks` completed all 113 tasks;
+Gradle reports 79 JVM XML suites, 284 tests, 0 failures/errors/skips, and release lint passed.
+QA APK/AAB `0.6.0-qa-20261018` / versionCode 679 passed `tools/release/verify_android_release.sh`,
+including APK/AAB signatures, expected package/version/target SDK, privacy manifest, ZIP alignment,
+16 KB ELF alignment (11 native libraries), model hash, backup resources and staging-file checks.
+This release uses the repository's committed QA/debug certificate; it is not distributable as a
+production release. Hosted CI, production certificate/secrets, physical-device and range acceptance,
+30 real sessions, and owner sign-off remain open.
+
 Recovery hardening replay (2026-09-27): both Android unit-test variants, release lint, and
 connected debug instrumentation passed after checksum-manifested backups and the app-private
 recovery-root restriction were added. Connected instrumentation passed 3/3 on
