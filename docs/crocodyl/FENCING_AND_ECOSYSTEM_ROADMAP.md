@@ -92,8 +92,8 @@ release lint passed. This confirms build compatibility, not physical two-device 
 The beta runner at `tools/performance/run_beta_report.sh` measures the shared search and session
 paths and writes JSON under `performance-report/build/reports/beta/`. Its 2026-10-18 run used the
 locked `da50c62` module sources in an isolated pure-JVM composite: 30 measured iterations after five
-warmups for each measurement. Search-rank p50/p95 were `2,436,708/3,259,458 ns`; session-event
-p50/p95 were `2,667/8,667 ns`. See
+warmups for each measurement. Search-rank p50/p95 were `2,264,666/3,568,125 ns`; session-event
+p50/p95 were `2,791/9,708 ns`. See
 [`PERFORMANCE_REPORT_2026-10-18.md`](PERFORMANCE_REPORT_2026-10-18.md) and its JSON output. These are
 synthetic JVM measurements, not camera, rendering, thermal or two-device network acceptance results.
 

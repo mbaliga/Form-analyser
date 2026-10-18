@@ -33,18 +33,19 @@ replacement is intended.
 
 Beta performance diagnostic (2026-10-18): the pinned Shared-Libraries-asoc pure-JVM modules
 `performance-analysis`, `local-session-core` and `search-core` were compiled from revision `da50c62`
-and measured with five warmups and 30 samples per operation. Search ranking p50/p95: 2.437/3.259 ms;
-in-memory session event p50/p95: 2.667/8.667 µs. Full source and machine-readable output are in
+and measured with five warmups and 30 samples per operation. Search ranking p50/p95: 2.265/3.568 ms;
+in-memory session event p50/p95: 2.791/9.708 µs. Full source and machine-readable output are in
 [`PERFORMANCE_REPORT_2026-10-18.md`](PERFORMANCE_REPORT_2026-10-18.md). This synthetic JVM result is
 not device, camera, UI, thermal, battery, network or release acceptance. The shared repo's full
 composite also configures an unrelated AGP 8.9.1 Android graph whose 96 artifacts are not in
-Crocodyl's dependency-verification lock, so the benchmark used only the unchanged pinned JVM module
-sources in an isolated temporary composite; dependency verification was not disabled. The 8.9.1
+Crocodyl's dependency-verification lock, so the benchmark runner builds only unchanged pinned JVM
+module sources in an isolated temporary composite; dependency verification was not disabled. The 8.9.1
 Google plugin-marker POM and alternate Maven Central Kotlin plugin-marker POM checksums were verified
 against the corresponding authoritative repositories and recorded in `gradle/verification-metadata.xml`.
 After that lock update, forced current-source verification completed all 113 Gradle tasks:
 284 JVM/Android tests passed with zero failures/errors/skips and release lint passed. The beta runner
-also rejects a caller-supplied revision that does not match the verified checkout.
+also rejects dirty module inputs or a caller-supplied revision that does not match the verified
+checkout, and resolves relative output paths from the repository root.
 
 Configuration-change draft preservation (2026-10-17, reverified 2026-10-18): injury-region
 selection and physio target regions, weekly schedule, and exercise edits use saveable state, so

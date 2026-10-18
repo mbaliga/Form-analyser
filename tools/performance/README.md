@@ -15,8 +15,11 @@ export JAVA_HOME=/path/to/jdk-21
   performance-report/build/reports/beta/performance-report.json
 ```
 
-The runner verifies the checkout against `shared-libraries.lock`, checks that any requested revision
-matches the checkout's actual HEAD, and resolves relative output paths from the Crocodyl repository
-root. It measures the shared search ranking path and local-session event path, then writes JSON
-with the verified shared-library revision. Share that JSON with the Crocodyl task; it is evidence,
-not a device-independent performance guarantee.
+The runner verifies the checkout against `shared-libraries.lock`, rejects local changes to the
+measured modules/version catalog, checks that any requested revision matches the checkout's actual
+HEAD, and resolves relative output paths from the Crocodyl repository root. It builds a temporary
+composite containing only the unchanged `performance-analysis`, `local-session-core`, and
+`search-core` modules, avoiding unrelated Android/UI plugin dependencies. The temporary copy is
+removed after the run. It measures search ranking and local-session event paths, then writes JSON
+with the verified source revision. Share that JSON with the Crocodyl task; it is evidence, not a
+device-independent performance guarantee.
