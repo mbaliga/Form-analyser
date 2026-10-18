@@ -8,6 +8,15 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
 
+- [x] Fresh-cache Gradle resolution uncovered and fixed a missing strict-verification checksum for
+      `kotlinx-coroutines-bom:1.8.0`; the cached POM was byte-matched to an independent Maven Central
+      download before pinning. The exact checksum is guarded by a release-contract test. A clean
+      isolated Gradle user home then passed `./gradlew test :app-android:lintRelease -PwithAndroid
+      --no-daemon` with strict verification (113 tasks; 21 executed, 92 up-to-date). The current
+      release-contract suite passes 62/62, all other repository Python contract suites pass, and
+      Node viewer runtime, report-analysis, signature-interoperability and eight-workflow immutable
+      action checks pass. This fresh-cache replay does not replace physical-device acceptance.
+
 - [x] The current Recurve navbar is Bocal's current web-source curved arc dock, not the older
       flat Android reference: `app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/ArcNavigationDock.kt`
       draws the paired curved rails, places the Recurve/destination label on the upper rail,
