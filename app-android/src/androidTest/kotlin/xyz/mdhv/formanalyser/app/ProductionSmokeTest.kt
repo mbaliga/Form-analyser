@@ -6,9 +6,11 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
+import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.MediaStore
+import android.util.Base64
 import android.view.KeyEvent
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -20,13 +22,22 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.core.content.FileProvider
+import androidx.room.Room
 import androidx.room.withTransaction
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.security.KeyFactory
+import java.security.Signature
+import java.security.spec.X509EncodedKeySpec
 import java.util.UUID
+import java.util.zip.ZipInputStream
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -41,7 +52,15 @@ import xyz.mdhv.formanalyser.app.data.AppDataReset
 import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.data.AthleteEntity
+import xyz.mdhv.formanalyser.app.data.CheckinEntity
+import xyz.mdhv.formanalyser.app.data.InjuryEntity
+import xyz.mdhv.formanalyser.app.data.PainLogEntity
+import xyz.mdhv.formanalyser.app.data.ScoreSessionEntity
+import xyz.mdhv.formanalyser.app.data.SessionEntity
+import xyz.mdhv.formanalyser.app.data.SportSessionEntity
 import xyz.mdhv.formanalyser.app.ai.AiSettings
+import xyz.mdhv.formanalyser.app.domain.ExportViewModel
+import xyz.mdhv.formanalyser.app.exchange.AndroidKeyProvider
 
 /**
  * Small on-device contract for the release-critical app boundary.
@@ -52,6 +71,176 @@ import xyz.mdhv.formanalyser.app.ai.AiSettings
  */
 @RunWith(AndroidJUnit4::class)
 class ProductionSmokeTest {
+    @Test
+    fun signedExportOmitsRetractedRowsFromEveryRetractableTable() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val application = context.applicationContext as android.app.Application
+        val suffix = UUID.randomUUID().toString()
+        val testDatabaseName = "export-privacy-$suffix.db"
+        val database = Room.databaseBuilder(context, AppDatabase::class.java, testDatabaseName).build()
+        val athleteId = "export-qa-athlete-$suffix"
+        val timestamp = System.currentTimeMillis()
+        val pairs =
+            mapOf(
+                "sessions" to ("session-active-$suffix" to "session-deleted-$suffix"),
+                "score_session" to ("score-active-$suffix" to "score-deleted-$suffix"),
+                "sport_session" to ("sport-active-$suffix" to "sport-deleted-$suffix"),
+                "checkin" to ("checkin-active-$suffix" to "checkin-deleted-$suffix"),
+                "pain_log" to ("pain-active-$suffix" to "pain-deleted-$suffix"),
+                "injury" to ("injury-active-$suffix" to "injury-deleted-$suffix"),
+            )
+        val shareDirectory = File(context.cacheDir, "share").apply { mkdirs() }
+        val destination = File(shareDirectory, "retraction-$suffix.croc")
+        val uri: Uri =
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                destination,
+            )
+        val viewModel = ExportViewModel(application, database)
+
+        try {
+            database.sessionDao().insert(
+                SessionEntity(pairs.getValue("sessions").first, athleteId, timestamp, 25.0, 18),
+            )
+            database.sessionDao().insert(
+                SessionEntity(
+                    pairs.getValue("sessions").second,
+                    athleteId,
+                    timestamp + 1,
+                    25.0,
+                    18,
+                    deletedAt = timestamp,
+                ),
+            )
+            listOf(false, true).forEach { retracted ->
+                val id = if (retracted) pairs.getValue("score_session").second else pairs.getValue("score_session").first
+                database.scoringDao().upsertSession(
+                    ScoreSessionEntity(
+                        id = id,
+                        athleteId = athleteId,
+                        rigId = null,
+                        roundId = "wa-18m",
+                        roundName = "Export QA",
+                        distanceMeters = 18,
+                        targetFaceCm = 40,
+                        arrowsPerEnd = 3,
+                        endCount = 2,
+                        scoringKind = "CUMULATIVE",
+                        faceLayout = "SINGLE",
+                        startedAt = timestamp,
+                        updatedAt = timestamp,
+                        deletedAt = if (retracted) timestamp else null,
+                    ),
+                )
+                val sportId = if (retracted) pairs.getValue("sport_session").second else pairs.getValue("sport_session").first
+                database.sportSessionDao().insert(
+                    SportSessionEntity(
+                        id = sportId,
+                        athleteId = athleteId,
+                        sportId = "recurve",
+                        startedAtEpochMs = timestamp,
+                        durationSeconds = 600,
+                        perceivedEffortRpe = 3,
+                        summary = "Synthetic export QA",
+                        detailsJson = "{}",
+                        featuresJson = "{}",
+                        deletedAt = if (retracted) timestamp else null,
+                    ),
+                )
+                val checkinId = if (retracted) pairs.getValue("checkin").second else pairs.getValue("checkin").first
+                database.wellnessDao().insertCheckin(
+                    CheckinEntity(
+                        id = checkinId,
+                        athleteId = athleteId,
+                        ts = timestamp,
+                        kind = "STANDALONE",
+                        energy = 3,
+                        deletedAt = if (retracted) timestamp else null,
+                    ),
+                )
+                val painId = if (retracted) pairs.getValue("pain_log").second else pairs.getValue("pain_log").first
+                database.bodyDao().insertPain(
+                    PainLogEntity(
+                        id = painId,
+                        athleteId = athleteId,
+                        ts = timestamp,
+                        regionId = "shoulder_r",
+                        intensity = 2,
+                        tagsJson = "[]",
+                        deletedAt = if (retracted) timestamp else null,
+                    ),
+                )
+                val injuryId = if (retracted) pairs.getValue("injury").second else pairs.getValue("injury").first
+                database.bodyDao().upsertInjury(
+                    InjuryEntity(
+                        id = injuryId,
+                        athleteId = athleteId,
+                        onset = "2026-10-18",
+                        regionsJson = "[\"shoulder_r\"]",
+                        severity = 1,
+                        mechanism = "UNKNOWN",
+                        status = "ACTIVE",
+                        deletedAt = if (retracted) timestamp else null,
+                    ),
+                )
+            }
+
+            viewModel.export(uri)
+            val outcome = withTimeout(30_000) { viewModel.outcome.first { it != null }!! }
+            assertTrue("Synthetic signed export failed: ${outcome.message}", outcome.ok)
+
+            val payloads = mutableMapOf<String, JSONArray>()
+            ZipInputStream(destination.inputStream()).use { zip ->
+                while (true) {
+                    val entry = zip.nextEntry ?: break
+                    if (entry.name.startsWith("tables/") && entry.name.endsWith(".json")) {
+                        payloads[entry.name.removePrefix("tables/").removeSuffix(".json")] =
+                            JSONArray(zip.readBytes().toString(Charsets.UTF_8))
+                    }
+                    zip.closeEntry()
+                }
+            }
+            pairs.forEach { (table, ids) ->
+                val rows = payloads[if (table == "sessions") "session" else table]
+                assertNotNull("Signed archive omitted $table", rows)
+                val exportedIds = (0 until rows!!.length()).map { rows.getJSONObject(it).getString("id") }
+                assertTrue("Active $table row was not exported", ids.first in exportedIds)
+                assertFalse("Retracted $table row was exported", ids.second in exportedIds)
+            }
+            val manifest = ZipInputStream(destination.inputStream()).use { zip ->
+                assertEquals("manifest.json", zip.nextEntry?.name)
+                JSONObject(zip.readBytes().toString(Charsets.UTF_8))
+            }
+            assertEquals("SHA256withECDSA/CrocodylEnvelopeV2", manifest.getString("signatureAlgorithm"))
+            val publicKey =
+                KeyFactory.getInstance("EC").generatePublic(
+                    X509EncodedKeySpec(Base64.decode(manifest.getString("publicKeyBase64"), Base64.DEFAULT)),
+                )
+            val includedTables =
+                manifest.getJSONArray("includedTables").let { tables ->
+                    (0 until tables.length()).map(tables::getString)
+                }
+            val envelope =
+                AndroidKeyProvider.envelopePayload(
+                    manifest.getString("contentChecksum"),
+                    includedTables,
+                    manifest.getString("tierName"),
+                )
+            val signature = Signature.getInstance(AndroidKeyProvider.SIGNATURE_ALGORITHM)
+            signature.initVerify(publicKey)
+            signature.update(envelope.toByteArray(Charsets.UTF_8))
+            assertTrue(
+                "Signed .croc consent envelope did not verify",
+                signature.verify(Base64.decode(manifest.getString("signatureBase64"), Base64.DEFAULT)),
+            )
+        } finally {
+            destination.delete()
+            database.close()
+            context.deleteDatabase(testDatabaseName)
+        }
+    }
+
     @Test
     fun fullLocalDataWipeRemovesDatabaseFilesAndResetsPreferencesOnDevice() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()

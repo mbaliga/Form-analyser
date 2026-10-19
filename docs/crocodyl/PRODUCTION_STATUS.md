@@ -1,6 +1,21 @@
 # Crocodyl production status
 
-Last reviewed: 2026-10-18
+Last reviewed: 2026-10-19
+
+Signed export and cryptographic integration coverage (2026-10-19): `ProductionSmokeTest` seeds active
+and retracted synthetic rows for all six retractable tables in a uniquely named temporary Room
+database, invokes the normal `ExportViewModel.export` path through FileProvider, and reads the
+resulting signed `.croc` to assert active rows are included and tombstones omitted. It reconstructs
+the P-256 public key, rebuilds the canonical envelope payload, and verifies the archive signature,
+in addition to checking the declared signature algorithm. The test database is closed and deleted
+in a `finally` block; no app-profile data is read or exported. Debug connected instrumentation passes
+20/20 on API-36 ARM64 / 16 KB, and the focused minified-release export test passes 1/1. In the full
+minified-release run, 19/20 pass; the unrelated Quick Score recreation smoke times out awaiting
+"Find your rhythm." although that text appears in the visible-node diagnostic. R8 does not retain
+Room's in-memory builder when it is referenced only from the separate test APK, so the test uses a
+uniquely named on-disk database through the same builder API used by production and retains only the
+injected ViewModel constructor needed by the test. Full JVM/Android unit tests, connected-test
+compilation and release lint pass (124 tasks; 7 executed, 117 up-to-date).
 
 Offline desktop viewer keyboard-accessibility regression (2026-10-18): the runtime harness now
 dispatches Enter and Space through the viewer's actual drop-zone handler and asserts that both open
@@ -20,6 +35,13 @@ manifest security policy, bundled pose-model digest, backup resources, absence o
 signed with the committed debug key, not production candidates; code 720 does not advance the
 production issuance ledger. Production signing, hosted CI, physical-device/range acceptance,
 real-session evidence and owner approval remain open.
+
+Latest QA package after the signed-export integration test (2026-10-19): minified
+`0.6.4-export-e2e-qa`, versionCode 721, passed the same integrated APK/AAB preflight. APK SHA-256
+`7a7d8b66489384dbd7ae97248ad05b2f824082e78e6fb58313e6c94167fe1284`; AAB SHA-256
+`6284dffa293673e696eb70311b87576f888909b7049939a32b784a5e925f5139`. Both are signed with the
+committed QA/debug key and are not production artifacts; QA version 721 does not advance the
+production issuance ledger.
 
 Export query regression hardening (2026-10-18): the archive writer now routes its fixed-name table
 selection through a testable query builder. Android debug and release unit tests execute its SQL

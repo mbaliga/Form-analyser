@@ -44,9 +44,11 @@ import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
  * stamped here (`System.currentTimeMillis()`) and passed IN to the pure core, per the core's
  * determinism contract.
  */
-class ExportViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val keyProvider = AndroidKeyProvider()
+class ExportViewModel @JvmOverloads constructor(
+    app: Application,
+    private val database: AppDatabase = AppDatabase.get(app),
+    private val keyProvider: AndroidKeyProvider = AndroidKeyProvider(),
+) : AndroidViewModel(app) {
     private val json = Json {
         prettyPrint = false
         encodeDefaults = true
@@ -268,7 +270,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * count).
      */
     private fun dumpTable(sqlName: String): Pair<ByteArray, Long> {
-        val db = AppDatabase.get(getApplication()).openHelper.readableDatabase
+        val db = database.openHelper.readableDatabase
         val rows = ArrayList<JsonElement>()
         // A retracted row must not ride out in an archive the athlete believes they cleaned up.
         // The athlete deleted it here; handing it to a coach anyway would make the delete a lie.

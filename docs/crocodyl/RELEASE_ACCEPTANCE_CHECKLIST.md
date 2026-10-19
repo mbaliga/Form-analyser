@@ -6,8 +6,17 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
-### Current-source editor state, navbar parity and runtime evidence (2026-10-18)
+### Current-source editor state, navbar parity and runtime evidence (2026-10-19)
 
+- [x] Signed `.croc` export is exercised end-to-end with synthetic active/retracted rows in all six
+      retraction-capable tables using an isolated temporary Room database. The normal export path
+      writes a signed archive; test inspection confirms active rows are present, tombstones are
+      absent, and the P-256 signature verifies against the canonical envelope payload. The isolated
+      database is closed/deleted. API-36/16 KB debug connected suite passes 20/20; the focused
+      minified-release test passes 1/1. Full minified release run is 19/20 due to an unrelated
+      Quick Score UI wait failure documented in `PRODUCTION_STATUS.md`. QA-only artifacts.
+- [x] Current minified QA APK/AAB (`0.6.4-export-e2e-qa`, versionCode 721) pass integrated
+      preflight; hashes and QA-only signing caveat are recorded in `PRODUCTION_STATUS.md`.
 - [x] Offline desktop viewer keyboard access is exercised by dispatching Enter/Space through the
       runtime harness and asserting native-picker activation; the static contract checks the
       accessible picker name and polite status announcement. Viewer runtime and contract suites

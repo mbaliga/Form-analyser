@@ -14,6 +14,13 @@
 # Room instantiates the database implementation generated from AppDatabase.
 -keep class xyz.mdhv.formanalyser.app.data.AppDatabase_Impl { *; }
 
+# The connected release instrumentation test injects an isolated Room database into the export
+# view model so it can verify archive privacy without reading any athlete's normal app database.
+# R8 cannot see the separate androidTest APK when shrinking the app, so retain only this test seam.
+-keepclassmembers class xyz.mdhv.formanalyser.app.domain.ExportViewModel {
+    public <init>(android.app.Application, xyz.mdhv.formanalyser.app.data.AppDatabase);
+}
+
 # Room entities are serialized into the local export and inspected by generated adapters.
 -keep class xyz.mdhv.formanalyser.app.data.** { *; }
 
