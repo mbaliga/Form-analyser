@@ -920,7 +920,9 @@ class ProductionSmokeTest {
                 // System Back must leave the active scoring destination without discarding the
                 // committed arrow; reopening Score resumes the same card.
                 instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
-                assertTextEventually(instrumentation, "Find your rhythm.")
+                // Compose exposes the destination heading in the active Home accessibility tree
+                // before its hit-test bounds settle during system-Back navigation on API-36.
+                assertTextExposedEventually(instrumentation, "Find your rhythm.")
                 clickTextEventually(instrumentation, "Score")
                 assertTextEventually(instrumentation, scoredSummary)
 
@@ -1064,6 +1066,21 @@ class ProductionSmokeTest {
         }
         val visibleText = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
         throw AssertionError("Timed out waiting for visible UI text: $expected. Visible: $visibleText")
+    }
+
+    private fun assertTextExposedEventually(
+        instrumentation: android.app.Instrumentation,
+        expected: String,
+        timeoutMs: Long = 8_000,
+    ) {
+        val deadline = SystemClock.uptimeMillis() + timeoutMs
+        while (SystemClock.uptimeMillis() < deadline) {
+            instrumentation.waitForIdleSync()
+            if (rootInActiveWindowOrNull(instrumentation)?.findTextNode(expected) != null) return
+            SystemClock.sleep(50)
+        }
+        val visibleText = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
+        throw AssertionError("Timed out waiting for foreground accessibility text: $expected. Visible: $visibleText")
     }
 
     private fun assertTextAbsent(

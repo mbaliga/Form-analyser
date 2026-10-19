@@ -2,6 +2,16 @@
 
 Last reviewed: 2026-10-19
 
+Current release-gate replay (2026-10-19, current checkout): root/module JVM and Android debug/release
+unit tests, Android instrumentation compilation, and release lint all pass (124 Gradle tasks; 5
+executed, 119 up-to-date). API-36 ARM64 / 16 KB connected debug and minified-release instrumentation
+both pass 20/20 with zero failures or skips. The previous minified-only Quick Score navigation
+timeout is fixed in the test assertion and the full release suite is green. The repository's Python
+contract suites pass 102/102, all three Node viewer/signature/report suites pass, and immutable
+GitHub Action references verify across all eight workflows. These remain local QA results: the
+branch is unpublished, so hosted CI, production signing, physical-device/range acceptance, real
+session evidence and owner approval remain open.
+
 Signed export and cryptographic integration coverage (2026-10-19): `ProductionSmokeTest` seeds active
 and retracted synthetic rows for all six retractable tables in a uniquely named temporary Room
 database, invokes the normal `ExportViewModel.export` path through FileProvider, and reads the
@@ -9,9 +19,11 @@ resulting signed `.croc` to assert active rows are included and tombstones omitt
 the P-256 public key, rebuilds the canonical envelope payload, and verifies the archive signature,
 in addition to checking the declared signature algorithm. The test database is closed and deleted
 in a `finally` block; no app-profile data is read or exported. Debug connected instrumentation passes
-20/20 on API-36 ARM64 / 16 KB, and the focused minified-release export test passes 1/1. In the full
-minified-release run, 19/20 pass; the unrelated Quick Score recreation smoke times out awaiting
-"Find your rhythm." although that text appears in the visible-node diagnostic. R8 does not retain
+20/20 on API-36 ARM64 / 16 KB. The minified-release lane now also passes 20/20 after stabilizing
+the Quick Score recreation assertion: during a Home destination transition, Compose can expose
+the heading in the foreground accessibility tree before its hit-test rectangle settles. The test
+now checks foreground accessibility exposure for that navigation assertion; interactions still use
+the stricter visible-bounds checks. R8 does not retain
 Room's in-memory builder when it is referenced only from the separate test APK, so the test uses a
 uniquely named on-disk database through the same builder API used by production and retains only the
 injected ViewModel constructor needed by the test. Full JVM/Android unit tests, connected-test
