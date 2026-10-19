@@ -10,7 +10,11 @@ timeout is fixed in the test assertion and the full release suite is green. The 
 contract suites pass 102/102, all three Node viewer/signature/report suites pass, and immutable
 GitHub Action references verify across all eight workflows. These remain local QA results: the
 branch is unpublished, so hosted CI, production signing, physical-device/range acceptance, real
-session evidence and owner approval remain open.
+session evidence and owner approval remain open. The current-source QA 721 APK/AAB were also
+re-preflighted: the integrated verifier reconfirmed package/version, target SDK, manifest policy,
+signatures, model and backup assets, APK/AAB 16 KB configuration and all 11 native-library
+alignments. Their SHA-256 digests match the QA package record below; they remain debug-signed and
+must not be distributed.
 
 Signed export and cryptographic integration coverage (2026-10-19): `ProductionSmokeTest` seeds active
 and retracted synthetic rows for all six retractable tables in a uniquely named temporary Room
