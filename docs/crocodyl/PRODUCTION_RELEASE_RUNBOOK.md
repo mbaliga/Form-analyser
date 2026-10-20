@@ -62,10 +62,13 @@ only on a successful QA-signed update test. The release workflow enforces this t
 `tools/release/signer_continuity_decision.json`; it remains `unresolved` until the owner records an
 approved strategy, distribution channel, approval reference and verified migration evidence.
 
-The owner has confirmed Google Play as the intended distribution channel. The package ID is
-`xyz.mdhv.formanalyser`, but public listing searches did not establish whether it is already enrolled
-in Play Console; private, closed-testing, and unpublished listings are not publicly discoverable.
-Before choosing `play-app-signing`, inspect the exact app in Play Console and record whether Play
+The owner has confirmed Google Play as the intended distribution channel and `com.asoc.crocodyl` as
+the intended Play package ID. The current production application ID is configured to match. The
+earlier public GitHub APK uses the different ID `xyz.mdhv.formanalyser`; Android treats these as
+separate apps, so that APK cannot be updated in place by the Play package. Public listing searches
+did not establish whether `com.asoc.crocodyl` is already enrolled in Play Console; private,
+closed-testing, and unpublished listings are not publicly discoverable. Before choosing
+`play-app-signing`, inspect the exact app in Play Console and record whether Play
 App Signing is enabled, the app-signing certificate, upload-key state, and the available key-upgrade
 path. If this is a new Play listing, verify that separately and make sure the upload key is not
 mistaken for the app-signing key. A Play update path does not establish update continuity for APKs
@@ -96,7 +99,7 @@ input or the expected certificate fingerprint is absent.
 1. Before releasing, compare the actual previous production APK's versionCode with the project's
    highest issued code and set `tools/release/highest_issued_version_code.txt` to the greater value.
    The latest public GitHub Release is currently `v0.5.1-reconciled`; its actual APK asset was
-   downloaded and inspected, confirming package `xyz.mdhv.formanalyser`, versionCode 4, and SHA-256
+   downloaded and inspected, confirming legacy package `xyz.mdhv.formanalyser`, versionCode 4, and SHA-256
    `84e21831c085905f2beedea704c3998b32e76c4ed84966c1e797ab006c2a440b`. It clean-installed and
    updated to QA v716 on the API-36/16 KB emulator. The production-issued ledger currently records
    697. Latest QA artifacts are versionCode 721 (`0.6.4-export-e2e-qa`); they are QA/debug-signed, have

@@ -326,7 +326,7 @@ class ReleaseWorkflowContract(unittest.TestCase):
 
     def test_artifact_preflight_binds_package_identity(self) -> None:
         verifier = (ROOT / "tools" / "release" / "verify_android_release.sh").read_text()
-        self.assertIn("package: name='xyz.mdhv.formanalyser'", verifier)
+        self.assertIn("package: name='com.asoc.crocodyl'", verifier)
         self.assertIn("targetSdkVersion:'36'", verifier)
         self.assertIn("certificate SHA-256 digest", verifier)
         self.assertIn("keytool -printcert -jarfile", verifier)

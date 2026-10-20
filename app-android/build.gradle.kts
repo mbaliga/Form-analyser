@@ -73,7 +73,7 @@ android {
     // the same on-device smoke suite also exercises the minified production variant.
     testBuildType = if (instrumentRelease) "release" else "debug"
     defaultConfig {
-        applicationId = "xyz.mdhv.formanalyser"
+        applicationId = "com.asoc.crocodyl"
         minSdk = 26
         targetSdk = 36
         versionCode = configuredVersionCode

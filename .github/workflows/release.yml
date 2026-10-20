@@ -249,10 +249,10 @@ jobs:
           script: |
             adb install -r app-android/build/outputs/apk/release/app-android-release.apk
             adb logcat -c
-            adb shell am start -W -n xyz.mdhv.formanalyser/.app.MainActivity
+            adb shell am start -W -n com.asoc.crocodyl/xyz.mdhv.formanalyser.app.MainActivity
             sleep 3
-            test -n "$(adb shell pidof xyz.mdhv.formanalyser)"
-            if adb logcat -d -v brief | grep -Eiq 'FATAL EXCEPTION|Process: xyz.mdhv.formanalyser|NoClassDefFoundError|ClassNotFoundException'; then
+            test -n "$(adb shell pidof com.asoc.crocodyl)"
+            if adb logcat -d -v brief | grep -Eiq 'FATAL EXCEPTION|Process: com.asoc.crocodyl|NoClassDefFoundError|ClassNotFoundException'; then
               echo 'Minified release launch emitted a fatal app-process error.' >&2
               adb logcat -d -v brief >&2
               exit 1

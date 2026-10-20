@@ -13,7 +13,7 @@ ALLOWED_PERMISSIONS = {
     "android.permission.VIBRATE",
     "android.permission.INTERNET",
     "android.permission.ACCESS_NETWORK_STATE",
-    "xyz.mdhv.formanalyser.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+    "com.asoc.crocodyl.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
 }
 ANDROID_ATTRIBUTE = re.compile(r'android:name\([^)]*\)="([^"]+)"')
 EXPORTED_ATTRIBUTE = re.compile(r'android:exported\([^)]*\)=(true|false)')

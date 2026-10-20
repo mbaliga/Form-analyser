@@ -15,7 +15,7 @@ PERMISSIONS = """
       E: uses-permission (line=4)
         A: android:name(0x01010003)="android.permission.ACCESS_NETWORK_STATE"
       E: uses-permission (line=5)
-        A: android:name(0x01010003)="xyz.mdhv.formanalyser.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        A: android:name(0x01010003)="com.asoc.crocodyl.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 """
 
 APPLICATION = """
