@@ -2,6 +2,14 @@
 
 Last reviewed: 2026-10-20
 
+Release-blocking signer continuity: the inspected public `v0.5.1-reconciled` APK uses the same
+certificate as the committed `app-android/debug.keystore`, while the production workflow correctly
+rejects that QA/debug certificate. The successful v0.5.1→v701/v716 emulator updates reused the old
+certificate and therefore do not demonstrate that a future production signer can update existing
+installations. A channel-specific migration strategy and an update/data-continuity test with the
+chosen production identity are required before release; details and options are in
+`PRODUCTION_RELEASE_RUNBOOK.md`.
+
 Android 15 / API-35 compatibility rerun (2026-10-20): on the existing ARM64 `alloy-api35-arm64`
 AVD (4 KB pages, software-rendered; no data wipe), the complete connected debug suite and complete
 QA-signed minified-release suite both pass 20/20 with zero failures or skips. The focused Bocal

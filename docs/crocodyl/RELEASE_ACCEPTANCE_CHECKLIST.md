@@ -136,6 +136,10 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 - [ ] Production signer/hosted release-workflow pass, physical-device/range matrix, real-athlete
       data, 30-real-session evidence and owner approval remain open. QA artifact evidence does not
       clear these release gates.
+- [ ] Approve and verify signer continuity for existing installs. The public v0.5.1 APK is signed
+      by the committed QA/debug certificate, which production signing intentionally rejects. QA
+      upgrades using that same certificate do not prove production update compatibility; test the
+      selected channel-specific migration path and data continuity with the production identity.
 
 ### Complete local data wipe (2026-10-16)
 

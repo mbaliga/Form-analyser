@@ -42,6 +42,24 @@ The release workflow rejects the repository's committed QA/debug certificate fin
 keystore. A passing local preflight with that certificate is QA evidence only and can never serve
 as production signing evidence.
 
+### Release blocker: signer continuity for existing installs
+
+The inspected public `v0.5.1-reconciled` APK is signed with the same certificate as the committed
+`app-android/debug.keystore`. The production workflow correctly refuses to use that key, so choosing
+a different production key will not by itself preserve in-place updates for existing installs.
+Android accepts an update when the signing certificate matches or the new APK carries a valid
+proof-of-rotation; the recorded v0.5.1→v701/v716 emulator upgrades reused the old QA/debug key and
+do not prove that a new production key can update existing installs. See Android's [app update
+rules](https://developer.android.com/google/play/app-updates) and [`apksigner` key-rotation
+guidance](https://developer.android.com/tools/apksigner#rotate-keys).
+
+Before release, the owner must select and verify a distribution-specific migration strategy: for
+example, a confirmed Play App Signing upgrade path if this package is managed in Play, a security-
+reviewed signing lineage for direct APK distribution, or a new application ID accompanied by an
+explicit user-data migration plan. The old signing key is committed in a public repository, so it
+must not be treated as a secret or silently promoted to production. Do not remove this gate based
+only on a successful QA-signed update test.
+
 Never commit the keystore, passwords, or fingerprint-bearing private key material. The release
 workflow checks the expected certificate fingerprint before running tests; the four password and
 keystore inputs are checked only after unsigned unit, lint, source-contract, and debug-smoke lanes
