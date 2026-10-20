@@ -6,13 +6,18 @@ version, app version, APK/AAB digest, tester, date, and evidence for every run.
 Use DEVICE_ACCEPTANCE_RUN_TEMPLATE.md to capture each physical-device run consistently.
 For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELEASE_RUNBOOK.md).
 
-### Current-source editor state, navbar parity and runtime evidence (2026-10-19)
+### Current-source editor state, navbar parity and runtime evidence (2026-10-20)
 
 - [x] Exact-checkout release replay passes all 124 Gradle tasks for root/module and Android debug/
       release unit tests, instrumentation compilation, and release lint. API-36/16 KB debug and
       minified-release connected suites pass 20/20 each. Repository Python contracts pass 102/102,
       the three Node viewer/signature/report suites pass, and immutable workflow-action references
       verify across eight workflow files. Hosted CI remains pending because the branch is local.
+- [ ] Android 15/API-35 ARM64 minified-release full-suite replay is inconclusive/failed (13/20
+      failures, predominantly OS/system ANRs). Focused Quick Score and physio-region tests pass 1/1
+      each after cold reboot, but the arc-dock test fails during activity teardown after the
+      ActivityTaskManager destroy timeout. Do not count API-35 as accepted until a stable full run
+      passes; see `PRODUCTION_STATUS.md`.
 - [x] Signed `.croc` export is exercised end-to-end with synthetic active/retracted rows in all six
       retraction-capable tables using an isolated temporary Room database. The normal export path
       writes a signed archive; test inspection confirms active rows are present, tombstones are
