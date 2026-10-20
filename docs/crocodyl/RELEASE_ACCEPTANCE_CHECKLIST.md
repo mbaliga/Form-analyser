@@ -494,14 +494,16 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       and asserts preservation of those shot-score rows. All records were synthetic; no real athlete
       database was used. Production signer continuity, physical-device acceptance and real-session
       validation remain open.
-- [x] Repository contracts passed: release 39/39, shared checkout 4/4, viewer 10/10 plus
+- [x] Latest local repository contracts pass: release 63/63, shared checkout 4/4, viewer 11/11 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
-      arrow-reference 7/7, and immutable action refs across 7 workflows.
+      arrow-reference 7/7, and immutable action refs across all 8 workflows.
 - [ ] Production signer and hosted release-workflow pass, physical-device/range matrix,
-      real-athlete-data and 30-real-session acceptance, and owner approval remain open. The v0.5.1
+      real-athlete-data and 30-real-session acceptance, and owner approval remain open. Latest
+      recorded QA artifact is v721 (`0.6.4-export-e2e-qa`), still debug-signed and not distributable;
+      its APK/AAB digests and preflight are recorded in `PRODUCTION_STATUS.md`. The v0.5.1
       V4→V9 synthetic replay verifies legacy session/shot-score row preservation; V4 had no
-      standalone scorecards to migrate. No real athlete database was used. The current v716 APK/AAB
-      is QA/debug-signed and not distributable; exact hashes are in the 2026-10-18 entry above.
+      standalone scorecards to migrate. No real athlete database was used. The API-35/API-36 emulator
+      matrix is current local QA evidence only and does not satisfy physical-device/range acceptance.
       Physical-device visual acceptance remains open. The version ledger (697) remains above the
       actual published v4; QA candidate builds have not advanced that production ledger.
 

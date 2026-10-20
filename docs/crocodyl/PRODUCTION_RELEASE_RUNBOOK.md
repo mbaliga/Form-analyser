@@ -58,11 +58,10 @@ closed if any signing input or the expected certificate fingerprint is absent.
    downloaded and inspected, confirming package `xyz.mdhv.formanalyser`, versionCode 4, and SHA-256
    `84e21831c085905f2beedea704c3998b32e76c4ed84966c1e797ab006c2a440b`. It clean-installed and
    updated to QA v716 on the API-36/16 KB emulator. The production-issued ledger currently records
-   697. The latest locally recorded
-   QA artifacts are versionCode 716 (`0.6.4-current-production-hardening-qa`); they are
-   QA/debug-signed, have not been issued as production, and do not advance that ledger. The exact
-   v716 APK/AAB pass local artifact preflight, and the minified release passes connected API-36
-   16 KB instrumentation at normal and 1.3× font scale. These results are not evidence of production
+   697. Latest QA artifacts are versionCode 721 (`0.6.4-export-e2e-qa`); they are QA/debug-signed, have
+   not been issued as production, and do not advance that ledger. The exact v721 APK/AAB pass local
+   artifact preflight. Current-source connected debug and minified-release suites pass 20/20 on
+   API-35 ARM64 and API-36 ARM64/16 KB emulators. These results are not evidence of production
    signing, hosted release-workflow execution, or physical-device acceptance; see
    [`PRODUCTION_STATUS.md`](PRODUCTION_STATUS.md) for artifact digests and replay scope. The resolver
    fails closed unless the new code is strictly higher. On a successful release, advance this
