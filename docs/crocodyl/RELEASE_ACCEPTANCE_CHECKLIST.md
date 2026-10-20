@@ -8,11 +8,13 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-20)
 
-- [x] Exact-checkout release replay passes all 124 Gradle tasks for root/module and Android debug/
-      release unit tests, instrumentation compilation, and release lint. API-36/16 KB debug and
-      minified-release connected suites pass 20/20 each. Repository Python contracts pass 102/102,
-      the three Node viewer/signature/report suites pass, and immutable workflow-action references
-      verify across eight workflow files. Hosted CI remains pending because the branch is local.
+- [x] Fresh local release-gate replay passes all 113 tasks for root/JVM tests, Android debug and
+      release unit tests, and release lint. Release contracts pass 63/63; shared checkout 4/4;
+      viewer 11/11; community directory 4/4; Atelier assets/photos 9/9; arrow library 4/4; and
+      arrow-reference library 7/7. All three Node signature/viewer/report suites pass; all eight
+      workflow action references verify; generated asset rebuilds leave the checkout unchanged.
+      API-35 ARM64 and API-36 ARM64/16 KB connected debug and minified-release suites each pass
+      20/20. Hosted CI remains pending because this branch is unpublished.
 - [x] Android 15/API-35 ARM64 emulator full connected debug and QA-signed minified-release suites
       pass 20/20 each with zero failures/skips. Bocal arc-dock focused smoke passes 1/1 in both
       variants; Quick Score and physio-region recreation smokes pass 1/1 in minified release. An

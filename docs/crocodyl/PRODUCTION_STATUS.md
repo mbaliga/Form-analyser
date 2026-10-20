@@ -14,6 +14,16 @@ the interpretation that emulator contention contributed, but does not prove the 
 were exclusively environmental. API-35 hosted x86_64 CI and physical-device acceptance remain open;
 API-36 / 16 KB emulator results remain independently green at 20/20 for debug and minified release.
 
+Fresh local release-gate replay (2026-10-20, HEAD `a96f53c`): root/JVM tests, Android debug and
+release unit tests, and release lint pass (113 Gradle tasks; 4 executed, 109 up-to-date). Release
+contracts pass 63/63, shared-checkout 4/4, viewer contracts 11/11, community-directory contracts
+4/4, Atelier asset/photo contracts 9/9, arrow library 4/4, and arrow-reference contracts 7/7.
+All three Node signature/viewer/report suites pass, workflow action pins verify across eight files,
+and the community directory validates. Both Atelier model and arrow-reference asset rebuilds are
+deterministic (`git diff` clean); `git diff --check` is clean and no generated/tracked files changed.
+This strengthens local verification only; it does not substitute for the hosted workflow, production
+signing, physical-device/range acceptance, real-session evidence or owner approval.
+
 Current release-gate replay (2026-10-19, current checkout): root/module JVM and Android debug/release
 unit tests, Android instrumentation compilation, and release lint all pass (124 Gradle tasks; 5
 executed, 119 up-to-date). API-36 ARM64 / 16 KB connected debug and minified-release instrumentation
