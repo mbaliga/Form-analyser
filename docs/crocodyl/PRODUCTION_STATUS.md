@@ -2,17 +2,17 @@
 
 Last reviewed: 2026-10-20
 
-Android 15 / API-35 compatibility attempt (2026-10-20): used the existing ARM64 `alloy-api35-arm64`
-AVD (4 KB pages, software-rendered; no data wipe). The full 20-case minified-release suite ended
-with 13 failures. Logcat records system/Google-process ANRs, ActivityTaskManager launch/destroy
-timeouts, and an ANR in `system`; most UI failures then saw the OS "Process system isn't responding"
-dialog. After a cold reboot, the focused Quick Score recreation and unsaved-physio-region recreation
-tests each passed 1/1. The focused Bocal arc-dock test reached teardown but failed because
-`ActivityScenario` could not observe `DESTROYED` (last state `STOPPED`); ActivityTaskManager also
-logged an activity-destroy timeout. This is not a clean API-35 release pass, and the teardown result
-cannot be dismissed as environmental without a stable rerun. API-35 compatibility remains open for
-hosted x86_64 CI and/or a healthier device. The current API-36 / 16 KB debug and minified release
-results remain independently green at 20/20 each.
+Android 15 / API-35 compatibility rerun (2026-10-20): on the existing ARM64 `alloy-api35-arm64`
+AVD (4 KB pages, software-rendered; no data wipe), the complete connected debug suite and complete
+QA-signed minified-release suite both pass 20/20 with zero failures or skips. The focused Bocal
+arc-dock test also passes 1/1 in both debug and minified release; focused Quick Score and
+unsaved-physio-region recreation checks pass 1/1 in minified release. The initial full minified run
+on this AVD had 13 failures amid system/Google-process ANRs and ActivityTaskManager launch/destroy
+timeouts, including an arc-dock teardown timeout. The clean full-suite reruns were obtained after
+shutting down the concurrently running API-36 emulator; no data wipe was performed. This supports
+the interpretation that emulator contention contributed, but does not prove the initial failures
+were exclusively environmental. API-35 hosted x86_64 CI and physical-device acceptance remain open;
+API-36 / 16 KB emulator results remain independently green at 20/20 for debug and minified release.
 
 Current release-gate replay (2026-10-19, current checkout): root/module JVM and Android debug/release
 unit tests, Android instrumentation compilation, and release lint all pass (124 Gradle tasks; 5

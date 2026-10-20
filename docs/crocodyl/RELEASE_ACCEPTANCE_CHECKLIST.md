@@ -13,11 +13,13 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       minified-release connected suites pass 20/20 each. Repository Python contracts pass 102/102,
       the three Node viewer/signature/report suites pass, and immutable workflow-action references
       verify across eight workflow files. Hosted CI remains pending because the branch is local.
-- [ ] Android 15/API-35 ARM64 minified-release full-suite replay is inconclusive/failed (13/20
-      failures, predominantly OS/system ANRs). Focused Quick Score and physio-region tests pass 1/1
-      each after cold reboot, but the arc-dock test fails during activity teardown after the
-      ActivityTaskManager destroy timeout. Do not count API-35 as accepted until a stable full run
-      passes; see `PRODUCTION_STATUS.md`.
+- [x] Android 15/API-35 ARM64 emulator full connected debug and QA-signed minified-release suites
+      pass 20/20 each with zero failures/skips. Bocal arc-dock focused smoke passes 1/1 in both
+      variants; Quick Score and physio-region recreation smokes pass 1/1 in minified release. An
+      earlier full run failed amid OS/Google-process ANRs and activity timeouts; clean reruns passed
+      after the concurrent API-36 emulator was stopped (no data wipe). This suggests contention
+      contributed but does not prove the earlier failures were exclusively environmental. Hosted
+      x86_64 CI and physical-device acceptance remain pending; see `PRODUCTION_STATUS.md`.
 - [x] Signed `.croc` export is exercised end-to-end with synthetic active/retracted rows in all six
       retraction-capable tables using an isolated temporary Room database. The normal export path
       writes a signed archive; test inspection confirms active rows are present, tombstones are
