@@ -109,6 +109,8 @@ jobs:
           git diff --exit-code -- app-android/src/main/assets/atelier/models
           python3 tools/atelier/build_arrow_reference_library.py
           git diff --exit-code -- app-android/src/main/assets/atelier/arrow-reference-library
+      - name: Require approved signer-continuity decision
+        run: python3 tools/release/verify_signer_continuity_decision.py
       - name: Verify release password inputs
         env:
           STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
@@ -281,6 +283,7 @@ jobs:
   publish:
     needs: apk
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: write
     steps:

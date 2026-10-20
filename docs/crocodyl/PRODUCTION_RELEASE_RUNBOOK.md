@@ -58,7 +58,16 @@ example, a confirmed Play App Signing upgrade path if this package is managed in
 reviewed signing lineage for direct APK distribution, or a new application ID accompanied by an
 explicit user-data migration plan. The old signing key is committed in a public repository, so it
 must not be treated as a secret or silently promoted to production. Do not remove this gate based
-only on a successful QA-signed update test.
+only on a successful QA-signed update test. The release workflow enforces this through
+`tools/release/signer_continuity_decision.json`; it remains `unresolved` until the owner records an
+approved strategy, distribution channel, approval reference and verified migration evidence.
+
+The publication job also targets GitHub's `production` environment. In repository Settings →
+Environments, configure that environment with the owner/release reviewer as a required reviewer,
+enable prevention of self-review, and disable administrator bypass where available. The workflow's
+environment reference alone does not create these protection rules; verify the settings in GitHub
+before treating owner approval as enforced. GitHub documents that required reviewers pause the job
+until approval and that self-review can be disabled: [deployment environment reviews](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
 
 Never commit the keystore, passwords, or fingerprint-bearing private key material. The release
 workflow checks the expected certificate fingerprint before running tests; the four password and

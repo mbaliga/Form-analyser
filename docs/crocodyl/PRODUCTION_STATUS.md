@@ -10,6 +10,18 @@ installations. A channel-specific migration strategy and an update/data-continui
 chosen production identity are required before release; details and options are in
 `PRODUCTION_RELEASE_RUNBOOK.md`.
 
+The release publication job now references a `production` GitHub Environment, but repository-side
+required-reviewer, self-review and bypass settings are not visible from this checkout and remain
+unverified. See the runbook and acceptance checklist; the workflow reference alone does not enforce
+an approval until those environment protection rules are configured.
+
+Fail-closed release gates (2026-10-20): `tools/release/signer_continuity_decision.json` records the
+unresolved owner decision. The release workflow validates it before checking production passwords
+or materializing the keystore and will stop while unresolved; focused decision and workflow contract
+tests pass (71/71 release tests). The publication job references the `production` Environment, and
+the workflow YAML parses. GitHub required-reviewer/self-review/bypass settings and the actual
+signer-continuity strategy remain unverified and cannot be inferred from the checked-in workflow.
+
 Android 15 / API-35 compatibility rerun (2026-10-20): on the existing ARM64 `alloy-api35-arm64`
 AVD (4 KB pages, software-rendered; no data wipe), the complete connected debug suite and complete
 QA-signed minified-release suite both pass 20/20 with zero failures or skips. The focused Bocal
@@ -24,7 +36,7 @@ API-36 / 16 KB emulator results remain independently green at 20/20 for debug an
 
 Fresh local release-gate replay (2026-10-20, HEAD `a96f53c`): root/JVM tests, Android debug and
 release unit tests, and release lint pass (113 Gradle tasks; 4 executed, 109 up-to-date). Release
-contracts pass 63/63, shared-checkout 4/4, viewer contracts 11/11, community-directory contracts
+contracts pass 71/71, shared-checkout 4/4, viewer contracts 11/11, community-directory contracts
 4/4, Atelier asset/photo contracts 9/9, arrow library 4/4, and arrow-reference contracts 7/7.
 All three Node signature/viewer/report suites pass, workflow action pins verify across eight files,
 and the community directory validates. Both Atelier model and arrow-reference asset rebuilds are
@@ -1047,7 +1059,7 @@ signing remains open.
 
 | Area | Current status | Evidence / remaining gate |
 |---|---|---|
-| Recurve Android build | QA-only, not production releasable | Latest recorded QA APK/AAB are v721 (`0.6.4-export-e2e-qa`) and pass integrated release preflight; hashes are recorded above. Current API-35 ARM64 and API-36 ARM64/16 KB connected debug and minified-release suites each pass 20/20. The fresh local JVM/Android unit-test and release-lint gate passes (113 Gradle tasks); release contracts pass 63/63 and generated asset rebuilds are clean. The inspected public v0.5.1 APK was updated in place to v716 on the API-36 emulator; data-bearing v701 profile/rig continuity and synthetic V4→V9 migration evidence are separately recorded. v721 remains QA/debug-signed. Production signer/hosted CI, physical-device/range matrix, 30 real sessions and owner sign-off remain. |
+| Recurve Android build | QA-only, not production releasable | Latest recorded QA APK/AAB are v721 (`0.6.4-export-e2e-qa`) and pass integrated release preflight; hashes are recorded above. Current API-35 ARM64 and API-36 ARM64/16 KB connected debug and minified-release suites each pass 20/20. The fresh local JVM/Android unit-test and release-lint gate passes (113 Gradle tasks); release contracts pass 71/71 and generated asset rebuilds are clean. The inspected public v0.5.1 APK was updated in place to v716 on the API-36 emulator; data-bearing v701 profile/rig continuity and synthetic V4→V9 migration evidence are separately recorded. v721 remains QA/debug-signed. Production signer/hosted CI, physical-device/range matrix, 30 real sessions and owner sign-off remain. |
 | Data safety and recovery | Implemented and tested | Room recovery, checksum-manifested database backups restricted to the app-private recovery root, atomic exports, vault staging cleanup, manifest/checksum and privacy filtering are covered by tests and release checks. |
 | Equipment Atelier | Implemented for current arrow-first visual scope | Component-separated arrow library, variants and mobile/desktop previews are committed. Owner/device visual review remains a release-quality gate. |
 | Fencing | Scaffold only | Sabre/Foil/Epee metadata and manual referee console are present. Automatic two-fencer adjudication is roadmap work. |

@@ -90,6 +90,12 @@ class ReleaseWorkflowContract(unittest.TestCase):
         self.assertIn('test -n "$KEYSTORE_BASE64"', prepare_step)
         self.assertIn('printf \'%s\' "$KEYSTORE_BASE64" | base64 --decode > app-android/release.keystore', prepare_step)
 
+    def test_signer_continuity_decision_blocks_release_before_signing(self) -> None:
+        decision = self.workflow.index("- name: Require approved signer-continuity decision")
+        prepare = self.workflow.index("- name: Prepare release signing")
+        self.assertIn("tools/release/verify_signer_continuity_decision.py", self.workflow[decision:prepare])
+        self.assertLess(decision, prepare)
+
     def test_signing_credentials_are_scoped_to_the_steps_that_need_them(self) -> None:
         verify = self.workflow.index("- name: Verify production signing inputs")
         password_check = self.workflow.index("- name: Verify release password inputs")
@@ -206,6 +212,10 @@ class ReleaseWorkflowContract(unittest.TestCase):
             self.workflow.index("actions/download-artifact@"),
         )
         self.assertGreater(publish_job.index("softprops/action-gh-release@"), 0)
+
+    def test_publication_job_uses_production_environment_approval_gate(self) -> None:
+        publish_job = self.workflow.split("\n  publish:", maxsplit=1)[1]
+        self.assertRegex(publish_job, r"(?m)^    environment: production$")
 
     def test_release_runs_both_android_unit_variants_and_lint(self) -> None:
         self.assertIn(":app-android:testDebugUnitTest", self.workflow)

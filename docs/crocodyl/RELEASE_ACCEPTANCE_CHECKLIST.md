@@ -9,7 +9,7 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
 ### Current-source editor state, navbar parity and runtime evidence (2026-10-20)
 
 - [x] Fresh local release-gate replay passes all 113 tasks for root/JVM tests, Android debug and
-      release unit tests, and release lint. Release contracts pass 63/63; shared checkout 4/4;
+      release unit tests, and release lint. Release contracts pass 71/71; shared checkout 4/4;
       viewer 11/11; community directory 4/4; Atelier assets/photos 9/9; arrow library 4/4; and
       arrow-reference library 7/7. All three Node signature/viewer/report suites pass; all eight
       workflow action references verify; generated asset rebuilds leave the checkout unchanged.
@@ -140,6 +140,14 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       by the committed QA/debug certificate, which production signing intentionally rejects. QA
       upgrades using that same certificate do not prove production update compatibility; test the
       selected channel-specific migration path and data continuity with the production identity.
+- [ ] Configure and inspect the GitHub `production` Environment: require owner/release review,
+      prevent self-review and disable bypass where available. Confirm the publication job pauses
+      for approval in a non-release rehearsal; a workflow `environment:` reference alone is not
+      proof that repository-side protection rules exist.
+- [x] Release workflow now fails closed on the checked-in unresolved signer-continuity decision
+      before production passwords or keystore material are loaded. The publish job references the
+      `production` Environment. Local release contracts pass 71/71 and the workflow YAML parses;
+      GitHub-side reviewer protection and the actual migration strategy remain unverified.
 
 ### Complete local data wipe (2026-10-16)
 
@@ -498,7 +506,7 @@ data-bearing migration acceptance, 30-real-session acceptance, or owner approval
       and asserts preservation of those shot-score rows. All records were synthetic; no real athlete
       database was used. Production signer continuity, physical-device acceptance and real-session
       validation remain open.
-- [x] Latest local repository contracts pass: release 63/63, shared checkout 4/4, viewer 11/11 plus
+- [x] Latest local repository contracts pass: release 71/71, shared checkout 4/4, viewer 11/11 plus
       ECDSA interoperability, community directory 4/4, Atelier/photo 9/9, arrow library 4/4,
       arrow-reference 7/7, and immutable action refs across all 8 workflows.
 - [ ] Production signer and hosted release-workflow pass, physical-device/range matrix,
