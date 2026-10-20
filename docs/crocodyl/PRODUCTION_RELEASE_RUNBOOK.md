@@ -62,20 +62,24 @@ only on a successful QA-signed update test. The release workflow enforces this t
 `tools/release/signer_continuity_decision.json`; it remains `unresolved` until the owner records an
 approved strategy, distribution channel, approval reference and verified migration evidence.
 
-The publication job also targets GitHub's `production` environment. In repository Settings →
-Environments, configure that environment with the owner/release reviewer as a required reviewer,
-enable prevention of self-review, and disable administrator bypass where available. The workflow's
-environment reference alone does not create these protection rules; verify the settings in GitHub
-before treating owner approval as enforced. GitHub documents that required reviewers pause the job
-until approval and that self-review can be disabled: [deployment environment reviews](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
+The signing job targets GitHub's `production` environment after unsigned tests pass and before any
+production signing inputs are read. Store the five `CROCODYL_RELEASE_*` signing secrets in that
+environment. In repository Settings → Environments, configure it with the owner/release reviewer
+as a required reviewer, enable prevention of self-review when another reviewer is available, and
+disable administrator bypass where available. The workflow's environment reference alone does not
+create these protection rules; verify the settings in GitHub before treating owner approval as
+enforced. The publication job remains isolated with `contents: write` and runs only after signed
+artifact tests pass. GitHub documents that required reviewers pause a job until approval and that
+self-review can be disabled: [deployment environment reviews](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/review-deployments).
 
 Never commit the keystore, passwords, or fingerprint-bearing private key material. The release
-workflow checks the expected certificate fingerprint before running tests; the four password and
-keystore inputs are checked only after unsigned unit, lint, source-contract, and debug-smoke lanes
-pass. It then writes the keystore into the ephemeral CI workspace with owner-only permissions. The
-keystore remains only for signed release assembly and instrumentation, is removed before the
-remaining unsigned checks, and is also covered by an `always()` cleanup step. The workflow fails
-closed if any signing input or the expected certificate fingerprint is absent.
+workflow checks the expected certificate fingerprint only in the protected signing job, after the
+unsigned unit, lint, source-contract and debug-smoke job succeeds and the production environment
+review has passed. The unsigned verification job receives no production signing secrets. Passwords
+and the keystore are checked only in the signing job; it writes the keystore into the ephemeral CI
+workspace with owner-only permissions. The keystore is removed before the final unsigned launch
+smoke and is also covered by an `always()` cleanup step. The workflow fails closed if any signing
+input or the expected certificate fingerprint is absent.
 
 ## Trigger and verify
 

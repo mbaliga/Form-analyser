@@ -140,14 +140,16 @@ For the CI/signing sequence, use [PRODUCTION_RELEASE_RUNBOOK.md](PRODUCTION_RELE
       by the committed QA/debug certificate, which production signing intentionally rejects. QA
       upgrades using that same certificate do not prove production update compatibility; test the
       selected channel-specific migration path and data continuity with the production identity.
-- [ ] Configure and inspect the GitHub `production` Environment: require owner/release review,
-      prevent self-review and disable bypass where available. Confirm the publication job pauses
-      for approval in a non-release rehearsal; a workflow `environment:` reference alone is not
-      proof that repository-side protection rules exist.
+- [ ] Configure and inspect the GitHub `production` Environment: store signing secrets there,
+      require owner/release review, prevent self-review when a second reviewer is available, and
+      disable bypass where available. Confirm the signing job pauses after unsigned verification
+      but before reading secrets; a workflow `environment:` reference alone is not proof that
+      repository-side protection rules exist.
 - [x] Release workflow now fails closed on the checked-in unresolved signer-continuity decision
-      before production passwords or keystore material are loaded. The publish job references the
-      `production` Environment. Local release contracts pass 71/71 and the workflow YAML parses;
-      GitHub-side reviewer protection and the actual migration strategy remain unverified.
+      before production passwords or keystore material are loaded. The signing job is gated by the
+      `production` Environment; write permission remains isolated to publication after signed tests.
+      Local release contracts pass 71/71 and the workflow YAML parses; GitHub-side reviewer
+      protection and the actual migration strategy remain unverified.
 
 ### Complete local data wipe (2026-10-16)
 

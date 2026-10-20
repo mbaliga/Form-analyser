@@ -213,9 +213,20 @@ class ReleaseWorkflowContract(unittest.TestCase):
         )
         self.assertGreater(publish_job.index("softprops/action-gh-release@"), 0)
 
-    def test_publication_job_uses_production_environment_approval_gate(self) -> None:
+    def test_production_environment_gates_signing_after_unsigned_verification(self) -> None:
+        verify_job = self.workflow.split("\n  verify:", maxsplit=1)[1].split("\n  sign:", maxsplit=1)[0]
+        sign_job = self.workflow.split("\n  sign:", maxsplit=1)[1].split("\n  publish:", maxsplit=1)[0]
         publish_job = self.workflow.split("\n  publish:", maxsplit=1)[1]
-        self.assertRegex(publish_job, r"(?m)^    environment: production$")
+        self.assertIn("needs: verify", sign_job)
+        self.assertRegex(sign_job, r"(?m)^    environment: production$")
+        self.assertIn("needs.verify.outputs.version", sign_job)
+        self.assertIn("secrets.CROCODYL_RELEASE_", sign_job)
+        self.assertNotIn("secrets.", verify_job)
+        self.assertNotIn("CROCODYL_RELEASE_", verify_job)
+        self.assertNotIn("secrets.", publish_job)
+        self.assertNotIn("environment: production", publish_job)
+        self.assertIn("needs: sign", publish_job)
+        self.assertIn("needs.sign.outputs.version", publish_job)
 
     def test_release_runs_both_android_unit_variants_and_lint(self) -> None:
         self.assertIn(":app-android:testDebugUnitTest", self.workflow)

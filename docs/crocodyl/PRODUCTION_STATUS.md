@@ -10,17 +10,19 @@ installations. A channel-specific migration strategy and an update/data-continui
 chosen production identity are required before release; details and options are in
 `PRODUCTION_RELEASE_RUNBOOK.md`.
 
-The release publication job now references a `production` GitHub Environment, but repository-side
-required-reviewer, self-review and bypass settings are not visible from this checkout and remain
-unverified. See the runbook and acceptance checklist; the workflow reference alone does not enforce
-an approval until those environment protection rules are configured.
+The release signing job now references a `production` GitHub Environment after unsigned verification
+and before reading signing secrets. The repository-side required-reviewer, self-review and bypass
+settings are not visible from this checkout and remain unverified. See the runbook and acceptance
+checklist; the workflow reference alone does not enforce approval until those environment rules are
+configured.
 
 Fail-closed release gates (2026-10-20): `tools/release/signer_continuity_decision.json` records the
 unresolved owner decision. The release workflow validates it before checking production passwords
 or materializing the keystore and will stop while unresolved; focused decision and workflow contract
-tests pass (71/71 release tests). The publication job references the `production` Environment, and
-the workflow YAML parses. GitHub required-reviewer/self-review/bypass settings and the actual
-signer-continuity strategy remain unverified and cannot be inferred from the checked-in workflow.
+tests pass (71/71 release tests). The signing job references the `production` Environment, the
+publication job remains separated with write-only release permission, and the workflow YAML parses.
+GitHub required-reviewer/self-review/bypass settings and the actual signer-continuity strategy remain
+unverified and cannot be inferred from the checked-in workflow.
 
 Android 15 / API-35 compatibility rerun (2026-10-20): on the existing ARM64 `alloy-api35-arm64`
 AVD (4 KB pages, software-rendered; no data wipe), the complete connected debug suite and complete
