@@ -62,6 +62,16 @@ only on a successful QA-signed update test. The release workflow enforces this t
 `tools/release/signer_continuity_decision.json`; it remains `unresolved` until the owner records an
 approved strategy, distribution channel, approval reference and verified migration evidence.
 
+The owner has confirmed Google Play as the intended distribution channel. The package ID is
+`xyz.mdhv.formanalyser`, but public listing searches did not establish whether it is already enrolled
+in Play Console; private, closed-testing, and unpublished listings are not publicly discoverable.
+Before choosing `play-app-signing`, inspect the exact app in Play Console and record whether Play
+App Signing is enabled, the app-signing certificate, upload-key state, and the available key-upgrade
+path. If this is a new Play listing, verify that separately and make sure the upload key is not
+mistaken for the app-signing key. A Play update path does not establish update continuity for APKs
+previously installed from GitHub; retain a separate decision for direct APK distribution if it is
+ever offered.
+
 The signing job targets GitHub's `production` environment after unsigned tests pass and before any
 production signing inputs are read. Store the five `CROCODYL_RELEASE_*` signing secrets in that
 environment. In repository Settings → Environments, configure it with the owner/release reviewer
