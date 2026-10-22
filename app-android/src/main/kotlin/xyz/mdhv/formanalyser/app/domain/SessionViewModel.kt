@@ -49,6 +49,9 @@ data class BaselineInfo(val ready: Boolean, val repCount: Long) {
         get() = (8L - repCount).coerceAtLeast(0)
 }
 
+internal fun canAcceptSessionStart(sessionStarting: Boolean, recording: Boolean): Boolean =
+    !sessionStarting && !recording
+
 /**
  * Drives the IMU-first MVP loop (handoff §11): capture → segment → features → baseline → deviation
  * → fatigue + signal↔score. Uses manual refresh after each mutation (simple and predictable) rather
@@ -68,6 +71,12 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
     val isRecording: StateFlow<Boolean> = _isRecording
     private val _sessionActive = MutableStateFlow(false)
     val sessionActive: StateFlow<Boolean> = _sessionActive
+    private val _sessionStarting = MutableStateFlow(false)
+    val sessionStarting: StateFlow<Boolean> = _sessionStarting
+    private val _sessionStartError = MutableStateFlow<String?>(null)
+    val sessionStartError: StateFlow<String?> = _sessionStartError
+    private val _sessionStartWarning = MutableStateFlow<String?>(null)
+    val sessionStartWarning: StateFlow<String?> = _sessionStartWarning
     private val _shots = MutableStateFlow<List<ShotView>>(emptyList())
     val shots: StateFlow<List<ShotView>> = _shots
     private val _baseline = MutableStateFlow(BaselineInfo(false, 0))
@@ -116,71 +125,120 @@ class SessionViewModel(app: Application) : AndroidViewModel(app) {
         handednessOverride: Handedness? = null,
         pre: PreCheckinData? = null,
         context: SessionDefaults? = null,
-    ) {
+    ): Boolean {
+        if (!canAcceptSessionStart(_sessionStarting.value, _isRecording.value)) return false
+        // A prior session may still be loaded in this ViewModel. Close its capture gate before
+        // launching the new asynchronous insert so Capture cannot accidentally record against it.
+        currentSessionId = null
+        currentHandednessOverride = handednessOverride
+        _sessionActive.value = false
+        _sessionStarting.value = true
+        _sessionStartError.value = null
+        _sessionStartWarning.value = null
         viewModelScope.launch {
-            val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
-            val rig = withContext(Dispatchers.IO) { repo.activeRig(athlete.id) }
-            _activeRig.value = rig
-            val poundage =
-                rig?.let { Tuning.effectivePoundage(it, athlete.drawLengthMm)?.lbs } ?: 0.0
-            currentHandednessOverride = handednessOverride
-            val sid = UUID.randomUUID().toString()
-            val startedAtMs = System.currentTimeMillis()
-            withContext(Dispatchers.IO) {
-                val preId =
+            var createdSessionId: String? = null
+            var createdSessionStartedAt: Long? = null
+            var createdSessionRigId: String? = null
+            try {
+                val athlete =
+                    withContext(Dispatchers.IO) { repo.currentAthlete() }
+                        ?: run {
+                            _sessionStartError.value =
+                                "Athlete profile is unavailable. Go back to session setup and try again."
+                            return@launch
+                        }
+                val rig = withContext(Dispatchers.IO) { repo.activeRig(athlete.id) }
+                _activeRig.value = rig
+                val poundage =
+                    rig?.let { Tuning.effectivePoundage(it, athlete.drawLengthMm)?.lbs } ?: 0.0
+                val sid = UUID.randomUUID().toString()
+                val startedAtMs = System.currentTimeMillis()
+                val checkinId = pre?.let { UUID.randomUUID().toString() }
+                val checkin =
                     pre?.let { p ->
-                        val cid = UUID.randomUUID().toString()
-                        repo.wellness.insertCheckin(
-                            CheckinEntity(
-                                cid,
-                                athlete.id,
-                                System.currentTimeMillis(),
-                                "PRE",
-                                p.skipped,
-                                p.energy,
-                                p.sleep,
-                                p.motivation,
-                                note = p.note,
-                            )
+                        CheckinEntity(
+                            checkinId!!,
+                            athlete.id,
+                            System.currentTimeMillis(),
+                            "PRE",
+                            p.skipped,
+                            p.energy,
+                            p.sleep,
+                            p.motivation,
+                            note = p.note,
                         )
-                        if (p.sorenessRegionIds.isNotEmpty())
-                            repo.wellness.insertSoreness(
-                                p.sorenessRegionIds.distinct().map { SorenessEntity(cid, it) }
-                            )
-                        cid
                     }
-                repo.createSession(
-                    SessionEntity(
-                        sid,
-                        athlete.id,
-                        startedAtMs,
-                        poundage,
-                        distanceMeters,
-                        rigId = rig?.id,
-                        handednessOverride = handednessOverride?.name,
-                        preCheckinId = preId,
-                    )
-                )
-                context?.let {
-                    athleteFeatures.saveSessionContext(
-                        sid,
-                        it.copy(rigId = rig?.id ?: it.rigId, distanceMeters = distanceMeters),
-                        startedAtMs,
+                val soreness =
+                    if (checkinId != null)
+                        pre.sorenessRegionIds.distinct().map { SorenessEntity(checkinId, it) }
+                    else emptyList()
+                withContext(Dispatchers.IO) {
+                    repo.createSessionWithPreCheckin(
+                        SessionEntity(
+                            sid,
+                            athlete.id,
+                            startedAtMs,
+                            poundage,
+                            distanceMeters,
+                            rigId = rig?.id,
+                            handednessOverride = handednessOverride?.name,
+                            preCheckinId = checkinId,
+                        ),
+                        checkin,
+                        soreness,
                     )
                 }
+                currentSessionId = sid
+                createdSessionId = sid
+                createdSessionStartedAt = startedAtMs
+                createdSessionRigId = rig?.id
+                _sessionActive.value = true
+                _shots.value = emptyList()
+                _postPending.value = null
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                _sessionStartError.value =
+                    "Couldn't save this session. Check available storage, then go back to session setup and try again."
+            } finally {
+                _sessionStarting.value = false
             }
-            currentSessionId = sid
-            _sessionActive.value = true
-            _shots.value = emptyList()
-            _postPending.value = null
-            refresh()
+            val savedSessionId = createdSessionId ?: return@launch
+            context?.let { defaults ->
+                try {
+                    withContext(Dispatchers.IO) {
+                        athleteFeatures.saveSessionContext(
+                            savedSessionId,
+                            defaults.copy(rigId = createdSessionRigId ?: defaults.rigId, distanceMeters = distanceMeters),
+                            createdSessionStartedAt ?: System.currentTimeMillis(),
+                        )
+                    }
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (failure: Exception) {
+                    _sessionStartWarning.value =
+                        "Session saved, but its optional training context couldn't be saved. You can review it later."
+                }
+            }
+            try {
+                refresh()
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                _sessionStartWarning.value =
+                    "Session saved, but recent form data couldn't be loaded. Capture can continue."
+            }
         }
+        return true
     }
 
     /** Reopen an existing session (e.g. from Home's recent list) into Review. */
     fun openSession(sessionId: String) {
         currentSessionId = sessionId
         currentHandednessOverride = null
+        _sessionStarting.value = false
+        _sessionStartError.value = null
+        _sessionStartWarning.value = null
         _sessionActive.value = true
         viewModelScope.launch { refresh() }
     }

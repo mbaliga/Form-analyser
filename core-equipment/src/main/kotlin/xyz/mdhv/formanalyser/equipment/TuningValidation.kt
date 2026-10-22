@@ -130,8 +130,9 @@ object TuningValidator {
         }
 
         // FOC band.
-        if (arrowLen != null && spec.arrow?.balancePointMm != null && arrowLen > 0.0) {
-            val foc = ArrowMath.focPercent(arrowLen, spec.arrow.balancePointMm)
+        val balancePointMm = spec.arrow?.balancePointMm
+        if (arrowLen != null && balancePointMm != null && arrowLen > 0.0) {
+            val foc = ArrowMath.focPercent(arrowLen, balancePointMm)
             if (foc < FOC_MIN_PCT || foc > FOC_MAX_PCT) {
                 out += TuningWarning(
                     TuningWarningCode.FOC_OUT_OF_RANGE, WarningSeverity.WARNING,

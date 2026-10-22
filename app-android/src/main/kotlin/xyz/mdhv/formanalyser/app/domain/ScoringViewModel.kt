@@ -3,6 +3,7 @@ package xyz.mdhv.formanalyser.app.domain
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,17 +51,17 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
     fun load() {
         if (!_state.value.loading && _state.value.snapshot != null) return
         viewModelScope.launch {
-            runCatching { withContext(Dispatchers.IO) { repo.resumeActive() to repo.recent(10) } }
-                .onSuccess { (a, r) ->
-                    _state.update {
-                        it.copy(snapshot = a, recent = r, loading = false, error = null)
-                    }
+            try {
+                val (a, r) = withContext(Dispatchers.IO) { repo.resumeActive() to repo.recent(10) }
+                _state.update {
+                    it.copy(snapshot = a, recent = r, loading = false, error = null)
                 }
-                .onFailure { t ->
-                    _state.update {
-                        it.copy(loading = false, error = t.message ?: "Could not load scoring")
-                    }
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t
+                _state.update {
+                    it.copy(loading = false, error = t.message ?: "Could not load scoring")
                 }
+            }
         }
     }
 
@@ -147,22 +148,26 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
     fun loadEndScanCandidates() {
         val s = _state.value.snapshot ?: return
         viewModelScope.launch {
-            val c =
-                withContext(Dispatchers.IO) {
-                    repo.endScanCandidates(s.session.id, s.card.currentEndIndex)
+            try {
+                val c =
+                    withContext(Dispatchers.IO) {
+                        repo.endScanCandidates(s.session.id, s.card.currentEndIndex)
+                    }
+                _state.update { it.copy(endScanCandidates = c) }
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t
+                _state.update {
+                    it.copy(error = t.message ?: "Could not load End Scan candidates")
                 }
-            _state.update { it.copy(endScanCandidates = c) }
+            }
         }
     }
 
     fun acceptDetectedCandidates(c: List<ScoringRepository.EndScanCandidate>) {
         val s = _state.value.snapshot ?: return
-        viewModelScope.launch {
-            val proposed =
-                withContext(Dispatchers.IO) {
-                    repo.proposeEndScanCandidates(s.session.id, s.card.currentEndIndex, c)
-                }
-            _state.update { it.copy(endScanCandidates = proposed) }
+        action {
+            val proposed = repo.proposeEndScanCandidates(s.session.id, s.card.currentEndIndex, c)
+            return@action { copy(endScanCandidates = proposed) }
         }
     }
 
@@ -178,7 +183,7 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
     fun rejectEndScanCandidate(cid: String) {
         val s = _state.value.snapshot ?: return
         action {
-            repo.rejectEndScanCandidate(cid)
+            repo.rejectEndScanCandidate(cid, s.session.id, s.card.currentEndIndex)
             val c = repo.endScanCandidates(s.session.id, s.card.currentEndIndex)
             return@action { copy(endScanCandidates = c) }
         }
@@ -215,10 +220,13 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
     fun previewDeletion() {
         val id = _state.value.snapshot?.session?.id ?: return
         viewModelScope.launch {
-            val p =
-                runCatching { withContext(Dispatchers.IO) { repo.previewScorecardDeletion(id) } }
-                    .getOrNull()
-            _state.update { it.copy(deletionPreview = p) }
+            try {
+                val p = withContext(Dispatchers.IO) { repo.previewScorecardDeletion(id) }
+                _state.update { it.copy(deletionPreview = p) }
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t
+                _state.update { it.copy(error = t.message ?: "Could not prepare scorecard deletion") }
+            }
         }
     }
 
@@ -249,8 +257,13 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
     /** Populate the link picker. Cheap, and only ever called when the athlete opens the dialog. */
     fun loadLinkableFormSessions() {
         viewModelScope.launch {
-            val s = withContext(Dispatchers.IO) { repo.linkableFormSessions() }
-            _state.update { it.copy(linkableFormSessions = s) }
+            try {
+                val s = withContext(Dispatchers.IO) { repo.linkableFormSessions() }
+                _state.update { it.copy(linkableFormSessions = s) }
+            } catch (t: Throwable) {
+                if (t is CancellationException) throw t
+                _state.update { it.copy(error = t.message ?: "Could not load training sessions") }
+            }
         }
     }
 
@@ -326,6 +339,7 @@ class ScoringViewModel(app: Application) : AndroidViewModel(app) {
                 val patch = withContext(Dispatchers.IO) { block() }
                 _state.update { it.patch().copy(saving = false, loading = false, error = null) }
             } catch (t: Throwable) {
+                if (t is CancellationException) throw t
                 _state.update {
                     it.copy(
                         saving = false,

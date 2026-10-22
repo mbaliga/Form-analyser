@@ -11,6 +11,18 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+/** User-selectable theme modes shared by the main app and the local Atelier host. */
+enum class ThemeMode {
+    SYSTEM,
+    LIGHT,
+    DARK;
+
+    companion object {
+        fun fromStorage(value: String): ThemeMode =
+            entries.firstOrNull { it.name == value } ?: SYSTEM
+    }
+}
+
 /**
  * Hyle design tokens — REAL system values, ported verbatim from the Hyle Design System repo
  * (`dev.aarso.hyle.tokens.HyleTokens`, generated from the tokens JSON, the cross-platform
@@ -31,6 +43,9 @@ object Hyle {
     val Background = Color(0xFF0A0809)        // field.near — the inky base behind glass
     val Surface = Color(0xFF121212)           // background.surface — raised, never pure black
     val SurfaceVariant = Color(0xFF212128)    // control.surface-raised — lifted faces
+    // Rich/deep surfaces used by the equipment Atelier's immersive shell.
+    val SurfaceRich = Color(0xFF171421)
+    val SurfaceDeep = Color(0xFF15131D)
 
     // Ink (warm off-white, opacity tiers)
     val OnBackground = Color(0xEBECE8E4)      // text.primary (ink.full, 92%)
@@ -85,8 +100,12 @@ private val HyleType = Typography(
 )
 
 @Composable
-fun FormAnalyserTheme(content: @Composable () -> Unit) {
+fun FormAnalyserTheme(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    content: @Composable () -> Unit,
+) {
     // Dark-only by design. isSystemInDarkTheme kept for a future light variant.
     @Suppress("UNUSED_VARIABLE") val dark = isSystemInDarkTheme()
+    @Suppress("UNUSED_VARIABLE") val requestedTheme = themeMode
     MaterialTheme(colorScheme = HyleColors, typography = HyleType, content = content)
 }

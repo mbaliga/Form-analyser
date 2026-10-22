@@ -1,5 +1,7 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,14 +22,25 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.domain.OnboardingViewModel
+import xyz.mdhv.formanalyser.app.domain.PoundageValidation
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.HyleAvatar
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
@@ -39,8 +52,55 @@ import xyz.mdhv.formanalyser.model.Handedness
 @Composable
 fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
     val s by vm.state.collectAsState()
+    val context = LocalContext.current
+    val rangePhoto = remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    LaunchedEffect(Unit) {
+        if (rangePhoto.value == null) {
+            rangePhoto.value = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.assets.open("atelier/cinematic/recurve-training.jpg").use {
+                        BitmapFactory.decodeStream(it)?.asImageBitmap()
+                    }
+                }.getOrNull()
+            }
+        }
+    }
 
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Box(Modifier.fillMaxSize().background(Hyle.Background)) {
+        rangePhoto.value?.let { image ->
+            Image(
+                bitmap = image,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+        if (s.step == 0) {
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0f to Hyle.Background.copy(alpha = .72f),
+                        .3f to Hyle.Background.copy(alpha = .54f),
+                        .68f to Hyle.Background.copy(alpha = .68f),
+                        1f to Hyle.Background.copy(alpha = .96f),
+                    ),
+                ),
+            )
+        } else {
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0f to Hyle.Background.copy(alpha = .90f),
+                        .48f to Hyle.Background.copy(alpha = .84f),
+                        1f to Hyle.Background.copy(alpha = .94f),
+                    ),
+                ),
+            )
+        }
+        Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
         // progress dots
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             for (i in 0..s.lastStep) {
@@ -54,6 +114,12 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when (s.step) {
                 0 -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "CROCODYL  /  YOUR TRAINING SPACE",
+                        color = Hyle.RadiumGreen,
+                        style = MaterialTheme.typography.labelSmall,
+                        letterSpacing = 1.4.sp,
+                    )
                     Title("What do you do?")
                     HyleSegmented(listOf("ARCHER", "COACH", "BOTH"), s.role, { it.lowercase().replaceFirstChar(Char::uppercase) }) { vm.update { st -> st.copy(role = it) } }
                     if (s.role != "ARCHER") Hint("The coach workspace arrives in a later build — everything for training yourself is ready now.")
@@ -96,8 +162,11 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
                         Text("Riser length", color = Hyle.OnSurfaceDim)
                         HyleSegmented(listOf(23, 25, 27), s.riserLengthIn, { "$it″" }) { vm.update { st -> st.copy(riserLengthIn = it) } }
                     }
-                    NumberField(if (s.bowType == BowType.COMPOUND) "Peak weight (lbs)" else "Marked poundage (lbs)", s.markedLbs) { v -> vm.update { it.copy(markedLbs = v) } }
-                    NumberField("On-the-fingers poundage (lbs, measured)", s.otfLbs) { v -> vm.update { it.copy(otfLbs = v) } }
+                    NumberField(if (s.bowType == BowType.COMPOUND) "Peak weight (lbs)" else "Marked poundage (lbs)", s.markedLbsInput) { raw -> vm.update { it.copy(markedLbsInput = raw) } }
+                    NumberField("On-the-fingers poundage (lbs, measured)", s.otfLbsInput) { raw -> vm.update { it.copy(otfLbsInput = raw) } }
+                    if (!PoundageValidation.isValidInput(s.markedLbsInput) || !PoundageValidation.isValidInput(s.otfLbsInput)) {
+                        Text("Poundage must be greater than 0 lbs, or left blank.", color = Hyle.Danger)
+                    }
                     val marked = s.markedLbs
                     if (s.bowType != BowType.COMPOUND && s.otfLbs == null && marked != null && s.drawLengthSet) {
                         val est = PoundageEstimator.estimateOtfLbs(marked, s.riserLengthIn.toDouble(), s.drawLengthMm)
@@ -123,6 +192,7 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
                 modifier = Modifier.weight(1f),
             ) { Text(if (s.step == s.lastStep) "Finish" else "Next") }
         }
+        }
     }
 }
 
@@ -130,12 +200,12 @@ fun OnboardingScreen(vm: OnboardingViewModel, onDone: () -> Unit) {
 @Composable private fun Hint(t: String) = Text(t, color = Hyle.OnSurfaceDim)
 
 @Composable
-private fun NumberField(label: String, value: Double?, onChange: (Double?) -> Unit) {
+private fun NumberField(label: String, value: String, onChange: (String) -> Unit) {
     OutlinedTextField(
-        value = value?.let { if (it % 1.0 == 0.0) it.toInt().toString() else it.toString() } ?: "",
+        value = value,
         onValueChange = { raw ->
             val cleaned = raw.filter { it.isDigit() || it == '.' }
-            onChange(cleaned.toDoubleOrNull())
+            onChange(cleaned)
         },
         label = { Text(label) },
         singleLine = true,

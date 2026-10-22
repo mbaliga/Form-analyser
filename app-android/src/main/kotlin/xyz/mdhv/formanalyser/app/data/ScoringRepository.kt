@@ -5,8 +5,9 @@ import androidx.room.withTransaction
 import java.util.UUID
 import xyz.mdhv.formanalyser.scoring.*
 
-class ScoringRepository(context: Context) {
-    private val db = AppDatabase.get(context.applicationContext)
+class ScoringRepository internal constructor(private val db: AppDatabase) {
+    constructor(context: Context) : this(AppDatabase.get(context.applicationContext))
+
     private val scoring = db.scoringDao()
     private val features = db.athleteFeatureDao()
     private val athletes = db.athleteDao()
@@ -209,11 +210,19 @@ class ScoringRepository(context: Context) {
      */
     suspend fun setLinkedFormSession(sessionId: String, formSessionId: String?): Snapshot =
         db.withTransaction {
-            scoring.session(sessionId) ?: error("Score session not found: $sessionId")
-            if (formSessionId != null)
-                checkNotNull(sessions.byId(formSessionId)) {
-                    "That training session no longer exists."
+            val scoreSession = scoring.session(sessionId) ?: error("Score session not found: $sessionId")
+            if (formSessionId != null) {
+                val formSession =
+                    checkNotNull(sessions.byId(formSessionId)) {
+                        "That training session no longer exists."
+                    }
+                check(formSession.athleteId == scoreSession.athleteId) {
+                    "That training session belongs to another athlete."
                 }
+                check(formSession.deletedAt == null) {
+                    "That training session was deleted; choose an active session."
+                }
+            }
             scoring.setLinkedFormSession(sessionId, formSessionId)
             snapshotUnlocked(sessionId)
         }
@@ -261,9 +270,31 @@ class ScoringRepository(context: Context) {
         candidates: List<EndScanCandidate>,
     ): List<ScoreCandidateEntity> =
         db.withTransaction {
+            val current = snapshotUnlocked(sessionId)
+            requireActive(current.session)
+            require(!current.card.isFull) { "This scorecard is already full" }
+            require(endIndex == current.card.currentEndIndex) {
+                "End Scan candidates must target the current end"
+            }
+            require(
+                candidates.size <= current.card.round.arrowsPerEnd - current.card.currentArrowIndex
+            ) {
+                "Too many candidates for the current end"
+            }
+            candidates.forEach { candidate ->
+                val score = ArrowScore(candidate.points, candidate.isX)
+                validateForLayout(score, current.card.round.faceLayout)
+                candidate.plot?.let { PlotPoint(it.x, it.y, it.faceIndex) }
+                require(candidate.confidence == null || candidate.confidence.isFinite()) {
+                    "Candidate confidence must be finite"
+                }
+            }
             val now = System.currentTimeMillis()
+            // A detector retry replaces unresolved proposals for this end. Confirmed/rejected
+            // provenance remains intact, so re-running detection cannot create duplicate choices
+            // or rewrite a human decision.
+            features.clearProposedCandidates(sessionId, endIndex)
             candidates.mapIndexed { i, c ->
-                require(c.points in 0..10)
                 ScoreCandidateEntity(
                         UUID.randomUUID().toString(),
                         sessionId,
@@ -316,8 +347,14 @@ class ScoringRepository(context: Context) {
             Snapshot(scoring.session(sessionId)!!, next)
         }
 
-    suspend fun rejectEndScanCandidate(candidateId: String) {
-        features.resolveCandidate(candidateId, "REJECTED", System.currentTimeMillis())
+    suspend fun rejectEndScanCandidate(candidateId: String, sessionId: String, endIndex: Int) {
+        db.withTransaction {
+            val c =
+                features.candidatesForEnd(sessionId, endIndex).firstOrNull { it.id == candidateId }
+                    ?: error("End Scan candidate not found")
+            check(c.status == "PROPOSED")
+            features.resolveCandidate(candidateId, "REJECTED", System.currentTimeMillis())
+        }
     }
 
     suspend fun recordObserverTap(

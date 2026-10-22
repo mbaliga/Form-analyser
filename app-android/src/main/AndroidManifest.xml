@@ -21,9 +21,13 @@
          write. Local-first data is rebuilt on device; nothing here needs cloud backup yet. -->
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/ic_crocodyl"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FormAnalyser">
+        android:theme="@style/Theme.FormAnalyser"
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -34,11 +38,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".EquipmentAtelierActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".FencingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".MuayThaiActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".BoulderingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".CommunityDirectoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FormAnalyser" />
 
         <!--
-          Grants read access to one exported archive at a time, and only to the app the athlete
-          picks in the sharesheet. exported=false + grantUriPermissions means no other app can
-          reach it uninvited; the paths file limits it to cache/share.
+          Grants temporary access to an explicitly shared archive or an explicitly captured
+          document photo, and only to the app the athlete chooses (or the camera app). exported=false
+          + grantUriPermissions means no other app can reach either path uninvited.
         -->
         <provider
             android:name="androidx.core.content.FileProvider"

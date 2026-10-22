@@ -37,6 +37,7 @@ object PrivacyRegistry {
         put("training_plan", PrivacyClass.SHAREABLE)
         put("session_context", PrivacyClass.SHAREABLE)
         put("session_default", PrivacyClass.SHAREABLE)
+        put("sport_session", PrivacyClass.SHAREABLE)
         // Phase 2 — wellness + life layer
         put("checkin", PrivacyClass.SHAREABLE)
         put("soreness", PrivacyClass.SHAREABLE)

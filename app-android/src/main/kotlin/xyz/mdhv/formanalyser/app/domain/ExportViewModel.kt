@@ -2,6 +2,7 @@ package xyz.mdhv.formanalyser.app.domain
 
 import android.app.Application
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.util.Base64
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
@@ -34,7 +35,7 @@ import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
 
 /**
  * Phase 5 export ceremony (over `core-exchange`). Drives the tier/grant selection, computes the
- * live [ConsentDecision] preview, and — on confirm — assembles a `.crocbak` zip to a
+ * live [ConsentDecision] preview, and — on confirm — assembles a signed `.croc` zip to a
  * caller-supplied SAF [Uri].
  *
  * Privacy enforcement is delegated entirely to [ConsentFilter]/[PrivacyRegistry]: this VM only ever
@@ -43,9 +44,11 @@ import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
  * stamped here (`System.currentTimeMillis()`) and passed IN to the pure core, per the core's
  * determinism contract.
  */
-class ExportViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val keyProvider = AndroidKeyProvider()
+class ExportViewModel @JvmOverloads constructor(
+    app: Application,
+    private val database: AppDatabase = AppDatabase.get(app),
+    private val keyProvider: AndroidKeyProvider = AndroidKeyProvider(),
+) : AndroidViewModel(app) {
     private val json = Json {
         prettyPrint = false
         encodeDefaults = true
@@ -108,7 +111,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         ConsentFilter.filter(ALL_TABLES, tier, grants)
 
     /**
-     * Assemble the `.crocbak` archive into [uri] (a `CreateDocument` result). Runs off the main
+     * Assemble the signed `.croc` archive into [uri] (a `CreateDocument` result). Runs off the main
      * thread; publishes the result to [outcome].
      */
     fun export(uri: Uri) {
@@ -116,7 +119,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         _busy.value = true
         _outcome.value = null
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { runCatching { writeArchive(uri) } }
+            val result = withContext(Dispatchers.IO) { runCatching { writeArchive(uri, signed = true) } }
             _busy.value = false
             _outcome.value =
                 result.fold(
@@ -140,7 +143,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * — SAF writes it somewhere the athlete picked on this device, this hands it to an app they
      * pick.
      *
-     * Previous share exports are deleted first. A .crocbak can carry medical rows, and leaving old
+     * Previous share exports are deleted first. A .croc can carry medical rows, and leaving old
      * copies in a world-readable-to-the-recipient cache is exactly the quiet accumulation the
      * privacy model exists to prevent.
      */
@@ -156,7 +159,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                         val dir = File(app.cacheDir, SHARE_DIR).apply { mkdirs() }
                         dir.listFiles()?.forEach { it.delete() }
                         val file = File(dir, SUGGESTED_FILENAME)
-                        val message = file.outputStream().use { writeArchive(it) }
+                        val message = ShareExportPublisher.publish(file) { writeArchive(it, signed = true) }
                         val uri =
                             FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
                         uri to message
@@ -179,11 +182,17 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun writeArchive(uri: Uri): String {
-        val out =
-            getApplication<Application>().contentResolver.openOutputStream(uri)
-                ?: error("cannot open destination")
-        return out.use { writeArchive(it) }
+    private fun writeArchive(uri: Uri, signed: Boolean): String {
+        val app = getApplication<Application>()
+        val stagingFile = SafExportPublisher.newStagingFile(app.cacheDir)
+        return SafExportPublisher.publish(
+            stagingFile = stagingFile,
+            openDestination = { app.contentResolver.openOutputStream(uri) },
+            removeIncompleteDestination = {
+                DocumentsContract.deleteDocument(app.contentResolver, uri)
+            },
+            writeArchive = { writeArchive(it, signed = signed) },
+        )
     }
 
     /**
@@ -191,7 +200,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * file the sharesheet hands on — go through it, so a shared archive and a saved one are
      * byte-for-byte the same ceremony and cannot drift apart in what they include.
      */
-    private fun writeArchive(out: OutputStream): String {
+    private fun writeArchive(out: OutputStream, signed: Boolean): String {
         val decision = _decision.value
         val tier = _tier.value
         val included = decision.included.sorted()
@@ -228,9 +237,22 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                 rowCounts = rowCounts,
             )
 
+        val signedManifest = if (signed) {
+            manifest.copy(
+                signatureAlgorithm = AndroidKeyProvider.ENVELOPE_SIGNATURE_ALGORITHM,
+                publicKeyBase64 = Base64.encodeToString(keyProvider.identity().keyBytes, Base64.NO_WRAP),
+                signatureBase64 = Base64.encodeToString(
+                    keyProvider.signEnvelope(checksum, manifest.includedTables, manifest.tierName),
+                    Base64.NO_WRAP,
+                ),
+            )
+        } else {
+            manifest
+        }
+
         ZipOutputStream(out.buffered()).use { zip ->
             zip.putNextEntry(ZipEntry("manifest.json"))
-            zip.write(manifest.serialize().toByteArray())
+            zip.write(signedManifest.serialize().toByteArray())
             zip.closeEntry()
             for ((logical, bytes) in payloads) {
                 zip.putNextEntry(ZipEntry("tables/$logical.json"))
@@ -240,7 +262,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         val rows = rowCounts.values.sum()
-        return "Exported ${payloads.size} table(s), $rows row(s) to a .crocbak archive."
+        return "Exported ${payloads.size} table(s), $rows row(s) to a ${if (signed) ".croc" else ".crocbak"} archive."
     }
 
     /**
@@ -248,12 +270,11 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * count).
      */
     private fun dumpTable(sqlName: String): Pair<ByteArray, Long> {
-        val db = AppDatabase.get(getApplication()).openHelper.readableDatabase
+        val db = database.openHelper.readableDatabase
         val rows = ArrayList<JsonElement>()
         // A retracted row must not ride out in an archive the athlete believes they cleaned up.
         // The athlete deleted it here; handing it to a coach anyway would make the delete a lie.
-        val where = if (sqlName in RETRACTABLE) " WHERE deletedAt IS NULL" else ""
-        db.query("SELECT * FROM `$sqlName`$where").use { c ->
+        db.query(tableDumpQuery(sqlName)).use { c ->
             val cols = c.columnCount
             while (c.moveToNext()) {
                 val obj = LinkedHashMap<String, JsonElement>(cols)
@@ -291,10 +312,14 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
             get() = BuildConfig.VERSION_NAME
 
         /** Suggested SAF filename for the CreateDocument picker. */
-        const val SUGGESTED_FILENAME: String = "crocodyl-export.crocbak"
+        const val SUGGESTED_FILENAME: String = "crocodyl-export.croc"
 
-        /** MIME for the archive. */
-        const val MIME_ZIP: String = "application/zip"
+        /**
+         * MIME for Crocodyl's portable archive. Keep this vendor type rather than
+         * `application/zip`: Android's DocumentsUI otherwise appends `.zip` to the requested
+         * `.croc` filename, hiding the artifact type from users and import tooling.
+         */
+        const val MIME_CROC: String = "application/vnd.crocodyl.croc"
 
         /** Cache subdirectory the FileProvider exposes; nothing else in the cache is shareable. */
         const val SHARE_DIR: String = "share"
@@ -310,11 +335,22 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         private val SQL_NAME: Map<String, String> =
             mapOf("athlete" to "athletes", "session" to "sessions", "shot" to "shots")
 
-        /**
-         * SQL tables carrying a `deletedAt` retraction column (see AppDatabase.MIGRATION_6_7 for
-         * `sessions`/`score_session`, MIGRATION_7_8 for `checkin`/`pain_log`/`injury`).
-         */
+        /** SQL tables carrying a `deletedAt` retraction column (see AppDatabase migrations). */
         private val RETRACTABLE: Set<String> =
-            setOf("sessions", "score_session", "checkin", "pain_log", "injury")
+            setOf(
+                "sessions",
+                "score_session",
+                "sport_session",
+                "checkin",
+                "pain_log",
+                "injury",
+            )
+
+        /** Build the fixed-name cursor query, excluding retracted rows wherever the schema allows it. */
+        internal fun tableDumpQuery(sqlName: String): String {
+            require(sqlName.matches(Regex("[a-z_]+"))) { "Unexpected export table name" }
+            val where = if (sqlName in RETRACTABLE) " WHERE deletedAt IS NULL" else ""
+            return "SELECT * FROM `$sqlName`$where"
+        }
     }
 }

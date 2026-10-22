@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import java.io.File
 import java.time.LocalDate
 import java.util.UUID
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -238,28 +239,52 @@ class BodyViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun importDocument(source: Uri, title: String, mime: String, injuryId: String?) {
+    /**
+     * Import a document into the encrypted vault. [sourceFileToDelete] is only used for the
+     * app-created camera staging file; it is removed after encryption succeeds or fails so a
+     * cancelled/failed capture cannot accumulate plaintext images in cache.
+     */
+    fun importDocument(
+        source: Uri,
+        title: String,
+        mime: String,
+        injuryId: String?,
+        sourceFileToDelete: File? = null,
+    ) {
         viewModelScope.launch {
-            val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() } ?: return@launch
+            val athlete = withContext(Dispatchers.IO) { repo.currentAthlete() }
+            if (athlete == null) {
+                withContext(Dispatchers.IO) {
+                    sourceFileToDelete?.let { runCatching { it.delete() } }
+                }
+                return@launch
+            }
             withContext(Dispatchers.IO) {
                 val docId = UUID.randomUUID().toString()
-                runCatching { vault.encryptFrom(source, docId) }
-                    .onSuccess { enc ->
-                        repo.body.insertDocument(
-                            DocumentEntity(
-                                id = docId,
-                                athleteId = athlete.id,
-                                ts = System.currentTimeMillis(),
-                                title = title.ifBlank { "Document" },
-                                mime = mime,
-                                encPath = enc.encPath,
-                                sha256 = enc.sha256,
-                                sizeBytes = enc.sizeBytes,
-                                injuryId = injuryId,
-                            )
+                var encryptedPath: String? = null
+                try {
+                    val enc = vault.encryptFrom(source, docId)
+                    encryptedPath = enc.encPath
+                    repo.body.insertDocument(
+                        DocumentEntity(
+                            id = docId,
+                            athleteId = athlete.id,
+                            ts = System.currentTimeMillis(),
+                            title = title.ifBlank { "Document" },
+                            mime = mime,
+                            encPath = enc.encPath,
+                            sha256 = enc.sha256,
+                            sizeBytes = enc.sizeBytes,
+                            injuryId = injuryId,
                         )
-                    }
-                    .onFailure { _vaultError.value = it.message ?: "Import failed" }
+                    )
+                } catch (t: Exception) {
+                    if (t is CancellationException) throw t
+                    encryptedPath?.let(vault::delete)
+                    _vaultError.value = t.message ?: "Import failed"
+                } finally {
+                    sourceFileToDelete?.let { runCatching { it.delete() } }
+                }
             }
             load()
         }

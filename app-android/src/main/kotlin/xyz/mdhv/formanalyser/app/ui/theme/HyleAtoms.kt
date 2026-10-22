@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 /** A labelled segmented single-select control (identity = position + label, not hue). */
@@ -35,6 +37,7 @@ fun <T> HyleSegmented(
 ) {
     Row(
         modifier = modifier
+            .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(Hyle.SurfaceVariant),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -46,10 +49,16 @@ fun <T> HyleSegmented(
                 color = if (isSel) Hyle.OnBackground else Hyle.OnSurfaceDim,
                 fontWeight = if (isSel) FontWeight.SemiBold else FontWeight.Normal,
                 modifier = Modifier
+                    .weight(1f)
                     .clip(RoundedCornerShape(10.dp))
                     .background(if (isSel) Hyle.Accent.copy(alpha = 0.25f) else Hyle.SurfaceVariant)
                     .clickable { onSelect(opt) }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                softWrap = false,
+                textAlign = TextAlign.Center,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -61,9 +70,9 @@ fun HyleStepper(
     value: Int,
     onChange: (Int) -> Unit,
     range: IntRange,
+    modifier: Modifier = Modifier,
     step: Int = 1,
     suffix: String = "",
-    modifier: Modifier = Modifier,
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         IconButton(onClick = { if (value - step >= range.first) onChange(value - step) }, modifier = Modifier.size(48.dp)) {
@@ -89,10 +98,10 @@ fun HyleSectionHeader(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun HyleListRow(
     title: String,
+    modifier: Modifier = Modifier,
     subtitle: String? = null,
     onClick: (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier

@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,8 @@ fun AiSettingsScreen() {
     // while every request fails.
     val path = storedPath?.takeIf { ModelInstall.isInstalled(it) }
     // The vault is synchronous (not a Flow); bump this to re-read hasKey after set/clear.
-    var keyVersion by remember { mutableStateOf(0) }
+    var keyVersion by remember { mutableIntStateOf(0) }
+    var modelError by rememberSaveable { mutableStateOf<String?>(null) }
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -114,14 +116,30 @@ fun AiSettingsScreen() {
             rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
                 if (uri != null)
                     scope.launch {
-                        val installed =
+                        val result =
                             withContext(Dispatchers.IO) {
-                                runCatching { ModelInstall.install(c, uri) }.getOrNull()
+                                runCatching { ModelInstall.install(c, uri) }
                             }
-                        if (installed != null) settings.setOnDeviceModelPath(installed)
+                        val installed = result.getOrNull()
+                        if (installed != null) {
+                            val previous = path
+                            settings.setOnDeviceModelPath(installed)
+                            if (previous != null && previous != installed) {
+                                withContext(Dispatchers.IO) { ModelInstall.remove(c, previous) }
+                            }
+                            modelError = null
+                        } else {
+                            modelError = result.exceptionOrNull()?.message ?: "Model import failed."
+                        }
                     }
             }
         Text(path?.substringAfterLast('/') ?: "No model installed", color = Hyle.OnSurfaceDim)
+        Text(
+            "Choose a MediaPipe .task or .bin model (1 MB–4 GB). The file is copied into private storage and checked before it becomes active.",
+            color = Hyle.OnSurfaceDim,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        modelError?.let { Text(it, color = Hyle.Danger) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { picker.launch(arrayOf("*/*")) }) {
                 Text(if (path == null) "Install model" else "Replace model")
@@ -130,7 +148,7 @@ fun AiSettingsScreen() {
                 OutlinedButton(
                     onClick = {
                         scope.launch {
-                            withContext(Dispatchers.IO) { ModelInstall.remove(storedPath) }
+                            withContext(Dispatchers.IO) { ModelInstall.remove(c, storedPath) }
                             settings.setOnDeviceModelPath(null)
                         }
                     }

@@ -1,7 +1,13 @@
 package xyz.mdhv.formanalyser.app.ui
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,18 +42,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import java.util.concurrent.Executors
+import xyz.mdhv.formanalyser.app.capture.DeferredResourceBinding
+import xyz.mdhv.formanalyser.app.capture.captureCanStart
+import xyz.mdhv.formanalyser.app.capture.cameraPermissionRequiresSettings
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.provenanceGlow
 
 @Composable
-fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
+fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit, onBackToSetup: () -> Unit) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     // Two different questions that were previously conflated under one `hasCamera` flag: does this
     // device HAVE a camera, and have we been GRANTED it. The manifest no longer requires camera
     // hardware (that made the app un-installable on camera-less Chromebooks), so the app must now
@@ -63,15 +75,51 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
                 PackageManager.PERMISSION_GRANTED
         )
     }
+    var permissionRequested by rememberSaveable { mutableStateOf(false) }
+    var permissionDeniedPermanently by rememberSaveable { mutableStateOf(false) }
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
             granted = it
+            permissionRequested = true
+            permissionDeniedPermanently =
+                cameraPermissionRequiresSettings(
+                    requestCompleted = true,
+                    granted = it,
+                    shouldShowRationale =
+                        context.findActivity()?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == true,
+                )
         }
+    DisposableEffect(lifecycleOwner, context, permissionRequested) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                granted =
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                        PackageManager.PERMISSION_GRANTED
+                if (permissionRequested && !granted) {
+                    permissionDeniedPermanently =
+                        cameraPermissionRequiresSettings(
+                            requestCompleted = true,
+                            granted = false,
+                            shouldShowRationale =
+                                context.findActivity()?.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) == true,
+                        )
+                } else if (granted) {
+                    permissionDeniedPermanently = false
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     LaunchedEffect(hasCameraHardware) {
         if (hasCameraHardware && !granted) launcher.launch(Manifest.permission.CAMERA)
     }
 
     val recording by vm.isRecording.collectAsState()
+    val sessionReady by vm.sessionActive.collectAsState()
+    val sessionStarting by vm.sessionStarting.collectAsState()
+    val sessionStartError by vm.sessionStartError.collectAsState()
+    val sessionStartWarning by vm.sessionStartWarning.collectAsState()
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     // Leaving mid-recording throws away the pose window the recorder is holding — it is only
     // segmented into shots by stopRecordingAndAnalyze, so a back gesture during a live capture
@@ -145,9 +193,27 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
                 Modifier.fillMaxWidth().height(360.dp).provenanceGlow(Hyle.RadiumGreen),
             )
         } else {
-            Text("Camera permission is required to analyse form.", color = Hyle.Danger)
-            Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) {
-                Text("Grant camera")
+            Text(
+                if (permissionDeniedPermanently)
+                    "Camera access is blocked. Allow it in app settings to analyse form."
+                else "Camera permission is required to analyse form.",
+                color = Hyle.Danger,
+            )
+            Button(
+                onClick = {
+                    if (permissionDeniedPermanently) {
+                        context.startActivity(
+                            Intent(
+                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", context.packageName, null),
+                            )
+                        )
+                    } else {
+                        launcher.launch(Manifest.permission.CAMERA)
+                    }
+                }
+            ) {
+                Text(if (permissionDeniedPermanently) "Open app settings" else "Grant camera")
             }
         }
 
@@ -161,16 +227,43 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
             color = if (tracking) Hyle.RadiumGreen else Hyle.OnSurfaceDim,
         )
 
+        if (!sessionReady && !sessionStarting) {
+            Text(
+                sessionStartError ?: "No session is ready to capture. Return to setup and try again.",
+                color = Hyle.Danger,
+            )
+            OutlinedButton(onClick = onBackToSetup, modifier = Modifier.fillMaxWidth()) {
+                Text("Back to session setup")
+            }
+        }
+        if (sessionReady && sessionStartWarning != null) {
+            Text(sessionStartWarning!!, color = Hyle.OnSurfaceDim)
+        }
+
+        val canStartCapture =
+            captureCanStart(
+                hasCameraHardware = hasCameraHardware,
+                permissionGranted = granted,
+                poseModelAvailable = vm.recorder.isAvailable,
+                sessionReady = sessionReady,
+            )
         Button(
             onClick = { if (recording) vm.stopRecordingAndAnalyze() else vm.startRecording() },
-            enabled = hasCameraHardware && granted && vm.recorder.isAvailable,
+            enabled = canStartCapture,
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor = if (recording) Hyle.Danger else Hyle.Accent
                 ),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (recording) "Stop & analyze end" else "Start recording")
+            Text(
+                when {
+                    !sessionReady && sessionStarting -> "Preparing session…"
+                    !sessionReady -> "Session unavailable"
+                    recording -> "Stop & analyze end"
+                    else -> "Start recording"
+                }
+            )
         }
 
         Text("Shots detected this session: ${shots.size}", color = Hyle.OnBackground)
@@ -179,6 +272,13 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit) {
         }
     }
 }
+
+private tailrec fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
 
 @Composable
 private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
@@ -190,9 +290,6 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
     // carries a rotation or a window resize. Reading it here is the subscription.
     LocalConfiguration.current
 
-    // Held so the use cases can be unbound precisely on dispose without blocking the main thread
-    // re-resolving the provider future.
-    var provider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     val preview = remember { Preview.Builder().build() }
     val analysis = remember {
         ImageAnalysis.Builder()
@@ -201,6 +298,14 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
             .build()
             .also { it.setAnalyzer(executor) { img -> vm.recorder.process(img) } }
     }
+    // Provider acquisition is asynchronous: the composable may be disposed before its future
+    // completes. This owner serializes late binding against disposal and unbinds only our use cases.
+    val binding = remember(lifecycleOwner, preview, analysis) {
+        DeferredResourceBinding<ProcessCameraProvider> {
+            runCatching { it.unbind(preview, analysis) }
+        }
+    }
+    DisposableEffect(binding) { onDispose { binding.close() } }
 
     AndroidView(
         modifier = modifier,
@@ -209,26 +314,26 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
             val future = ProcessCameraProvider.getInstance(ctx)
             future.addListener(
                 {
-                    val p = future.get()
-                    provider = p
-                    preview.setSurfaceProvider(previewView.surfaceProvider)
-                    // Back camera preferred — the athlete films side-on with the phone facing them
-                    // — but a Chromebook or tablet may only have a front one, and hardcoding BACK
-                    // meant bindToLifecycle simply threw there.
-                    val selector =
-                        when {
-                            p.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) ->
-                                CameraSelector.DEFAULT_BACK_CAMERA
-                            p.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) ->
-                                CameraSelector.DEFAULT_FRONT_CAMERA
-                            else -> null
-                        }
-                    if (selector != null) {
-                        runCatching {
-                            // Unbind only OUR use cases. unbindAll() is process-global and would
-                            // tear down another window's camera on a foldable or desktop.
-                            p.unbind(preview, analysis)
-                            p.bindToLifecycle(lifecycleOwner, selector, preview, analysis)
+                    val p = runCatching { future.get() }.getOrNull() ?: return@addListener
+                    runCatching {
+                        binding.bindIfOpen(p) {
+                            preview.setSurfaceProvider(previewView.surfaceProvider)
+                            // Back camera preferred — the athlete films side-on with the phone
+                            // facing them — but a Chromebook or tablet may only have a front one.
+                            val selector =
+                                when {
+                                    p.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) ->
+                                        CameraSelector.DEFAULT_BACK_CAMERA
+                                    p.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) ->
+                                        CameraSelector.DEFAULT_FRONT_CAMERA
+                                    else -> null
+                                }
+                            if (selector != null) {
+                                // Unbind only OUR use cases. unbindAll() is process-global and
+                                // could tear down another window's camera on a foldable/desktop.
+                                p.unbind(preview, analysis)
+                                p.bindToLifecycle(lifecycleOwner, selector, preview, analysis)
+                            }
                         }
                     }
                 },
@@ -246,5 +351,4 @@ private fun CameraPreview(vm: SessionViewModel, modifier: Modifier = Modifier) {
         },
     )
 
-    DisposableEffect(Unit) { onDispose { runCatching { provider?.unbind(preview, analysis) } } }
 }

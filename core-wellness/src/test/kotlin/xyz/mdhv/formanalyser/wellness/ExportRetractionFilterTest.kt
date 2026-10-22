@@ -11,8 +11,10 @@ import kotlin.test.assertTrue
  * `ExportViewModel.dumpTable` appends `WHERE deletedAt IS NULL` only for tables named in its
  * `RETRACTABLE` set. That set was hand-maintained and it drifted: MIGRATION_7_8 added `deletedAt`
  * to `checkin`, `pain_log` and `injury` without the set being updated, so rows an athlete had
- * retracted were still written into `.crocbak` archives. Nothing failed when that happened, which
- * is why this test exists — the set is now derived from the migrations and compared, not trusted.
+ * retracted were still written into `.crocbak` archives. MIGRATION_8_9 later created
+ * `sport_session` with a `deletedAt` column straight from a CREATE TABLE statement. Nothing failed
+ * when that happened, which is why this test exists — the set is now derived from the migrations
+ * and compared, not trusted.
  *
  * Reads app-android source rather than depending on :app-android: core-wellness is pure-JVM and
  * runs in ci.yml, where an Android unit test would not. Same skip-if-absent contract as
@@ -61,9 +63,17 @@ class ExportRetractionFilterTest {
                 }
                 .toSet()
 
-        val withDeletedAt = (direct + looped).toSortedSet()
+        // Shape 3 (MIGRATION_8_9): CREATE TABLE IF NOT EXISTS `x` (... `deletedAt` INTEGER ...)
+        val created =
+            Regex("CREATE TABLE IF NOT EXISTS `([a-z_]+)` \\(([^\\n]*)")
+                .findAll(ddl)
+                .filter { "`deletedAt`" in it.groupValues[2] }
+                .map { it.groupValues[1] }
+                .toSet()
+
+        val withDeletedAt = (direct + looped + created).toSortedSet()
         assertEquals(
-            setOf("checkin", "injury", "pain_log", "score_session", "sessions"),
+            setOf("checkin", "injury", "pain_log", "score_session", "sessions", "sport_session"),
             withDeletedAt.toSet(),
             "parsed an unexpected deletedAt table set from ${dbSrc.path}. If a migration changed " +
                 "shape, fix this parser and this expectation together — do not weaken either",

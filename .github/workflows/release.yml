@@ -14,35 +14,317 @@ on:
       version:
         description: "Release tag to create (e.g. v0.4.0-hyle-approx)"
         required: true
+      versionCode:
+        description: "Optional Android versionCode for non-semver release names"
+        required: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apk:
+  verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      version_code: ${{ steps.ver.outputs.version_code }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: temurin
           java-version: "21"
-      - uses: android-actions/setup-android@v3
-      - name: Assemble debug APK
-        run: ./gradlew :app-android:assembleDebug -PwithAndroid --no-daemon
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: platform-tools
+      - name: Fetch and verify locked shared-library checkout
+        run: |
+          SHARED_REPOSITORY="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["repository"])')"
+          SHARED_REF="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["ref"])')"
+          git clone --depth 1 --branch "$SHARED_REF" "$SHARED_REPOSITORY" .ci/shared-libraries-asoc
+          python3 tools/shared/verify_shared_checkout.py .ci/shared-libraries-asoc
       - name: Resolve version name
         id: ver
-        run: |
-          RAW="${{ github.event.inputs.version || github.ref_name }}"
-          echo "version=${RAW#release/}" >> "$GITHUB_OUTPUT"
-      - name: Rename APK to version
-        # module is :app-android, so AGP emits app-android-debug.apk — glob, don't guess
-        run: cp app-android/build/outputs/apk/debug/*.apk "crocodyl-${{ steps.ver.outputs.version }}.apk"
-      # Public no-login download link on the Release page (spec §9 distribution path).
-      - name: Attach to GitHub Release
-        uses: softprops/action-gh-release@v2
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_VERSION_CODE: ${{ github.event.inputs.versionCode }}
+          REF_NAME: ${{ github.ref_name }}
+        run: bash tools/release/resolve_version.sh
+      - name: Run Android unit tests
+        run: ./gradlew :app-android:testDebugUnitTest :app-android:testReleaseUnitTest -PwithAndroid --no-daemon
+      - name: Run JVM unit tests
+        run: ./gradlew test --no-daemon
+      - name: Run Android lint
+        run: ./gradlew :app-android:lintRelease -PwithAndroid --no-daemon
+      - name: Run on-device Android smoke tests
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          RELEASE_VERSION: ${{ steps.ver.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ steps.ver.outputs.version_code }}
         with:
-          tag_name: ${{ steps.ver.outputs.version }}
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
+      - name: Collect debug instrumentation diagnostics
+        if: always()
+        run: |
+          mkdir -p app-android/build/diagnostics
+          adb logcat -d -v threadtime > app-android/build/diagnostics/release-debug-logcat.txt 2>&1 || true
+      - name: Upload debug instrumentation reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crocodyl-release-debug-test-reports
+          path: |
+            app-android/build/outputs/androidTest-results/connected/debug/**
+            app-android/build/reports/androidTests/connected/debug/**
+            app-android/build/diagnostics/release-debug-logcat.txt
+          if-no-files-found: warn
+      - name: Validate packaged equipment source contracts
+        run: |
+          python3 tools/release/verify_workflow_actions.py
+          python3 -m unittest discover -s tools/release -p 'test_*.py'
+          python3 -m unittest discover -s tools/shared -p 'test_*.py'
+          python3 -m unittest discover -s tools/web_viewer -p 'test_*.py'
+          node tools/web_viewer/test_signature_interop.mjs
+          node tools/web_viewer/test_viewer_runtime.mjs
+          node tools/web_viewer/test_report_analysis.mjs
+          python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
+          python3 tools/community_directory/validate_directory.py docs/crocodyl/community-directory/entries
+          python3 tools/atelier/test_assets.py
+          python3 tools/atelier/test_arrow_library.py
+          python3 tools/atelier/test_arrow_reference_library.py
+          python3 tools/atelier/build_assets.py
+          git diff --exit-code -- app-android/src/main/assets/atelier/models
+          python3 tools/atelier/build_arrow_reference_library.py
+          git diff --exit-code -- app-android/src/main/assets/atelier/arrow-reference-library
+      - name: Require approved signer-continuity decision
+        run: python3 tools/release/verify_signer_continuity_decision.py
+  sign:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ needs.verify.outputs.version }}
+      version_code: ${{ needs.verify.outputs.version_code }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        with:
+          packages: platform-tools
+      - name: Fetch and verify locked shared-library checkout
+        run: |
+          SHARED_REPOSITORY="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["repository"])')"
+          SHARED_REF="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["ref"])')"
+          git clone --depth 1 --branch "$SHARED_REF" "$SHARED_REPOSITORY" .ci/shared-libraries-asoc
+          python3 tools/shared/verify_shared_checkout.py .ci/shared-libraries-asoc
+      - name: Verify production signing inputs
+        env:
+          CERT_SHA256: ${{ secrets.CROCODYL_RELEASE_CERT_SHA256 }}
+        run: bash tools/release/verify_production_signer.sh "$CERT_SHA256"
+      - name: Verify release password inputs
+        env:
+          STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+        run: |
+          test -n "$STORE_PASSWORD"
+          test -n "$KEY_ALIAS"
+          test -n "$KEY_PASSWORD"
+      - name: Prepare release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.CROCODYL_RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$KEYSTORE_BASE64"
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app-android/release.keystore
+          chmod 600 app-android/release.keystore
+      - name: Assemble signed release artifacts
+        env:
+          CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore
+          CROCODYL_RELEASE_STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          CROCODYL_RELEASE_KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ needs.verify.outputs.version_code }}
+        run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
+      - name: Run on-device smoke tests against signed minified release
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore
+          CROCODYL_RELEASE_STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          CROCODYL_RELEASE_KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ needs.verify.outputs.version_code }}
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
+      - name: Run signed minified release smoke tests on Android 15
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore
+          CROCODYL_RELEASE_STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          CROCODYL_RELEASE_KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ needs.verify.outputs.version_code }}
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
+      - name: Run signed minified release smoke tests on 16 KB page-size emulator
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          CROCODYL_RELEASE_STORE_FILE: app-android/release.keystore
+          CROCODYL_RELEASE_STORE_PASSWORD: ${{ secrets.CROCODYL_RELEASE_STORE_PASSWORD }}
+          CROCODYL_RELEASE_KEY_ALIAS: ${{ secrets.CROCODYL_RELEASE_KEY_ALIAS }}
+          CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ needs.verify.outputs.version_code }}
+        with:
+          api-level: 36
+          target: google_apis_ps16k
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: |
+            page_size="$(adb shell getconf PAGE_SIZE | tr -d '\r')"
+            test "$page_size" = 16384 || { echo "Expected 16 KB pages, got $page_size" >&2; exit 1; }
+            adb shell settings put system font_scale 1.3
+            font_scale="$(adb shell settings get system font_scale | tr -d '\r')"
+            test "$font_scale" = 1.3 || { echo "Expected font scale 1.3, got $font_scale" >&2; exit 1; }
+            ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
+      - name: Collect minified release instrumentation diagnostics
+        if: always()
+        run: |
+          mkdir -p app-android/build/diagnostics
+          adb logcat -d -v threadtime > app-android/build/diagnostics/release-minified-logcat.txt 2>&1 || true
+      - name: Upload minified release test reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crocodyl-release-minified-test-reports
+          path: |
+            app-android/build/outputs/androidTest-results/connected/release/**
+            app-android/build/reports/androidTests/connected/release/**
+            app-android/build/diagnostics/release-minified-logcat.txt
+          if-no-files-found: warn
+      - name: Remove signing material after signed instrumentation
+        run: rm -f app-android/release.keystore
+      - name: Run minified release smoke tests
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: Pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: |
+            adb install -r app-android/build/outputs/apk/release/app-android-release.apk
+            adb logcat -c
+            adb shell am start -W -n com.asoc.crocodyl/xyz.mdhv.formanalyser.app.MainActivity
+            sleep 3
+            test -n "$(adb shell pidof com.asoc.crocodyl)"
+            if adb logcat -d -v brief | grep -Eiq 'FATAL EXCEPTION|Process: com.asoc.crocodyl|NoClassDefFoundError|ClassNotFoundException'; then
+              echo 'Minified release launch emitted a fatal app-process error.' >&2
+              adb logcat -d -v brief >&2
+              exit 1
+            fi
+      - name: Verify signed release artifacts
+        env:
+          EXPECTED_VERSION_CODE: ${{ needs.verify.outputs.version_code }}
+          EXPECTED_VERSION_NAME: ${{ needs.verify.outputs.version }}
+          EXPECTED_CERT_SHA256: ${{ secrets.CROCODYL_RELEASE_CERT_SHA256 }}
+        run: |
+          tools/release/verify_android_release.sh "$(find app-android/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print -quit)" "$(find app-android/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' -print -quit)"
+      - name: Preserve minified-release mapping for crash diagnostics
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          mapping='app-android/build/outputs/mapping/release/mapping.txt'
+          test -s "$mapping"
+          cp "$mapping" "crocodyl-${RELEASE_VERSION}-r8-mapping.txt"
+          sha256sum "crocodyl-${RELEASE_VERSION}-r8-mapping.txt" > "crocodyl-${RELEASE_VERSION}-r8-mapping.sha256"
+      - name: Upload R8 mapping and digest as CI-only artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crocodyl-release-r8-mapping-${{ needs.verify.outputs.version }}
+          path: |
+            crocodyl-${{ needs.verify.outputs.version }}-r8-mapping.txt
+            crocodyl-${{ needs.verify.outputs.version }}-r8-mapping.sha256
+          retention-days: 90
+          if-no-files-found: error
+      - name: Rename release artifacts
+        # Release outputs live under the release variant; keep the public filenames stable.
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          cp app-android/build/outputs/apk/release/*.apk "crocodyl-${RELEASE_VERSION}.apk"
+          cp app-android/build/outputs/bundle/release/*.aab "crocodyl-${RELEASE_VERSION}.aab"
+      - name: Generate release checksums
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          sha256sum "crocodyl-${RELEASE_VERSION}.apk" "crocodyl-${RELEASE_VERSION}.aab" > "crocodyl-${RELEASE_VERSION}-SHA256SUMS.txt"
+      - name: Upload verified release assets for isolated publication
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crocodyl-release-assets
+          path: |
+            crocodyl-${{ needs.verify.outputs.version }}.apk
+            crocodyl-${{ needs.verify.outputs.version }}.aab
+            crocodyl-${{ needs.verify.outputs.version }}-SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Remove signing material
+        if: ${{ always() }}
+        run: rm -f app-android/release.keystore
+
+  publish:
+    needs: sign
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified release assets
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: crocodyl-release-assets
+          path: release-assets
+      # Keep release-write permission isolated from checkout, Gradle, tests, and signing.
+      - name: Attach to GitHub Release
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        with:
+          tag_name: ${{ needs.sign.outputs.version }}
           target_commitish: ${{ github.sha }}
-          files: crocodyl-*.apk
+          files: |
+            release-assets/crocodyl-${{ needs.sign.outputs.version }}.apk
+            release-assets/crocodyl-${{ needs.sign.outputs.version }}.aab
+            release-assets/crocodyl-${{ needs.sign.outputs.version }}-SHA256SUMS.txt
           generate_release_notes: true

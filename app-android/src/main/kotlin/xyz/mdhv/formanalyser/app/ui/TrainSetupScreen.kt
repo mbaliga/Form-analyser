@@ -1,14 +1,25 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
@@ -65,6 +76,7 @@ fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: 
             selectedRound,
             intent.trim().takeIf { it.isNotEmpty() },
         )
+    val canStart = distance.toIntOrNull()?.let { it > 0 } == true
     if (preGate)
         PreCheckinSheet(
             handedness = override ?: handedness,
@@ -73,107 +85,180 @@ fun TrainSetupScreen(vm: SessionViewModel, onStarted: () -> Unit, onManageRigs: 
                 preGate = false
                 val d = currentDefaults()
                 contextVm.remember(d, pinSetup)
-                vm.startSession(d.distanceMeters ?: 18, override, pre, d)
-                onStarted()
+                if (vm.startSession(d.distanceMeters ?: 18, override, pre, d)) onStarted()
             },
             onDismiss = { preGate = false },
         )
-    Column(
-        Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Text(
-            "New session",
-            style = MaterialTheme.typography.headlineMedium,
-            color = Hyle.OnBackground,
-        )
-        Text("Olympic Recurve · local autofill", color = Hyle.OnSurfaceDim)
-        HyleListRow("Rig", activeRig?.name ?: "No rig — tap to add", onClick = onManageRigs)
-        Text("Round", style = MaterialTheme.typography.titleMedium, color = Hyle.OnBackground)
-        RoundPack.builtIns
-            .filter { it.scoringKind.name != "SET_MATCH" }
-            .forEach { r ->
-                FilterChip(
-                    selected = selectedRound == r.id,
-                    onClick = {
-                        selectedRound = if (selectedRound == r.id) null else r.id
-                        if (selectedRound != null) {
-                            distance = r.distanceMeters.toString()
-                            targetFace = r.targetFaceCm.toString()
-                            arrows = r.maxArrows.toString()
-                        }
-                    },
-                    label = { Text(r.name) },
-                )
-            }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                distance,
-                { distance = it.filter(Char::isDigit) },
-                label = { Text("Distance m") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f),
-            )
-            OutlinedTextField(
-                targetFace,
-                { targetFace = it.filter(Char::isDigit) },
-                label = { Text("Face cm") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.weight(1f),
-            )
-        }
-        OutlinedTextField(
-            arrows,
-            { arrows = it.filter(Char::isDigit) },
-            label = { Text("Planned arrows") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            venue,
-            { venue = it },
-            label = { Text("Venue") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            intent,
-            { intent = it },
-            label = { Text("Training intent") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column(Modifier.weight(1f)) {
-                Text("Pin this setup", color = Hyle.OnBackground)
-                Text(
-                    "Pinned values win over recent history",
-                    color = Hyle.OnSurfaceDim,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-            Switch(pinSetup, { pinSetup = it })
-        }
-        TextButton(onClick = { advanced = !advanced }) {
-            Text(if (advanced) "Hide advanced" else "Advanced")
-        }
-        if (advanced) {
-            Text("Handedness (this session)", color = Hyle.OnSurfaceDim)
-            HyleSegmented(
-                options = listOf<Handedness?>(null, Handedness.RH, Handedness.LH),
-                selected = override,
-                label = { it?.name ?: "Default" },
-                onSelect = { override = it },
-            )
-        }
-        Button(
-            onClick = { preGate = true },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = distance.toIntOrNull()?.let { it > 0 } == true,
+    Column(Modifier.fillMaxSize()) {
+        Column(
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text("Start recording")
+            RangeSetupPanel()
+            HyleListRow(
+                "Active rig",
+                subtitle = activeRig?.name ?: "No rig — tap to add",
+                onClick = onManageRigs,
+            )
+            HyleSectionHeader("Round")
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                RoundPack.builtIns
+                    .filter { it.scoringKind.name != "SET_MATCH" }
+                    .forEach { r ->
+                        FilterChip(
+                            selected = selectedRound == r.id,
+                            onClick = {
+                                selectedRound = if (selectedRound == r.id) null else r.id
+                                if (selectedRound != null) {
+                                    distance = r.distanceMeters.toString()
+                                    targetFace = r.targetFaceCm.toString()
+                                    arrows = r.maxArrows.toString()
+                                }
+                            },
+                            label = { Text(r.name, maxLines = 1) },
+                        )
+                    }
+            }
+            HyleSectionHeader("Session parameters")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = Hyle.Surface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.Hairline),
+            ) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            distance,
+                            { distance = it.filter(Char::isDigit) },
+                            label = { Text("Distance m") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                        )
+                        OutlinedTextField(
+                            targetFace,
+                            { targetFace = it.filter(Char::isDigit) },
+                            label = { Text("Face cm") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    OutlinedTextField(
+                        arrows,
+                        { arrows = it.filter(Char::isDigit) },
+                        label = { Text("Planned arrows") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            HyleSectionHeader("Practice details")
+            OutlinedTextField(
+                venue,
+                { venue = it },
+                label = { Text("Venue") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                intent,
+                { intent = it },
+                label = { Text("Training intent") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.weight(1f)) {
+                    Text("Pin this setup", color = Hyle.OnBackground)
+                    Text(
+                        "Pinned values win over recent history",
+                        color = Hyle.OnSurfaceDim,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Switch(pinSetup, { pinSetup = it })
+            }
+            TextButton(onClick = { advanced = !advanced }) {
+                Text(if (advanced) "Hide handedness" else "Session handedness")
+            }
+            if (advanced) {
+                HyleSegmented(
+                    options = listOf<Handedness?>(null, Handedness.RH, Handedness.LH),
+                    selected = override,
+                    label = { it?.name ?: "Default" },
+                    onSelect = { override = it },
+                )
+            }
+            Text(
+                "Side-on camera · full athlete in frame. Autofill is a starting point; every value stays editable.",
+                color = Hyle.OnSurfaceDim,
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
-        Text(
-            "Set the phone side-on and frame the whole athlete. Autofill is only a starting point; every value remains editable.",
-            color = Hyle.OnSurfaceDim,
-        )
+        Column(
+            Modifier.fillMaxWidth().background(Hyle.Background)
+                .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 8.dp),
+        ) {
+            if (!canStart) {
+                Text(
+                    "Choose a round or enter distance to begin.",
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    color = Hyle.OnBackground,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Button(
+                onClick = { preGate = true },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                enabled = canStart,
+            ) {
+                Text("Start recording")
+            }
+        }
+    }
+}
+
+@Composable
+private fun RangeSetupPanel() {
+    Box(
+        Modifier.fillMaxWidth().height(142.dp).clip(RoundedCornerShape(26.dp))
+            .background(
+                Brush.linearGradient(listOf(Color(0xff1b1825), Color(0xff101411), Color(0xff101015)))
+            )
+            .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(26.dp)),
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val center = Offset(size.width * .86f, size.height * .5f)
+            listOf(.78f, .58f, .38f, .18f).forEachIndexed { index, fraction ->
+                drawCircle(
+                    color = if (index == 3) Hyle.RadiumGreen.copy(alpha = .25f)
+                    else Hyle.Accent.copy(alpha = .17f - index * .02f),
+                    radius = size.height * fraction,
+                    center = center,
+                    style = Stroke(if (index == 3) 2.5f else 1.5f),
+                )
+            }
+            drawLine(
+                Hyle.OnBackground.copy(alpha = .32f),
+                Offset(center.x - 68f, center.y + 55f),
+                Offset(center.x + 32f, center.y - 42f),
+                2f,
+            )
+        }
+        Column(
+            Modifier.fillMaxHeight().fillMaxWidth(.75f).padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("RANGE SETUP  /  OLYMPIC RECURVE", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelSmall)
+                Text("New session", color = Hyle.OnBackground, style = MaterialTheme.typography.headlineMedium)
+            }
+            Text("Set your distance, then focus on the shot.", color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
