@@ -1048,7 +1048,7 @@ class ProductionSmokeTest {
     private fun assertTextEventually(
         instrumentation: android.app.Instrumentation,
         expected: String,
-        timeoutMs: Long = 8_000,
+        timeoutMs: Long = 15_000,
     ) {
         val deadline = SystemClock.uptimeMillis() + timeoutMs
         var consecutiveVisibleSamples = 0
@@ -1242,7 +1242,13 @@ class ProductionSmokeTest {
         instrumentation: android.app.Instrumentation,
         label: String,
     ) {
-        val deadline = SystemClock.uptimeMillis() + 8_000
+        // Slow emulators (the 16 KB image) can finish composing a screen, or reset its list to the
+        // top, after the previous step returned. Wait longer, and once the label has been absent
+        // for a while sweep the nearest scrollable so a node that is merely off-screen is reached.
+        val started = SystemClock.uptimeMillis()
+        val deadline = started + 15_000
+        var lastSweep = started
+        var sweepForward = true
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
@@ -1254,6 +1260,11 @@ class ProductionSmokeTest {
                 named.getBoundsInScreen(bounds)
                 tap(instrumentation, bounds.centerX().toFloat(), bounds.centerY().toFloat())
                 return
+            }
+            val now = SystemClock.uptimeMillis()
+            if (now - started > 2_500 && now - lastSweep > 600) {
+                lastSweep = now
+                if (root?.scrollOnce(sweepForward) != true) sweepForward = !sweepForward
             }
             SystemClock.sleep(50)
         }
