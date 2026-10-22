@@ -109,17 +109,6 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Prepare AVD home
         run: mkdir -p /home/runner/.android/avd
-      - name: Emulator preflight (observable boot check, diagnostic)
-        # android-emulator-runner hides its output; this boots the same kind of AVD with a
-        # readable log. It does not gate: the smoke-test lanes below still do.
-        continue-on-error: true
-        env:
-          ANDROID_USER_HOME: /home/runner/.android
-          ANDROID_AVD_HOME: /home/runner/.android/avd
-        run: |
-          # The smoke lanes pass `profile: Pixel_2` to android-emulator-runner; check that exact
-          # spelling against avdmanager (its device id is lowercase pixel_2).
-          AVD_DEVICE=Pixel_2 bash tools/release/ci_emulator_boot_check.sh 35 google_apis
       - name: Run on-device Android smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
@@ -130,9 +119,8 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
-          profile: Pixel_2
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
-          emulator-boot-timeout: 900
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: |
             mkdir -p app-android/build/diagnostics
@@ -147,9 +135,8 @@ jobs:
           api-level: 35
           target: google_apis
           arch: x86_64
-          profile: Pixel_2
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
-          emulator-boot-timeout: 900
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: |
             mkdir -p app-android/build/diagnostics
@@ -164,9 +151,8 @@ jobs:
           api-level: 36
           target: google_apis_ps16k
           arch: x86_64
-          profile: Pixel_2
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
-          emulator-boot-timeout: 900
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: |
             page_size="$(adb shell getconf PAGE_SIZE | tr -d '\r')"

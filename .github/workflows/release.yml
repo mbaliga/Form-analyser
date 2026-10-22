@@ -68,7 +68,7 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
-          profile: Pixel_2
+          profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
@@ -176,7 +176,7 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
-          profile: Pixel_2
+          profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
@@ -193,7 +193,7 @@ jobs:
           api-level: 35
           target: google_apis
           arch: x86_64
-          profile: Pixel_2
+          profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: ./gradlew :app-android:connectedReleaseAndroidTest -PwithAndroid -PcrocodylInstrumentRelease=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
@@ -210,7 +210,7 @@ jobs:
           api-level: 36
           target: google_apis_ps16k
           arch: x86_64
-          profile: Pixel_2
+          profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: |
@@ -243,7 +243,7 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
-          profile: Pixel_2
+          profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: |
