@@ -36,7 +36,8 @@ permissions:
 
 jobs:
   assemble:
-    runs-on: ubuntu-latest
+    # Pinned: the emulator lanes broke when ubuntu-latest began migrating to Ubuntu 26.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
@@ -101,6 +102,15 @@ jobs:
                   if count >= 40:
                       break
           PY
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Emulator host diagnostics
+        run: |
+          { echo "os: $(. /etc/os-release; echo "$PRETTY_NAME")"; ls -l /dev/kvm 2>&1; echo "cpu virt flags: $(grep -c -E 'vmx|svm' /proc/cpuinfo)"; df -h / | tail -n 1; echo "ANDROID_HOME=$ANDROID_HOME"; } \
+            | sed 's/$/%0A/' | tr -d '\n' | sed 's/^/::notice title=emulator host::/'; echo
       - name: Run on-device Android smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
@@ -108,7 +118,8 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: Pixel_2
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
+          emulator-boot-timeout: 900
           disable-animations: true
           script: |
             mkdir -p app-android/build/diagnostics
@@ -120,7 +131,8 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: Pixel_2
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
+          emulator-boot-timeout: 900
           disable-animations: true
           script: |
             mkdir -p app-android/build/diagnostics
@@ -132,7 +144,8 @@ jobs:
           target: google_apis_ps16k
           arch: x86_64
           profile: Pixel_2
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
+          emulator-boot-timeout: 900
           disable-animations: true
           script: |
             page_size="$(adb shell getconf PAGE_SIZE | tr -d '\r')"
