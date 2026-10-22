@@ -414,7 +414,7 @@ private fun MainShell() {
             }
             composable(Routes.PROGRESS) {
                 val vm: ProgressViewModel = viewModel()
-                ProgressScreen(vm)
+                ProgressScreen(vm) { nav.navigate(Routes.BODY) }
             }
             composable(Routes.BODY) {
                 BodyScreen(
