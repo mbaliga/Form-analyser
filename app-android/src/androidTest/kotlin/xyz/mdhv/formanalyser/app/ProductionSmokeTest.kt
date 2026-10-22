@@ -1235,7 +1235,29 @@ class ProductionSmokeTest {
             SystemClock.sleep(250)
         }
         val visible = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty().distinct()
-        throw AssertionError("Could not scroll to visible UI text: $expected. Visible: $visible")
+        val fontScale = context.resources.configuration.fontScale
+        val near = rootInActiveWindowOrNull(instrumentation)?.let { describeNodesContaining(it, expected.take(5)) }.orEmpty()
+        throw AssertionError(
+            "Could not scroll to visible UI text: $expected. fontScale=$fontScale " +
+                "screen=${context.resources.displayMetrics.widthPixels}x${context.resources.displayMetrics.heightPixels} " +
+                "nodesContaining('${expected.take(5)}')=$near. Visible: $visible",
+        )
+    }
+
+    /** Failure diagnostics: every node whose text/description contains [needle], visible or not. */
+    private fun describeNodesContaining(node: AccessibilityNodeInfo, needle: String): List<String> {
+        val bounds = Rect()
+        node.getBoundsInScreen(bounds)
+        val label = listOfNotNull(node.text?.toString(), node.contentDescription?.toString()).joinToString(" | ")
+        val own =
+            if (label.contains(needle, ignoreCase = true)) {
+                listOf("[$label] bounds=$bounds visibleToUser=${node.isVisibleToUser} clickable=${node.isClickable}")
+            } else {
+                emptyList()
+            }
+        return own + (0 until node.childCount).flatMap { index ->
+            node.getChild(index)?.let { describeNodesContaining(it, needle) }.orEmpty()
+        }
     }
 
     private fun clickTextEventually(

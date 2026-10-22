@@ -217,7 +217,7 @@ jobs:
                   failed += 1
                   if failed <= 8:
                       text = (bad.get("message") or bad.text or "").strip().splitlines()[:3]
-                      msg = "%0A".join(t[:300] for t in text)
+                      msg = "%0A".join(t[:2500] for t in text)
                       print(f"::error title=FAILED {case.get('classname')}.{case.get('name')}::{msg}")
           print(f"::notice title=Instrumentation results::xml_reports={len(reports)} tests={tests} failed={failed}")
           if not reports:
