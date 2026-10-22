@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.domain.ScoringInputMode
 import xyz.mdhv.formanalyser.app.domain.ScoringViewModel
+import xyz.mdhv.formanalyser.app.ui.components.EndScanPhoto
 import xyz.mdhv.formanalyser.app.ui.components.TargetFaceCanvas
 import xyz.mdhv.formanalyser.app.ui.theme.HapticCue
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -246,7 +247,17 @@ fun ScoringScreen(vm: ScoringViewModel) {
                         }
                     }
                 ScoringInputMode.END_SCAN ->
-                    item { EndScanPanel(state.endScanCandidates, vm, canScore) }
+                    item {
+                        EndScanPanel(
+                            candidates = state.endScanCandidates,
+                            vm = vm,
+                            enabled = canScore,
+                            maxArrows =
+                                if (card.isFull) 0
+                                else card.round.arrowsPerEnd - card.currentArrowIndex,
+                            faceLayout = card.round.faceLayout,
+                        )
+                    }
             }
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -555,16 +566,25 @@ private fun EndScanPanel(
     candidates: List<xyz.mdhv.formanalyser.app.data.ScoreCandidateEntity>,
     vm: ScoringViewModel,
     enabled: Boolean,
+    maxArrows: Int,
+    faceLayout: xyz.mdhv.formanalyser.scoring.FaceLayout,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("End Scan review", style = MaterialTheme.typography.titleMedium)
+        Text("End Scan", style = MaterialTheme.typography.titleMedium)
         Text(
-            "Automatic target detection is not yet range-validated. Only proposed candidates from a validated detector may appear here; they never affect totals until you confirm them.",
+            "Choose a target photo, calibrate its centre and edge, then mark each arrow. Crocodyl calculates provisional rings; nothing affects your total until you confirm it.",
             color = Hyle.OnSurfaceDim,
         )
-        if (candidates.isEmpty())
+        EndScanPhoto(
+            maxArrows = maxArrows,
+            faceLayout = faceLayout,
+            enabled = enabled && maxArrows > 0,
+            onCandidates = vm::acceptDetectedCandidates,
+        )
+        if (candidates.none { it.status == "PROPOSED" })
             Text(
-                "No proposed candidates. Manual numeric/plot scoring remains authoritative.",
+                if (maxArrows > 0) "No arrows waiting for review."
+                else "This end is full. Confirm or reject any remaining proposals below.",
                 color = Hyle.OnSurfaceDim,
             )
         candidates

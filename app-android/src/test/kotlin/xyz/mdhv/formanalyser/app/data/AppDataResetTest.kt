@@ -50,6 +50,14 @@ class AppDataResetTest {
                 writeText("sensitive")
             }
         }
+        val captureMarkers =
+            listOfNotNull(context.getExternalFilesDir(android.os.Environment.DIRECTORY_MOVIES), context.filesDir)
+                .map { root ->
+                    File(root, "captures/wipe-clip.mp4").apply {
+                        parentFile?.mkdirs()
+                        writeText("raw video")
+                    }
+                }
         val cachedExport = File(context.cacheDir, ".croc-export-wipe.partial").apply {
             parentFile?.mkdirs()
             writeText("private export")
@@ -84,6 +92,7 @@ class AppDataResetTest {
         assertTrue(aiSettings.keepPrivate.first())
         assertNull(aiSettings.onDeviceModelPath.first())
         privateDirectories.forEach { assertFalse(File(context.filesDir, it).exists()) }
+        captureMarkers.forEach { assertFalse(it.exists()) }
         assertFalse(cachedExport.exists())
         preferenceNames.forEach { name ->
             assertTrue(context.getSharedPreferences(name, Context.MODE_PRIVATE).all.isEmpty())

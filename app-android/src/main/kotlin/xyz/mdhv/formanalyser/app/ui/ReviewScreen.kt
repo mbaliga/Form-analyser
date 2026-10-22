@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,21 +19,28 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import android.widget.VideoView
+import java.io.File
 import xyz.mdhv.crocodyl.engine.sport.FeatureScoreRelation
 import xyz.mdhv.formanalyser.app.domain.SessionViewModel
 import xyz.mdhv.formanalyser.app.domain.ShotView
 import xyz.mdhv.formanalyser.app.ui.components.Scatter
 import xyz.mdhv.formanalyser.app.ui.components.TrendLine
+import xyz.mdhv.formanalyser.app.ui.components.ImprovementAreas
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
 
@@ -43,6 +51,14 @@ fun ReviewScreen(vm: SessionViewModel, onDeleted: () -> Unit) {
     val fatigue by vm.fatigue.collectAsState()
     val correlations by vm.correlations.collectAsState()
     val preview by vm.deletionPreview.collectAsState()
+    val media by vm.captureMedia.collectAsState()
+    var player by remember { mutableStateOf<VideoView?>(null) }
+    var selectedMediaId by remember { mutableStateOf<String?>(null) }
+    var seekRequestMs by remember { mutableStateOf<Long?>(null) }
+    val selectedMedia = media.firstOrNull { it.id == selectedMediaId } ?: media.firstOrNull()
+    LaunchedEffect(seekRequestMs) {
+        seekRequestMs?.let { ms -> player?.seekTo(ms.toInt().coerceAtLeast(0)); player?.start() }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -60,6 +76,30 @@ fun ReviewScreen(vm: SessionViewModel, onDeleted: () -> Unit) {
                 if (baseline.ready) "Baseline ready (${baseline.repCount} shots)"
                 else "Building baseline — mark ${baseline.needed} more good shot(s)"
             Text(msg, color = if (baseline.ready) Hyle.RadiumGreen else Hyle.OnSurfaceDim)
+        }
+
+        item { ImprovementAreas(shots) }
+
+        selectedMedia?.takeIf { File(it.path).exists() }?.let { capture ->
+            item {
+                SectionCard("Phase-aligned replay") {
+                    AndroidView(
+                        factory = { context -> VideoView(context).also { player = it } },
+                        update = { view ->
+                            if (view.tag != capture.path) {
+                                view.tag = capture.path
+                                view.setVideoPath(capture.path)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(220.dp),
+                    )
+                    Text(
+                        "${capture.durationMs / 1000}s · ${capture.sizeBytes / (1024 * 1024).coerceAtLeast(1)} MB · private on this device",
+                        color = Hyle.OnSurfaceDim,
+                    )
+                    TextButton(onClick = { vm.deleteRawVideo(capture.id) }) { Text("Delete raw video", color = Hyle.Danger) }
+                }
+            }
         }
 
         item {
@@ -111,6 +151,13 @@ fun ReviewScreen(vm: SessionViewModel, onDeleted: () -> Unit) {
                 shot = shot,
                 onScore = { vm.setScore(shot.id, it) },
                 onBaseline = { vm.toggleBaseline(shot.id, it) },
+                onReplay = media.firstOrNull { it.id == shot.captureMediaId }?.let { capture ->
+                    {
+                        selectedMediaId = capture.id
+                        val relative = ((shot.drawStartS ?: shot.releaseS ?: 0.0) * 1000).toLong()
+                        seekRequestMs = relative + capture.poseStartedAtMs - capture.videoStartedAtMs
+                    }
+                },
             )
         }
 
@@ -161,7 +208,12 @@ private fun CorrelationRow(r: FeatureScoreRelation) {
 }
 
 @Composable
-private fun ShotCard(shot: ShotView, onScore: (Double?) -> Unit, onBaseline: (Boolean) -> Unit) {
+private fun ShotCard(
+    shot: ShotView,
+    onScore: (Double?) -> Unit,
+    onBaseline: (Boolean) -> Unit,
+    onReplay: (() -> Unit)?,
+) {
     var scoreText by
         rememberSaveable(shot.id) {
             mutableStateOf(shot.score?.let { it.toInt().toString() } ?: "")
@@ -188,6 +240,11 @@ private fun ShotCard(shot: ShotView, onScore: (Double?) -> Unit, onBaseline: (Bo
             )
             shot.topDeviationFeature?.let {
                 Text("biggest deviation: $it", color = Hyle.OnSurfaceDim)
+            }
+            if (onReplay != null && shot.drawStartS != null) {
+                Button(onClick = onReplay) {
+                    Text("Replay draw · ${String.format("%.1f", shot.drawStartS)}s")
+                }
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,

@@ -1,6 +1,7 @@
 package xyz.mdhv.formanalyser.app.data
 
 import android.content.Context
+import android.os.Environment
 import java.io.File
 import java.security.KeyStore
 import kotlinx.coroutines.CancellationException
@@ -50,6 +51,16 @@ internal object AppDataReset {
             attempt("$name files") {
                 val directory = File(app.filesDir, name)
                 check(directory.deleteRecursively() && !directory.exists())
+            }
+        }
+        attempt("raw capture video") {
+            // Session videos are app-private but live under the external-files Movies root when it
+            // exists (see CaptureScreen); a wipe that skipped them would leave identifiable footage.
+            listOfNotNull(app.getExternalFilesDir(Environment.DIRECTORY_MOVIES), app.filesDir).forEach { root ->
+                val directory = File(root, "captures")
+                check(directory.deleteRecursively() && !directory.exists()) {
+                    "Could not remove ${directory.name}"
+                }
             }
         }
         attempt("temporary and cached files") {

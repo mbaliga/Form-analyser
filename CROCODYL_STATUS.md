@@ -253,6 +253,31 @@ manual-scoring wedge → `0.7.x` form/End-Scan/Live-Observer → `0.8.0` exchang
 `0.10.0` web viewer → `0.11.0` model UX → `0.12.x` equipment/training → `1.0.0` club release, rather
 than continuing ad hoc `0.4.x`/`0.5.x` numbering in isolation.
 
+### 3.6 Current development branch — immersive athlete experience
+
+PR #11 (`feat/immersive-visuals`) now contains the current product surface:
+
+- a complete System/Light/Dark theme switch with warm, high-contrast light surfaces;
+- an illustrated athlete Home hero, graphical capture placement guide and live framing overlay;
+- an anatomical, procedurally drawn front/back muscle atlas replacing rectangular body regions;
+- graphical improvement-area cards and richer review/body presentation;
+- WA/manual numeric scoring, target plotting, set matches, PBs, grouping, score history and Progress;
+- constrained observer voice declarations such as “eight bottom left”, plus repeat/undo, using
+  Android's on-device recognizer only; repeat, undo, skip, finish-end and audited last-arrow
+  correction are supported, and declarations/observation resolution are preserved;
+- photo-assisted End Scan: import a target photograph, calibrate centre/edge, mark arrows, calculate
+  provisional rings, then confirm or reject each result before it affects a scorecard;
+- opt-in raw MP4 capture alongside pose analysis, stored in app-private media storage;
+- DeepSeek BYOK, on-device model file import, and deterministic offline coaching fallback;
+- checksum-validated `.crocbak` preview/import that adds missing rows transactionally without
+  overwriting local history; and
+- ECDSA-signed `.croc` sharing using the Android Keystore identity, with signature, fingerprint and
+  payload verification before import preview;
+- visual Pairing Cards, explicit trust-on-first-use identity pinning, manifest/envelope identity
+  binding, and two-step quarantine/replacement when a known athlete's signing key changes; and
+- durable raw-video/session links, per-shot draw/release timestamps, phase-aligned replay from each
+  shot card, and explicit raw-video deletion from Review.
+
 ---
 
 ## 4. Pending
@@ -330,6 +355,64 @@ recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 - Confirm the DECISION-21 OTF constants (shipped as defaults 2.0 lbs/in draw, 1.0 lb/in riser).
 - Baseline repo: the Crocodyl spec + phase briefs are committed there (PR #5 on `baseline`, draft) —
   separate from this repo's own PR #5.
+
+### 4.8 Ledger carried over from `feat/immersive-visuals` (merged 2026-10-22)
+
+The September visual/feature branch kept its own remaining-work ledger. It is retained here
+verbatim apart from the voice-scoring note above, because most items are still open and none of it
+is superseded by the hardening branch's list.
+
+#### Verification gates (intentionally not claimed by CI)
+
+- On-device behavioural, rotation/foldable, camera, microphone, thermal, battery and storage QA.
+- Range validation of pose metrics, shot segmentation and all target-photo scoring behavior.
+- Athlete/coach comprehension, accessibility and sunlight/glove testing.
+- Clinical/content review of recovery, pain, injury and return-to-training guidance.
+
+#### Remaining product implementation
+
+- **Automatic End Scan vision:** the current flow is calibrated photo marking, not an arrow detector.
+  Perspective correction, automatic impact candidates, drag/add/remove correction and a measured
+  device/target/lighting envelope remain.
+- **Voice command depth:** the command grammar, repeat, undo, skip, finish-end and audited
+  correct-last are implemented and unit-tested, along with an on-device-only recogniser wrapper.
+  The push-to-talk control is **not wired into the scoring screen** because it needs
+  `RECORD_AUDIO`, which the release manifest contract does not allow; enabling it is a deliberate
+  change to that contract. Range false-acceptance validation remains.
+- **Synchronized media review:** durable shot-to-video timing, multi-clip phase-aligned replay,
+  explicit per-clip deletion and opt-in 7-day/30-day/forever retention are built.
+- **Human Coach product:** roster, athlete inbox/detail, notes, assignments, acknowledgement,
+  coach-local score book, entitlement and retention controls remain. The existing “Coach” is the
+  athlete's AI/rule coach, not this paid human workspace.
+- **Organiser/referee and spectator display:** competition control, casting/external-display layout,
+  automatic form filling and offline tournament workflows remain.
+- **Static local web viewer:** local `.croc`/`.crocbak` inspection and report rendering in a PWA is
+  not implemented.
+- **Exchange trust UX:** `.croc` signing/verification, Pairing Cards, TOFU pinning, key-change
+  quarantine and pre-import new/identical/conflict inspection now exist. Explicit athlete
+  switching remains.
+- **Device ecosystem:** Garmin, Wear OS, Health Connect, Bluetooth sensors and Steady Aim A1 Pro are
+  not integrated. These require their respective SDK/protocol work and hardware testing.
+- **Baseline seam:** Crocodyl now owns a versioned, typed, per-observation consent-filtered
+  `InsightInput` adapter and constrained `Insight` presentation contract. Baseline-specific engines,
+  estimators and paid analytics remain outside this repository.
+- **Equipment depth:** individual arrows, catalog provenance, lifecycle/wear, tuning history and
+  neutral upgrade evidence remain beyond the current rig/tuning calculator.
+- **Training depth:** competition planning, plan-vs-completed reconciliation, pressure games and the
+  reviewed recovery action library remain beyond current goals/check-ins/calendar/body/physio.
+- **Model UX:** guided local-model download, streaming, cancellation, token/cost display and live
+  provider model discovery remain. Manual local-model import and all configured BYOK providers work.
+- **Additional disciplines/platforms:** Compound, Korean/traditional archery, Bouldering, Fencing,
+  Swimming, Rock climbing and iOS have not been implemented; only the sport-module seam exists.
+- **Release engineering:** localization, automated accessibility checks, migration fixtures,
+  malicious exchange fixtures, security review, store declarations and club-pilot evidence remain.
+
+#### Repository decisions (as recorded on the branch)
+
+- Merge PR #11 after review; it supersedes the stale implementation claims and visual branch work.
+- Confirm DECISION-21 OTF constants (current defaults: 2.0 lbs/in draw, 1.0 lb/in riser).
+- Keep EEG/bow-IMU and paid Baseline analytics out of this repository; exchange only typed,
+  consent-filtered observations across the future adapter.
 
 ### 4.8 Multi-platform porting (plan only)
 See [`docs/crocodyl/CROCODYL_PORTING_PLAN.md`](docs/crocodyl/CROCODYL_PORTING_PLAN.md): nothing is built; its proposals await the owner.

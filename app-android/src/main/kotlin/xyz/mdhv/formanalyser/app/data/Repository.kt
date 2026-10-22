@@ -14,6 +14,7 @@ class Repository internal constructor(private val db: AppDatabase) {
     private val sessions = db.sessionDao()
     private val rigs = db.rigDao()
     private val shots = db.shotDao()
+    private val media = db.captureMediaDao()
 
     /** Direct DAO access for the wellness (Phase 2) and body (Phase 3) layers — thin by design. */
     val wellness: WellnessDao = db.wellnessDao()
@@ -89,6 +90,26 @@ class Repository internal constructor(private val db: AppDatabase) {
         sessions.recent(athleteId, limit)
 
     suspend fun saveShots(shots: List<ShotEntity>) = this.shots.insertAll(shots)
+
+    suspend fun saveCaptureMedia(value: CaptureMediaEntity) = media.insert(value)
+
+    suspend fun captureMedia(sessionId: String): List<CaptureMediaEntity> = media.forSession(sessionId)
+
+    suspend fun deleteCaptureMedia(value: CaptureMediaEntity): Boolean {
+        val file = java.io.File(value.path)
+        if (file.exists() && !file.delete()) return false
+        media.delete(value.id)
+        return true
+    }
+
+    suspend fun purgeCaptureMediaOlderThan(cutoffMs: Long): Int {
+        val expired = media.olderThan(cutoffMs)
+        var removed = 0
+        expired.forEach {
+            if (deleteCaptureMedia(it)) removed++
+        }
+        return removed
+    }
 
     fun shotsFor(sessionId: String): Flow<List<ShotEntity>> = shots.forSession(sessionId)
 

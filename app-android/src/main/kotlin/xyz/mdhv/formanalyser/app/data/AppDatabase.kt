@@ -53,8 +53,9 @@ class DatabaseRecoveryRequired(
             ScoreCandidateEntity::class,
             ObserverScoreEventEntity::class,
             SportSessionEntity::class,
+            CaptureMediaEntity::class,
         ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -65,6 +66,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rigDao(): RigDao
 
     abstract fun shotDao(): ShotDao
+
+    abstract fun captureMediaDao(): CaptureMediaDao
 
     abstract fun wellnessDao(): WellnessDao
 
@@ -136,6 +139,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_6_7,
                     MIGRATION_7_8,
                     MIGRATION_8_9,
+                    MIGRATION_9_10,
                 )
                 // No fallbackToDestructiveMigration: a missing migration path should surface as a
                 // thrown exception into the catch below (and get backed up + recorded), not vanish
@@ -524,6 +528,22 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_athleteId` ON `sport_session` (`athleteId`)")
                     db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_sportId` ON `sport_session` (`sportId`)")
                     db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_startedAtEpochMs` ON `sport_session` (`startedAtEpochMs`)")
+                }
+            }
+
+        /** V9 → V10: durable shot phase timestamps and session-linked private raw video. */
+        val MIGRATION_9_10 =
+            object : Migration(9, 10) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `drawStartS` REAL")
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `releaseS` REAL")
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `captureMediaId` TEXT")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `capture_media` (`id` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `path` TEXT NOT NULL, `poseStartedAtMs` INTEGER NOT NULL, `videoStartedAtMs` INTEGER NOT NULL, `durationMs` INTEGER NOT NULL, `sizeBytes` INTEGER NOT NULL, `createdAtMs` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+                    )
+                    db.execSQL(
+                        "CREATE INDEX IF NOT EXISTS `index_capture_media_sessionId` ON `capture_media` (`sessionId`)"
+                    )
                 }
             }
     }

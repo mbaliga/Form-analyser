@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base activity theme; Compose drives the real Hyle theming. Window sits at the token
-         contract's field.near (#0A0809) — UI surfaces never pure black (halation rule). -->
+    <!-- System-light launch surface. Compose applies the persisted System/Light/Dark choice as
+         soon as preferences load; the night-qualified resource prevents a bright system-dark
+         startup flash. -->
     <style name="Theme.FormAnalyser" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowBackground">#0A0809</item>
-        <item name="android:statusBarColor">#0A0809</item>
-        <item name="android:navigationBarColor">#0A0809</item>
+        <item name="android:windowBackground">#F5F2ED</item>
+        <item name="android:statusBarColor">#F5F2ED</item>
+        <item name="android:navigationBarColor">#FFFCF7</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>
