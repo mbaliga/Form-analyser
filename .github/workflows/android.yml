@@ -61,7 +61,7 @@ jobs:
         run: |
           f=app-android/schemas/xyz.mdhv.formanalyser.app.data.AppDatabase/10.json
           if [ -f "$f" ]; then
-            gzip -9 -c "$f" | base64 -w0 | fold -w 20000 | awk '{printf "::notice title=schema10-part-%03d::%s\n", NR, $0}'
+            gzip -9 -c "$f" | base64 -w0 | fold -w 3500 | awk '{printf "::notice title=schema10-part-%03d::%s\n", NR, $0}'
           else
             echo "::error title=schema10::generated 10.json is missing"
           fi
