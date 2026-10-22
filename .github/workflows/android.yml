@@ -62,10 +62,17 @@ jobs:
           } | head -n 40 | sed 's/$/%0A/' | tr -d '\n' | sed 's/^/::error title=Android unit tests::/'
           echo
       - name: Run Android lint
-        run: ./gradlew :app-android:lintRelease -PwithAndroid --no-daemon
+        run: |
+          ./gradlew :app-android:lintRelease -PwithAndroid --no-daemon --console=plain 2>&1 | tee lint.log
+          exit "${PIPESTATUS[0]}"
       - name: Annotate Android lint findings
         if: failure()
         run: |
+          # Surface the Gradle failure block (when lint never ran) as check-run annotations.
+          {
+            grep -E '^e: |error:|FAILURE|What went wrong|Caused by|^> ' lint.log | head -n 60
+            grep -A40 'What went wrong' lint.log | head -n 45
+          } | awk '!seen[$0]++' | head -n 100 | while IFS= read -r l; do echo "::error title=Android lint build::${l:0:500}"; done || true
           # Surface lint issues as check-run annotations (job logs are not always reachable).
           python3 - <<'PY'
           import glob
