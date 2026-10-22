@@ -2,12 +2,13 @@
 <resources>
     <!-- System-light launch surface. Compose applies the persisted System/Light/Dark choice as
          soon as preferences load; the night-qualified resource prevents a bright system-dark
-         startup flash. -->
-    <style name="Theme.FormAnalyser" parent="android:Theme.Material.NoActionBar">
+         startup flash. windowLightNavigationBar needs API 27 and lives in the values-v27 and
+         values-night-v27 overlays of Theme.FormAnalyser. -->
+    <style name="Base.Theme.FormAnalyser" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">#F5F2ED</item>
         <item name="android:statusBarColor">#F5F2ED</item>
         <item name="android:navigationBarColor">#FFFCF7</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
     </style>
+    <style name="Theme.FormAnalyser" parent="Base.Theme.FormAnalyser" />
 </resources>
