@@ -197,6 +197,11 @@ fun CaptureScreen(vm: SessionViewModel, onReview: () -> Unit, onBackToSetup: () 
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Text(
+            "Film side-on (sagittal)",
+            style = MaterialTheme.typography.titleLarge,
+            color = Hyle.OnBackground,
+        )
         CaptureHowTo(Modifier.fillMaxWidth())
 
         if (!hasCameraHardware) {
