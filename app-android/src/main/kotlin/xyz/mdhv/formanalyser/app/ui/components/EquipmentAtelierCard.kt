@@ -39,17 +39,18 @@ fun EquipmentAtelierCard() {
     }
     val bg = Color(0xff111018)
     Box(
-        Modifier.fillMaxWidth().height(142.dp).clip(RoundedCornerShape(24.dp))
+        // heightIn(min): a fixed 142.dp clipped the copy at large font scales (accessibility 1.3x).
+        Modifier.fillMaxWidth().heightIn(min = 142.dp).clip(RoundedCornerShape(24.dp))
             .background(bg)
             .clickable(role = Role.Button, onClickLabel = "Open 3D equipment studio") {
                 context.startActivity(Intent(context, EquipmentAtelierActivity::class.java))
             }
     ) {
         poster.value?.let {
-            Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            Image(it, null, Modifier.matchParentSize(), contentScale = ContentScale.Crop)
         }
         Box(
-            Modifier.fillMaxSize().background(
+            Modifier.matchParentSize().background(
                 androidx.compose.ui.graphics.Brush.horizontalGradient(
                     0f to Color(0xff101016).copy(alpha = .56f),
                     .55f to Color(0xff101016).copy(alpha = .24f),
@@ -58,7 +59,7 @@ fun EquipmentAtelierCard() {
             )
         )
         Column(
-            Modifier.fillMaxHeight().padding(horizontal = 18.dp, vertical = 15.dp)
+            Modifier.heightIn(min = 142.dp).padding(horizontal = 18.dp, vertical = 15.dp)
                 .widthIn(max = 265.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {

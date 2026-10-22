@@ -1192,9 +1192,11 @@ class ProductionSmokeTest {
         // straddling frame would have shown.
         var direction = forward
         var edgeFlips = 0
+        var lastSeenNodes = emptyList<String>()
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
+            root?.let { describeNodesContaining(it, expected.take(5)) }?.takeIf { it.isNotEmpty() }?.let { lastSeenNodes = it }
             if (root?.findVisibleTextNode(expected) != null) {
                 consecutiveVisibleSamples++
                 if (consecutiveVisibleSamples >= 2) return
@@ -1240,7 +1242,7 @@ class ProductionSmokeTest {
         throw AssertionError(
             "Could not scroll to visible UI text: $expected. fontScale=$fontScale " +
                 "screen=${context.resources.displayMetrics.widthPixels}x${context.resources.displayMetrics.heightPixels} " +
-                "nodesContaining('${expected.take(5)}')=$near. Visible: $visible",
+                "nodesContaining('${expected.take(5)}')=$near lastSeenWhileScrolling=$lastSeenNodes. Visible: $visible",
         )
     }
 
