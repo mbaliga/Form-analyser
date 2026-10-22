@@ -110,7 +110,9 @@ jobs:
           profile: Pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon
+          script: |
+            mkdir -p app-android/build/diagnostics
+            ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api36.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api36.log; exit 1; }
       - name: Run debug smoke tests on Android 15
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
@@ -120,7 +122,9 @@ jobs:
           profile: Pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
-          script: ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon
+          script: |
+            mkdir -p app-android/build/diagnostics
+            ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api35.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api35.log; exit 1; }
       - name: Run debug smoke tests on 16 KB page-size emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
@@ -136,12 +140,59 @@ jobs:
             adb shell settings put system font_scale 1.3
             font_scale="$(adb shell settings get system font_scale | tr -d '\r')"
             test "$font_scale" = 1.3 || { echo "Expected font scale 1.3, got $font_scale" >&2; exit 1; }
-            ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon
+            mkdir -p app-android/build/diagnostics
+            ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api36-16kb.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api36-16kb.log; exit 1; }
       - name: Collect Android debug instrumentation diagnostics
         if: always()
         run: |
           mkdir -p app-android/build/diagnostics
           timeout 30 adb logcat -d -v threadtime > app-android/build/diagnostics/debug-logcat.txt 2>&1 || true
+      - name: Annotate Android instrumentation failures
+        if: failure()
+        run: |
+          # Failed tests from JUnit XML, or the Gradle/emulator output when no XML was produced
+          # (emulator never booted, "No tests found"); readable without job-log access.
+          python3 - <<'PY'
+          import glob
+          import re
+          import xml.etree.ElementTree as ET
+          reports = glob.glob("app-android/build/outputs/androidTest-results/connected/**/*.xml", recursive=True)
+          failed = tests = 0
+          for report in reports:
+              try:
+                  root = ET.parse(report).getroot()
+              except ET.ParseError:
+                  continue
+              for case in root.iter("testcase"):
+                  tests += 1
+                  bad = case.find("failure")
+                  if bad is None:
+                      bad = case.find("error")
+                  if bad is None:
+                      continue
+                  failed += 1
+                  if failed <= 8:
+                      text = (bad.get("message") or bad.text or "").strip().splitlines()[:3]
+                      msg = "%0A".join(t[:300] for t in text)
+                      print(f"::error title=FAILED {case.get('classname')}.{case.get('name')}::{msg}")
+          print(f"::notice title=Instrumentation results::xml_reports={len(reports)} tests={tests} failed={failed}")
+          if not reports:
+              print("::error title=Instrumentation infra::no androidTest JUnit XML produced (emulator did not boot, or no tests ran)")
+          PY
+          {
+            echo '### Instrumentation output'
+            for f in app-android/build/diagnostics/connected-*.log; do
+              [ -f "$f" ] || continue
+              echo "#### $f"; echo '```'
+              grep -E 'FAILED|No tests found|INSTRUMENTATION_STATUS|Process crashed|emulator|What went wrong|Caused by|Tests? .*(failed|passed)' "$f" | tail -n 40
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+          for f in app-android/build/diagnostics/connected-*.log; do
+            [ -f "$f" ] || continue
+            body="$(grep -E 'FAILED|No tests found|Process crashed|What went wrong|Caused by|Tests? .*(failed|passed)' "$f" | tail -n 15 | cut -c1-300 | sed 's/$/%0A/' | tr -d '\n')"
+            [ -n "$body" ] && echo "::error title=$(basename "$f")::$body" || true
+          done
       - name: Upload Android debug test reports and diagnostics
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -152,6 +203,7 @@ jobs:
             app-android/build/outputs/androidTest-results/connected/debug/**
             app-android/build/reports/androidTests/connected/debug/**
             app-android/build/diagnostics/debug-logcat.txt
+            app-android/build/diagnostics/connected-*.log
           if-no-files-found: warn
       - name: Assemble debug APK
         run: ./gradlew :app-android:assembleDebug -PwithAndroid --no-daemon
