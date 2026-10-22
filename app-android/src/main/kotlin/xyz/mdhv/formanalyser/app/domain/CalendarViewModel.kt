@@ -48,6 +48,10 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
     private val _acwr = MutableStateFlow<AcwrSeries?>(null)
     val acwr: StateFlow<AcwrSeries?> = _acwr
 
+    /** sRPE secondary load lane (Load view) -- see [WellnessAssembler.srpeAcwr]. */
+    private val _srpeAcwr = MutableStateFlow<AcwrSeries?>(null)
+    val srpeAcwr: StateFlow<AcwrSeries?> = _srpeAcwr
+
     fun setMonth(m: YearMonth) { _month.value = m; load() }
 
     fun load() {
@@ -99,6 +103,7 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
             _streak.value = data.second
             _loads.value = data.third
             _acwr.value = withContext(Dispatchers.IO) { assembler.acwr(athlete.id, today) }
+            _srpeAcwr.value = withContext(Dispatchers.IO) { assembler.srpeAcwr(athlete.id, today) }
         }
     }
 }

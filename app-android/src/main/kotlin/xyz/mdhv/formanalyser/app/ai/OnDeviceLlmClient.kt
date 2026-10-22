@@ -132,6 +132,32 @@ class OnDeviceLlmClient(
 }
 
 /**
+ * The app runs exactly one on-device engine (see [xyz.mdhv.formanalyser.app.domain.CoachViewModel]'s
+ * factory), but the model FILE it points at is managed from Settings ([ModelInstall]/AiSettingsScreen)
+ * -- a different screen, with no shared ViewModel (this app's manual DI has no injector that reaches
+ * both). Without this registry, removing or replacing the installed file leaves the already-built
+ * [OnDeviceLlmClient] holding its [LlmInference] open on the deleted/replaced file -- the next ask
+ * either serves stale weights or fails opaquely, since [OnDeviceLlmClient] only rebuilds its engine
+ * when the path it's given actually changes.
+ *
+ * [CoachViewModel.factory] registers the one instance it builds; the Settings screen calls
+ * [closeActive] before it removes or replaces the installed file, so the next `ask()` is forced to
+ * rebuild against whatever is (or isn't) installed afterward.
+ */
+object OnDeviceEngineRegistry {
+    @Volatile private var active: OnDeviceLlmClient? = null
+
+    fun register(client: OnDeviceLlmClient) {
+        active = client
+    }
+
+    /** Release the registered engine's native resources, if one is registered. Safe to call anytime. */
+    fun closeActive() {
+        active?.close()
+    }
+}
+
+/**
  * Filesystem helper for on-device model weights. Copies a user-picked `.task`/`.bin` file into the
  * app's private [Context.filesDir] (MediaPipe needs a real, readable file path — it cannot load from
  * a content Uri) and reports where it landed. The returned absolute path is what callers persist in

@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlin.math.hypot
+import kotlin.math.roundToInt
 import xyz.mdhv.formanalyser.app.data.SessionEntity
 import xyz.mdhv.formanalyser.app.domain.ScoringInputMode
 import xyz.mdhv.formanalyser.app.domain.ScoringViewModel
@@ -27,6 +29,7 @@ import xyz.mdhv.formanalyser.app.ui.theme.HapticCue
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.rememberHaptics
+import xyz.mdhv.formanalyser.scoring.EndScan
 import xyz.mdhv.formanalyser.scoring.RoundPack
 import xyz.mdhv.formanalyser.scoring.FaceLayout
 import xyz.mdhv.formanalyser.scoring.ScoreInput
@@ -140,6 +143,16 @@ fun ScoringScreen(vm: ScoringViewModel) {
     } else {
         val card = snapshot.card
         val session = snapshot.session
+        // An End Scan takes over the whole tab while it runs: the athlete is standing at the boss
+        // holding the phone up to a target face, and a scorecard behind the camera is nothing but a
+        // mis-tap waiting to happen. Nothing is written until they file the findings, and the flow's
+        // own BackHandler brings them back here.
+        val scan by vm.endScan.collectAsState()
+        val openScan = scan
+        if (openScan != null) {
+            EndScanFlow(vm, openScan, card.round.faceLayout)
+            return
+        }
         val match = card.setMatchSummary()
         val grouping = card.grouping()
         // A finished scorecard is read-only. The repository refuses to mutate one anyway, so
@@ -575,6 +588,19 @@ private fun EndScanPanel(
             "Choose a target photo, calibrate its centre and edge, then mark each arrow. Crocodyl calculates provisional rings; nothing affects your total until you confirm it.",
             color = Hyle.OnSurfaceDim,
         )
+        Button(
+            onClick = vm::beginEndScan,
+            enabled = enabled && maxArrows > 0,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Photograph the target (automatic read)")
+        }
+        Text(
+            "Automatic target detection is not yet range-validated. It only proposes; every arrow " +
+                "still costs you one deliberate Confirm.",
+            color = Hyle.OnSurfaceDim,
+            style = MaterialTheme.typography.labelMedium,
+        )
         EndScanPhoto(
             maxArrows = maxArrows,
             faceLayout = faceLayout,
@@ -591,25 +617,49 @@ private fun EndScanPanel(
             .filter { it.status == "PROPOSED" }
             .forEach { c ->
                 Card(Modifier.fillMaxWidth()) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(if (c.isX) "X" else if (c.points == 0) "M" else c.points.toString())
-                        Row {
-                            TextButton(
-                                onClick = { vm.rejectEndScanCandidate(c.id) },
-                                enabled = enabled,
-                            ) {
-                                Text("Reject")
+                    Column(Modifier.padding(12.dp)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Column {
+                                Text(
+                                    if (c.isX) "X" else if (c.points == 0) "M" else c.points.toString(),
+                                    style = MaterialTheme.typography.titleLarge,
+                                )
+                                c.confidence?.let {
+                                    Text(
+                                        "${(it * 100).roundToInt()}% confident",
+                                        color = Hyle.OnSurfaceDim,
+                                    )
+                                }
                             }
-                            Button(
-                                onClick = { vm.confirmEndScanCandidate(c.id) },
-                                enabled = enabled,
-                            ) {
-                                Text("Confirm")
+                            Row {
+                                TextButton(
+                                    onClick = { vm.rejectEndScanCandidate(c.id) },
+                                    enabled = enabled,
+                                ) {
+                                    Text("Reject")
+                                }
+                                Button(
+                                    onClick = { vm.confirmEndScanCandidate(c.id) },
+                                    enabled = enabled,
+                                ) {
+                                    Text("Confirm")
+                                }
                             }
                         }
+                        // Recomputed from the stored coordinates rather than read from a column: the
+                        // flag is a function of the plot and the current tolerance, and a stored
+                        // copy would keep asserting last release's answer after the tolerance moved.
+                        val plotX = c.plotX
+                        val plotY = c.plotY
+                        val plotted = if (plotX != null && plotY != null) hypot(plotX, plotY) else null
+                        if (plotted != null && EndScan.isLineCutter(plotted))
+                            Text(
+                                "On a ring line. A line-cutter scores the higher value and a photo cannot see whether it touches -- check this one on the boss.",
+                                color = Hyle.Warning,
+                            )
                     }
                 }
             }
