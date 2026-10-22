@@ -1183,8 +1183,15 @@ class ProductionSmokeTest {
         val endY = height * if (forward) .52f else .66f
         val x = width * .5f
         val automation = instrumentation.uiAutomation
-        val deadline = SystemClock.uptimeMillis() + 20_000
+        // Slow emulators (the 16 KB page-size image boots in ~2 min) and large font scales need a
+        // longer budget; the assertion itself depends on the text appearing, not on swipe counts.
+        val deadline = SystemClock.uptimeMillis() + 45_000
         var consecutiveVisibleSamples = 0
+        // Start in the requested direction, but when that edge of the list is reached sweep back the
+        // other way: a viewport-sized accessibility scroll can step past a card that only a
+        // straddling frame would have shown.
+        var direction = forward
+        var edgeFlips = 0
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
@@ -1198,7 +1205,13 @@ class ProductionSmokeTest {
             // Compose's scrollable semantics are more reliable than coordinate swipes in the
             // minified build at large font scales. Keep the touch fallback for screens whose
             // accessibility tree does not expose a scroll action.
-            if (root?.scrollOnce(forward) == true) {
+            if (root?.scrollOnce(direction) == true) {
+                SystemClock.sleep(250)
+                continue
+            }
+            if (edgeFlips < 4 && root?.scrollOnce(!direction) == true) {
+                direction = !direction
+                edgeFlips++
                 SystemClock.sleep(250)
                 continue
             }
