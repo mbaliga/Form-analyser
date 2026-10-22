@@ -1170,6 +1170,8 @@ class ProductionSmokeTest {
         inject(MotionEvent.ACTION_UP, 1f)
     }
 
+    private val TEMP_SWEEP_WITH_SWIPES = false
+
     private fun scrollScreenUntilText(
         instrumentation: android.app.Instrumentation,
         expected: String,
@@ -1178,25 +1180,26 @@ class ProductionSmokeTest {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val width = context.resources.displayMetrics.widthPixels.toFloat()
         val height = context.resources.displayMetrics.heightPixels.toFloat()
-        // Small, deliberate swipes avoid skipping a specific card at larger accessibility sizes.
-        val startY = height * if (forward) .66f else .52f
-        val endY = height * if (forward) .52f else .66f
         val x = width * .5f
         val automation = instrumentation.uiAutomation
         // Slow emulators (the 16 KB page-size image boots in ~2 min) and large font scales need a
         // longer budget; the assertion itself depends on the text appearing, not on swipe counts.
-        val deadline = SystemClock.uptimeMillis() + 45_000
+        val deadline = SystemClock.uptimeMillis() + 60_000
         var consecutiveVisibleSamples = 0
-        // Start in the requested direction, but when that edge of the list is reached sweep back the
-        // other way: a viewport-sized accessibility scroll can step past a card that only a
-        // straddling frame would have shown.
+        // First pass: Compose accessibility scrolling (reliable in the minified build). It moves a
+        // whole viewport per step, which at font scale 1.3 on the 16 KB lane stepped over a card
+        // that is shorter than the step without it ever being composed. When an edge is reached
+        // without finding the text, sweep back with small touch swipes (a fraction of the screen,
+        // far shorter than any card) so every item is seen at least once.
         var direction = forward
-        var edgeFlips = 0
+        var swipeMode = false
+        val seenTexts = LinkedHashSet<String>()
         var lastSeenNodes = emptyList<String>()
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
             root?.let { describeNodesContaining(it, expected.take(5)) }?.takeIf { it.isNotEmpty() }?.let { lastSeenNodes = it }
+            root?.let(::collectVisibleText)?.forEach { if (seenTexts.size < 80) seenTexts.add(it.take(40)) }
             if (root?.findVisibleTextNode(expected) != null) {
                 consecutiveVisibleSamples++
                 if (consecutiveVisibleSamples >= 2) return
@@ -1204,19 +1207,21 @@ class ProductionSmokeTest {
                 continue
             }
             consecutiveVisibleSamples = 0
-            // Compose's scrollable semantics are more reliable than coordinate swipes in the
-            // minified build at large font scales. Keep the touch fallback for screens whose
-            // accessibility tree does not expose a scroll action.
-            if (root?.scrollOnce(direction) == true) {
-                SystemClock.sleep(250)
-                continue
+            if (!swipeMode) {
+                if (root?.scrollOnce(direction) == true) {
+                    SystemClock.sleep(250)
+                    continue
+                }
+                if (root?.scrollOnce(!direction) == true) {
+                    // Edge reached: sweep back with small swipes.
+                    direction = !direction
+                    swipeMode = TEMP_SWEEP_WITH_SWIPES // TEMP axis experiment: false keeps accessibility-only sweeping
+                    SystemClock.sleep(250)
+                    continue
+                }
             }
-            if (edgeFlips < 4 && root?.scrollOnce(!direction) == true) {
-                direction = !direction
-                edgeFlips++
-                SystemClock.sleep(250)
-                continue
-            }
+            val startY = height * if (direction) .66f else .52f
+            val endY = height * if (direction) .52f else .66f
             val downTime = SystemClock.uptimeMillis()
             fun inject(action: Int, y: Float) {
                 val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0).apply {
@@ -1242,7 +1247,8 @@ class ProductionSmokeTest {
         throw AssertionError(
             "Could not scroll to visible UI text: $expected. fontScale=$fontScale " +
                 "screen=${context.resources.displayMetrics.widthPixels}x${context.resources.displayMetrics.heightPixels} " +
-                "nodesContaining('${expected.take(5)}')=$near lastSeenWhileScrolling=$lastSeenNodes. Visible: $visible",
+                "swipeMode=$swipeMode nodesContaining('${expected.take(5)}')=$near " +
+                "lastSeenWhileScrolling=$lastSeenNodes everSeen=$seenTexts. Visible: $visible",
         )
     }
 
