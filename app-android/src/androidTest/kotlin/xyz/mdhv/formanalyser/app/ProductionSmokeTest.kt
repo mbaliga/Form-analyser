@@ -1170,7 +1170,7 @@ class ProductionSmokeTest {
         inject(MotionEvent.ACTION_UP, 1f)
     }
 
-    private val TEMP_SWEEP_WITH_SWIPES = false
+    private val TEMP_SWEEP_WITH_SWIPES = true
 
     private fun scrollScreenUntilText(
         instrumentation: android.app.Instrumentation,
@@ -1215,7 +1215,7 @@ class ProductionSmokeTest {
                 if (root?.scrollOnce(!direction) == true) {
                     // Edge reached: sweep back with small swipes.
                     direction = !direction
-                    swipeMode = TEMP_SWEEP_WITH_SWIPES // TEMP axis experiment: false keeps accessibility-only sweeping
+                    swipeMode = TEMP_SWEEP_WITH_SWIPES
                     SystemClock.sleep(250)
                     continue
                 }
