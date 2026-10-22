@@ -80,6 +80,12 @@ jobs:
           grep -A8 'What went wrong' lint.filtered.log | annotate "Gradle: what went wrong"
           grep -E 'Caused by|Could not|Unresolved reference|error:' lint.filtered.log | awk '!seen[$0]++' | annotate "Gradle: causes"
           { echo '### lintRelease output (last 300 lines)'; echo '```'; tail -n 300 lint.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          # Dependency verification names the artifact it lacks a checksum for; print what Google
+          # Maven serves for the Linux aapt2 jar so the checksum can be reviewed and committed.
+          for artifact in aapt2-8.13.2-14304508-linux.jar; do
+            curl -fsSL "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/8.13.2-14304508/$artifact" -o "/tmp/$artifact" \
+              && echo "::error title=sha256 $artifact::$(sha256sum "/tmp/$artifact" | cut -d' ' -f1)" || true
+          done
           # Surface lint issues as check-run annotations (job logs are not always reachable).
           python3 - <<'PY'
           import glob
