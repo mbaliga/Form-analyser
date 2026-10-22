@@ -114,20 +114,34 @@ jobs:
       - name: TEMP emulator provisioning probe
         continue-on-error: true
         run: |
-          # Temporary: reproduce the emulator-runner's SDK/AVD provisioning with readable output
-          # (job logs are not retrievable here). Removed once the cause is fixed.
+          # Temporary: install one image, create an AVD and try to boot it, with full output in the
+          # step summary and compact annotations (job logs are not retrievable here).
           SM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           AM="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
-          note() { # $1 title; stdin lines (CR progress converted, progress-only lines dropped)
-            tr '\r' '\n' | grep -v -E '^\[=* *\]|^Loading|^Fetch' | tail -n "${N:-25}" | cut -c1-220 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n' | sed "s/^/::notice title=$1::/"; echo
-          }
-          { echo "cmdline-tools dirs: $(ls "$ANDROID_HOME/cmdline-tools" | tr '\n' ' ')"; "$SM" --version 2>&1; } | note "probe versions"
-          yes | "$SM" --licenses 2>&1 | N=4 note "probe licenses"
-          "$SM" --install "platform-tools" "emulator" "system-images;android-36;google_apis;x86_64" "system-images;android-35;google_apis;x86_64" "system-images;android-36;google_apis_ps16k;x86_64" 2>&1 | N=25 note "probe sdkmanager install"
-          "$SM" --list 2>/dev/null | tr '\r' '\n' | grep -E 'system-images;android-3[56];google_apis(_ps16k)?;x86_64' | note "probe available images"
-          echo no | "$AM" create avd -n diag -k "system-images;android-36;google_apis;x86_64" -d pixel_2 --force 2>&1 | N=12 note "probe avdmanager"
-          "$ANDROID_HOME/emulator/emulator" -list-avds 2>&1 | note "probe list-avds"
-          "$ANDROID_HOME/emulator/emulator" -accel-check 2>&1 | N=8 note "probe accel-check"
+          EMU="$ANDROID_HOME/emulator/emulator"
+          IMG="system-images;android-35;google_apis;x86_64"
+          clean() { tr '\r' '\n' | grep -v -E '^\[=* *\]|^Loading|^Fetch|^$'; }
+          one() { tr '\r' '\n' | grep -v -E '^\[=* *\]|^$' | tail -n "${N:-6}" | cut -c1-160 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n'; }
+          sect() { { echo "#### $1"; echo '```'; cat; echo '```'; } >> "$GITHUB_STEP_SUMMARY"; }
+          "$SM" --install "$IMG" > /tmp/install.log 2>&1; rc_install=$?
+          clean < /tmp/install.log | tail -n 60 | sect "sdkmanager --install $IMG (rc=$rc_install)"
+          echo no | "$AM" create avd -n probe -k "$IMG" -d pixel_2 --force > /tmp/avd.log 2>&1; rc_avd=$?
+          clean < /tmp/avd.log | sect "avdmanager create (rc=$rc_avd)"
+          "$EMU" -list-avds 2>&1 | sect "list-avds"
+          (nohup "$EMU" -avd probe -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none -verbose > /tmp/emu.out 2> /tmp/emu.err &)
+          boot="timeout"
+          for i in $(seq 1 36); do
+            sleep 5
+            if [ "$(timeout 10 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then boot="booted after $((i*5))s"; break; fi
+            pgrep -f "qemu-system|emulator" >/dev/null || { boot="emulator process exited after $((i*5))s"; break; }
+          done
+          timeout 10 adb devices 2>&1 | sect "adb devices"
+          tail -n 60 /tmp/emu.out | sect "emulator stdout tail"
+          tail -n 60 /tmp/emu.err | sect "emulator stderr tail"
+          echo "::notice title=probe verdict::install_rc=$rc_install avd_rc=$rc_avd boot=$boot"
+          echo "::notice title=probe install tail::$(clean < /tmp/install.log | N=4 one)"
+          echo "::notice title=probe emu tail::$(cat /tmp/emu.err /tmp/emu.out | N=8 one)"
+          timeout 10 adb emu kill >/dev/null 2>&1 || true
       - name: Run on-device Android smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
