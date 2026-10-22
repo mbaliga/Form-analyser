@@ -114,19 +114,20 @@ jobs:
       - name: TEMP emulator provisioning probe
         continue-on-error: true
         run: |
-          # Temporary: reproduce the emulator-runner's provisioning steps to learn why the AVD fails
-          # to come up (job logs are not retrievable here). Removed once the cause is fixed.
-          probe() { "$@" 2>&1 | tail -n 25 | cut -c1-250 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n'; }
+          # Temporary: reproduce the emulator-runner's SDK/AVD provisioning with readable output
+          # (job logs are not retrievable here). Removed once the cause is fixed.
           SM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          echo "::notice title=probe cmdline-tools::$(ls "$ANDROID_HOME/cmdline-tools" 2>&1 | tr '\n' ' ') sm=$(ls -l "$SM" 2>&1)"
-          echo "::notice title=probe installed::$(probe "$SM" --list_installed)"
-          echo "::notice title=probe install image::$(probe bash -c "yes | '$SM' --install 'system-images;android-36;google_apis;x86_64' 'emulator'")"
-          echo "::notice title=probe avdmanager::$(probe bash -c "echo no | '$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager' create avd -n probe -k 'system-images;android-36;google_apis;x86_64' --force")"
-          (nohup "$ANDROID_HOME/emulator/emulator" -avd probe -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none > /tmp/emu.log 2>&1 &)
-          sleep 90
-          echo "::notice title=probe emulator log::$(tail -n 25 /tmp/emu.log | cut -c1-250 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n')"
-          echo "::notice title=probe adb::$(timeout 20 adb devices 2>&1 | tr '\n' ' ')"
-          adb emu kill >/dev/null 2>&1 || true
+          AM="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
+          note() { # $1 title; stdin lines (CR progress converted, progress-only lines dropped)
+            tr '\r' '\n' | grep -v -E '^\[=* *\]|^Loading|^Fetch' | tail -n "${N:-25}" | cut -c1-220 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n' | sed "s/^/::notice title=$1::/"; echo
+          }
+          { echo "cmdline-tools dirs: $(ls "$ANDROID_HOME/cmdline-tools" | tr '\n' ' ')"; "$SM" --version 2>&1; } | note "probe versions"
+          yes | "$SM" --licenses 2>&1 | N=4 note "probe licenses"
+          "$SM" --install "platform-tools" "emulator" "system-images;android-36;google_apis;x86_64" "system-images;android-35;google_apis;x86_64" "system-images;android-36;google_apis_ps16k;x86_64" 2>&1 | N=25 note "probe sdkmanager install"
+          "$SM" --list 2>/dev/null | tr '\r' '\n' | grep -E 'system-images;android-3[56];google_apis(_ps16k)?;x86_64' | note "probe available images"
+          echo no | "$AM" create avd -n diag -k "system-images;android-36;google_apis;x86_64" -d pixel_2 --force 2>&1 | N=12 note "probe avdmanager"
+          "$ANDROID_HOME/emulator/emulator" -list-avds 2>&1 | note "probe list-avds"
+          "$ANDROID_HOME/emulator/emulator" -accel-check 2>&1 | N=8 note "probe accel-check"
       - name: Run on-device Android smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
