@@ -124,7 +124,10 @@ jobs:
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
+          ram-size: 4096M
+          cores: 2
           script: |
+            bash tools/release/ci_settle_device.sh
             mkdir -p app-android/build/diagnostics
             ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api36.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api36.log; exit 1; }
       - name: Run debug smoke tests on Android 15
@@ -142,7 +145,10 @@ jobs:
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
+          ram-size: 4096M
+          cores: 2
           script: |
+            bash tools/release/ci_settle_device.sh
             mkdir -p app-android/build/diagnostics
             ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api35.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api35.log; exit 1; }
       - name: Preflight the 16 KB page-size emulator image (observable boot check)
@@ -169,12 +175,15 @@ jobs:
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
+          ram-size: 4096M
+          cores: 2
           script: |
             # android-emulator-runner runs each script line in its own shell, so a variable must be
             # set and used on the same line.
             page_size="$(adb shell getconf PAGE_SIZE | tr -d '\r')"; test "$page_size" = 16384 || { echo "Expected 16 KB pages, got $page_size" >&2; exit 1; }
             adb shell settings put system font_scale 1.3
             font_scale="$(adb shell settings get system font_scale | tr -d '\r')"; test "$font_scale" = 1.3 || { echo "Expected font scale 1.3, got $font_scale" >&2; exit 1; }
+            bash tools/release/ci_settle_device.sh
             mkdir -p app-android/build/diagnostics
             ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api36-16kb.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api36-16kb.log; exit 1; }
       - name: Collect Android debug instrumentation diagnostics
