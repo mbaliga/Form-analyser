@@ -38,6 +38,10 @@ jobs:
   assemble:
     # Pinned: the emulator lanes broke when ubuntu-latest began migrating to Ubuntu 26.
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
@@ -113,34 +117,44 @@ jobs:
             | sed 's/$/%0A/' | tr -d '\n' | sed 's/^/::notice title=emulator host::/'; echo
       - name: TEMP emulator provisioning probe
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          # Temporary: install one image, create an AVD and try to boot it, with full output in the
-          # step summary and compact annotations (job logs are not retrievable here).
+          # Temporary: find where avdmanager put the AVD and try to boot it; posts a PR comment
+          # because job logs and step summaries are not retrievable here. Removed after use.
           SM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           AM="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
           EMU="$ANDROID_HOME/emulator/emulator"
           IMG="system-images;android-35;google_apis;x86_64"
-          clean() { tr '\r' '\n' | grep -v -E '^\[=* *\]|^Loading|^Fetch|^$'; }
-          one() { tr '\r' '\n' | grep -v -E '^\[=* *\]|^$' | tail -n "${N:-6}" | cut -c1-160 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n'; }
-          sect() { { echo "#### $1"; echo '```'; cat; echo '```'; } >> "$GITHUB_STEP_SUMMARY"; }
-          "$SM" --install "$IMG" > /tmp/install.log 2>&1; rc_install=$?
-          clean < /tmp/install.log | tail -n 60 | sect "sdkmanager --install $IMG (rc=$rc_install)"
-          echo no | "$AM" create avd -n probe -k "$IMG" -d pixel_2 --force > /tmp/avd.log 2>&1; rc_avd=$?
-          clean < /tmp/avd.log | sect "avdmanager create (rc=$rc_avd)"
-          "$EMU" -list-avds 2>&1 | sect "list-avds"
-          (nohup "$EMU" -avd probe -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none -verbose > /tmp/emu.out 2> /tmp/emu.err &)
-          boot="timeout"
-          for i in $(seq 1 36); do
-            sleep 5
-            if [ "$(timeout 10 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then boot="booted after $((i*5))s"; break; fi
-            pgrep -f "qemu-system|emulator" >/dev/null || { boot="emulator process exited after $((i*5))s"; break; }
-          done
-          timeout 10 adb devices 2>&1 | sect "adb devices"
-          tail -n 60 /tmp/emu.out | sect "emulator stdout tail"
-          tail -n 60 /tmp/emu.err | sect "emulator stderr tail"
-          echo "::notice title=probe verdict::install_rc=$rc_install avd_rc=$rc_avd boot=$boot"
-          echo "::notice title=probe install tail::$(clean < /tmp/install.log | N=4 one)"
-          echo "::notice title=probe emu tail::$(cat /tmp/emu.err /tmp/emu.out | N=8 one)"
+          {
+            echo "CI probe (auto, delete after reading)"
+            echo '```'
+            echo "HOME=$HOME ANDROID_HOME=$ANDROID_HOME ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-} ANDROID_USER_HOME=${ANDROID_USER_HOME:-} ANDROID_AVD_HOME=${ANDROID_AVD_HOME:-} XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-} USER=$(id -un)"
+            "$SM" --install "$IMG" 2>&1 | tr '\r' '\n' | grep -v -E '^\[=* *\]' | tail -n 5
+            echo no | "$AM" create avd -n probe -k "$IMG" -d pixel_2 --force 2>&1 | tr '\r' '\n' | tail -n 8
+            echo "--- probe.ini locations"
+            find / -name 'probe.ini' -not -path '/proc/*' 2>/dev/null
+            find / -maxdepth 4 -name 'probe.avd' -not -path '/proc/*' 2>/dev/null
+            echo "--- list-avds (default env)"; "$EMU" -list-avds 2>&1
+            AVDDIR="$(dirname "$(find / -name 'probe.ini' -not -path '/proc/*' 2>/dev/null | head -n 1)")"
+            echo "--- AVDDIR=$AVDDIR"
+            echo "--- list-avds (ANDROID_AVD_HOME=AVDDIR)"; ANDROID_AVD_HOME="$AVDDIR" "$EMU" -list-avds 2>&1
+            echo "--- boot attempt (ANDROID_AVD_HOME=AVDDIR)"
+            (ANDROID_AVD_HOME="$AVDDIR" nohup "$EMU" -avd probe -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none -verbose > /tmp/emu.out 2> /tmp/emu.err &)
+            boot=timeout
+            for i in $(seq 1 36); do
+              sleep 5
+              if [ "$(timeout 10 adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; then boot="booted after $((i*5))s"; break; fi
+              pgrep -f "qemu-system" >/dev/null || { boot="emulator process gone after $((i*5))s"; break; }
+            done
+            echo "boot=$boot"; timeout 10 adb devices 2>&1
+            echo "--- emulator stderr tail"; tail -n 60 /tmp/emu.err
+            echo "--- emulator stdout tail"; tail -n 60 /tmp/emu.out
+            echo "--- dmesg"; dmesg 2>&1 | tail -n 10
+            echo '```'
+          } > probe.md 2>&1
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -F body=@probe.md --jq .html_url || echo "::error title=probe::could not post PR comment"
           timeout 10 adb emu kill >/dev/null 2>&1 || true
       - name: Run on-device Android smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
