@@ -1170,8 +1170,6 @@ class ProductionSmokeTest {
         inject(MotionEvent.ACTION_UP, 1f)
     }
 
-    private val TEMP_SWEEP_WITH_SWIPES = true
-
     private fun scrollScreenUntilText(
         instrumentation: android.app.Instrumentation,
         expected: String,
@@ -1207,16 +1205,27 @@ class ProductionSmokeTest {
                 continue
             }
             consecutiveVisibleSamples = 0
+            // The target is in the accessibility tree but not (fully) on screen, e.g. the list is
+            // still animating past it at a large font scale: ask the framework to bring it into
+            // view instead of scrolling a further viewport, which would carry it out of the
+            // lazy composition again.
+            val composed = root?.findTextNode(expected)
+            if (composed != null &&
+                composed.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SHOW_ON_SCREEN.id)
+            ) {
+                SystemClock.sleep(300)
+                continue
+            }
             if (!swipeMode) {
                 if (root?.scrollOnce(direction) == true) {
-                    SystemClock.sleep(250)
+                    waitForScreenToSettle(instrumentation)
                     continue
                 }
                 if (root?.scrollOnce(!direction) == true) {
                     // Edge reached: sweep back with small swipes.
                     direction = !direction
-                    swipeMode = TEMP_SWEEP_WITH_SWIPES
-                    SystemClock.sleep(250)
+                    swipeMode = true
+                    waitForScreenToSettle(instrumentation)
                     continue
                 }
             }
@@ -1250,6 +1259,22 @@ class ProductionSmokeTest {
                 "swipeMode=$swipeMode nodesContaining('${expected.take(5)}')=$near " +
                 "lastSeenWhileScrolling=$lastSeenNodes everSeen=$seenTexts. Visible: $visible",
         )
+    }
+
+    /**
+     * Wait until the visible text stops changing (list scroll animations finished) so the next
+     * sample is of a resting screen; bounded, never throws.
+     */
+    private fun waitForScreenToSettle(instrumentation: android.app.Instrumentation) {
+        val deadline = SystemClock.uptimeMillis() + 2_000
+        var previous: List<String>? = null
+        while (SystemClock.uptimeMillis() < deadline) {
+            SystemClock.sleep(150)
+            instrumentation.waitForIdleSync()
+            val current = rootInActiveWindowOrNull(instrumentation)?.let(::collectVisibleText).orEmpty()
+            if (current == previous) return
+            previous = current
+        }
     }
 
     /** Failure diagnostics: every node whose text/description contains [needle], visible or not. */

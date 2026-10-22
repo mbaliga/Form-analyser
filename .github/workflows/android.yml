@@ -110,7 +110,6 @@ jobs:
       - name: Prepare AVD home
         run: mkdir -p /home/runner/.android/avd
       - name: Run on-device Android smoke tests
-        continue-on-error: true # TEMP axis experiment: lanes must not abort each other
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
           # avdmanager (cmdline-tools 16) and emulator 37.x disagree on the default AVD directory.
@@ -128,12 +127,10 @@ jobs:
           ram-size: 4096M
           cores: 2
           script: |
-            adb shell settings put system font_scale 1.3 # TEMP axis experiment: API 36 google_apis at 1.3
             bash tools/release/ci_settle_device.sh
             mkdir -p app-android/build/diagnostics
             ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api36.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api36.log; exit 1; }
       - name: Run debug smoke tests on Android 15
-        continue-on-error: true # TEMP axis experiment: lanes must not abort each other
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
           # avdmanager (cmdline-tools 16) and emulator 37.x disagree on the default AVD directory.
@@ -186,7 +183,6 @@ jobs:
             page_size="$(adb shell getconf PAGE_SIZE | tr -d '\r')"; test "$page_size" = 16384 || { echo "Expected 16 KB pages, got $page_size" >&2; exit 1; }
             adb shell settings put system font_scale 1.3
             font_scale="$(adb shell settings get system font_scale | tr -d '\r')"; test "$font_scale" = 1.3 || { echo "Expected font scale 1.3, got $font_scale" >&2; exit 1; }
-            adb shell settings put system font_scale 1.0 # TEMP axis experiment: 16 KB lane at 1.0
             bash tools/release/ci_settle_device.sh
             mkdir -p app-android/build/diagnostics
             ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api36-16kb.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api36-16kb.log; exit 1; }
