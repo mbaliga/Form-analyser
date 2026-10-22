@@ -26,7 +26,7 @@ fail() { echo "::error title=emulator preflight $name::$1"; exit 1; }
 yes | "$sdkmanager" --licenses > "$log_dir/licenses.log" 2>&1 || true
 "$sdkmanager" --install "emulator" "platform-tools" "$image" > "$log_dir/install.log" 2>&1 \
   || { annotate "sdkmanager $image" < "$log_dir/install.log"; fail "sdkmanager could not install $image"; }
-echo no | "$avdmanager" create avd -n "$name" -k "$image" -d pixel_2 --force > "$log_dir/avd.log" 2>&1 \
+echo no | "$avdmanager" create avd -n "$name" -k "$image" -d "${AVD_DEVICE:-pixel_2}" --force > "$log_dir/avd.log" 2>&1 \
   || { annotate "avdmanager $name" < "$log_dir/avd.log"; fail "avdmanager could not create $name"; }
 
 listed="$("$emulator" -list-avds 2>&1)"

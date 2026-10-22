@@ -116,7 +116,10 @@ jobs:
         env:
           ANDROID_USER_HOME: /home/runner/.android
           ANDROID_AVD_HOME: /home/runner/.android/avd
-        run: bash tools/release/ci_emulator_boot_check.sh 35 google_apis
+        run: |
+          # The smoke lanes pass `profile: Pixel_2` to android-emulator-runner; check that exact
+          # spelling against avdmanager (its device id is lowercase pixel_2).
+          AVD_DEVICE=Pixel_2 bash tools/release/ci_emulator_boot_check.sh 35 google_apis
       - name: Run on-device Android smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
