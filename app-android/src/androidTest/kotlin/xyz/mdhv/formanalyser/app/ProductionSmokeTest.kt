@@ -1190,14 +1190,18 @@ class ProductionSmokeTest {
         // without finding the text, sweep back with small touch swipes (a fraction of the screen,
         // far shorter than any card) so every item is seen at least once.
         var direction = forward
-        var swipeMode = false
+        var swipeMode = false // diagnostic: true once any touch swipe was needed
+        var stagnantSamples = 0
+        var edgeFlips = 0
+        var lastSignature: List<String>? = null
         val seenTexts = LinkedHashSet<String>()
         var lastSeenNodes = emptyList<String>()
         while (SystemClock.uptimeMillis() < deadline) {
             instrumentation.waitForIdleSync()
             val root = rootInActiveWindowOrNull(instrumentation)
             root?.let { describeNodesContaining(it, expected.take(5)) }?.takeIf { it.isNotEmpty() }?.let { lastSeenNodes = it }
-            root?.let(::collectVisibleText)?.forEach { if (seenTexts.size < 80) seenTexts.add(it.take(40)) }
+            val visibleNow = root?.let(::collectVisibleText).orEmpty()
+            visibleNow.forEach { if (seenTexts.size < 80) seenTexts.add(it.take(40)) }
             if (root?.findVisibleTextNode(expected) != null) {
                 consecutiveVisibleSamples++
                 if (consecutiveVisibleSamples >= 2) return
@@ -1216,19 +1220,23 @@ class ProductionSmokeTest {
                 SystemClock.sleep(300)
                 continue
             }
-            if (!swipeMode) {
-                if (root?.scrollOnce(direction) == true) {
-                    waitForScreenToSettle(instrumentation)
-                    continue
-                }
-                if (root?.scrollOnce(!direction) == true) {
-                    // Edge reached: sweep back with small swipes.
-                    direction = !direction
-                    swipeMode = true
-                    waitForScreenToSettle(instrumentation)
-                    continue
-                }
+            // Reverse only when the screen has stopped changing under scrolling in this direction
+            // (an edge was reached) - never because one scroll action was merely unavailable.
+            if (visibleNow == lastSignature) stagnantSamples++ else stagnantSamples = 0
+            lastSignature = visibleNow
+            if (stagnantSamples >= 3 && edgeFlips < 6) {
+                direction = !direction
+                edgeFlips++
+                stagnantSamples = 0
             }
+            // Compose accessibility scrolling is reliable in the minified build; fall back to
+            // small touch swipes when the screen exposes no scroll action in this direction.
+            if (root?.scrollOnce(direction) == true) {
+                waitForScreenToSettle(instrumentation)
+                continue
+            }
+            swipeMode = true
+            // Small, deliberate swipes avoid skipping a specific card at larger accessibility sizes.
             val startY = height * if (direction) .66f else .52f
             val endY = height * if (direction) .52f else .66f
             val downTime = SystemClock.uptimeMillis()
@@ -1256,7 +1264,7 @@ class ProductionSmokeTest {
         throw AssertionError(
             "Could not scroll to visible UI text: $expected. fontScale=$fontScale " +
                 "screen=${context.resources.displayMetrics.widthPixels}x${context.resources.displayMetrics.heightPixels} " +
-                "swipeMode=$swipeMode nodesContaining('${expected.take(5)}')=$near " +
+                "swipeMode=$swipeMode edgeFlips=$edgeFlips nodesContaining('${expected.take(5)}')=$near " +
                 "lastSeenWhileScrolling=$lastSeenNodes everSeen=$seenTexts. Visible: $visible",
         )
     }
