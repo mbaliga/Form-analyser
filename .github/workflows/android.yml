@@ -56,15 +56,6 @@ jobs:
         run: ./gradlew test --no-daemon
       - name: Run Android unit tests
         run: ./gradlew :app-android:testDebugUnitTest :app-android:testReleaseUnitTest -PwithAndroid --no-daemon --console=plain 2>&1 | tee android-unit-tests.log
-      - name: Harvest Room schema snapshot (TEMPORARY - remove after committing 10.json)
-        if: always()
-        run: |
-          f=app-android/schemas/xyz.mdhv.formanalyser.app.data.AppDatabase/10.json
-          if [ -f "$f" ]; then
-            gzip -9 -c "$f" | base64 -w0 | fold -w 3500 | awk '{printf "::notice title=schema10-part-%03d::%s\n", NR, $0}'
-          else
-            echo "::error title=schema10::generated 10.json is missing"
-          fi
       - name: Annotate Android unit test failure
         if: failure()
         run: |
