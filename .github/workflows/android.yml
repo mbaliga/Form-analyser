@@ -188,10 +188,20 @@ jobs:
               echo '```'
             done
           } >> "$GITHUB_STEP_SUMMARY"
+          ls -la app-android/build/diagnostics 2>&1 | head -n 20 | sed 's/$/%0A/' | tr -d '\n' | sed 's/^/::notice title=diagnostics dir::/'; echo
+          annotate() { # $1 = title, stdin = lines
+            local body
+            body="$(cut -c1-300 | head -n 25 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n')"
+            [ -n "$body" ] && echo "::error title=$1::$body" || true
+          }
           for f in app-android/build/diagnostics/connected-*.log; do
-            [ -f "$f" ] || continue
-            body="$(grep -E 'FAILED|No tests found|Process crashed|What went wrong|Caused by|Tests? .*(failed|passed)' "$f" | tail -n 15 | cut -c1-300 | sed 's/$/%0A/' | tr -d '\n')"
-            [ -n "$body" ] && echo "::error title=$(basename "$f")::$body" || true
+            [ -f "$f" ] || { echo "::error title=no instrumentation log::the emulator script never started Gradle (emulator did not boot or install failed)"; break; }
+            grep -v '^> Task' "$f" > "$f.filtered" || true
+            n="$(basename "$f")"
+            grep -E '^e: ' "$f.filtered" | annotate "$n Kotlin errors"
+            grep -A8 'What went wrong' "$f.filtered" | annotate "$n what went wrong"
+            grep -E 'INSTRUMENTATION_STATUS|Failed to install|INSTALL_FAILED|FAILED|No tests found|Process crashed|Caused by|Could not' "$f.filtered" | awk '!seen[$0]++' | tail -n 20 | annotate "$n signals"
+            tail -n 12 "$f.filtered" | annotate "$n tail"
           done
       - name: Upload Android debug test reports and diagnostics
         if: always()
