@@ -63,6 +63,30 @@ jobs:
           echo
       - name: Run Android lint
         run: ./gradlew :app-android:lintRelease -PwithAndroid --no-daemon
+      - name: Annotate Android lint findings
+        if: failure()
+        run: |
+          # Surface lint issues as check-run annotations (job logs are not always reachable).
+          python3 - <<'PY'
+          import glob
+          import xml.etree.ElementTree as ET
+          files = glob.glob("app-android/build/reports/lint-results-*.xml")
+          if not files:
+              print("::error title=Android lint::no lint XML report found (build failed before lint reported)")
+          for report in files:
+              count = 0
+              for issue in ET.parse(report).getroot().iter("issue"):
+                  if issue.get("severity") not in ("Error", "Fatal"):
+                      continue
+                  loc = issue.find("location")
+                  path = loc.get("file", "") if loc is not None else ""
+                  line = loc.get("line", "1") if loc is not None else "1"
+                  msg = " ".join((issue.get("message") or "").split())
+                  print(f"::error file={path},line={line}::{issue.get('id')}: {msg}"[:900])
+                  count += 1
+                  if count >= 40:
+                      break
+          PY
       - name: Run on-device Android smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
