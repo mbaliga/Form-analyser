@@ -118,6 +118,8 @@ jobs:
         with:
           api-level: 36
           target: google_apis
+          avd-name: ci-36
+          force-avd-creation: true
           arch: x86_64
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
@@ -134,6 +136,8 @@ jobs:
         with:
           api-level: 35
           target: google_apis
+          avd-name: ci-35
+          force-avd-creation: true
           arch: x86_64
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
@@ -141,6 +145,15 @@ jobs:
           script: |
             mkdir -p app-android/build/diagnostics
             ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api35.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api35.log; exit 1; }
+      - name: Preflight the 16 KB page-size emulator image (observable boot check)
+        # android-emulator-runner hides its output; this boots the same image with a readable log
+        # and annotates sdkmanager/avdmanager/emulator output. Not a gate: the lane below is.
+        continue-on-error: true
+        env:
+          ANDROID_USER_HOME: /home/runner/.android
+          ANDROID_AVD_HOME: /home/runner/.android/avd
+          BOOT_TIMEOUT_SECONDS: "180"
+        run: bash tools/release/ci_emulator_boot_check.sh 36 google_apis_ps16k
       - name: Run debug smoke tests on 16 KB page-size emulator
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
@@ -150,6 +163,8 @@ jobs:
         with:
           api-level: 36
           target: google_apis_ps16k
+          avd-name: ci-36-ps16k
+          force-avd-creation: true
           arch: x86_64
           profile: pixel_2
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
