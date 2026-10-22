@@ -58,7 +58,11 @@ class ReleaseWorkflowContract(unittest.TestCase):
             and path.parent.name != "performance-report"
             and "build" not in path.parts
             and ".gradle" not in path.parts
+            # CI clones the locked shared-library checkout into .ci/ (ci.yml); those projects
+            # belong to another repository and are pinned by shared-libraries.lock instead.
+            and ".ci" not in path.relative_to(ROOT).parts
         ]
+        self.assertTrue(projects, "expected this repository to contain Gradle projects")
         for project in projects:
             with self.subTest(project=project.relative_to(ROOT)):
                 self.assertTrue((project / "gradle.lockfile").is_file())
