@@ -69,10 +69,17 @@ jobs:
         if: failure()
         run: |
           # Surface the Gradle failure block (when lint never ran) as check-run annotations.
-          {
-            grep -E '^e: |error:|FAILURE|What went wrong|Caused by|^> ' lint.log | head -n 60
-            grep -A40 'What went wrong' lint.log | head -n 45
-          } | awk '!seen[$0]++' | head -n 100 | while IFS= read -r l; do echo "::error title=Android lint build::${l:0:500}"; done || true
+          # GitHub keeps only 10 annotations per step, so bundle each group into one message.
+          grep -v '^> Task' lint.log > lint.filtered.log || true
+          annotate() { # $1 = title, stdin = lines
+            local body
+            body="$(cut -c1-300 | head -n 25 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n')"
+            [ -n "$body" ] && echo "::error title=$1::$body" || true
+          }
+          grep -E '^e: ' lint.filtered.log | annotate "Kotlin compile errors"
+          grep -A8 'What went wrong' lint.filtered.log | annotate "Gradle: what went wrong"
+          grep -E 'Caused by|Could not|Unresolved reference|error:' lint.filtered.log | awk '!seen[$0]++' | annotate "Gradle: causes"
+          { echo '### lintRelease output (last 300 lines)'; echo '```'; tail -n 300 lint.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           # Surface lint issues as check-run annotations (job logs are not always reachable).
           python3 - <<'PY'
           import glob
