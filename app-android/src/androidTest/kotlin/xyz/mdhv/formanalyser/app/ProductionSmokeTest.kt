@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
@@ -374,28 +373,19 @@ class ProductionSmokeTest {
     }
 
     @Test
-    fun bundledSportPhotographsArePackagedAndAndroidDecodable() {
+    fun removedSportPhotographsAreNotPackaged() {
+        // The four Unsplash photographs were removed for licence reasons; the heroes render their
+        // gradient fallback surfaces instead. A packaged copy would mean the licence problem is back.
         val assets = InstrumentationRegistry.getInstrumentation().targetContext.assets
-        val expectedDimensions = mapOf(
-            "atelier/cinematic/muay-thai-training.jpg" to Pair(1400, 788),
-            "atelier/cinematic/bouldering-session.jpg" to Pair(1400, 788),
-            "atelier/cinematic/recurve-training.jpg" to Pair(1600, 900),
-            "atelier/cinematic/fencing-training.jpg" to Pair(1600, 900),
-        )
-
-        expectedDimensions.forEach { (path, expected) ->
-            val bitmap = assets.open(path).use(BitmapFactory::decodeStream)
-            assertNotNull("Android could not decode bundled photo $path", bitmap)
-            bitmap!!.let { decoded ->
-                try {
-                    assertTrue(
-                        "$path has unexpected dimensions ${decoded.width}x${decoded.height}",
-                        decoded.width to decoded.height == expected,
-                    )
-                } finally {
-                    decoded.recycle()
-                }
-            }
+        listOf(
+            "atelier/cinematic/muay-thai-training.jpg",
+            "atelier/cinematic/bouldering-session.jpg",
+            "atelier/cinematic/recurve-training.jpg",
+            "atelier/cinematic/fencing-training.jpg",
+            "atelier/cinematic/sports-manifest.json",
+        ).forEach { path ->
+            val packaged = runCatching { assets.open(path).use { true } }.getOrDefault(false)
+            assertFalse("$path must not be packaged in the app", packaged)
         }
     }
 

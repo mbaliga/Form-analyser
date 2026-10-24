@@ -66,6 +66,7 @@ import xyz.mdhv.crocodyl.fencing.FencingWeapon
 import xyz.mdhv.crocodyl.fencing.RefereeCall
 import xyz.mdhv.crocodyl.fencing.RefereeMatchState
 import xyz.mdhv.crocodyl.fencing.RefereePhase
+import xyz.mdhv.formanalyser.app.ui.components.HeroFallbackBrush
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
 
@@ -242,7 +243,7 @@ private fun FencingHero(onBack: () -> Unit) {
     }
     Box(
         Modifier.fillMaxWidth().height(230.dp).clip(RoundedCornerShape(28.dp))
-            .background(Hyle.SurfaceDeep).border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(28.dp)),
+            .background(HeroFallbackBrush).border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(28.dp)),
     ) {
         photograph.value?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
         Box(

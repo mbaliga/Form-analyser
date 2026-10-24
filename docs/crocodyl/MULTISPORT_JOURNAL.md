@@ -23,6 +23,11 @@ dedicated local training journal.
 
 ## Visual assets
 
+> **Update 2026-10:** the four photographs listed below, and the provenance manifest
+> `sports-manifest.json`, were removed for licence reasons. The cards and heroes now render gradient
+> surfaces, and the credits below are kept as history only. See
+> `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`.
+
 Sport cards and the Recurve/Fencing Home cards use real photographer-created Unsplash photographs,
 not generated artwork. They are decorative UI imagery only, not source material for training
 instruction. Attribution, source-page links, license records, processing notes, dimensions and
