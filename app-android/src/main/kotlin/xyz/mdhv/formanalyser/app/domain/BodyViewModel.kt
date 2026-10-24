@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.data.DocumentEntity
+import xyz.mdhv.formanalyser.app.data.DocumentRetraction
 import xyz.mdhv.formanalyser.app.data.InjuryEntity
 import xyz.mdhv.formanalyser.app.data.PainLogEntity
 import xyz.mdhv.formanalyser.app.data.PhysioExerciseEntity
@@ -25,6 +26,7 @@ import xyz.mdhv.formanalyser.app.vault.Vault
 class BodyViewModel(app: Application) : AndroidViewModel(app) {
     private val repo = Repository(app)
     val vault = Vault(app)
+    private val documentRetraction = DocumentRetraction(repo.body, vault)
 
     private val _painToday =
         MutableStateFlow<Map<String, Int>>(emptyMap()) // region -> max intensity today
@@ -290,15 +292,20 @@ class BodyViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun deleteDocument(doc: DocumentEntity) {
+    /**
+     * "Delete" for a document is a retraction: the row is hidden and kept, the encrypted file stays
+     * in the vault, and Settings -> Data can restore it or erase it permanently.
+     */
+    fun retractDocument(doc: DocumentEntity) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                vault.delete(doc.encPath)
-                repo.body.deleteDocument(doc.id)
-            }
+            withContext(Dispatchers.IO) { documentRetraction.retract(doc.id) }
             load()
         }
     }
+
+    /** A live document by id, or null when it is unknown or retracted — a retracted one is not openable. */
+    suspend fun documentForView(id: String): DocumentEntity? =
+        withContext(Dispatchers.IO) { repo.body.documentById(id)?.takeIf { it.deletedAt == null } }
 
     /** Decrypt for viewing; returns the plaintext cache file. */
     suspend fun openDocument(doc: DocumentEntity): File =

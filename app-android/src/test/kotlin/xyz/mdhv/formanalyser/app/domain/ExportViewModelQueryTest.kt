@@ -15,7 +15,7 @@ class ExportViewModelQueryTest {
     @Test
     fun retractedRowsAreFilteredFromEveryRetractableTableDump() {
         val retractableTables =
-            setOf("sessions", "score_session", "sport_session", "checkin", "pain_log", "injury")
+            setOf("sessions", "score_session", "sport_session", "checkin", "pain_log", "injury", "document")
 
         SQLiteDatabase.create(null).use { database ->
             retractableTables.forEach { table ->
@@ -51,6 +51,34 @@ class ExportViewModelQueryTest {
             database.rawQuery(ExportViewModel.tableDumpQuery("athletes"), null).use { cursor ->
                 assertEquals(1, cursor.count)
             }
+        }
+    }
+
+    @Test
+    fun ownedChildrenOfRetractedParentsAreExcludedByTheDumpQuery() {
+        assertEquals(
+            "SELECT * FROM `shots` WHERE NOT EXISTS " +
+                "(SELECT 1 FROM `sessions` p WHERE p.id = `shots`.`sessionId` AND p.deletedAt IS NOT NULL)",
+            ExportViewModel.tableDumpQuery("shots"),
+        )
+        assertEquals(
+            "SELECT * FROM `soreness` WHERE NOT EXISTS " +
+                "(SELECT 1 FROM `checkin` p WHERE p.id = `soreness`.`checkinId` AND p.deletedAt IS NOT NULL)",
+            ExportViewModel.tableDumpQuery("soreness"),
+        )
+        assertEquals(
+            "SELECT * FROM `score_arrow` WHERE NOT EXISTS " +
+                "(SELECT 1 FROM `score_session` p WHERE p.id = `score_arrow`.`scoreSessionId` AND p.deletedAt IS NOT NULL)",
+            ExportViewModel.tableDumpQuery("score_arrow"),
+        )
+        // document is a parent and only a LINK child of injury: its own tombstone is the only filter.
+        assertEquals(
+            "SELECT * FROM `document` WHERE deletedAt IS NULL",
+            ExportViewModel.tableDumpQuery("document"),
+        )
+        // PRIVATE raw-video table: never dumped, whatever the caller thinks the consent filter did.
+        assertThrows(IllegalArgumentException::class.java) {
+            ExportViewModel.tableDumpQuery("capture_media")
         }
     }
 

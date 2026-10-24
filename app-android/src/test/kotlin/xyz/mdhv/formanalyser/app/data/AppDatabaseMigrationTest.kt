@@ -63,6 +63,7 @@ class AppDatabaseMigrationTest {
             AppDatabase.MIGRATION_8_9.migrate(db)
             AppDatabase.MIGRATION_9_10.migrate(db)
             AppDatabase.MIGRATION_10_11.migrate(db)
+            AppDatabase.MIGRATION_11_12.migrate(db)
 
             assertEquals("Legacy", scalar(db, "SELECT displayName FROM athletes WHERE id = 'a1'"))
             assertEquals("38.5", scalar(db, "SELECT drawWeightLbs FROM sessions WHERE id = 's1'"))
@@ -89,6 +90,7 @@ class AppDatabaseMigrationTest {
             assertTrue(columnExists(db, "pain_log", "deletedAt"))
             assertTrue(columnExists(db, "injury", "deletedAt"))
             assertTrue(columnExists(db, "score_candidate", "detectorVersion"))
+            assertTrue(columnExists(db, "document", "deletedAt"))
         } finally {
             helper.close()
             context.deleteDatabase(name)
@@ -199,7 +201,7 @@ class AppDatabaseMigrationTest {
      * a schema diff, not a hand-rolled assertion pretending to know what Room would say.
      */
     @Test
-    fun fullChain_v1ToV11_opensCleanlyAndPassesRoomsOwnSchemaValidation() {
+    fun fullChain_v1ToV12_opensCleanlyAndPassesRoomsOwnSchemaValidation() {
         val name = "full-chain-test.db"
         createV1Database(name).apply {
             execSQL("INSERT INTO athletes (id, displayName, bodyMassKg) VALUES ('a1','Test',70.0)")
@@ -222,6 +224,7 @@ class AppDatabaseMigrationTest {
                     AppDatabase.MIGRATION_8_9,
                     AppDatabase.MIGRATION_9_10,
                     AppDatabase.MIGRATION_10_11,
+                    AppDatabase.MIGRATION_11_12,
                 )
                 // Test-only: Robolectric runs this test body ON what Room sees as the main thread
                 // (there is no separate real UI thread to hop to), so without this Room's own
@@ -381,6 +384,38 @@ class AppDatabaseMigrationTest {
             assertTrue(c.moveToFirst())
             assertEquals("PROPOSED", c.getString(0))
             assertTrue("a pre-existing candidate must not be assigned a detector version it never had", c.isNull(1))
+        }
+        db.close()
+    }
+
+    // --- MIGRATION_11_12: documents become retractable, nothing is retracted by the migration ---
+
+    @Test
+    fun migration11To12_addsNullableDeletedAtToDocumentWithoutRetractingExistingRows() {
+        val name = "mig-11-12.db"
+        val db =
+            openRaw(name) { d ->
+                d.execSQL(
+                    "CREATE TABLE `document` (`id` TEXT NOT NULL, `athleteId` TEXT NOT NULL, `ts` INTEGER NOT NULL, `title` TEXT NOT NULL, `mime` TEXT NOT NULL, `encPath` TEXT NOT NULL, `sha256` TEXT NOT NULL, `sizeBytes` INTEGER NOT NULL, `injuryId` TEXT, PRIMARY KEY(`id`))"
+                )
+            }
+        // A medical document that predates the column: the migration must leave it live, never
+        // stamp it as retracted.
+        db.execSQL(
+            "INSERT INTO document (id, athleteId, ts, title, mime, encPath, sha256, sizeBytes, injuryId) " +
+                "VALUES ('d1', 'a1', 1000, 'MRI report', 'application/pdf', '/vault/d1', 'abc', 2048, 'i1')"
+        )
+
+        assertEquals(false, columnExists(db, "document", "deletedAt"))
+        AppDatabase.MIGRATION_11_12.migrate(db)
+        assertTrue(columnExists(db, "document", "deletedAt"))
+
+        db.query("SELECT title, sizeBytes, injuryId, deletedAt FROM document WHERE id = 'd1'", emptyArray()).use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("MRI report", c.getString(0))
+            assertEquals(2048L, c.getLong(1))
+            assertEquals("i1", c.getString(2))
+            assertTrue("a pre-existing document must not be retracted by the migration itself", c.isNull(3))
         }
         db.close()
     }

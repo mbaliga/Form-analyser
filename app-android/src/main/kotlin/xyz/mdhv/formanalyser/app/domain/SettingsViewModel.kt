@@ -12,8 +12,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.mdhv.formanalyser.app.data.AppDataReset
 import xyz.mdhv.formanalyser.app.data.AppPrefs
+import xyz.mdhv.formanalyser.app.data.DocumentRetraction
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.app.data.ScoringRepository
+import xyz.mdhv.formanalyser.app.vault.Vault
 
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     private val prefs = AppPrefs(app)
@@ -52,14 +54,24 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** One retracted row as Settings → Data lists it. */
-    data class Retracted(val id: String, val kind: Kind, val label: String, val detail: String) {
+    /**
+     * One retracted row as Settings → Data lists it. [erasable] is true only for rows the athlete may
+     * remove for good from here (a vault document); everything else can only be restored.
+     */
+    data class Retracted(
+        val id: String,
+        val kind: Kind,
+        val label: String,
+        val detail: String,
+        val erasable: Boolean = false,
+    ) {
         enum class Kind {
             SESSION,
             SCORECARD,
             CHECKIN,
             PAIN,
             INJURY,
+            DOCUMENT,
         }
     }
 
@@ -121,6 +133,15 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                                 "Injury",
                                 "${it.mechanism.lowercase()} · severity ${it.severity}",
                             )
+                        } +
+                        repo.body.retractedDocuments(a.id).map {
+                            Retracted(
+                                it.id,
+                                Retracted.Kind.DOCUMENT,
+                                it.title,
+                                "${it.mime} · ${it.sizeBytes / 1024} KB",
+                                erasable = true,
+                            )
                         }
                 }
         }
@@ -135,8 +156,27 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                     Retracted.Kind.CHECKIN -> repo.wellness.restoreCheckin(item.id)
                     Retracted.Kind.PAIN -> repo.body.restorePainLog(item.id)
                     Retracted.Kind.INJURY -> repo.body.restoreInjury(item.id)
+                    Retracted.Kind.DOCUMENT -> repo.body.restoreDocument(item.id)
                 }
             }
+            loadRetracted()
+        }
+    }
+
+    /**
+     * Remove a retracted document and its encrypted file for good. Only reachable from the second,
+     * separately confirmed step in Settings → Data; refused for anything that is not an erasable,
+     * already-retracted document. [onFailed] runs when the file could not be removed, in which case
+     * the row is kept so the athlete can retry.
+     */
+    fun erasePermanently(item: Retracted, onFailed: () -> Unit = {}) {
+        if (!item.erasable || item.kind != Retracted.Kind.DOCUMENT) return
+        viewModelScope.launch {
+            val erased =
+                withContext(Dispatchers.IO) {
+                    DocumentRetraction(repo.body, Vault(getApplication())).erasePermanently(item.id)
+                }
+            if (!erased) onFailed()
             loadRetracted()
         }
     }
