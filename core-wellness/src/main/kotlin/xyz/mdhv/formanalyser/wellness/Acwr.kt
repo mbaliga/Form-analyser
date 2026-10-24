@@ -37,6 +37,18 @@ object Acwr {
         else -> AcwrZone.SPIKE
     }
 
+    /**
+     * The sRPE (session RPE, `duration_min × RPE`) lane run through the same EWMA/warm-up/zone
+     * machinery as the default shot-load lane — a secondary read on training strain that catches
+     * what shot count × poundage can't: a long, gruelling sRPE-only session (max holds, SPT work, a
+     * hot/exhausting day) contributes no arrows but plenty of real load. Same [WellnessConstants]
+     * thresholds as [compute]'s default: ACWR's sweet/caution/spike bands are a ratio-of-ramp
+     * judgment, not calibrated to one particular load unit, so reusing them here is the standard
+     * sports-science reading of a second ACWR lane rather than a shortcut.
+     */
+    fun computeSrpe(dailyLoads: List<DailyLoad>, today: LocalDate): AcwrSeries =
+        compute(dailyLoads, today, loadOf = { it.srpeLoad })
+
     fun compute(
         dailyLoads: List<DailyLoad>,
         today: LocalDate,

@@ -60,6 +60,11 @@ interface AthleteFeatureDao {
     @Query("UPDATE score_candidate SET status = :status, resolvedAtMs = :atMs WHERE id = :id")
     suspend fun resolveCandidate(id: String, status: String, atMs: Long)
 
+    @Query(
+        "DELETE FROM score_candidate WHERE scoreSessionId = :sessionId AND endIndex = :endIndex AND status = 'PROPOSED'"
+    )
+    suspend fun clearProposedCandidates(sessionId: String, endIndex: Int)
+
     @Upsert suspend fun upsertObserverEvent(event: ObserverScoreEventEntity)
 
     @Query("SELECT * FROM observer_score_event WHERE scoreSessionId = :sessionId ORDER BY atMs ASC")

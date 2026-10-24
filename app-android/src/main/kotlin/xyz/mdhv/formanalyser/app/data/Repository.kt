@@ -7,12 +7,14 @@ import xyz.mdhv.crocodyl.engine.model.Rep
 import xyz.mdhv.formanalyser.app.domain.ArcheryAnalyzer
 
 /** Thin persistence facade over the Room DAOs, with mapping to engine [Rep]s. */
-class Repository(context: Context) {
-    private val db = AppDatabase.get(context)
+class Repository internal constructor(private val db: AppDatabase) {
+    constructor(context: Context) : this(AppDatabase.get(context))
+
     private val athletes = db.athleteDao()
     private val sessions = db.sessionDao()
     private val rigs = db.rigDao()
     private val shots = db.shotDao()
+    private val media = db.captureMediaDao()
 
     /** Direct DAO access for the wellness (Phase 2) and body (Phase 3) layers — thin by design. */
     val wellness: WellnessDao = db.wellnessDao()
@@ -69,12 +71,45 @@ class Repository(context: Context) {
 
     suspend fun createSession(session: SessionEntity) = sessions.insert(session)
 
+    /** Persist the required capture session and its pre-check-in as one all-or-nothing operation. */
+    suspend fun createSessionWithPreCheckin(
+        session: SessionEntity,
+        checkin: CheckinEntity?,
+        soreness: List<SorenessEntity>,
+    ) = db.withTransaction {
+        if (checkin != null) {
+            wellness.insertCheckin(checkin)
+            if (soreness.isNotEmpty()) wellness.insertSoreness(soreness)
+        }
+        sessions.insert(session)
+    }
+
     fun sessionsFor(athleteId: String): Flow<List<SessionEntity>> = sessions.forAthlete(athleteId)
 
     suspend fun recentSessions(athleteId: String, limit: Int): List<SessionEntity> =
         sessions.recent(athleteId, limit)
 
     suspend fun saveShots(shots: List<ShotEntity>) = this.shots.insertAll(shots)
+
+    suspend fun saveCaptureMedia(value: CaptureMediaEntity) = media.insert(value)
+
+    suspend fun captureMedia(sessionId: String): List<CaptureMediaEntity> = media.forSession(sessionId)
+
+    suspend fun deleteCaptureMedia(value: CaptureMediaEntity): Boolean {
+        val file = java.io.File(value.path)
+        if (file.exists() && !file.delete()) return false
+        media.delete(value.id)
+        return true
+    }
+
+    suspend fun purgeCaptureMediaOlderThan(cutoffMs: Long): Int {
+        val expired = media.olderThan(cutoffMs)
+        var removed = 0
+        expired.forEach {
+            if (deleteCaptureMedia(it)) removed++
+        }
+        return removed
+    }
 
     fun shotsFor(sessionId: String): Flow<List<ShotEntity>> = shots.forSession(sessionId)
 

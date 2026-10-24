@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import xyz.mdhv.formanalyser.app.domain.RigsViewModel
+import xyz.mdhv.formanalyser.app.domain.PoundageValidation
 import xyz.mdhv.formanalyser.app.domain.SettingsViewModel
 import xyz.mdhv.formanalyser.app.domain.Tuning
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -38,10 +40,11 @@ import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.app.ui.theme.HyleStepper
+import xyz.mdhv.formanalyser.app.ui.theme.ThemeMode
 import xyz.mdhv.formanalyser.model.BowType
 import xyz.mdhv.formanalyser.model.Handedness
 
-private fun col() = Modifier.fillMaxSize().padding(16.dp)
+private fun Modifier.col() = fillMaxSize().padding(16.dp)
 
 @Composable
 fun SettingsRootScreen(
@@ -58,7 +61,7 @@ fun SettingsRootScreen(
     onAbout: () -> Unit,
 ) {
     Column(
-        col().verticalScroll(rememberScrollState()),
+        Modifier.col().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text("Settings", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
@@ -83,7 +86,7 @@ fun SettingsWellnessScreen(prefsOwner: SettingsViewModel) {
     val prefs = remember { xyz.mdhv.formanalyser.app.data.AppPrefs(context) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val chips by prefs.sorenessChips.collectAsState(initial = false)
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             "Wellness & check-ins",
             style = MaterialTheme.typography.headlineMedium,
@@ -114,7 +117,7 @@ fun SettingsProfileScreen(vm: RigsViewModel) {
     val athlete by vm.athlete.collectAsState()
     val a = athlete
     if (a == null) {
-        Text("Loading…", color = Hyle.OnSurfaceDim, modifier = col())
+        Text("Loading…", color = Hyle.OnSurfaceDim, modifier = Modifier.col())
         return
     }
 
@@ -122,10 +125,10 @@ fun SettingsProfileScreen(vm: RigsViewModel) {
     var club by rememberSaveable(a.id) { mutableStateOf(a.club ?: "") }
     var handed by rememberSaveable(a.id) { mutableStateOf(Handedness.fromStorage(a.handedness)) }
     var drawSet by rememberSaveable(a.id) { mutableStateOf(a.drawLengthMm != null) }
-    var drawMm by rememberSaveable(a.id) { mutableStateOf(a.drawLengthMm ?: 700) }
+    var drawMm by rememberSaveable(a.id) { mutableIntStateOf(a.drawLengthMm ?: 700) }
 
     Column(
-        col().verticalScroll(rememberScrollState()),
+        Modifier.col().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -173,7 +176,7 @@ fun SettingsRigsScreen(vm: RigsViewModel, onEdit: (String?) -> Unit) {
     val rigs by vm.rigs.collectAsState()
     var note by rememberSaveable { mutableStateOf<String?>(null) }
 
-    Column(col(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Rigs", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         note?.let { Text(it, color = Hyle.Danger) }
         rigs.forEach { rig ->
@@ -202,7 +205,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
     var bow by
         rememberSaveable(existing?.id) { mutableStateOf(BowType.fromStorage(existing?.bowType)) }
     var riser by
-        rememberSaveable(existing?.id) { mutableStateOf((t.riserLengthIn ?: 25.0).toInt()) }
+        rememberSaveable(existing?.id) { mutableIntStateOf((t.riserLengthIn ?: 25.0).toInt()) }
     var marked by
         rememberSaveable(existing?.id) {
             mutableStateOf(
@@ -224,7 +227,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
     var adv by remember(existing?.id) { mutableStateOf(Tuning.parseFull(existing?.tuningJson)) }
 
     Column(
-        col().verticalScroll(rememberScrollState()),
+        Modifier.col().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -281,6 +284,8 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
             onChange = { adv = it },
         )
 
+        val poundageValid = PoundageValidation.isValidInput(marked) && PoundageValidation.isValidInput(otf)
+        if (!poundageValid) Text("Poundage must be greater than 0 lbs, or left blank.", color = Hyle.Danger)
         note?.let { Text(it, color = Hyle.Danger) }
         Button(
             onClick = {
@@ -296,6 +301,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
                 vm.saveRig(existing?.id, name, bow, Tuning.encodeFull(full))
                 onDone()
             },
+            enabled = poundageValid,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Save")
@@ -319,7 +325,8 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
 @Composable
 fun SettingsCaptureScreen(vm: SettingsViewModel) {
     val keep by vm.keepRawVideo.collectAsState(initial = false)
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val retention by vm.rawVideoRetentionDays.collectAsState(initial = 0)
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Capture", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Row(
             Modifier.fillMaxWidth(),
@@ -330,7 +337,19 @@ fun SettingsCaptureScreen(vm: SettingsViewModel) {
             Switch(checked = keep, onCheckedChange = { vm.setKeepRawVideo(it) })
         }
         Text(
-            "Off by default. Pose analysis runs on-device; raw video isn't retained.",
+            "Off by default. Pose analysis runs on-device. Turning this off stops new recordings; existing clips follow the retention choice below.",
+            color = Hyle.OnSurfaceDim,
+        )
+        HyleSectionHeader("Raw video retention")
+        HyleSegmented(
+            options = listOf(7, 30, 0),
+            selected = retention,
+            label = { if (it == 0) "Forever" else "$it days" },
+            modifier = Modifier.fillMaxWidth(),
+        ) { vm.setRawVideoRetentionDays(it) }
+        Text(
+            if (retention == 0) "Clips stay private on this device until you delete them from Review."
+            else "Expired clips are removed the next time Crocodyl opens its training workspace.",
             color = Hyle.OnSurfaceDim,
         )
     }
@@ -338,14 +357,29 @@ fun SettingsCaptureScreen(vm: SettingsViewModel) {
 
 @Composable
 fun SettingsAppearanceScreen(vm: SettingsViewModel) {
+    val themeMode by vm.themeMode.collectAsState(initial = ThemeMode.SYSTEM.name)
     val reduce by vm.reduceMotion.collectAsState(initial = false)
     val haptic by vm.hapticStrength.collectAsState(initial = "MED")
     val glow by vm.glowIntensity.collectAsState(initial = 100)
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             "Appearance",
             style = MaterialTheme.typography.headlineMedium,
             color = Hyle.OnBackground,
+        )
+        HyleSectionHeader("Theme")
+        HyleSegmented(
+            ThemeMode.entries,
+            ThemeMode.fromStorage(themeMode),
+            { it.name.lowercase().replaceFirstChar(Char::uppercase) },
+        ) { vm.setThemeMode(it.name) }
+        Text(
+            when (ThemeMode.fromStorage(themeMode)) {
+                ThemeMode.SYSTEM -> "Follows your device and changes automatically."
+                ThemeMode.LIGHT -> "Warm paper surfaces with high-contrast athletic data."
+                ThemeMode.DARK -> "Inky surfaces for training in low light."
+            },
+            color = Hyle.OnSurfaceDim,
         )
         Row(
             Modifier.fillMaxWidth(),
@@ -376,6 +410,8 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
     // has partly opened itself. It costs a few seconds to re-arm and re-type.
     var arming by remember { mutableStateOf(false) }
     var confirm by remember { mutableStateOf("") }
+    var wiping by remember { mutableStateOf(false) }
+    var wipeFailed by remember { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
     val retracted by vm.retracted.collectAsState()
     LaunchedEffect(Unit) { vm.loadRetracted() }
@@ -396,7 +432,7 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
     // Scrollable now that "Recently deleted" can grow: the wipe gate is the last thing on the
     // screen and must stay reachable however many retracted rows sit above it.
     Column(
-        col().verticalScroll(rememberScrollState()),
+        Modifier.col().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Data", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
@@ -432,6 +468,13 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
             "Everything runs on this device — nothing is stored anywhere else, so a wipe has no undo.",
             color = Hyle.OnSurfaceDim,
         )
+        if (wipeFailed) {
+            Text(
+                "Some local data could not be removed. Your request was not reported as complete; please retry the wipe.",
+                color = Hyle.Danger,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
         if (!arming) {
             OutlinedButton(onClick = { arming = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Wipe everything")
@@ -444,12 +487,19 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(
-                onClick = { vm.wipe(onWiped) },
-                enabled = confirm.trim() == "WIPE",
+                onClick = {
+                    wipeFailed = false
+                    wiping = true
+                    vm.wipe(onWiped) {
+                        wiping = false
+                        wipeFailed = true
+                    }
+                },
+                enabled = confirm.trim() == "WIPE" && !wiping,
                 colors = ButtonDefaults.buttonColors(containerColor = Hyle.Danger),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Erase all data")
+                Text(if (wiping) "Erasing local data…" else "Erase all data")
             }
         }
     }
@@ -457,7 +507,7 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
 
 @Composable
 fun SettingsAboutScreen() {
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("About", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Text("Crocodyl 0.1.0", color = Hyle.OnBackground)
         Text(

@@ -5,8 +5,9 @@ import androidx.room.withTransaction
 import java.util.UUID
 import xyz.mdhv.formanalyser.scoring.*
 
-class ScoringRepository(context: Context) {
-    private val db = AppDatabase.get(context.applicationContext)
+class ScoringRepository internal constructor(private val db: AppDatabase) {
+    constructor(context: Context) : this(AppDatabase.get(context.applicationContext))
+
     private val scoring = db.scoringDao()
     private val features = db.athleteFeatureDao()
     private val athletes = db.athleteDao()
@@ -209,11 +210,19 @@ class ScoringRepository(context: Context) {
      */
     suspend fun setLinkedFormSession(sessionId: String, formSessionId: String?): Snapshot =
         db.withTransaction {
-            scoring.session(sessionId) ?: error("Score session not found: $sessionId")
-            if (formSessionId != null)
-                checkNotNull(sessions.byId(formSessionId)) {
-                    "That training session no longer exists."
+            val scoreSession = scoring.session(sessionId) ?: error("Score session not found: $sessionId")
+            if (formSessionId != null) {
+                val formSession =
+                    checkNotNull(sessions.byId(formSessionId)) {
+                        "That training session no longer exists."
+                    }
+                check(formSession.athleteId == scoreSession.athleteId) {
+                    "That training session belongs to another athlete."
                 }
+                check(formSession.deletedAt == null) {
+                    "That training session was deleted; choose an active session."
+                }
+            }
             scoring.setLinkedFormSession(sessionId, formSessionId)
             snapshotUnlocked(sessionId)
         }
@@ -248,11 +257,20 @@ class ScoringRepository(context: Context) {
             snapshotUnlocked(sessionId) to pb
         }
 
+    /**
+     * One machine proposal, before it is anything at all.
+     *
+     * [detectorVersion] is `EndScan.DETECTOR_VERSION` for anything the target-photo detector found.
+     * It is nullable because this type predates the detector (and the human-calibrated tap flow in
+     * `EndScanPhoto` is not one), and a caller that is not a detector is not going to invent a
+     * version for itself.
+     */
     data class EndScanCandidate(
         val points: Int,
         val isX: Boolean = false,
         val plot: PlotPoint? = null,
         val confidence: Double? = null,
+        val detectorVersion: String? = null,
     )
 
     suspend fun proposeEndScanCandidates(
@@ -261,9 +279,31 @@ class ScoringRepository(context: Context) {
         candidates: List<EndScanCandidate>,
     ): List<ScoreCandidateEntity> =
         db.withTransaction {
+            val current = snapshotUnlocked(sessionId)
+            requireActive(current.session)
+            require(!current.card.isFull) { "This scorecard is already full" }
+            require(endIndex == current.card.currentEndIndex) {
+                "End Scan candidates must target the current end"
+            }
+            require(
+                candidates.size <= current.card.round.arrowsPerEnd - current.card.currentArrowIndex
+            ) {
+                "Too many candidates for the current end"
+            }
+            candidates.forEach { candidate ->
+                val score = ArrowScore(candidate.points, candidate.isX)
+                validateForLayout(score, current.card.round.faceLayout)
+                candidate.plot?.let { PlotPoint(it.x, it.y, it.faceIndex) }
+                require(candidate.confidence == null || candidate.confidence.isFinite()) {
+                    "Candidate confidence must be finite"
+                }
+            }
             val now = System.currentTimeMillis()
+            // A detector retry replaces unresolved proposals for this end. Confirmed/rejected
+            // provenance remains intact, so re-running detection cannot create duplicate choices
+            // or rewrite a human decision.
+            features.clearProposedCandidates(sessionId, endIndex)
             candidates.mapIndexed { i, c ->
-                require(c.points in 0..10)
                 ScoreCandidateEntity(
                         UUID.randomUUID().toString(),
                         sessionId,
@@ -276,6 +316,7 @@ class ScoringRepository(context: Context) {
                         c.plot?.faceIndex,
                         c.confidence?.coerceIn(0.0, 1.0),
                         createdAtMs = now,
+                        detectorVersion = c.detectorVersion,
                     )
                     .also { features.upsertCandidate(it) }
             }
@@ -316,8 +357,14 @@ class ScoringRepository(context: Context) {
             Snapshot(scoring.session(sessionId)!!, next)
         }
 
-    suspend fun rejectEndScanCandidate(candidateId: String) {
-        features.resolveCandidate(candidateId, "REJECTED", System.currentTimeMillis())
+    suspend fun rejectEndScanCandidate(candidateId: String, sessionId: String, endIndex: Int) {
+        db.withTransaction {
+            val c =
+                features.candidatesForEnd(sessionId, endIndex).firstOrNull { it.id == candidateId }
+                    ?: error("End Scan candidate not found")
+            check(c.status == "PROPOSED")
+            features.resolveCandidate(candidateId, "REJECTED", System.currentTimeMillis())
+        }
     }
 
     suspend fun recordObserverTap(
@@ -325,6 +372,8 @@ class ScoringRepository(context: Context) {
         ring: Int,
         isX: Boolean = false,
         sector: String? = null,
+        inputKind: String = "TAP",
+        declaredText: String? = null,
     ): Snapshot =
         db.withTransaction {
             require(ring in 0..10)
@@ -340,8 +389,8 @@ class ScoringRepository(context: Context) {
                     ring,
                     isX,
                     sector,
-                    "TAP",
-                    declaredText = if (isX) "X" else if (ring == 0) "M" else ring.toString(),
+                    inputKind,
+                    declaredText = declaredText ?: if (isX) "X" else if (ring == 0) "M" else ring.toString(),
                 )
             features.upsertObserverEvent(e)
             val next =
@@ -357,6 +406,86 @@ class ScoringRepository(context: Context) {
             scoring.updateFrom(next, sessionId)
             Snapshot(scoring.session(sessionId)!!, next)
         }
+
+    /** Fill only the current end's remaining declared slots with audited observer misses. */
+    suspend fun finishObserverEnd(sessionId: String, declaredText: String): Snapshot =
+        db.withTransaction {
+            val cur = snapshotUnlocked(sessionId)
+            requireActive(cur.session)
+            check(!cur.card.isFull) { "The scorecard is already full" }
+            val remaining = cur.card.round.arrowsPerEnd - cur.card.currentArrowIndex
+            check(remaining in 1..cur.card.round.arrowsPerEnd) { "This end is already complete" }
+            var next = cur.card
+            repeat(remaining) {
+                val now = System.currentTimeMillis()
+                features.upsertObserverEvent(
+                    ObserverScoreEventEntity(
+                        id = UUID.randomUUID().toString(),
+                        scoreSessionId = sessionId,
+                        atMs = now,
+                        ring = 0,
+                        isX = false,
+                        sector = null,
+                        inputMode = "VOICE",
+                        declaredText = declaredText,
+                    )
+                )
+                next = next.record(
+                    UUID.randomUUID().toString(),
+                    ArrowScore.MISS,
+                    null,
+                    ScoreSource.LIVE_OBSERVER,
+                    AuthorityState.HUMAN_CONFIRMED,
+                    ObservationResolution.SHOT_INFERRED,
+                )
+                scoring.upsertArrow(next.arrows.last().toEntity(sessionId, now))
+            }
+            scoring.updateFrom(next, sessionId)
+            Snapshot(scoring.session(sessionId)!!, next)
+        }
+
+    /** Correct the last arrow without erasing either the original declaration or score row. */
+    suspend fun correctLastObserver(
+        sessionId: String,
+        replacement: SpokenScore,
+    ): Snapshot = db.withTransaction {
+        val cur = snapshotUnlocked(sessionId)
+        requireActive(cur.session)
+        validateForLayout(replacement.score, cur.card.round.faceLayout)
+        val last = cur.card.arrows.lastOrNull() ?: error("There is no previous arrow to correct")
+        check(last.source == ScoreSource.LIVE_OBSERVER) {
+            "The last arrow was not an observer entry; correct it from its original input mode"
+        }
+        val previousEvent = features.observerEvents(sessionId).lastOrNull { it.status == "ACTIVE" }
+        val now = System.currentTimeMillis()
+        scoring.retractArrow(last.id, now)
+        previousEvent?.let { features.retractObserverEvent(it.id) }
+        val event = ObserverScoreEventEntity(
+            id = UUID.randomUUID().toString(),
+            scoreSessionId = sessionId,
+            atMs = now,
+            ring = replacement.score.points,
+            isX = replacement.score.isX,
+            sector = replacement.sector,
+            inputMode = "VOICE",
+            declaredText = replacement.declaredText,
+            correctionOfId = previousEvent?.id,
+        )
+        features.upsertObserverEvent(event)
+        val next = cur.card.undoLast().record(
+            UUID.randomUUID().toString(),
+            replacement.score,
+            null,
+            ScoreSource.LIVE_OBSERVER,
+            AuthorityState.HUMAN_CONFIRMED,
+            ObservationResolution.SHOT_INFERRED,
+        )
+        scoring.upsertArrow(
+            next.arrows.last().toEntity(sessionId, now).copy(supersedesArrowId = last.id)
+        )
+        scoring.updateFrom(next, sessionId)
+        Snapshot(scoring.session(sessionId)!!, next)
+    }
 
     suspend fun observerEvents(sessionId: String) = features.observerEvents(sessionId)
 

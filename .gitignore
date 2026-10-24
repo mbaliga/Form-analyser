@@ -6,6 +6,7 @@ local.properties
 
 # Downloaded ML models (fetched into assets at build time, not committed)
 **/assets/*.task
+**/assets/*.partial
 
 # Android
 *.apk
@@ -22,8 +23,11 @@ captures/
 .env
 *.env
 secrets.properties
+release-signing.properties
+app-android/release.keystore
 
 # IDE / OS junk
+.kotlin/
 .idea/
 *.iml
 .DS_Store

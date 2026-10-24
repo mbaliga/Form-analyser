@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""Contract tests for the dependency-free Crocodyl desktop viewer."""
+
+from pathlib import Path
+import re
+import unittest
+
+
+ROOT = Path(__file__).parents[2]
+VIEWER = ROOT / "web-viewer"
+
+
+class ViewerContract(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.html = (VIEWER / "index.html").read_text()
+        cls.script = (VIEWER / "viewer.js").read_text()
+        cls.signature = (VIEWER / "signature.js").read_text()
+        cls.report = (VIEWER / "report.js").read_text()
+        cls.interop = (ROOT / "tools/web_viewer/test_signature_interop.mjs").read_text()
+        cls.runtime = (ROOT / "tools/web_viewer/test_viewer_runtime.mjs").read_text()
+        cls.readme = (VIEWER / "README.md").read_text()
+
+    def test_picker_accepts_current_and_forward_extensions(self) -> None:
+        self.assertRegex(self.html, r'accept="[^"]*\.crocbak[^"]*\.croc')
+        self.assertIn("signed", self.html)
+        self.assertNotIn("future <code>.croc</code>", self.html)
+
+    def test_viewer_is_dependency_free_and_local_only(self) -> None:
+        self.assertNotRegex(self.html, r"<script[^>]+src=[\"']https?://")
+        self.assertNotIn("fetch(", self.script)
+        self.assertIn("arrayBuffer()", self.script)
+        self.assertIn("not upload", self.readme.lower())
+
+    def test_manifest_and_integrity_contract_are_present(self) -> None:
+        self.assertIn("manifest.json", self.script)
+        self.assertIn("contentChecksum", self.script)
+        self.assertIn("crypto.subtle.digest('SHA-256'", self.script)
+        self.assertIn("Payload checksum mismatch", self.script)
+
+    def test_zip_and_json_paths_are_bounded_to_known_entries(self) -> None:
+        self.assertIn("name.startsWith('tables/')", self.script)
+        self.assertIn("name.endsWith('.json')", self.script)
+        self.assertIn("isZip(bytes)", self.script)
+
+    def test_archive_expansion_and_entry_paths_fail_closed(self) -> None:
+        self.assertIn("MAX_ARCHIVE_BYTES", self.script)
+        self.assertIn("MAX_ZIP_ENTRIES", self.script)
+        self.assertIn("MAX_EXPANDED_BYTES", self.script)
+        self.assertIn("Unsafe ZIP entry path", self.script)
+        self.assertIn("Duplicate ZIP entry", self.script)
+        self.assertIn("Archive expands beyond the local viewer limit", self.script)
+        self.assertIn("inflated.byteLength", self.script)
+        self.assertIn("ZIP entry name mismatch", self.script)
+        self.assertIn("Invalid ZIP local header", self.script)
+        self.assertIn("Unsupported ZIP entry", self.script)
+
+    def test_exports_require_checksum_and_manifest_table_match(self) -> None:
+        self.assertIn("Manifest does not declare a payload checksum", self.script)
+        self.assertIn("Manifest table list does not match the archive", self.script)
+        self.assertIn("Unsupported table payload", self.script)
+        self.assertIn("validateTablePayloads", self.script)
+        self.assertIn("Table payload is not valid JSON", self.script)
+        self.assertIn("Manifest row count mismatch", self.script)
+
+    def test_file_drop_zone_is_keyboard_accessible(self) -> None:
+        self.assertIn('role="button"', self.html)
+        self.assertIn('aria-controls="file"', self.html)
+        self.assertIn('aria-label="Choose a Crocodyl training file"', self.html)
+        self.assertRegex(self.html, r'<section id="status"[^>]*aria-live="polite"')
+        self.assertIn("e.key === 'Enter'", self.script)
+        self.assertIn("e.key === ' '", self.script)
+        self.assertIn("#dropzone:keydown", self.runtime)
+        self.assertIn("pickerClickCount, 2", self.runtime)
+
+    def test_viewer_fails_closed_on_unknown_manifest_schema(self) -> None:
+        self.assertIn("manifest.schemaVersion !== 1", self.script)
+        self.assertIn("Unsupported manifest schema", self.script)
+
+    def test_verified_exports_have_bounded_read_only_table_previews(self) -> None:
+        self.assertIn("MAX_DISPLAY_ROWS", self.script)
+        self.assertIn("MAX_DISPLAY_CHARS", self.script)
+        self.assertIn("table-preview", self.script)
+        self.assertIn("JSON.stringify", self.script)
+        self.assertIn("read-only preview", self.script)
+
+    def test_report_is_offline_descriptive_and_keeps_match_scoring_distinct(self) -> None:
+        self.assertIn('src="report.js"', self.html)
+        self.assertIn("CrocodylReport.summarize(entries)", self.script)
+        self.assertIn("Training analysis", self.script)
+        self.assertIn("SET_MATCH", self.report)
+        self.assertIn("baselineFeatures", self.report)
+        self.assertIn("deletedAt", self.report)
+        self.assertIn("latest non-baseline shot", self.script)
+        self.assertIn("do not establish cause", self.script)
+        self.assertNotIn("fetch(", self.report)
+
+    def test_croc_requires_local_ecdsa_signature_verification(self) -> None:
+        self.assertIn("endsWith('.croc')", self.signature)
+        self.assertIn('src="signature.js"', self.html)
+        self.assertIn("SHA256withECDSA", self.signature)
+        self.assertIn("SHA256withECDSA/CrocodylEnvelopeV2", self.signature)
+        self.assertIn("includedTables", self.signature)
+        self.assertIn("Signed .croc consent envelope is incomplete", self.signature)
+        self.assertIn("crypto.subtle.importKey", self.signature)
+        self.assertIn("Signature verification failed", self.signature)
+        self.assertIn("derSignatureToRaw", self.signature)
+        self.assertIn("ECDSA .croc signature interoperability passed", self.interop)
+
+
+if __name__ == "__main__":
+    unittest.main()

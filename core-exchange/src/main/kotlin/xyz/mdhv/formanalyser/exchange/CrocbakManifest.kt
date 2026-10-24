@@ -30,6 +30,10 @@ data class CrocbakManifest(
     val includedTables: List<String>,
     val rowCounts: Map<String, Long>? = null,
     val contentChecksum: String,
+    /** Optional person-to-person signature metadata; absent on recovery-only `.crocbak` files. */
+    val signatureAlgorithm: String? = null,
+    val publicKeyBase64: String? = null,
+    val signatureBase64: String? = null,
 ) {
     /** Serialize to canonical JSON. */
     fun serialize(json: Json = DEFAULT_JSON): String = json.encodeToString(this)

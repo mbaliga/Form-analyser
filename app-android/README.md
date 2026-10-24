@@ -17,7 +17,8 @@ engine on-device and shows live + post-session feedback in the Hyle design langu
 
 > **BlazePose model: auto-bundled at build time.** The `downloadPoseModel` Gradle task fetches
 > `pose_landmarker_lite.task` into `assets/` before packaging, so the installed APK works with
-> zero setup — no manual file drop, no first-run download, works offline. The binary is
+> zero setup — no manual file drop, no first-run download, works offline. The build verifies the
+> asset's SHA-256 and publishes it atomically. The binary is
 > gitignored (not committed). Build needs network access the first time (CI has it).
 
 ## What's implemented (MVP, handoff §11)
@@ -26,9 +27,20 @@ The full vision loop, end to end:
 - `capture/PoseRecorder` — CameraX frames → MediaPipe Pose (BlazePose) → a `PoseSequence`, plus a live form readout (bow-arm angle, tracking state).
 - `data/` — Room persistence (athlete / session / shots-as-features + score + baseline flag).
 - `domain/ArcheryAnalyzer` + `SessionViewModel` — segment → extract form features → build baseline → score deviation → fatigue → signal↔score correlation.
-- `ui/` — Hyle-themed Compose: Home (session setup) · Capture (CameraX preview + live form readout, radium-green provenance glow) · Review (per-shot cards, manual score entry, baseline toggles, bow-arm trend + form-vs-score charts, fatigue + correlation summaries).
+- `ui/` — Hyle-themed Compose: Home (session setup) · Capture (CameraX preview + live form readout, radium-green provenance glow) · Review (per-shot cards, manual score entry, baseline toggles, bow-arm trend + form-vs-score charts, fatigue + correlation summaries) · Score (WA/custom rounds, numeric/plot/observer input, interruption-safe resume, PBs and grouping).
+- `data/` — migration failures are preserved in a private recovery copy and shown in a blocking screen; replacing the database requires an explicit reset confirmation after backup verification. Injury documents support SAF import and camera capture, with atomic encrypted-vault writes and plaintext staging cleanup.
 
-Still to come (later layers): real-time per-shot detection during capture, pose-overlay rendering, flexibility/ROM tests, target-face CV scoring, the web review companion. Sensor signals come via the paid add-on.
+Still to come (later layers): real-time per-shot detection during capture, pose-overlay rendering, flexibility/ROM tests, validated form calibration, automatic End Scan target scoring, signature identity pinning/TOFU and import/merge workflows around the signed `.croc` envelope, the Coach workspace, and the full web review companion. Sensor signals come via the paid add-on.
+
+## Release builds
+
+Debug builds use the committed `debug.keystore` for repeatable internal updates. A release build is
+deliberately fail-closed: provide `release-signing.properties` locally or the four
+`CROCODYL_RELEASE_*` environment variables used by CI. Start from
+`release-signing.properties.example`; never commit the real keystore or passwords.
+The GitHub release workflow additionally expects `CROCODYL_RELEASE_KEYSTORE_BASE64`,
+`CROCODYL_RELEASE_STORE_PASSWORD`, `CROCODYL_RELEASE_KEY_ALIAS`, and
+`CROCODYL_RELEASE_KEY_PASSWORD` repository secrets.
 
 ## Dependencies (pin at build time, handoff §6)
 

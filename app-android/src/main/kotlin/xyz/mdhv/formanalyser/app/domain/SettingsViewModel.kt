@@ -4,12 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import xyz.mdhv.formanalyser.app.data.AppDatabase
+import xyz.mdhv.formanalyser.app.data.AppDataReset
 import xyz.mdhv.formanalyser.app.data.AppPrefs
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.app.data.ScoringRepository
@@ -20,7 +21,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     val reduceMotion: Flow<Boolean> = prefs.reduceMotion
     val hapticStrength: Flow<String> = prefs.hapticStrength
     val glowIntensity: Flow<Int> = prefs.glowIntensity
+    val themeMode: Flow<String> = prefs.themeMode
     val keepRawVideo: Flow<Boolean> = prefs.keepRawVideo
+    val rawVideoRetentionDays: Flow<Int> = prefs.rawVideoRetentionDays
 
     fun setReduceMotion(v: Boolean) = viewModelScope.launch { prefs.setReduceMotion(v) }
 
@@ -28,14 +31,24 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setGlowIntensity(v: Int) = viewModelScope.launch { prefs.setGlowIntensity(v) }
 
+    fun setThemeMode(v: String) = viewModelScope.launch { prefs.setThemeMode(v) }
+
     fun setKeepRawVideo(v: Boolean) = viewModelScope.launch { prefs.setKeepRawVideo(v) }
 
+    fun setRawVideoRetentionDays(v: Int) =
+        viewModelScope.launch { prefs.setRawVideoRetentionDays(v) }
+
     /** Wipe everything on device and drop back to onboarding. */
-    fun wipe(onDone: () -> Unit) {
+    fun wipe(onDone: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { AppDatabase.get(getApplication()).clearAllTables() }
-            prefs.setOnboarded(false)
-            onDone()
+            try {
+                withContext(Dispatchers.IO) { AppDataReset.wipe(getApplication()) }
+                onDone()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                onFailure()
+            }
         }
     }
 

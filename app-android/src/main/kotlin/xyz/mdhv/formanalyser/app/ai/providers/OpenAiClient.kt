@@ -11,6 +11,7 @@ import xyz.mdhv.formanalyser.coach.LlmError
 import xyz.mdhv.formanalyser.coach.LlmErrorKind
 import xyz.mdhv.formanalyser.coach.MessageRole
 import xyz.mdhv.formanalyser.coach.Provider
+import xyz.mdhv.formanalyser.coach.StreamSink
 
 /**
  * BYOK OpenAI Chat Completions client. [apiKey] is read fresh per call; never logged or persisted.
@@ -80,6 +81,39 @@ class OpenAiClient(
         )
     }
 
+    override fun supportsStreaming(model: CoachModel): Boolean = supports(model)
+
+    /**
+     * Streams via [OpenAiCompatStream] with `"stream": true` and `stream_options.include_usage` set
+     * (see that object's KDoc for why the latter is mandatory — without it OpenAI reports no usage
+     * for a streamed response). Unverified on a device: no Android SDK / socket in this environment.
+     */
+    override fun stream(request: CompletionRequest, sink: StreamSink): CompletionResult {
+        if (!supports(request.model)) {
+            return fail(LlmErrorKind.UNSUPPORTED, "OpenAiClient cannot serve ${request.model.id}")
+        }
+        val key = apiKey()?.takeIf { it.isNotBlank() }
+            ?: return fail(LlmErrorKind.MISSING_API_KEY, "No OpenAI API key configured")
+
+        val payload = ChatBody(
+            model = request.model.id,
+            messages = request.messages.map { WireMessage(role = it.role.toWire(), content = it.content) },
+            maxTokens = request.maxTokens,
+            temperature = request.temperature,
+            stream = true,
+            streamOptions = StreamOptions(includeUsage = true),
+        )
+
+        return OpenAiCompatStream.run(
+            endpoint = ENDPOINT,
+            headers = mapOf("Authorization" to "Bearer $key"),
+            body = HttpJson.json.encodeToString(ChatBody.serializer(), payload),
+            fallbackModelId = request.model.id,
+            sink = sink,
+            mapHttpError = { code, body -> LlmError(HttpJson.errorKindFor(code), errorMessage(code, body)) },
+        )
+    }
+
     private fun errorMessage(code: Int, body: String): String {
         val detail = runCatching {
             HttpJson.json.decodeFromString(ErrorEnvelope.serializer(), body).error?.message
@@ -103,7 +137,15 @@ class OpenAiClient(
         val messages: List<WireMessage>,
         @SerialName("max_tokens") val maxTokens: Int,
         val temperature: Double,
+        // Defaulted + appended so complete()'s existing construction site compiles unchanged;
+        // encodeDefaults=true means it now sends an explicit "stream": false (DeepSeekClient already
+        // does this). streamOptions stays null (omitted — explicitNulls=false) outside stream().
+        val stream: Boolean = false,
+        @SerialName("stream_options") val streamOptions: StreamOptions? = null,
     )
+
+    @Serializable
+    private data class StreamOptions(@SerialName("include_usage") val includeUsage: Boolean = true)
 
     @Serializable
     private data class WireMessage(val role: String, val content: String)

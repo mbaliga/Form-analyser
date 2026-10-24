@@ -19,9 +19,19 @@ The core product law is simple: **measurements and evidence come before advice**
 
 ## Current implementation status
 
-The reconciled implementation includes the Android app and pure-JVM/domain modules for the existing Crocodyl work: onboarding, Home/Train flows, camera/pose foundations, body and wellness, equipment/tuning, local/BYOK AI foundations, export/exchange foundations, Hyle UI work, and tests.
+The reconciled implementation includes the Android app and pure-JVM/domain modules for the current
+Recurve release scope: onboarding, Home/Train flows, camera/pose foundations, body and wellness,
+equipment/tuning, local/BYOK AI foundations, manual scoring (including round, plotting, observer and
+End Scan proposal flows), export/exchange foundations, Hyle UI work, and tests. The current build is
+validated as a QA release candidate, not a production-signed distribution; the remaining release
+gates are recorded in [`docs/crocodyl/RELEASE_ACCEPTANCE_CHECKLIST.md`](docs/crocodyl/RELEASE_ACCEPTANCE_CHECKLIST.md).
 
-The implementation is **not equivalent to the full product blueprint yet**. In particular, production-grade manual round scoring, End Scan, Live Observer, complete `.croc` exchange, the paid multi-athlete Coach workspace, static web viewer, full equipment intelligence and the complete training/recovery system remain phased work.
+The implementation is **not equivalent to the full product blueprint yet**. Signed `.croc` exchange,
+the paid multi-athlete Coach workspace, static web viewer, fully validated automatic/live scoring,
+complete equipment intelligence, and the complete training/recovery system remain phased work. The
+The Fencing surface now includes a live manual two-fencer referee console as the next production slice;
+automatic camera adjudication and the community-directory ingestion/contribution system remain
+documented future work and are not part of the current Recurve release gate.
 
 See [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md) for the implementation snapshot and [`docs/crocodyl/`](docs/crocodyl/) for the current product direction and execution plan.
 
@@ -63,10 +73,18 @@ Requires JDK 21. The Android app requires the Android toolchain and is built thr
 
 - [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md) — current implementation/status snapshot.
 - [`CROCODYL_BUILD_NOTES.md`](CROCODYL_BUILD_NOTES.md) — accumulated engineering notes.
+- [`docs/crocodyl/PRODUCTION_RELEASE_RUNBOOK.md`](docs/crocodyl/PRODUCTION_RELEASE_RUNBOOK.md) —
+  production signing, CI verification and physical acceptance procedure.
 - [`docs/crocodyl/blueprint/01-product-direction.md`](docs/crocodyl/blueprint/01-product-direction.md) — product definition, scope, laws, roles and commercial boundaries.
 - [`docs/crocodyl/blueprint/02-architecture-requirements-roadmap-ux.md`](docs/crocodyl/blueprint/02-architecture-requirements-roadmap-ux.md) — architecture, requirements, parity/release direction and UX architecture.
 - [`docs/crocodyl/CROCODYL_PHASED_IMPLEMENTATION_PLAN.md`](docs/crocodyl/CROCODYL_PHASED_IMPLEMENTATION_PLAN.md) — phased execution plan from current build through Recurve v1 and later sports.
+- [`docs/crocodyl/CROCODYL_PORTING_PLAN.md`](docs/crocodyl/CROCODYL_PORTING_PLAN.md) — multi-platform porting plan (Ubuntu Touch, Linux, iOS/iPadOS, macOS, Windows); a plan only, nothing built.
 
 ## Launch focus
 
 The first product to prove is not “generic form analysis.” It is **Crocodyl for Recurve athletes**: a range-usable performance system where scoring, camera-based technique evidence, equipment context, training/recovery context and coach feedback can eventually be understood together without giving up local data ownership.
+
+## Licence
+
+No licence has been granted yet. See [LICENSING.md](LICENSING.md) for the intended licence
+(AGPL-3.0-or-later with a commercial exception) and what must happen before it is granted.

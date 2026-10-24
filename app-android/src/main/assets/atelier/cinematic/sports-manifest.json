@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 2,
+  "images": [
+    {
+      "id": "muay-thai-training",
+      "file": "muay-thai-training.jpg",
+      "bytes": 192112,
+      "sha256": "f93f21013e50dabb297ef902c9e66893d6c67f5ea8b9ddf3f220609c98868cdd",
+      "dimensions": [1400, 788],
+      "kind": "Photograph",
+      "photographer": "Anastase Maragos (@visualsbyroyalz)",
+      "title": "Man practicing muay thai kickboxing with a heavy bag",
+      "sourcePage": "https://unsplash.com/photos/man-practicing-muay-thai-kickboxing-with-a-heavy-bag-78Q5VKfedoc",
+      "sourceImage": "https://images.unsplash.com/photo-1765303191119-89d0221d5c0b",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "usage": "Decorative Home card and sport journal hero",
+      "accessibility": { "decorativeAlt": "" },
+      "restrictions": [
+        "Unsplash license does not establish model or trademark endorsement.",
+        "Not a technique, safety, equipment-fit or coaching reference.",
+        "Do not infer athlete identity, gym, affiliation or level from the photograph."
+      ],
+      "processing": "Downloaded from Unsplash and center-cropped/resized to 1400 × 788 for the app."
+    },
+    {
+      "id": "bouldering-session",
+      "file": "bouldering-session.jpg",
+      "bytes": 240175,
+      "sha256": "31293d6b216aceb5b22b19e782d4a673fe1a65acfef12b23b6462b7dbcfc735a",
+      "dimensions": [1400, 788],
+      "kind": "Photograph",
+      "photographer": "Kambria Trout (@kambriatrout)",
+      "title": "Man climbing an indoor rock climbing wall",
+      "sourcePage": "https://unsplash.com/photos/man-climbing-an-indoor-rock-climbing-wall-m2s5M6bMxs0",
+      "sourceImage": "https://images.unsplash.com/photo-1754950917608-6595a0c28157",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "usage": "Decorative Home card and sport journal hero",
+      "accessibility": { "decorativeAlt": "" },
+      "restrictions": [
+        "Unsplash license does not establish model or trademark endorsement.",
+        "Not a technique, safety, equipment-fit or coaching reference.",
+        "Do not infer athlete identity, gym, affiliation or level from the photograph."
+      ],
+      "processing": "Downloaded from Unsplash and center-cropped/resized to 1400 × 788 for the app."
+    },
+    {
+      "id": "recurve-training",
+      "file": "recurve-training.jpg",
+      "bytes": 146927,
+      "sha256": "153ad4ffcfccbc150047c8a99c1c1baee65e4267554c37128b1c9ee4692ab0ff",
+      "dimensions": [1600, 900],
+      "kind": "Photograph",
+      "photographer": "Phil Hearing (@philhearing)",
+      "title": "A woman is aiming a bow at a target",
+      "sourcePage": "https://unsplash.com/photos/a-woman-is-aiming-a-bow-at-a-target-9xcQ-KpxV8E",
+      "sourceImage": "https://images.unsplash.com/photo-1712350840799-eed8c91053ce",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "usage": "Decorative Recurve Home hero",
+      "accessibility": { "decorativeAlt": "" },
+      "restrictions": [
+        "Unsplash license does not establish model, venue or trademark endorsement.",
+        "Not a technique, safety, equipment-fit or coaching reference.",
+        "Do not infer athlete identity, venue, affiliation or level from the photograph."
+      ],
+      "processing": "Downloaded from Unsplash and cropped/resized to 1600 × 900 for the app."
+    },
+    {
+      "id": "fencing-training",
+      "file": "fencing-training.jpg",
+      "bytes": 276828,
+      "sha256": "6298b316966c7a9240619f5a36ce57b245299e2380a71b894e583599eb3c7bc9",
+      "dimensions": [1600, 900],
+      "kind": "Photograph",
+      "photographer": "Nathanaël Desmeules (@nathanael240606)",
+      "title": "Two men in fencing gear practicing their moves",
+      "sourcePage": "https://unsplash.com/photos/two-men-in-fencing-gear-practicing-their-moves-fY-gU30ciIo",
+      "sourceImage": "https://images.unsplash.com/photo-1648484859331-bd85bf2238d5",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "usage": "Decorative Home Fencing studies card",
+      "accessibility": { "decorativeAlt": "" },
+      "restrictions": [
+        "Unsplash license does not establish model, venue or trademark endorsement.",
+        "Not a technique, safety, equipment-fit or coaching reference.",
+        "Do not infer athlete identity, venue, affiliation or level from the photograph."
+      ],
+      "processing": "Downloaded from Unsplash and cropped/resized to 1600 × 900 for the app."
+    }
+  ]
+}

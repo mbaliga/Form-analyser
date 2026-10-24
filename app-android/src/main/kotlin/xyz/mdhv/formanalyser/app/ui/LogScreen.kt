@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -269,7 +270,7 @@ private fun LifeEventForm(vm: WellnessViewModel, onSaved: (Int) -> Unit) {
     val categories =
         listOf("BEREAVEMENT", "ILLNESS", "EXAMS", "WORK", "TRAVEL", "RELATIONSHIP", "OTHER")
     var category by rememberSaveable { mutableStateOf("OTHER") }
-    var impact by rememberSaveable { mutableStateOf(1) }
+    var impact by rememberSaveable { mutableIntStateOf(1) }
     var title by rememberSaveable { mutableStateOf("") }
     var ongoing by rememberSaveable { mutableStateOf(true) }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -313,7 +314,7 @@ private fun LifeEventForm(vm: WellnessViewModel, onSaved: (Int) -> Unit) {
 
 @Composable
 private fun CycleForm(vm: WellnessViewModel, onDone: () -> Unit) {
-    var daysAgo by rememberSaveable { mutableStateOf(0) }
+    var daysAgo by rememberSaveable { mutableIntStateOf(0) }
     var flow by rememberSaveable { mutableStateOf<Int?>(null) }
     Text("Period start", color = Hyle.OnSurfaceDim)
     HyleStepper(daysAgo, { daysAgo = it }, 0..14, suffix = " days ago")

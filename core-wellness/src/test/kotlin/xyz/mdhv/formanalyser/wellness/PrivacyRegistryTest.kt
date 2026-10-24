@@ -7,9 +7,9 @@ import kotlin.test.assertTrue
 
 class PrivacyRegistryTest {
     @Test
-    fun privateTablesAreExactlyCycleMoodLifeEvent() {
+    fun privateTablesAreExactlyLocalOnlyData() {
         assertEquals(
-            setOf("mood_entry", "life_event", "cycle_entry"),
+            setOf("mood_entry", "life_event", "cycle_entry", "capture_media"),
             PrivacyRegistry.privateTables(),
         )
     }
@@ -21,7 +21,7 @@ class PrivacyRegistryTest {
 
     @Test
     fun coreTablesShareable() {
-        listOf("athlete", "session", "shot", "rig", "checkin", "soreness").forEach {
+        listOf("athlete", "session", "shot", "rig", "checkin", "soreness", "sport_session").forEach {
             assertEquals(
                 PrivacyClass.SHAREABLE,
                 PrivacyRegistry.classOf(it),

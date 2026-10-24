@@ -1,0 +1,64 @@
+name: Equipment studio visual QA
+
+on:
+  push:
+    paths:
+      - tools/atelier/**
+      - app-android/src/main/assets/atelier/**
+      - docs/crocodyl/atelier/**
+      - docs/crocodyl/arrow-reference-previews/**
+      - docs/crocodyl/visuals/**
+      - .github/workflows/atelier-quality.yml
+  pull_request:
+    paths:
+      - tools/atelier/**
+      - app-android/src/main/assets/atelier/**
+      - docs/crocodyl/atelier/**
+      - docs/crocodyl/arrow-reference-previews/**
+      - docs/crocodyl/visuals/**
+      - .github/workflows/atelier-quality.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atelier-visual-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Install render harness only
+        run: python3 -m pip install playwright==1.56.0 Pillow==11.3.0
+      - name: Bake and test geometry contracts
+        run: |
+          python3 tools/atelier/build_assets.py
+          python3 tools/atelier/test_assets.py
+          python3 tools/atelier/test_arrow_library.py
+          python3 tools/atelier/test_arrow_reference_library.py
+          git diff --exit-code -- app-android/src/main/assets/atelier/models
+          python3 tools/atelier/build_arrow_reference_library.py
+          git diff --exit-code -- app-android/src/main/assets/atelier/arrow-reference-library
+      - name: Render real models and test viewer
+        run: python3 tools/atelier/render_qa.py
+      - name: Exercise arrow-reference families in Chromium/WebGL
+        run: node tools/atelier/verify_arrow_reference_browser.mjs
+      - name: Upload inspectable source, GLBs, posters and results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crocodyl-atelier-review
+          retention-days: 3
+          path: |
+            tools/atelier
+            app-android/src/main/assets/atelier
+            docs/crocodyl/atelier/qa
+            docs/crocodyl/arrow-reference-previews
+          if-no-files-found: error

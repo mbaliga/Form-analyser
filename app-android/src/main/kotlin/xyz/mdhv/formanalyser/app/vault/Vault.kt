@@ -7,6 +7,7 @@ import com.google.crypto.tink.StreamingAead
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import com.google.crypto.tink.streamingaead.StreamingAeadConfig
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 
 /**
@@ -38,25 +39,35 @@ class Vault(private val context: Context) {
 
     /** Stream-encrypt [source] into the vault. AD = the document row id. Max 25 MB. */
     fun encryptFrom(source: Uri, documentId: String): Encrypted {
+        require(documentId.matches(SAFE_COMPONENT)) { "Invalid document id" }
         val outFile = File(vaultDir(), documentId)
+        check(!outFile.exists()) { "Document already exists" }
+        val stagingFile = File(vaultDir(), ".${documentId}.partial")
         val digest = MessageDigest.getInstance("SHA-256")
         var total = 0L
-        context.contentResolver.openInputStream(source).use { input ->
-            requireNotNull(input) { "cannot open source" }
-            streamingAead.newEncryptingStream(outFile.outputStream(), documentId.toByteArray()).use { out ->
-                val buf = ByteArray(64 * 1024)
-                while (true) {
-                    val n = input.read(buf)
-                    if (n <= 0) break
-                    total += n
-                    require(total <= MAX_BYTES) {
-                        outFile.delete()
-                        "Document larger than 25 MB"
+        try {
+            context.contentResolver.openInputStream(source).use { input ->
+                requireNotNull(input) { "cannot open source" }
+                streamingAead.newEncryptingStream(
+                    stagingFile.outputStream(),
+                    documentId.toByteArray(),
+                ).use { out ->
+                    val buf = ByteArray(64 * 1024)
+                    while (true) {
+                        val n = input.read(buf)
+                        if (n <= 0) break
+                        total += n
+                        require(total <= MAX_BYTES) { "Document larger than 25 MB" }
+                        digest.update(buf, 0, n)
+                        out.write(buf, 0, n)
                     }
-                    digest.update(buf, 0, n)
-                    out.write(buf, 0, n)
                 }
             }
+            if (!stagingFile.renameTo(outFile)) throw IOException("Could not publish encrypted document")
+        } catch (t: Throwable) {
+            runCatching { stagingFile.delete() }
+            runCatching { outFile.delete() }
+            throw t
         }
         val sha = digest.digest().joinToString("") { "%02x".format(it) }
         return Encrypted(outFile.absolutePath, sha, total)
@@ -64,17 +75,40 @@ class Vault(private val context: Context) {
 
     /** Decrypt to the view cache for display; caller shows it, [wipeViewCache] cleans up. */
     fun decryptToView(encPath: String, documentId: String, ext: String): File {
-        val outFile = File(viewDir(), "$documentId.$ext")
-        File(encPath).inputStream().use { fileIn ->
-            streamingAead.newDecryptingStream(fileIn, documentId.toByteArray()).use { input ->
-                outFile.outputStream().use { input.copyTo(it) }
+        require(documentId.matches(SAFE_COMPONENT)) { "Invalid document id" }
+        require(ext.matches(SAFE_EXTENSION)) { "Invalid document extension" }
+        val dir = viewDir()
+        val outFile = File(dir, "$documentId.$ext")
+        // Never expose a partially decrypted document to the viewer. Decrypt into a unique
+        // sibling first, then publish it only after authentication and the full copy succeed.
+        val stagingFile = File.createTempFile(".$documentId-", ".$ext.partial", dir)
+        try {
+            File(encPath).inputStream().use { fileIn ->
+                streamingAead.newDecryptingStream(fileIn, documentId.toByteArray()).use { input ->
+                    stagingFile.outputStream().use { input.copyTo(it) }
+                }
             }
+            if (outFile.exists() && !outFile.delete()) {
+                throw IOException("Could not replace decrypted document view")
+            }
+            if (!stagingFile.renameTo(outFile)) {
+                throw IOException("Could not publish decrypted document view")
+            }
+        } catch (t: Throwable) {
+            runCatching { stagingFile.delete() }
+            throw t
         }
         return outFile
     }
 
     fun delete(encPath: String) {
-        runCatching { File(encPath).delete() }
+        runCatching {
+            val vault = vaultDir().canonicalFile
+            val candidate = File(encPath).canonicalFile
+            if (candidate.parentFile == vault && candidate.name.matches(SAFE_COMPONENT)) {
+                candidate.delete()
+            }
+        }
     }
 
     fun wipeViewCache() {
@@ -83,5 +117,12 @@ class Vault(private val context: Context) {
 
     companion object {
         const val MAX_BYTES = 25L * 1024 * 1024
+        private val SAFE_COMPONENT = Regex("[A-Za-z0-9_-]{1,128}")
+        private val SAFE_EXTENSION = Regex("[A-Za-z0-9]{1,16}")
+
+        /** Remove plaintext viewer output without constructing the Keystore-backed vault. */
+        fun wipeViewCache(context: Context) {
+            runCatching { File(context.cacheDir, "vault-view").deleteRecursively() }
+        }
     }
 }

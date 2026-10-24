@@ -25,6 +25,8 @@ object PrivacyRegistry {
         put("session", PrivacyClass.SHAREABLE)
         put("shot", PrivacyClass.SHAREABLE)
         put("rig", PrivacyClass.SHAREABLE)
+        // Contains a device-local file path and raw identifiable video; never leaves the device.
+        put("capture_media", PrivacyClass.PRIVATE)
         // Phase 2 (0.6.0) — manual scoring, plus advisory End Scan / Live Observer candidates
         put("score_session", PrivacyClass.SHAREABLE)
         put("score_arrow", PrivacyClass.SHAREABLE)
@@ -37,6 +39,7 @@ object PrivacyRegistry {
         put("training_plan", PrivacyClass.SHAREABLE)
         put("session_context", PrivacyClass.SHAREABLE)
         put("session_default", PrivacyClass.SHAREABLE)
+        put("sport_session", PrivacyClass.SHAREABLE)
         // Phase 2 — wellness + life layer
         put("checkin", PrivacyClass.SHAREABLE)
         put("soreness", PrivacyClass.SHAREABLE)

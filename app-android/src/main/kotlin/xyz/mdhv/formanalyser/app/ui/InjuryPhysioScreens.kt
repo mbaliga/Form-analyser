@@ -1,5 +1,8 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -8,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,8 +36,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import xyz.mdhv.formanalyser.app.domain.BodyViewModel
 import xyz.mdhv.formanalyser.app.domain.JsonLists
 import xyz.mdhv.formanalyser.app.ui.components.BodyAtlasCanvas
@@ -41,7 +53,42 @@ import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.app.ui.theme.HyleStepper
+import xyz.mdhv.formanalyser.body.BodyAtlas
 import xyz.mdhv.formanalyser.body.BodyFace
+
+@Serializable
+private data class PhysioExerciseDraft(
+    val name: String,
+    val sets: Int,
+    val reps: Int?,
+    val holdS: Int?,
+) {
+    fun toEditorValue(): Triple<String, Int, Pair<Int?, Int?>> =
+        Triple(name, sets, reps to holdS)
+
+    companion object {
+        fun fromEditorValue(value: Triple<String, Int, Pair<Int?, Int?>>) =
+            PhysioExerciseDraft(value.first, value.second, value.third.first, value.third.second)
+    }
+}
+
+private val physioDraftJson = Json { ignoreUnknownKeys = true }
+private val physioExerciseDraftsSerializer = ListSerializer(PhysioExerciseDraft.serializer())
+
+private fun encodePhysioExercises(values: List<Triple<String, Int, Pair<Int?, Int?>>>): String =
+    physioDraftJson.encodeToString(
+        physioExerciseDraftsSerializer,
+        values.map { PhysioExerciseDraft.fromEditorValue(it) },
+    )
+
+private fun decodePhysioExercises(
+    value: String,
+    fallback: List<Triple<String, Int, Pair<Int?, Int?>>>,
+): List<Triple<String, Int, Pair<Int?, Int?>>> =
+    runCatching {
+        physioDraftJson.decodeFromString(physioExerciseDraftsSerializer, value)
+            .map(PhysioExerciseDraft::toEditorValue)
+    }.getOrDefault(fallback)
 
 /**
  * Guards a half-filled editor on the way out, and returns the function Cancel should call.
@@ -82,6 +129,7 @@ private fun rememberDiscardGuard(dirty: Boolean, onLeave: () -> Unit): () -> Uni
 @Composable
 fun RegionPicker(selected: Set<String>, onToggle: (String) -> Unit) {
     var face by rememberSaveable { mutableStateOf(BodyFace.BACK) }
+    var regionListOpen by rememberSaveable { mutableStateOf(false) }
     HyleSegmented(
         listOf(BodyFace.FRONT, BodyFace.BACK),
         face,
@@ -89,7 +137,42 @@ fun RegionPicker(selected: Set<String>, onToggle: (String) -> Unit) {
     ) {
         face = it
     }
+    OutlinedButton(
+        onClick = { regionListOpen = true },
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+    ) {
+        Text("Choose regions from list")
+    }
     BodyAtlasCanvas(face = face, selected = selected, onTap = onToggle)
+    if (regionListOpen) {
+        val regions = BodyAtlas.forFace(face).map { it.id }.sortedBy(::bodyRegionDisplayName)
+        AlertDialog(
+            onDismissRequest = { regionListOpen = false },
+            title = { Text("Choose body regions") },
+            text = {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 440.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text("Select each region to include or remove it.", color = Hyle.OnSurfaceDim)
+                    regions.forEach { region ->
+                        FilterChip(
+                            selected = region in selected,
+                            onClick = { onToggle(region) },
+                            label = { Text(bodyRegionDisplayName(region)) },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { regionListOpen = false }) { Text("Done") }
+            },
+        )
+    }
 }
 
 @Composable
@@ -105,9 +188,11 @@ fun InjuryEditScreen(
     val vaultError by vm.vaultError.collectAsState()
     val existing = injuries.firstOrNull { it.id == injuryId }
 
-    var regions by
-        remember(existing?.id) { mutableStateOf(JsonLists.decode(existing?.regionsJson).toSet()) }
-    var severity by rememberSaveable(existing?.id) { mutableStateOf(existing?.severity ?: 1) }
+    var regionsJson by rememberSaveable(existing?.id) {
+        mutableStateOf(JsonLists.encode(JsonLists.decode(existing?.regionsJson)))
+    }
+    val regions = JsonLists.decode(regionsJson).toSet()
+    var severity by rememberSaveable(existing?.id) { mutableIntStateOf(existing?.severity ?: 1) }
     var mechanism by
         rememberSaveable(existing?.id) { mutableStateOf(existing?.mechanism ?: "OVERUSE") }
     var status by rememberSaveable(existing?.id) { mutableStateOf(existing?.status ?: "ACTIVE") }
@@ -122,6 +207,9 @@ fun InjuryEditScreen(
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
+    var pendingCaptureUri by remember { mutableStateOf<Uri?>(null) }
+    var pendingCaptureFile by remember { mutableStateOf<File?>(null) }
+    var cameraError by rememberSaveable { mutableStateOf<String?>(null) }
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null && existing != null) {
@@ -134,6 +222,54 @@ fun InjuryEditScreen(
                 )
             }
         }
+    val camera =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { captured ->
+            val uri = pendingCaptureUri
+            val file = pendingCaptureFile
+            pendingCaptureUri = null
+            pendingCaptureFile = null
+            if (captured && uri != null && file != null && existing != null) {
+                vm.importDocument(
+                    uri,
+                    title = "Photo ${documents.size + 1}",
+                    mime = "image/jpeg",
+                    injuryId = existing.id,
+                    sourceFileToDelete = file,
+                )
+            } else {
+                file?.let { runCatching { it.delete() } }
+            }
+        }
+    fun startCameraCapture() {
+        cameraError = null
+        runCatching {
+            val dir = File(context.cacheDir, "camera").apply { mkdirs() }
+            val file = File.createTempFile("crocodyl-document-", ".jpg", dir)
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            pendingCaptureFile = file
+            pendingCaptureUri = uri
+            camera.launch(uri)
+        }.onFailure {
+            pendingCaptureUri = null
+            pendingCaptureFile?.let { pending -> runCatching { pending.delete() } }
+            pendingCaptureFile = null
+            cameraError = it.message ?: "Camera could not be opened."
+        }
+    }
+    val requestCameraPermission =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) startCameraCapture()
+            else cameraError = "Camera permission is needed to capture a document photo."
+        }
+    fun captureDocument() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            startCameraCapture()
+        } else {
+            requestCameraPermission.launch(Manifest.permission.CAMERA)
+        }
+    }
 
     Column(
         Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()),
@@ -146,7 +282,7 @@ fun InjuryEditScreen(
         )
         HyleSectionHeader("Regions")
         RegionPicker(selected = regions) { id ->
-            regions = if (id in regions) regions - id else regions + id
+            regionsJson = JsonLists.encode((if (id in regions) regions - id else regions + id).toList())
         }
         HyleSectionHeader("Severity")
         HyleSegmented(listOf(1, 2, 3), severity, { "$it" }) { severity = it }
@@ -188,6 +324,10 @@ fun InjuryEditScreen(
             ) {
                 Text("Attach document (PDF / image)")
             }
+            OutlinedButton(onClick = ::captureDocument, modifier = Modifier.fillMaxWidth()) {
+                Text("Take document photo")
+            }
+            cameraError?.let { Text(it, color = Hyle.Danger) }
         }
 
         // Save is gated on a region, and used to be the ONLY control here — so an athlete who
@@ -263,26 +403,30 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
     val existing = plans.firstOrNull { it.id == planId }
 
     var title by rememberSaveable(existing?.id) { mutableStateOf(existing?.title ?: "") }
-    var regions by
-        remember(existing?.id) {
-            mutableStateOf(JsonLists.decode(existing?.targetRegionsJson).toSet())
-        }
-    var schedule by
-        remember(existing?.id) { mutableStateOf(JsonLists.decode(existing?.scheduleJson).toSet()) }
-    var exercises by
-        remember(existing?.id) {
-            mutableStateOf(
-                planExercises[existing?.id]?.map { Triple(it.name, it.sets, it.reps to it.holdS) }
-                    ?: listOf(Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null)))
-            )
-        }
+    val defaultExercises = listOf(Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null)))
+    val persistedExercises =
+        planExercises[existing?.id]?.map { Triple(it.name, it.sets, it.reps to it.holdS) }
+            ?: defaultExercises
+    var regionsJson by rememberSaveable(existing?.id) {
+        mutableStateOf(JsonLists.encode(JsonLists.decode(existing?.targetRegionsJson)))
+    }
+    val regions = JsonLists.decode(regionsJson).toSet()
+    var scheduleJson by rememberSaveable(existing?.id) {
+        mutableStateOf(JsonLists.encode(JsonLists.decode(existing?.scheduleJson)))
+    }
+    val schedule = JsonLists.decode(scheduleJson).toSet()
+    var exercisesJson by rememberSaveable(existing?.id, persistedExercises) {
+        mutableStateOf(encodePhysioExercises(persistedExercises))
+    }
+    val exercises = decodePhysioExercises(exercisesJson, persistedExercises)
+    fun updateExercises(value: List<Triple<String, Int, Pair<Int?, Int?>>>) {
+        exercisesJson = encodePhysioExercises(value)
+    }
     val dirty =
         title != (existing?.title ?: "") ||
             regions != JsonLists.decode(existing?.targetRegionsJson).toSet() ||
             schedule != JsonLists.decode(existing?.scheduleJson).toSet() ||
-            exercises !=
-                (planExercises[existing?.id]?.map { Triple(it.name, it.sets, it.reps to it.holdS) }
-                    ?: listOf(Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null))))
+            exercises != persistedExercises
     val leave = rememberDiscardGuard(dirty, onDone)
 
     Column(
@@ -302,14 +446,20 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
         )
         HyleSectionHeader("Target regions")
         RegionPicker(selected = regions) { id ->
-            regions = if (id in regions) regions - id else regions + id
+            regionsJson =
+                JsonLists.encode((if (id in regions) regions - id else regions + id).toList())
         }
         HyleSectionHeader("Days")
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("MO", "TU", "WE", "TH", "FR", "SA", "SU").forEach { d ->
                 FilterChip(
                     selected = d in schedule,
-                    onClick = { schedule = if (d in schedule) schedule - d else schedule + d },
+                    onClick = {
+                        scheduleJson =
+                            JsonLists.encode(
+                                (if (d in schedule) schedule - d else schedule + d).toList()
+                            )
+                    },
                     label = { Text(d) },
                 )
             }
@@ -319,10 +469,11 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
             OutlinedTextField(
                 value = name,
                 onValueChange = { v ->
-                    exercises =
+                    updateExercises(
                         exercises.toMutableList().also {
                             it[i] = Triple(v.take(60), sets, repsHold)
                         }
+                    )
                 },
                 label = { Text("Exercise ${i + 1}") },
                 modifier = Modifier.fillMaxWidth(),
@@ -333,8 +484,9 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
                     HyleStepper(
                         sets,
                         { v ->
-                            exercises =
+                            updateExercises(
                                 exercises.toMutableList().also { it[i] = Triple(name, v, repsHold) }
+                            )
                         },
                         1..10,
                     )
@@ -344,7 +496,7 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
                     HyleStepper(
                         repsHold.first ?: 0,
                         { v ->
-                            exercises =
+                            updateExercises(
                                 exercises.toMutableList().also {
                                     it[i] =
                                         Triple(
@@ -353,6 +505,7 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
                                             (if (v == 0) null else v) to repsHold.second,
                                         )
                                 }
+                            )
                         },
                         0..50,
                     )
@@ -361,7 +514,9 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
         }
         OutlinedButton(
             onClick = {
-                exercises = exercises + Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null))
+                updateExercises(
+                    exercises + Triple<String, Int, Pair<Int?, Int?>>("", 3, Pair(10, null))
+                )
             },
             modifier = Modifier.fillMaxWidth(),
         ) {

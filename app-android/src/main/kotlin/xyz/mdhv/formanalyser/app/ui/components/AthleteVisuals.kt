@@ -1,0 +1,377 @@
+package xyz.mdhv.formanalyser.app.ui.components
+
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.filled.TrackChanges
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import xyz.mdhv.formanalyser.app.domain.ShotView
+import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.archery.FormFeatureExtractor
+
+@Composable
+fun CrocodylHero(
+    readinessLabel: String,
+    readinessDetail: String?,
+    ready: Boolean,
+    streak: Int?,
+    rigName: String,
+    onManageRigs: () -> Unit,
+    onStartSession: () -> Unit,
+    onScore: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val largeFont = LocalDensity.current.fontScale >= 1.2f
+    val photograph = remember { mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null) }
+    LaunchedEffect(Unit) {
+        photograph.value = withContext(Dispatchers.IO) {
+            runCatching {
+                context.assets.open("atelier/cinematic/recurve-training.jpg").use {
+                    BitmapFactory.decodeStream(it)?.asImageBitmap()
+                }
+            }.getOrNull()
+        }
+    }
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val compactWidth = maxWidth < 400.dp
+        val stackedActions = compactWidth || largeFont
+        Box(
+            Modifier.fillMaxWidth()
+                .height(if (largeFont) 360.dp else if (compactWidth) 288.dp else 260.dp)
+                .clip(RoundedCornerShape(30.dp))
+                .background(Hyle.SurfaceDeep)
+                .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),
+        ) {
+            photograph.value?.let {
+                Image(
+                    bitmap = it,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.horizontalGradient(
+                        colorStops = arrayOf(
+                            0f to Color(0xff08090d).copy(alpha = .86f),
+                            .48f to Color(0xff08090d).copy(alpha = .57f),
+                            1f to Color(0xff08090d).copy(alpha = .10f),
+                        ),
+                    )
+                )
+            )
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        .58f to Color.Transparent,
+                        1f to Color(0xff08090d).copy(alpha = .72f),
+                    )
+                )
+            )
+            Column(
+                Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                    Column(
+                        Modifier.weight(1f).fillMaxWidth(.88f),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("CROCODYL  /  RECURVE", color = Hyle.RadiumGreen, fontSize = 10.sp, letterSpacing = 1.7.sp)
+                        Text(
+                            "Find your rhythm.",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White,
+                        )
+                    }
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        Modifier.clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha = .42f))
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Box(
+                            Modifier.size(9.dp).clip(CircleShape)
+                                .background(if (ready) Hyle.RadiumGreen else Hyle.Warning)
+                        )
+                        Text(readinessLabel, style = MaterialTheme.typography.labelLarge, color = Color.White)
+                    }
+                    readinessDetail?.takeIf { !it.equals(readinessLabel, ignoreCase = true) }?.let {
+                        Text(
+                            it,
+                            color = Color.White.copy(alpha = .82f),
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = if (compactWidth) 2 else 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    streak?.takeIf { it > 0 }?.let {
+                        Text("$it day rhythm", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelMedium)
+                    }
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black.copy(alpha = .48f))
+                            .clickable(
+                                role = Role.Button,
+                                onClickLabel = "Edit active equipment setup",
+                                onClick = onManageRigs,
+                            )
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                            Text("ACTIVE RIG", color = Color.White.copy(alpha = .72f), style = MaterialTheme.typography.labelSmall)
+                            Text(rigName, color = Color.White, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+                        }
+                        Text("EDIT  →", color = Hyle.AccentBright, style = MaterialTheme.typography.labelMedium)
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = onStartSession,
+                            modifier = Modifier.weight(1f).heightIn(min = if (stackedActions) 76.dp else 52.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            contentPadding = if (stackedActions) PaddingValues(horizontal = 8.dp, vertical = 8.dp) else ButtonDefaults.ContentPadding,
+                        ) {
+                            if (stackedActions) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Icon(Icons.Filled.CameraAlt, null, modifier = Modifier.size(20.dp))
+                                    Text("Train", maxLines = 1, softWrap = false)
+                                }
+                            } else {
+                                Icon(Icons.Filled.CameraAlt, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Train", maxLines = 1, softWrap = false)
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = onScore,
+                            modifier = Modifier.weight(1f).heightIn(min = if (stackedActions) 76.dp else 52.dp),
+                            shape = RoundedCornerShape(18.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                            contentPadding = if (stackedActions) PaddingValues(horizontal = 8.dp, vertical = 8.dp) else ButtonDefaults.ContentPadding,
+                        ) {
+                            if (stackedActions) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
+                                    Text("Score", maxLines = 1, softWrap = false)
+                                }
+                            } else {
+                                Icon(ScoreActionIcon, null, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Score", maxLines = 1, softWrap = false)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AthleteActionTile(
+    title: String,
+    detail: String,
+    icon: ImageVector,
+    accent: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(88.dp),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Hyle.Surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = .18f)),
+    ) {
+        Column(
+            Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Icon(icon, null, tint = accent, modifier = Modifier.size(26.dp))
+            Column {
+                Text(title, color = Hyle.OnBackground, fontWeight = FontWeight.SemiBold)
+                Text(detail, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
+            }
+        }
+    }
+}
+
+@Composable
+fun CaptureHowTo(modifier: Modifier = Modifier) {
+    Card(
+        modifier,
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceDeep),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.Accent.copy(alpha = .2f)),
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.Filled.CameraAlt, null, tint = Hyle.AccentBright)
+                Column {
+                    Text("Set up the shot", color = Hyle.OnBackground, fontWeight = FontWeight.SemiBold)
+                    Text("A clean side view makes every measurement better.", color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                GuideStep("1", "Full body", "Head to feet", Modifier.weight(1f))
+                GuideStep("2", "Side-on", "90° to target", Modifier.weight(1f))
+                GuideStep("3", "Stable", "Phone at waist", Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun GuideStep(number: String, title: String, detail: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(Hyle.SurfaceVariant.copy(alpha = .65f))
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        Text(number, color = Hyle.AccentBright, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+        Text(title, color = Hyle.OnBackground, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+        Text(detail, color = Hyle.OnSurfaceDim, fontSize = 10.sp, lineHeight = 12.sp)
+    }
+}
+
+/** Camera overlay: floor, safe frame and a side-on archer schematic. */
+@Composable
+fun CaptureFramingOverlay(tracking: Boolean, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val ink = if (tracking) Hyle.RadiumGreen else Color.White.copy(alpha = .78f)
+        val margin = size.width * .1f
+        val corner = size.width * .09f
+        val stroke = 3f
+        fun cornerLines(x: Float, y: Float, sx: Float, sy: Float) {
+            drawLine(ink, Offset(x, y), Offset(x + sx * corner, y), stroke)
+            drawLine(ink, Offset(x, y), Offset(x, y + sy * corner), stroke)
+        }
+        cornerLines(margin, margin, 1f, 1f)
+        cornerLines(size.width - margin, margin, -1f, 1f)
+        cornerLines(margin, size.height - margin, 1f, -1f)
+        cornerLines(size.width - margin, size.height - margin, -1f, -1f)
+        val floorY = size.height * .87f
+        drawLine(ink.copy(alpha = .55f), Offset(margin, floorY), Offset(size.width - margin, floorY), 2f)
+
+        val x = size.width * .51f
+        val head = Offset(x, size.height * .19f)
+        drawCircle(ink.copy(alpha = .26f), size.width * .045f, head, style = Stroke(3f))
+        val shoulder = Offset(x, size.height * .31f)
+        val hip = Offset(x - size.width * .015f, size.height * .56f)
+        drawLine(ink.copy(alpha = .35f), shoulder, hip, 5f)
+        drawLine(ink.copy(alpha = .35f), Offset(x - size.width * .11f, size.height * .33f), Offset(x + size.width * .19f, size.height * .34f), 5f)
+        drawLine(ink.copy(alpha = .35f), hip, Offset(x - size.width * .08f, floorY), 5f)
+        drawLine(ink.copy(alpha = .35f), hip, Offset(x + size.width * .1f, floorY), 5f)
+        val bow = Path().apply {
+            moveTo(x + size.width * .19f, size.height * .22f)
+            quadraticTo(x + size.width * .3f, size.height * .34f, x + size.width * .19f, size.height * .49f)
+        }
+        drawPath(bow, ink.copy(alpha = .45f), style = Stroke(3f))
+    }
+}
+
+@Composable
+fun ImprovementAreas(shots: List<ShotView>, modifier: Modifier = Modifier) {
+    val ranked = shots.mapNotNull { it.topDeviationFeature }.groupingBy { it }.eachCount()
+        .entries.sortedByDescending { it.value }.take(3)
+    Card(
+        modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(26.dp),
+        colors = CardDefaults.cardColors(containerColor = Hyle.SurfaceRich),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.Accent.copy(alpha = .24f)),
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.AutoMirrored.Filled.DirectionsRun, null, tint = Hyle.AccentBright)
+                Column {
+                    Text("Improvement areas", color = Hyle.OnBackground, style = MaterialTheme.typography.titleMedium)
+                    Text("Prioritised from this session—not a generic checklist.", color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            if (ranked.isEmpty()) {
+                Text(
+                    if (shots.isEmpty()) "Capture an end to reveal your highest-leverage form cues."
+                    else "Build your baseline to separate normal variation from a real correction.",
+                    color = Hyle.OnSurfaceDim,
+                )
+            } else ranked.forEachIndexed { index, entry ->
+                val cue = improvementCue(entry.key)
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
+                        .background(Hyle.SurfaceVariant.copy(alpha = .62f)).padding(13.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Box(
+                        Modifier.size(34.dp).clip(CircleShape).background(Hyle.Accent.copy(alpha = .2f)),
+                        contentAlignment = Alignment.Center,
+                    ) { Text("${index + 1}", color = Hyle.AccentBright, fontWeight = FontWeight.Bold) }
+                    Column(Modifier.weight(1f)) {
+                        Text(cue.first, color = Hyle.OnBackground, fontWeight = FontWeight.SemiBold)
+                        Text(cue.second, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text("${entry.value}×", color = Hyle.RadiumGreen, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+private fun improvementCue(feature: String): Pair<String, String> = when (feature) {
+    FormFeatureExtractor.BOW_ARM_ANGLE -> "Bow-arm line" to "Keep shoulder, elbow and wrist long through release."
+    FormFeatureExtractor.DRAW_ELBOW_ANGLE -> "Draw elbow" to "Bring the elbow into the arrow line at anchor."
+    FormFeatureExtractor.DRAW_ARM_TILT -> "Draw-side alignment" to "Keep the upper arm close to shoulder height."
+    FormFeatureExtractor.SHOULDER_TILT -> "Shoulder level" to "Set a quiet, level shoulder line before drawing."
+    FormFeatureExtractor.HEAD_LEAN -> "Head position" to "Bring the string to the face; avoid chasing it."
+    FormFeatureExtractor.SPINE_LEAN -> "Posture" to "Stack ribs over pelvis and stay tall through expansion."
+    FormFeatureExtractor.STANCE_WIDTH -> "Stance" to "Build a repeatable base near shoulder width."
+    FormFeatureExtractor.HOLD_DURATION_S -> "Hold rhythm" to "Keep the aiming window decisive and repeatable."
+    FormFeatureExtractor.DRAW_DURATION_S -> "Draw rhythm" to "Use one smooth tempo from set-up to anchor."
+    else -> feature.replace(Regex("([a-z])([A-Z])"), "$1 $2").replaceFirstChar(Char::uppercase) to "Repeat the next end and watch whether this signal settles."
+}
+
+val ScoreActionIcon = Icons.Filled.TrackChanges
