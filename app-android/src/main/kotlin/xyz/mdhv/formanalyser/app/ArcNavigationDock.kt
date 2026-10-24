@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -38,10 +39,14 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import xyz.mdhv.formanalyser.model.ui.DockGeometry
+import xyz.mdhv.formanalyser.model.ui.DockLayout
+import xyz.mdhv.formanalyser.model.ui.DockMode
 import kotlin.math.pow
 
 /** Crocodyl's Recurve adaptation of Bocal's two-level floating arc dock. */
@@ -60,7 +65,43 @@ internal fun ArcNavigationDock(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp)
-            .testTag("bocal-style-navigation-dock")
+            .testTag("bocal-style-navigation-dock"),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        // LocalConfiguration follows the app window (split screen, desktop windows), not the display.
+        val layout = DockGeometry.resolve(
+            availableWidthDp = maxWidth.value,
+            windowHeightDp = LocalConfiguration.current.screenHeightDp.toFloat(),
+            fontScale = LocalDensity.current.fontScale,
+        )
+        if (layout.mode == DockMode.RAIL) {
+            CompactDockRail(items, current, badge, layout.compactLabels, onSelect, onQuickAdd, onSettings)
+        } else {
+            ArcStage(layout, items, current, badge, previewDestination, onSelect, onQuickAdd, onSettings)
+        }
+    }
+}
+
+/**
+ * The curved dock on its 400×150 design stage, scaled to [layout]. The stage box, not the padded
+ * outer box, receives the scrub gesture so `size.width` below stays in stage space when the stage is
+ * narrower than the window.
+ */
+@Composable
+private fun ArcStage(
+    layout: DockLayout,
+    items: List<Pair<String, Pair<ImageVector, String>>>,
+    current: String?,
+    badge: Boolean,
+    previewDestination: MutableState<String?>,
+    onSelect: (String) -> Unit,
+    onQuickAdd: () -> Unit,
+    onSettings: () -> Unit,
+) {
+    Box(
+        Modifier
+            .width(layout.stageWidthDp.dp)
+            .height(layout.stageHeightDp.dp)
             .pointerInput(items, current) {
                 var scrubbing = false
                 fun destinationAt(xPx: Float, yPx: Float): String? {
@@ -90,17 +131,14 @@ internal fun ArcNavigationDock(
                     }
                 }
             },
-        contentAlignment = Alignment.TopStart,
     ) {
-        val scale = maxWidth.value / 400f
-        val stageHeight = (150f * scale).dp
-        val compactLabels = maxWidth < 320.dp || LocalDensity.current.fontScale >= 1.2f
+        val scale = layout.scale
+        val compactLabels = layout.compactLabels
         val shownContext = items.firstOrNull { it.first == previewDestination.value }?.second?.second ?: "Range"
 
         Canvas(
             Modifier
-                .fillMaxWidth()
-                .height(stageHeight)
+                .fillMaxSize()
                 .semantics { contentDescription = "Current sport: Recurve" }
                 .testTag("nav-context-recurve"),
         ) {
@@ -158,74 +196,148 @@ internal fun ArcNavigationDock(
 
         // The side controls sit on the upper-rail continuation; all positions and sizes
         // derive from the same 400×150 stage so the dock scales as one tactile component.
+        // Every control's real box is at least 48 dp; the visible shapes stay smaller.
         DockSideAction(
             label = "Quick add",
             icon = Icons.Filled.Add,
-            modifier = Modifier.dockSeat(18f, 50.79f, scale, 44.dp, 44.dp).graphicsLayer { rotationZ = -11.37f },
+            modifier = Modifier.dockSeat(18f, 50.79f, scale, 48.dp, 48.dp).graphicsLayer { rotationZ = -11.37f },
             onClick = onQuickAdd,
         )
         DockSideAction(
             label = "Settings",
             icon = Icons.Filled.Settings,
-            modifier = Modifier.dockSeat(382f, 50.79f, scale, 44.dp, 44.dp).graphicsLayer { rotationZ = 11.37f },
+            modifier = Modifier.dockSeat(382f, 50.79f, scale, 48.dp, 48.dp).graphicsLayer { rotationZ = 11.37f },
             onClick = onSettings,
         )
 
         items.forEachIndexed { index, (destination, pair) ->
             val (icon, label) = pair
-            val shownLabel = if (compactLabels) when (label) {
-                "Progress" -> "Prog"
-                "Calendar" -> "Cal"
-                else -> label
-            } else label
+            val shownLabel = shortLabel(label, compactLabels)
             val seat = BOCAL_DOCK_SEATS.getOrNull(index) ?: return@forEachIndexed
             val selected = current == destination
-            Column(
+            // 68×48 touch target around the unchanged 68×32 pill. dockSeat centres on the seat, so
+            // the pill's visual centre does not move.
+            Box(
                 Modifier
-                    .dockSeat(seat.x, seat.y, scale, width = 68.dp, height = 32.dp)
+                    .dockSeat(seat.x, seat.y, scale, width = 68.dp, height = 48.dp)
                     .graphicsLayer { rotationZ = seat.tilt }
                     .clip(RoundedCornerShape(50))
-                    .then(if (selected) Modifier.background(Color(0xFFE6E2D8)) else Modifier)
                     .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(destination) })
                     .semantics(mergeDescendants = true) { contentDescription = label }
                     .testTag("nav-tab-$destination"),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+                contentAlignment = Alignment.Center,
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
+                Column(
+                    Modifier
+                        .size(68.dp, 32.dp)
+                        .clip(RoundedCornerShape(50))
+                        .then(if (selected) Modifier.background(Color(0xFFE6E2D8)) else Modifier),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                 ) {
-                    if (destination == "body" && badge) {
-                        BadgedBox(badge = { Badge { Text("!") } }) {
-                            Icon(icon, null, tint = if (selected) Color(0xFF14161C) else Color(0xFF9297A2), modifier = Modifier.size(18.dp))
-                        }
-                    } else {
-                        Icon(icon, null, tint = if (selected) Color(0xFF14161C) else Color(0xFF9297A2), modifier = Modifier.size(18.dp))
-                    }
-                    AnimatedContent(
-                        targetState = selected,
-                        label = "navigation-label",
-                    ) { active ->
-                        if (active) {
-                            Spacer(Modifier.width(5.dp))
-                            Text(
-                                shownLabel,
-                                color = Color(0xFF14161C),
-                                maxLines = 1,
-                                fontSize = 8.5.sp,
-                                lineHeight = 10.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
-                    }
+                    DockTabContent(icon, shownLabel, selected, showBadge = destination == "body" && badge)
                 }
             }
         }
     }
 }
 
+/**
+ * Flat fallback for windows too short for the arc (a phone in landscape): one 56 dp rail along the
+ * bottom edge with the same destinations, test tags and accessible names. No Canvas, no scrubbing.
+ */
+@Composable
+private fun CompactDockRail(
+    items: List<Pair<String, Pair<ImageVector, String>>>,
+    current: String?,
+    badge: Boolean,
+    compactLabels: Boolean,
+    onSelect: (String) -> Unit,
+    onQuickAdd: () -> Unit,
+    onSettings: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(DockGeometry.RAIL_HEIGHT.dp)
+            .testTag("nav-rail")
+            .background(Color(0xFF20232B), RoundedCornerShape(28.dp)),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        DockSideAction(label = "Quick add", icon = Icons.Filled.Add, modifier = Modifier.size(48.dp), onClick = onQuickAdd)
+        items.forEach { (destination, pair) ->
+            val (icon, label) = pair
+            val selected = current == destination
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(50))
+                    .selectable(selected = selected, role = Role.Tab, onClick = { onSelect(destination) })
+                    .semantics(mergeDescendants = true) { contentDescription = label }
+                    .testTag("nav-tab-$destination"),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(
+                    Modifier
+                        .height(32.dp)
+                        .clip(RoundedCornerShape(50))
+                        .then(if (selected) Modifier.background(Color(0xFFE6E2D8)) else Modifier)
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    DockTabContent(icon, shortLabel(label, compactLabels), selected, showBadge = destination == "body" && badge)
+                }
+            }
+        }
+        DockSideAction(label = "Settings", icon = Icons.Filled.Settings, modifier = Modifier.size(48.dp), onClick = onSettings)
+    }
+}
+
+private fun shortLabel(label: String, compact: Boolean): String =
+    if (compact) when (label) {
+        "Progress" -> "Prog"
+        "Calendar" -> "Cal"
+        else -> label
+    } else label
+
+/** Icon, with the label beside it only while the tab is selected. */
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun DockTabContent(icon: ImageVector, shownLabel: String, selected: Boolean, showBadge: Boolean) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        if (showBadge) {
+            BadgedBox(badge = { Badge { Text("!") } }) {
+                Icon(icon, null, tint = if (selected) Color(0xFF14161C) else Color(0xFF9297A2), modifier = Modifier.size(18.dp))
+            }
+        } else {
+            Icon(icon, null, tint = if (selected) Color(0xFF14161C) else Color(0xFF9297A2), modifier = Modifier.size(18.dp))
+        }
+        AnimatedContent(
+            targetState = selected,
+            label = "navigation-label",
+        ) { active ->
+            if (active) {
+                Spacer(Modifier.width(5.dp))
+                Text(
+                    shownLabel,
+                    color = Color(0xFF14161C),
+                    maxLines = 1,
+                    fontSize = 8.5.sp,
+                    lineHeight = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
+    }
+}
+
+/** A round touch target of at least 48 dp (the caller sizes it) around a 44 dp visible button. */
 @Composable
 private fun DockSideAction(
     label: String,
@@ -236,13 +348,20 @@ private fun DockSideAction(
     Box(
         modifier
             .clip(CircleShape)
-            .background(Brush.radialGradient(listOf(Color(0xFF353A45), Color(0xFF1B1D24))))
             .clickable(onClick = onClick)
             .semantics { contentDescription = label }
-            .testTag("dock-action-${label.lowercase().replace(' ', '-')}") ,
+            .testTag("dock-action-${label.lowercase().replace(' ', '-')}"),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, null, tint = Color(0xFFC4C6CC), modifier = Modifier.size(20.dp))
+        Box(
+            Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(Brush.radialGradient(listOf(Color(0xFF353A45), Color(0xFF1B1D24)))),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icon, null, tint = Color(0xFFC4C6CC), modifier = Modifier.size(20.dp))
+        }
     }
 }
 
