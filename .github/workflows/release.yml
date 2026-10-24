@@ -79,7 +79,7 @@ jobs:
           adb logcat -d -v threadtime > app-android/build/diagnostics/release-debug-logcat.txt 2>&1 || true
       - name: Upload debug instrumentation reports and diagnostics
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: crocodyl-release-debug-test-reports
           path: |
@@ -225,7 +225,7 @@ jobs:
           adb logcat -d -v threadtime > app-android/build/diagnostics/release-minified-logcat.txt 2>&1 || true
       - name: Upload minified release test reports and diagnostics
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: crocodyl-release-minified-test-reports
           path: |
@@ -271,7 +271,7 @@ jobs:
           cp "$mapping" "crocodyl-${RELEASE_VERSION}-r8-mapping.txt"
           sha256sum "crocodyl-${RELEASE_VERSION}-r8-mapping.txt" > "crocodyl-${RELEASE_VERSION}-r8-mapping.sha256"
       - name: Upload R8 mapping and digest as CI-only artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: crocodyl-release-r8-mapping-${{ needs.verify.outputs.version }}
           path: |
@@ -292,7 +292,7 @@ jobs:
         run: |
           sha256sum "crocodyl-${RELEASE_VERSION}.apk" "crocodyl-${RELEASE_VERSION}.aab" > "crocodyl-${RELEASE_VERSION}-SHA256SUMS.txt"
       - name: Upload verified release assets for isolated publication
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: crocodyl-release-assets
           path: |
