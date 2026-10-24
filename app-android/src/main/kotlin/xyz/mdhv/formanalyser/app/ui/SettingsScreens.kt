@@ -573,8 +573,10 @@ fun SettingsAboutScreen(onLicences: () -> Unit) {
         Text("About", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Text("Crocodyl 0.1.0", color = Hyle.OnBackground)
         Text(
-            "Crocodyl runs entirely on this device. Sessions, poses, scores, and your profile never " +
-                "leave it. This build makes zero network calls — there's nothing to opt out of.",
+            "Crocodyl keeps your sessions, poses, scores and profile on this device, with no account, " +
+                "analytics or tracking. Nothing leaves it unless you send it: the optional cloud AI " +
+                "coach contacts the provider you choose, with your own key, only when you ask it to, " +
+                "and an export goes only where you save or share it.",
             color = Hyle.OnSurfaceDim,
         )
         HyleListRow(
