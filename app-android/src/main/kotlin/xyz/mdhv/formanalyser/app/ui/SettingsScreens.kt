@@ -3,9 +3,13 @@ package xyz.mdhv.formanalyser.app.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -30,6 +34,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -555,8 +561,14 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
     }
 }
 
+/**
+ * Asset holding the third-party notices. The repository root `THIRD_PARTY_NOTICES.md` is its identical
+ * twin (a release-tooling test fails if they differ), so what the app shows is what the repository says.
+ */
+internal const val THIRD_PARTY_NOTICES_ASSET = "licenses/THIRD_PARTY_NOTICES.md"
+
 @Composable
-fun SettingsAboutScreen() {
+fun SettingsAboutScreen(onLicences: () -> Unit) {
     Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("About", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Text("Crocodyl 0.1.0", color = Hyle.OnBackground)
@@ -565,5 +577,65 @@ fun SettingsAboutScreen() {
                 "leave it. This build makes zero network calls — there's nothing to opt out of.",
             color = Hyle.OnSurfaceDim,
         )
+        HyleListRow(
+            title = "Third-party licences",
+            subtitle = "The libraries and the pose model Crocodyl uses, and their licences",
+            onClick = onLicences,
+        )
+    }
+}
+
+/** Renders the bundled notices file as a scrollable page. Plain text: no network, no web view. */
+@Composable
+fun SettingsLicencesScreen() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val lines by
+        androidx.compose.runtime.produceState<List<String>?>(initialValue = null, context) {
+            value =
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    runCatching {
+                            context.assets.open(THIRD_PARTY_NOTICES_ASSET).bufferedReader().use {
+                                it.readLines()
+                            }
+                        }
+                        .getOrNull() ?: emptyList()
+                }
+        }
+    val shown = lines
+    when {
+        shown == null -> Text("Loading…", color = Hyle.OnSurfaceDim, modifier = Modifier.col())
+        shown.isEmpty() ->
+            Text(
+                "The licence notices could not be loaded.",
+                color = Hyle.Danger,
+                modifier = Modifier.col(),
+            )
+        else ->
+            LazyColumn(Modifier.col()) { items(shown) { line -> NoticeLine(line) } }
+    }
+}
+
+@Composable
+private fun NoticeLine(line: String) {
+    when {
+        line.startsWith("# ") ->
+            Text(
+                line.removePrefix("# "),
+                style = MaterialTheme.typography.headlineMedium,
+                color = Hyle.OnBackground,
+                modifier =
+                    Modifier.padding(bottom = 8.dp).semantics { heading() },
+            )
+        line.startsWith("## ") ->
+            Text(
+                line.removePrefix("## "),
+                style = MaterialTheme.typography.titleMedium,
+                color = Hyle.OnBackground,
+                modifier =
+                    Modifier.padding(top = 12.dp, bottom = 2.dp).semantics { heading() },
+            )
+        line.isBlank() -> Spacer(Modifier.height(6.dp))
+        else ->
+            Text(line, style = MaterialTheme.typography.bodyMedium, color = Hyle.OnSurfaceDim)
     }
 }
