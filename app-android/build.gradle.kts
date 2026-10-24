@@ -164,6 +164,16 @@ android {
     }
 }
 
+// MediaPipe Tasks (tasks-core) ships a usage-statistics client (TasksStatsProtoLogger ->
+// RemoteLoggingClient) that uploads package name, version, task name/mode and latency statistics
+// to Google through the datatransport "cct" backend. Crocodyl has no analytics in any channel:
+// the backend and runtime are excluded, and src/main/java/com/google/android/datatransport/
+// provides a no-op TransportRuntime so the logger's events are dropped on device.
+configurations.all {
+    exclude(group = "com.google.android.datatransport", module = "transport-backend-cct")
+    exclude(group = "com.google.android.datatransport", module = "transport-runtime")
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }

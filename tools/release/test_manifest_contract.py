@@ -13,8 +13,6 @@ PERMISSIONS = """
       E: uses-permission (line=3)
         A: android:name(0x01010003)="android.permission.INTERNET"
       E: uses-permission (line=4)
-        A: android:name(0x01010003)="android.permission.ACCESS_NETWORK_STATE"
-      E: uses-permission (line=5)
         A: android:name(0x01010003)="com.asoc.crocodyl.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 """
 
@@ -44,9 +42,48 @@ PROFILE_RECEIVER = """
 """
 
 
+# What transport-runtime and transport-backend-cct (MediaPipe's usage-statistics upload path) put into
+# a merged manifest. A non-exported service passes the exported-component audit, so only the
+# datatransport marker check catches it.
+DATATRANSPORT_DISCOVERY = """
+          E: service (line=40)
+            A: android:name(0x01010003)="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            A: android:exported(0x01010010)=false
+              E: meta-data (line=42)
+                A: android:name(0x01010003)="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                A: android:value(0x01010024)="cct"
+"""
+
+
 class MergedManifestContractTest(unittest.TestCase):
     def test_expected_release_surface_passes(self):
         self.assertEqual(audit(PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER), [])
+
+    def test_access_network_state_is_no_longer_an_allowed_permission(self):
+        dump = PERMISSIONS + '''
+      E: uses-permission (line=6)
+        A: android:name(0x01010003)="android.permission.ACCESS_NETWORK_STATE"
+''' + APPLICATION + LAUNCHER + PROFILE_RECEIVER
+        errors = audit(dump)
+        self.assertTrue(any("ACCESS_NETWORK_STATE" in error for error in errors), errors)
+
+    def test_datatransport_upload_path_in_the_merged_manifest_is_rejected(self):
+        errors = audit(PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER + DATATRANSPORT_DISCOVERY)
+        self.assertTrue(any("TransportBackendDiscovery" in error or "datatransport" in error for error in errors), errors)
+        joined = "\n".join(errors)
+        for marker in ("com.google.android.datatransport", "backend:", "CctBackendFactory"):
+            self.assertIn(marker, joined)
+
+    def test_each_datatransport_marker_is_rejected_on_its_own(self):
+        for marker in ("com.google.android.datatransport", "backend:", "CctBackendFactory"):
+            with self.subTest(marker=marker):
+                dump = PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER + f'''
+          E: service (line=40)
+            A: android:name(0x01010003)="x.y.{marker}Z"
+            A: android:exported(0x01010010)=false
+'''
+                errors = audit(dump)
+                self.assertTrue(any(marker in error for error in errors), errors)
 
     def test_debuggable_release_application_is_rejected(self):
         errors = audit(PERMISSIONS + APPLICATION_DEBUGGABLE + LAUNCHER + PROFILE_RECEIVER)
