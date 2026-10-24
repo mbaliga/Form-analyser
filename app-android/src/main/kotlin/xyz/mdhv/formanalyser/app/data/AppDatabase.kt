@@ -1,6 +1,7 @@
 package xyz.mdhv.formanalyser.app.data
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -53,8 +54,9 @@ class DatabaseRecoveryRequired(
             ScoreCandidateEntity::class,
             ObserverScoreEventEntity::class,
             SportSessionEntity::class,
+            CaptureMediaEntity::class,
         ],
-    version = 9,
+    version = 11,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -65,6 +67,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rigDao(): RigDao
 
     abstract fun shotDao(): ShotDao
+
+    abstract fun captureMediaDao(): CaptureMediaDao
 
     abstract fun wellnessDao(): WellnessDao
 
@@ -85,6 +89,23 @@ abstract class AppDatabase : RoomDatabase() {
                 ?: synchronized(this) {
                     instance ?: openResilient(context.applicationContext).also { instance = it }
                 }
+
+        /**
+         * Test-only: drop the cached [instance] so the next [get] opens a fresh database.
+         *
+         * [get] is a process-wide singleton by design -- production code never calls this. Without
+         * it, a Robolectric unit test that calls [get] (directly, or via [Repository]/
+         * [ScoringRepository], which both do internally) shares whatever instance the FIRST test in
+         * the same JVM/classloader session already built, pointed at that first test's own
+         * Robolectric-provided `filesDir` -- the opposite of the isolation a test needs. Real app
+         * code has no equivalent call because the app process really does want exactly one
+         * [AppDatabase] for its whole lifetime (user-confirmed wipes go through [deleteForUserWipe]).
+         */
+        @VisibleForTesting
+        fun resetForTests() {
+            instance?.let { runCatching { it.close() } }
+            instance = null
+        }
 
         /** Delete the SQLite file as well as its journal sidecars after explicit user confirmation. */
         fun deleteForUserWipe(context: Context) =
@@ -136,6 +157,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_6_7,
                     MIGRATION_7_8,
                     MIGRATION_8_9,
+                    MIGRATION_9_10,
+                    MIGRATION_10_11,
                 )
                 // No fallbackToDestructiveMigration: a missing migration path should surface as a
                 // thrown exception into the catch below (and get backed up + recorded), not vanish
@@ -524,6 +547,48 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_athleteId` ON `sport_session` (`athleteId`)")
                     db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_sportId` ON `sport_session` (`sportId`)")
                     db.execSQL("CREATE INDEX IF NOT EXISTS `index_sport_session_startedAtEpochMs` ON `sport_session` (`startedAtEpochMs`)")
+                }
+            }
+
+        /** V9 → V10: durable shot phase timestamps and session-linked private raw video. */
+        val MIGRATION_9_10 =
+            object : Migration(9, 10) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `drawStartS` REAL")
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `releaseS` REAL")
+                    db.execSQL("ALTER TABLE `shots` ADD COLUMN `captureMediaId` TEXT")
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `capture_media` (`id` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `path` TEXT NOT NULL, `poseStartedAtMs` INTEGER NOT NULL, `videoStartedAtMs` INTEGER NOT NULL, `durationMs` INTEGER NOT NULL, `sizeBytes` INTEGER NOT NULL, `createdAtMs` INTEGER NOT NULL, PRIMARY KEY(`id`))"
+                    )
+                    db.execSQL(
+                        "CREATE INDEX IF NOT EXISTS `index_capture_media_sessionId` ON `capture_media` (`sessionId`)"
+                    )
+                }
+            }
+
+        /**
+         * V10 -> V11: provenance for End Scan's detector.
+         *
+         * `score_candidate` has existed since v6 but nothing wrote to it until the End Scan detector
+         * landed. The blueprint requires a machine proposal to record the version of the model that
+         * produced it, and the need is concrete: every constant in `EndScan` is derived from target
+         * geometry rather than measured against range photographs, so they will move once there are
+         * photographs to check them against, and after that nothing else on the row would
+         * distinguish a candidate the old detector proposed from one the new one did.
+         *
+         * No new table, so [PrivacyRegistry] is unchanged: a column inherits its row's class, and
+         * `score_candidate` is already classified SHAREABLE. The nullable, defaultless
+         * `ALTER TABLE ADD COLUMN` is the one shape SQLite performs without rewriting the table, the
+         * same reason MIGRATION_6_7 uses it. Nothing backfills existing rows: inventing a version for a
+         * row that predates the column would be a claim about provenance rather than a record of it.
+         *
+         * (crocodyl-status shipped this as its own "8 -> 9"; the chain already uses 8 -> 9 and 9 -> 10
+         * for `sport_session` and `capture_media`, so it is re-expressed here as 10 -> 11.)
+         */
+        val MIGRATION_10_11 =
+            object : Migration(10, 11) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `score_candidate` ADD COLUMN `detectorVersion` TEXT")
                 }
             }
     }

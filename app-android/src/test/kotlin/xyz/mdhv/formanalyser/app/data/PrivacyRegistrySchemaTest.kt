@@ -20,12 +20,15 @@ import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
 class PrivacyRegistrySchemaTest {
     @Test
     fun `every generated Room table has exactly one privacy classification`() {
+        // The newest snapshot is the schema this build ships; older versions stay for migration review.
         val schema =
             listOf(
-                    File("schemas/xyz.mdhv.formanalyser.app.data.AppDatabase/9.json"),
-                    File("app-android/schemas/xyz.mdhv.formanalyser.app.data.AppDatabase/9.json"),
+                    File("schemas/xyz.mdhv.formanalyser.app.data.AppDatabase"),
+                    File("app-android/schemas/xyz.mdhv.formanalyser.app.data.AppDatabase"),
                 )
-                .firstOrNull(File::isFile)
+                .firstOrNull(File::isDirectory)
+                ?.listFiles { file -> file.isFile && file.name.matches(Regex("\\d+\\.json")) }
+                ?.maxByOrNull { it.nameWithoutExtension.toInt() }
         assertTrue("Room schema snapshot is missing", schema != null)
 
         val entities =

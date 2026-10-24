@@ -194,6 +194,7 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$camerax")
     implementation("androidx.camera:camera-lifecycle:$camerax")
     implementation("androidx.camera:camera-view:$camerax")
+    implementation("androidx.camera:camera-video:$camerax")
     // MediaPipe Pose (BlazePose) — on-device pose landmarks.
     // MediaPipe's AAR includes generated AutoValue classes, but its Maven metadata also pulls the
     // build-time processor into the runtime graph. The processor contributes no runtime behavior

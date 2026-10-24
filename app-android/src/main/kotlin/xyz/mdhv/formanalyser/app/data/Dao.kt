@@ -127,3 +127,16 @@ interface ShotDao {
     @Query("SELECT COUNT(*) FROM shots WHERE sessionId = :sessionId")
     suspend fun countForSession(sessionId: String): Int
 }
+
+@Dao
+interface CaptureMediaDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(media: CaptureMediaEntity)
+
+    @Query("SELECT * FROM capture_media WHERE sessionId = :sessionId ORDER BY createdAtMs ASC")
+    suspend fun forSession(sessionId: String): List<CaptureMediaEntity>
+
+    @Query("DELETE FROM capture_media WHERE id = :id") suspend fun delete(id: String)
+
+    @Query("SELECT * FROM capture_media WHERE createdAtMs < :cutoffMs")
+    suspend fun olderThan(cutoffMs: Long): List<CaptureMediaEntity>
+}

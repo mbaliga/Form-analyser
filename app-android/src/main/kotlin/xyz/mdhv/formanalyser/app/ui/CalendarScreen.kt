@@ -49,6 +49,7 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
     val streak by vm.streak.collectAsState()
     val loads by vm.loads.collectAsState()
     val acwr by vm.acwr.collectAsState()
+    val srpeAcwr by vm.srpeAcwr.collectAsState()
     var view by rememberSaveable { mutableStateOf("Calendar") }
 
     Column(
@@ -102,6 +103,7 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
                 acwr?.let { if (it.warmupComplete) it.latest?.acwr else null },
                 acwr?.warmupDaysElapsed,
                 acwr?.warmupComplete == true,
+                srpeAcwr?.let { if (it.warmupComplete) it.latest?.acwr else null },
             )
         }
     }
@@ -231,6 +233,7 @@ private fun LoadView(
     latestAcwr: Double?,
     warmupDays: Int?,
     warm: Boolean,
+    latestSrpeAcwr: Double?,
 ) {
     if (!warm) {
         Text(
@@ -272,6 +275,15 @@ private fun LoadView(
         hollow = { it.incompleteShotLoad },
         title = "Weekly shot load (arrows × kg). Hollow = missing poundage.",
     )
+    // The sRPE secondary lane's ratio (Acwr.computeSrpe): a strain read the shot-load ratio cannot
+    // see -- a long, gruelling holds/SPT session adds no arrows. Shown only once its own warm-up
+    // is complete, so an immature ratio is never presented as a verdict.
+    latestSrpeAcwr?.let {
+        Text(
+            "sRPE ACWR ${String.format(Locale.ROOT, "%.2f", it)}  (sweet 0.8–1.3)",
+            color = Hyle.OnBackground,
+        )
+    }
     LoadLane(
         weekly = weekly,
         value = { it.srpeLoad },
