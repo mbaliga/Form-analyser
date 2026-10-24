@@ -27,6 +27,7 @@ jobs:
     permissions:
       contents: read
     outputs:
+      tag: ${{ steps.ver.outputs.tag }}
       version: ${{ steps.ver.outputs.version }}
       version_code: ${{ steps.ver.outputs.version_code }}
     steps:
@@ -114,6 +115,7 @@ jobs:
     permissions:
       contents: read
     outputs:
+      tag: ${{ needs.verify.outputs.tag }}
       version: ${{ needs.verify.outputs.version }}
       version_code: ${{ needs.verify.outputs.version_code }}
     steps:
@@ -319,7 +321,7 @@ jobs:
       - name: Attach to GitHub Release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
         with:
-          tag_name: ${{ needs.sign.outputs.version }}
+          tag_name: ${{ needs.sign.outputs.tag }}
           target_commitish: ${{ github.sha }}
           files: |
             release-assets/crocodyl-${{ needs.sign.outputs.version }}.apk
