@@ -368,6 +368,8 @@ viewer, directory and Atelier contracts passed (6/6, 4/4, 10/10, 4/4 and 19/19).
 verified manifest dimensions, byte counts, SHA-256 values, photographer attribution and source/license
 records.
 
+Follow-up (2026-10): those four Unsplash photographs and `sports-manifest.json` were removed for licence reasons; the heroes now render gradient fallback surfaces (see `docs/crocodyl/visuals/CINEMATIC_APP_REFRESH.md`).
+
 Android follow-up replay (2026-10-09): after explicit approval, Android SDK licenses were accepted
 and API 35, Build Tools 35.0.0 and platform-tools were installed in the temporary toolchain. Room
 generated and checked in the V9 schema snapshot. Android debug and release unit suites passed 21/21

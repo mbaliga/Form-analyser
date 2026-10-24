@@ -41,7 +41,6 @@ Examples: the parallel-shaft study uses the published X10 Parallel Pro 600 dimen
 | Original-mesh regression suite | `tools/atelier/test_assets.py` |
 | Original studio browser harness | `tools/atelier/verify_browser.mjs` / `.github/workflows/bake-atelier.yml` |
 | Same-mesh dark/light posters | `app-android/src/main/assets/atelier/posters/` |
-| Licensed photo attribution/provenance | `app-android/src/main/assets/atelier/cinematic/sports-manifest.json` |
 
 ## Arrow reference library currently available
 
@@ -120,6 +119,10 @@ The current browser pass also records zero JavaScript exceptions and zero extern
 The original model pipeline separately retains eight geometry/export tests including outward-facing tube side/cap winding. The first broad viewer pass and later corrected passes should be judged by their current generated reports rather than historical commit messages.
 
 ## Image usage
+
+> **Update 2026-10:** the four Unsplash photographs and `cinematic/sports-manifest.json` described in
+> the first paragraph below were removed for licence reasons; Home and sport cards now render
+> gradient surfaces. The component renders and the no-generated-card-imagery rule are unchanged.
 
 Home and sport-card photography is bundled from photographer-created Unsplash images, with a source
 page, license, author, checksum and use restrictions recorded in `cinematic/sports-manifest.json`.

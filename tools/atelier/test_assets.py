@@ -29,32 +29,6 @@ def values(doc,buf,index):
     return [nums[i:i+width] for i in range(0,len(nums),width)]
 
 
-def jpeg_dimensions(path):
-    data=path.read_bytes()
-    if not data.startswith(b'\xff\xd8'):
-        raise ValueError(f'Not a JPEG: {path}')
-    offset=2
-    start_of_frame={0xc0,0xc1,0xc2,0xc3,0xc5,0xc6,0xc7,0xc9,0xca,0xcb,0xcd,0xce,0xcf}
-    while offset < len(data):
-        if data[offset] != 0xff:
-            raise ValueError(f'Invalid JPEG marker at {offset}: {path}')
-        while offset < len(data) and data[offset] == 0xff:
-            offset += 1
-        marker=data[offset]
-        offset += 1
-        if marker in {0xd8,0xd9} or 0xd0 <= marker <= 0xd7:
-            continue
-        length=int.from_bytes(data[offset:offset+2],'big')
-        if length < 2 or offset+length > len(data):
-            raise ValueError(f'Invalid JPEG segment length: {path}')
-        if marker in start_of_frame:
-            height=int.from_bytes(data[offset+3:offset+5],'big')
-            width=int.from_bytes(data[offset+5:offset+7],'big')
-            return [width,height]
-        offset += length
-    raise ValueError(f'No JPEG frame dimensions found: {path}')
-
-
 class AssetContracts(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -154,26 +128,31 @@ class AssetContracts(unittest.TestCase):
 
 
 class CinematicPhotoContracts(unittest.TestCase):
-    def test_bundled_photographs_match_provenance_license_and_checksums(self):
-        assets=Path(__file__).resolve().parents[2]/'app-android/src/main/assets/atelier'
-        manifest=json.loads((assets/'cinematic/sports-manifest.json').read_text())
-        entries={entry['id']:entry for entry in manifest['images']}
-        self.assertEqual(set(entries),{
-            'muay-thai-training','bouldering-session','recurve-training','fencing-training'
-        })
-        for entry in entries.values():
-            with self.subTest(image=entry['id']):
-                path=assets/'cinematic'/entry['file']
-                data=path.read_bytes()
-                self.assertEqual(entry['kind'],'Photograph')
-                self.assertEqual(entry['license'],'Unsplash License')
-                self.assertEqual(entry['licenseUrl'],'https://unsplash.com/license')
-                self.assertTrue(entry['photographer'].strip())
-                self.assertTrue(entry['sourcePage'].startswith('https://unsplash.com/photos/'))
-                self.assertTrue(entry['sourceImage'].startswith('https://images.unsplash.com/'))
-                self.assertEqual(len(data),entry['bytes'])
-                self.assertEqual(hashlib.sha256(data).hexdigest(),entry['sha256'])
-                self.assertEqual(jpeg_dimensions(path),entry['dimensions'])
-        self.assertFalse((assets/'art/range-dawn.webp').exists())
+    """The four Unsplash photographs and their manifest were removed from every build (licence
+    reasons: the Unsplash License is not compatible with a free-software distribution). The app
+    renders gradient surfaces instead; these checks stop them from coming back unnoticed."""
+
+    ASSETS=Path(__file__).resolve().parents[2]/'app-android/src/main/assets/atelier'
+    REMOVED=(
+        'cinematic/muay-thai-training.jpg','cinematic/bouldering-session.jpg',
+        'cinematic/recurve-training.jpg','cinematic/fencing-training.jpg',
+        'cinematic/sports-manifest.json',
+    )
+
+    def test_unsplash_photographs_and_their_manifest_stay_removed(self):
+        self.assertTrue(self.ASSETS.is_dir())
+        for relative in self.REMOVED:
+            with self.subTest(file=relative):
+                self.assertFalse((self.ASSETS/relative).exists())
+        self.assertFalse((self.ASSETS/'art/range-dawn.webp').exists())
+
+    def test_no_atelier_asset_mentions_unsplash(self):
+        files=[p for p in sorted(self.ASSETS.rglob('*')) if p.is_file()]
+        self.assertTrue(files)
+        for path in files:
+            relative=path.relative_to(self.ASSETS).as_posix()
+            with self.subTest(file=relative):
+                self.assertNotIn('unsplash',relative.lower())
+                self.assertFalse(b'unsplash' in path.read_bytes().lower(),f'{relative} mentions Unsplash')
 
 if __name__=='__main__':unittest.main(verbosity=2)
