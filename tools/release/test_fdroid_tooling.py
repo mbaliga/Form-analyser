@@ -108,8 +108,36 @@ class FdroidMetadataTest(unittest.TestCase):
         self.assertIn("OPTIONAL AI COACH", description)
         self.assertIn("your own API key", description)
 
-    def test_no_licence_claims_in_fdroid_files_or_the_short_listing(self) -> None:
-        files = [*sorted((ROOT / "fdroid").rglob("*")), FASTLANE / "short_description.txt"]
+    def test_description_carries_the_whole_store_listing_and_explains_the_anti_feature(self) -> None:
+        # fdroid/README.md: the Description is a hand-kept copy of the fastlane listing. Whitespace
+        # and the bullet glyph differ between the two formats; the words may not.
+        description = self.text.split("Description: |-\n", maxsplit=1)[1].split("\nAntiFeatures:", maxsplit=1)[0]
+
+        def normalise(text: str) -> str:
+            return " ".join(text.replace("\u2022", "*").split())
+
+        copy = normalise(description)
+        listing = (FASTLANE / "full_description.txt").read_text().strip()
+        paragraphs = re.split(r"\n[ \t]*\n", listing)
+        self.assertGreater(len(paragraphs), 5)
+        for paragraph in paragraphs:
+            first_line = paragraph.splitlines()[0]
+            with self.subTest(paragraph=first_line):
+                self.assertTrue(
+                    normalise(paragraph) in copy,
+                    f"the F-Droid Description lacks or has changed the listing paragraph starting {first_line!r}; "
+                    "copy fastlane/.../full_description.txt into it again",
+                )
+        # The reason NonFreeNet is declared is part of the F-Droid text only.
+        self.assertIn("Non-Free Network Services anti-feature because the optional AI coach", copy)
+        self.assertNotIn("anti-feature", normalise(listing))
+
+    def test_no_licence_claims_in_fdroid_files_or_the_store_listing(self) -> None:
+        files = [
+            *sorted((ROOT / "fdroid").rglob("*")),
+            FASTLANE / "short_description.txt",
+            FASTLANE / "full_description.txt",
+        ]
         files += sorted((FASTLANE / "changelogs").glob("*.txt"))
         for path in files:
             if path.is_file():

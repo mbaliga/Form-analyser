@@ -7,7 +7,7 @@ It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-
 
 ## Sport expansion — Fencing, Muay Thai and Bouldering
 
-The near-term follow-on is underway in [`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`](docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md): Sabre, Foil and Epee, a live manual two-fencer referee console for **Prêt**, **Allez**, **Halte** and point calls, visible equipment metadata before live capture, a provenance-aware directory, and a shared local-session contract for Bocal/Crocodyl beta builds. The sport module and Android entry points are present; the Fencing activity now has a licensed-photo piste hero and manual referee command deck (API-35 screenshots are linked from the cinematic refresh doc). Referee vision, web ingestion, advanced-search adoption, Nooz news adapters and production local transport are not live yet.
+The near-term follow-on is underway in [`docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md`](docs/crocodyl/FENCING_AND_ECOSYSTEM_ROADMAP.md): Sabre, Foil and Epee, a live manual two-fencer referee console for **Prêt**, **Allez**, **Halte** and point calls, visible equipment metadata before live capture, a provenance-aware directory, and a shared local-session contract for Bocal/Crocodyl beta builds. The sport module and Android entry points are present; the Fencing activity now has a gradient piste hero (the licensed photograph was removed in October 2026, decision 11 of `docs/crocodyl/DECISIONS-2026-10.md`) and manual referee command deck (API-35 screenshots are linked from the cinematic refresh doc). Referee vision, web ingestion, advanced-search adoption, Nooz news adapters and production local transport are not live yet.
 
 Muay Thai and bouldering now have separate manual training journals, pure sport modules, local session records and cinematic Home entry cards. This first slice records user-entered sessions only; it does not make camera-coaching, safety, grade-conversion or cross-sport performance claims. Details and release limitations are in [`docs/crocodyl/MULTISPORT_JOURNAL.md`](docs/crocodyl/MULTISPORT_JOURNAL.md).
 
@@ -466,7 +466,8 @@ is CI-compiled/unit-tested only, not device-verified.
   `ui/theme/Theme.kt` keeps this line's palette theme.
 - **`RECORD_AUDIO`, `<queries>` for speech, Live Observer voice proposals** (`ObserverVoice`,
   `ObserverSpeech`, `HapticCue.REJECT`, voice DAO/repository/UI) -- the manifest contract allows only
-  CAMERA, VIBRATE, INTERNET and ACCESS_NETWORK_STATE, and this line already has its own voice grammar.
+  CAMERA, VIBRATE and INTERNET (ACCESS_NETWORK_STATE is stripped; see decision 9 of
+  `docs/crocodyl/DECISIONS-2026-10.md`), and this line already has its own voice grammar.
 - **Signed `.croc` exchange rewrite** (`CrocEnvelope`, `Signing`, `ImportViewModel`/`ImportScreen`,
   their tests) -- this line's envelope, TOFU `ExchangeTrustStore`, key-change quarantine and
   new/identical/conflict import inspection are a superset. `ImportViewModelTest` exercised the dropped

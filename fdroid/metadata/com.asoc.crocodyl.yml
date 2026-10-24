@@ -6,8 +6,8 @@ Changelog: https://github.com/mbaliga/Form-analyser/releases
 Name: Crocodyl
 Summary: Your camera builds an archery baseline, then flags the shot that broke it
 Description: |-
-  Archery form analysis. Put your phone on a tripod beside you, shoot a
-  session, and get a per-shot read on your form instead of a general opinion about
+  Archery form analysis, free to install and use. Put your phone on a tripod beside you,
+  shoot a session, and get a per-shot read on your form instead of a general opinion about
   your technique.
 
   HOW IT WORKS
@@ -31,21 +31,33 @@ Description: |-
   what stops this being another app that tells you things it cannot check.
 
   ON YOUR DEVICE
-  * Pose estimation runs locally. Video never leaves your phone and is not recorded
-  to a server.
-  * The pose model is bundled in the app, so there is no first-run download and it
-  works with no connection at all.
-  * No account, no ads, no analytics, no tracking.
-  * Your sessions are stored on your device and are deleted when you uninstall.
+  * Pose estimation runs locally on your phone. Camera frames are never uploaded.
+  Raw video is recorded only if you switch it on in Settings, and it stays on your
+  phone.
+  * The pose model is bundled in the app, so there is no first-run download and the
+  form analysis works with no connection at all.
+  * No account, no ads, no analytics, no tracking, no crash reporting.
+  * Your sessions and documents are stored on your device. Settings > Data can erase
+  everything.
+  * Nothing leaves your phone unless you use the optional AI coach or export or share
+  a file yourself.
 
   OPTIONAL AI COACH
-  The coach is off until you switch it on and enter your own API key for a provider
-  you choose. With it off the app makes no network requests. With it on, the
-  coach talks to that provider's web service, which is not free software; that is
-  why this listing carries the Non-Free Network Services anti-feature.
+  The cloud coach is off until you enter your own API key for a provider you choose
+  (Anthropic, OpenAI, Google or DeepSeek). With no key entered the app makes no
+  network requests. With a key, tapping a coach task sends a redacted summary of your
+  training facts to that provider. Mood, life-event and cycle notes are never sent,
+  medications only if you switch them on, and camera frames, video, photos and
+  documents are never sent. You can also run a model on your phone instead, or use
+  the built-in offline coach.
+
+  F-Droid lists this app with the Non-Free Network Services anti-feature because the
+  optional AI coach talks to a provider's web service, which is not free software.
 
   NO HARDWARE NEEDED
   This app is camera-only. There is nothing to mount on your bow and nothing to buy.
+
+  Free to install and use. Source code is published; see the repository licence.
 AntiFeatures: [NonFreeNet]
 RepoType: git
 Repo: https://github.com/mbaliga/Form-analyser.git
