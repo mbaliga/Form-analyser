@@ -15,11 +15,16 @@ engine on-device and shows live + post-session feedback in the Hyle design langu
 > runner that ships the Android SDK. To build locally, add an Android SDK (`local.properties`
 > `sdk.dir=…` or `ANDROID_HOME`) and run the same command.
 
-> **BlazePose model: auto-bundled at build time.** The `downloadPoseModel` Gradle task fetches
-> `pose_landmarker_lite.task` into `assets/` before packaging, so the installed APK works with
-> zero setup — no manual file drop, no first-run download, works offline. The build verifies the
-> asset's SHA-256 and publishes it atomically. The binary is
-> gitignored (not committed). Build needs network access the first time (CI has it).
+> **BlazePose model: committed under `src/main/assets`.** `pose_landmarker_lite.task` is checked in
+> (raw, no Git LFS), so the installed APK works with zero setup — no manual file drop, no first-run
+> download — and the build never fetches it: there is no network access for the model at build time.
+> Its SHA-256 is verified by the release preflight (`tools/release/verify_android_release.sh`) and
+> by `tools/release/test_pose_model_asset.py`.
+
+> **Version source.** `versionCode` and `versionName` come from `app-android/version.properties`;
+> `-PcrocodylVersionCode` / `-PcrocodylVersionName` still override them for CI. A release build is
+> signed only when production signing is configured; `-PcrocodylRequireProductionSigning=true`
+> (set by the release workflow) makes `assembleRelease`/`bundleRelease` fail without it.
 
 ## What's implemented (MVP, handoff §11)
 

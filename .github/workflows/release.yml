@@ -162,7 +162,7 @@ jobs:
           CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
           RELEASE_VERSION: ${{ needs.verify.outputs.version }}
           RELEASE_VERSION_CODE: ${{ needs.verify.outputs.version_code }}
-        run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
+        run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid -PcrocodylRequireProductionSigning=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
       - name: Run on-device smoke tests against signed minified release
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
