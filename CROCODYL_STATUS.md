@@ -297,7 +297,11 @@ sign-off criteria.
 - **On-device model UX:** today the user must supply a Gemma `.task`/`.bin` model file through the
   system picker; import now validates extension/size, hashes and atomically publishes a private
   copy, but a guided licensed download/import flow (and possibly bundling a small default) remains.
-- Streaming responses, token/cost display, per-provider model-list refresh.
+- ~~Streaming responses, token/cost display, per-provider model-list refresh.~~ Integrated from
+  `claude/crocodyl-status` (see §4.9): provider streaming with cancel, an honest token/cost ledger
+  (unpriced models show "tokens only"), and a manual "Check available models" entitlement check.
+  Compiled and unit-tested in CI only -- **not device-verified**. Guided *download* of an on-device
+  model is still not built (the licensed `.task` import stays manual).
 
 ### 4.3 Post-RC roadmap — design system (out of scope for 0.6 release acceptance)
 - Wire **`dev.aarso:hyle`** as a real published dependency instead of ported token constants.
@@ -305,7 +309,10 @@ sign-off criteria.
   contract; the override seam is ready).
 
 ### 4.4 Deferred within Phases 1–3 (logged; out of scope for 0.6 release acceptance)
-- Hilt DI (kept manual to de-risk blind compilation).
+- Hilt DI (kept manual to de-risk blind compilation). `claude/crocodyl-status` carried a full Hilt
+  conversion; it was **deliberately not taken** onto this line (§4.9) -- the Application/ViewModel
+  wiring it replaces has since been reworked here (recovery gate, wipe, camera binding, factories)
+  and a half-applied graph is worse than the manual one.
 - Broader ViewModel/UI suites remain open. Room-backed scoring now has focused repository tests for
   reopen/resume persistence, triple-face validation and immutable finished scorecards; the generated
   Room-schema/privacy boundary is covered by `PrivacyRegistrySchemaTest`, and migration/recovery by
@@ -371,9 +378,12 @@ is superseded by the hardening branch's list.
 
 #### Remaining product implementation
 
-- **Automatic End Scan vision:** the current flow is calibrated photo marking, not an arrow detector.
-  Perspective correction, automatic impact candidates, drag/add/remove correction and a measured
-  device/target/lighting envelope remain.
+- **Automatic End Scan vision:** calibrated photo marking is the dependable path. A geometry-only
+  detector (`core-scoring` `EndScan`/`TargetCalibration`: four-handle homography, radial-streak
+  nocked-arrow reader, precision-over-recall gates, line-cutter flag) now feeds the same
+  propose/confirm review queue from a "Photograph the target" flow, but **every constant is a
+  geometry-derived default, never validated against range photographs**. Drag/add/remove correction
+  of detected impacts and a measured device/target/lighting envelope remain.
 - **Voice command depth:** the command grammar, repeat, undo, skip, finish-end and audited
   correct-last are implemented and unit-tested, along with an on-device-only recogniser wrapper.
   The push-to-talk control is **not wired into the scoring screen** because it needs
@@ -400,8 +410,9 @@ is superseded by the hardening branch's list.
   neutral upgrade evidence remain beyond the current rig/tuning calculator.
 - **Training depth:** competition planning, plan-vs-completed reconciliation, pressure games and the
   reviewed recovery action library remain beyond current goals/check-ins/calendar/body/physio.
-- **Model UX:** guided local-model download, streaming, cancellation, token/cost display and live
-  provider model discovery remain. Manual local-model import and all configured BYOK providers work.
+- **Model UX:** guided local-model *download* remains (streaming, cancellation, token/cost display and
+  the manual provider model-availability check landed in §4.9). On-device streaming is not built.
+  Manual local-model import and all configured BYOK providers work.
 - **Additional disciplines/platforms:** Compound, Korean/traditional archery, Bouldering, Fencing,
   Swimming, Rock climbing and iOS have not been implemented; only the sport-module seam exists.
 - **Release engineering:** localization, automated accessibility checks, migration fixtures,
@@ -414,7 +425,59 @@ is superseded by the hardening branch's list.
 - Keep EEG/bow-IMU and paid Baseline analytics out of this repository; exchange only typed,
   consent-filtered observations across the future adapter.
 
-### 4.8 Multi-platform porting (plan only)
+### 4.9 Integrated from `claude/crocodyl-status` (2026-10-22)
+
+The September `claude/crocodyl-status` branch (11 commits, 9-18 Sep, based on `main` of 18 Sep) was
+merged onto this line last, with **this line as the base and winner on structure**. Everything below
+is CI-compiled/unit-tested only, not device-verified.
+
+**Taken**
+- **AI coach streaming / cost / discovery** -- `core-coach` `LlmStreaming`/`SseDecoder`/`ModelPricing`/
+  `UsageLedger` (+6 test files), the Anthropic/OpenAI/DeepSeek/Google streaming overrides,
+  `CoachViewModel` throttled `Streaming` state with cancel-in-place, `AiSettings` usage ledger
+  (DataStore JSON, wiped with the rest of the AI DataStore by `clearAll()`), the Usage section and the
+  manual "Check available models" row in `AiSettingsScreen`.
+- **`OnDeviceEngineRegistry`** -- Settings closes the running MediaPipe engine before replacing or
+  removing the installed model file, so a stale engine never keeps serving deleted weights.
+- **End Scan detector** -- `core-scoring` `EndScan`/`TargetCalibration`/`GrayImage` (+2 test files),
+  `EndScanCapture`, `EndScanScreen` (camera -> four-handle calibration -> review) and the ceremony
+  state on `ScoringViewModel`; entered from the End Scan panel's "Photograph the target" button. The
+  camera preview was rebuilt on this line's `DeferredResourceBinding`. Candidates still need one
+  deliberate Confirm each; `score_candidate.detectorVersion` records which detector proposed them.
+- **Room v11** -- `MIGRATION_10_11` adds `score_candidate.detectorVersion` (nullable, never
+  backfilled). crocodyl-status shipped the same column as its own "8 -> 9"; that number is already
+  `sport_session` here, and the committed 8/9/10 schema snapshots are untouched. `11.json` is new.
+- **sRPE ACWR ratio** -- `Acwr.computeSrpe` (+ test) and `WellnessAssembler.srpeAcwr`, shown beside this
+  line's weekly sRPE bars once the sRPE lane's own warm-up completes.
+- **Tests** -- `PrivacyRegistryReflectionTest` (real in-memory Room tables vs `PrivacyRegistry`, with
+  the `android_metadata` exclusion fix), `CoachViewModelTest` and `ScoringViewModelTest` (ported onto
+  the manual-DI constructors and onto a Looper-polling `awaitUntil` -- no Mockito, no coroutines-test,
+  so no new dependency), and the per-migration fixtures + full v1 -> v11 Room-validated chain added to
+  `AppDatabaseMigrationTest`.
+
+**Not taken (and why)**
+- **Hilt DI** -- see §4.4. All 15 ViewModels, the Application class and every repository would have
+  had to be re-converted on top of a month of rework; kept manual, plugin and dependencies dropped.
+- **`dev.aarso:hyle` submodule + AGP 8.9.1 + `tools:overrideLibrary`** -- conflicts with the
+  self-contained-production-build contract (`shared-libraries.lock`) and the pinned AGP/lockfiles;
+  `ui/theme/Theme.kt` keeps this line's palette theme.
+- **`RECORD_AUDIO`, `<queries>` for speech, Live Observer voice proposals** (`ObserverVoice`,
+  `ObserverSpeech`, `HapticCue.REJECT`, voice DAO/repository/UI) -- the manifest contract allows only
+  CAMERA, VIBRATE, INTERNET and ACCESS_NETWORK_STATE, and this line already has its own voice grammar.
+- **Signed `.croc` exchange rewrite** (`CrocEnvelope`, `Signing`, `ImportViewModel`/`ImportScreen`,
+  their tests) -- this line's envelope, TOFU `ExchangeTrustStore`, key-change quarantine and
+  new/identical/conflict import inspection are a superset. `ImportViewModelTest` exercised the dropped
+  class and is not carried.
+- **Streak week-strip glyphs, in-app document capture, procedural body-atlas silhouettes** -- this
+  line already ships all three (`StreakStrip`, `cache/camera` capture with a runtime CAMERA request,
+  the muscle-lozenge atlas), so the crocodyl-status versions were dropped rather than duplicated.
+- **crocodyl-status's guided `ModelInstall`** (`.part` staging, probe load, expected-SHA field) and its
+  DigestInputStream import fix -- this line's `ModelInstall` is already staged/hashed/atomic and has
+  its own tests; the fix only applied to the dropped copy. `ModelInstall.install`'s contract is unchanged.
+- **`supersedeProposedCandidates`** -- this line's `clearProposedCandidates` (re-scan replaces the
+  unresolved proposals) stays.
+
+### 4.10 Multi-platform porting (plan only)
 See [`docs/crocodyl/CROCODYL_PORTING_PLAN.md`](docs/crocodyl/CROCODYL_PORTING_PLAN.md): nothing is built; its proposals await the owner.
 
 ---

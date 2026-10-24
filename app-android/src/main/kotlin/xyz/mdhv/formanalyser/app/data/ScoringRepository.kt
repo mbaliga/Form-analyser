@@ -257,11 +257,20 @@ class ScoringRepository internal constructor(private val db: AppDatabase) {
             snapshotUnlocked(sessionId) to pb
         }
 
+    /**
+     * One machine proposal, before it is anything at all.
+     *
+     * [detectorVersion] is `EndScan.DETECTOR_VERSION` for anything the target-photo detector found.
+     * It is nullable because this type predates the detector (and the human-calibrated tap flow in
+     * `EndScanPhoto` is not one), and a caller that is not a detector is not going to invent a
+     * version for itself.
+     */
     data class EndScanCandidate(
         val points: Int,
         val isX: Boolean = false,
         val plot: PlotPoint? = null,
         val confidence: Double? = null,
+        val detectorVersion: String? = null,
     )
 
     suspend fun proposeEndScanCandidates(
@@ -307,6 +316,7 @@ class ScoringRepository internal constructor(private val db: AppDatabase) {
                         c.plot?.faceIndex,
                         c.confidence?.coerceIn(0.0, 1.0),
                         createdAtMs = now,
+                        detectorVersion = c.detectorVersion,
                     )
                     .also { features.upsertCandidate(it) }
             }

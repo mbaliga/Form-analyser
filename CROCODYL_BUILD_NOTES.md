@@ -784,3 +784,26 @@ ramp anchors, #08FED5 physio hatch) stay as spec'd in the Crocodyl briefs — th
 law, not general theme tokens. Releases: `v0.4.0-hyle-approx` (before) vs `v0.4.1-hyle-real`
 (after) for side-by-side comparison. Future step: consume `dev.aarso:hyle` as a real dependency
 instead of ported constants (needs artifact publishing wiring).
+
+## Integration: claude/crocodyl-status (2026-10-22)
+
+Merged last onto the integration chain (`integrate/crocodyl-status-2026-10-22`, base
+`integrate/immersive-visuals-2026-10-22`). Decisions, in the order they were made:
+
+- Hilt: not taken. The branch's own CROCODYL_STATUS §4.4 had kept DI manual "to de-risk blind
+  compilation"; its Hilt commit then converted every ViewModel, repository and `MainActivity`. Applying
+  that across the reworked chain would have been a rewrite, not a merge, and a half-applied graph is a
+  runtime failure the compiler cannot see. `CoachViewModel` keeps its `factory(app)`; its injectable
+  router (`CoachLlmRouter`, `CoachModule`) was dropped with it.
+- Manifest/build: `RECORD_AUDIO`, the speech `<queries>`, the `hyle` `tools:overrideLibrary`, the
+  `hyle-design-system` submodule/`includeBuild`, AGP 8.9.1 and the workflow submodule checkouts were all
+  rejected -- the first violates `verify_manifest_contract.py`, the rest violate the strict-lockfile /
+  `shared-libraries.lock` self-contained-build contract. `android.yml`/`release.yml` and
+  `app-android/build.gradle.kts` are this line's, unchanged. No dependency was added, so lockfiles and
+  `verification-metadata.xml` are unchanged.
+- Room: the branch's `detectorVersion` column is `MIGRATION_10_11` here (version 11); schemas 8/9/10 are
+  untouched and `11.json` is committed.
+- Robolectric: already present on this line (4.14.1, `@Config(sdk = [35])` per class), so the
+  branch's `robolectric.properties` (sdk=34), `testOptions` block, Mockito and coroutines-test
+  dependencies were not needed or taken. Its ViewModel tests were rewritten against the manual-DI
+  constructors with a Looper-polling `awaitUntil`.

@@ -86,6 +86,5 @@ The first product to prove is not “generic form analysis.” It is **Crocodyl 
 
 ## Licence
 
-Source-available, free for noncommercial use under the [PolyForm Noncommercial License 1.0.0](LICENSE). If you make money with it, you need a commercial licence: see [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md).
-
-The app itself is freemium: free to install and use, with optional paid extras. The store listing covers the app; this licence covers the source.
+No licence has been granted yet. See [LICENSING.md](LICENSING.md) for the intended licence
+(AGPL-3.0-or-later with a commercial exception) and what must happen before it is granted.
