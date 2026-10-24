@@ -1,0 +1,1 @@
+First release under the new application ID, so earlier test builds will not update in place: export your data from them first. Adds Fencing, Muay Thai and bouldering sections beside archery, an encrypted document vault, backup and restore of your data, and an optional bring-your-own-key AI coach. No account, no ads, no analytics.

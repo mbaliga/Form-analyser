@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Vision is the core modality: the camera films the archer (sagittal) for pose/form. -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -15,6 +16,12 @@
     <!-- BYOK cloud coach calls only. On-device coaching and everything else stay offline; no key,
          no call. The AI coach is opt-in and every provider is bring-your-own-key. -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- MediaPipe's usage-statistics client (datatransport, see app-android/build.gradle.kts) is the
+         only thing that ever asked for this permission, and that client is excluded and replaced by
+         a no-op sink. Nothing in Crocodyl checks connectivity, so strip it if any library
+         contributes it again; tools/release/verify_manifest_contract.py rejects it too. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <!-- allowBackup off (pre-release): auto-backup could restore an old-schema form-analyser.db
          onto a fresh install, making Room run a migration it can't reconcile and crash on first

@@ -22,7 +22,23 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
+      # The review action needs the repository's dependency graph; without it the action itself
+      # fails with "Dependency review is not supported on this repository", which no PR can fix.
+      # Probe the graph first and skip the review (with a warning) when it is disabled. Only this
+      # probe is allowed to fail: once the owner enables the graph, the review below runs and
+      # blocks moderate-or-higher vulnerabilities with no further change.
+      - name: Check that the dependency graph is enabled
+        id: graph
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: gh api "repos/$REPOSITORY/dependency-graph/sbom" > /dev/null
       - name: Review dependency changes for known vulnerabilities
+        if: steps.graph.outcome == 'success'
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
           fail-on-severity: moderate
+      - name: Warn that the review was skipped
+        if: steps.graph.outcome != 'success'
+        run: echo "::warning::Dependency graph disabled; owner must enable it (Settings → Code security and analysis)"

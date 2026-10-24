@@ -55,6 +55,48 @@ class SignerContinuityDecisionTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("verification_evidence must list", result.stderr)
 
+    def test_f_droid_and_izzyondroid_are_accepted_distribution_channels(self) -> None:
+        for channels in (
+            ["f-droid"],
+            ["izzyondroid"],
+            ["google-play", "direct-apk", "f-droid", "izzyondroid"],
+        ):
+            with self.subTest(channels=channels):
+                result = self.run_gate(
+                    {
+                        "status": "approved",
+                        "distribution_channels": channels,
+                        "strategy": "new-application-id",
+                        "owner_approval_reference": "decision-1",
+                        "verification_evidence": ["report"],
+                    }
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("Owner-approved signer-continuity decision recorded", result.stdout)
+
+    def test_channel_error_names_every_accepted_channel(self) -> None:
+        result = self.run_gate(
+            {
+                "status": "approved",
+                "distribution_channels": ["fdroid", "apple-app-store"],
+                "strategy": "new-application-id",
+                "owner_approval_reference": "decision-1",
+                "verification_evidence": ["report"],
+            }
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("distribution_channels must list", result.stderr)
+        for channel in ("google-play", "direct-apk", "f-droid", "izzyondroid"):
+            self.assertIn(channel, result.stderr)
+
+    def test_checked_in_decision_prefills_channels_and_strategy_but_stays_unresolved(self) -> None:
+        decision = json.loads(DECISION.read_text())
+        self.assertEqual(decision["status"], "unresolved")
+        self.assertEqual(decision["distribution_channels"], ["google-play", "direct-apk", "f-droid"])
+        self.assertEqual(decision["strategy"], "new-application-id")
+        self.assertIsNone(decision["owner_approval_reference"])
+        self.assertEqual(decision["verification_evidence"], [])
+
     def test_invalid_channel_or_strategy_is_rejected(self) -> None:
         result = self.run_gate(
             {

@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[2]
 DEFAULT_DECISION = ROOT / "tools" / "release" / "signer_continuity_decision.json"
-CHANNELS = {"google-play", "direct-apk"}
+CHANNELS = {"google-play", "direct-apk", "f-droid", "izzyondroid"}
 STRATEGIES = {"play-app-signing", "apk-signing-lineage", "new-application-id"}
 EXPECTED_KEYS = {
     "status",
@@ -36,7 +36,7 @@ def validate(path: Path) -> list[str]:
     if not isinstance(channels, list) or not channels or any(
         not isinstance(channel, str) or channel not in CHANNELS for channel in channels
     ):
-        errors.append("distribution_channels must list google-play and/or direct-apk.")
+        errors.append(f"distribution_channels must list one or more of: {', '.join(sorted(CHANNELS))}.")
     strategy = decision["strategy"]
     if not isinstance(strategy, str) or strategy not in STRATEGIES:
         errors.append(f"strategy must be one of: {', '.join(sorted(STRATEGIES))}.")

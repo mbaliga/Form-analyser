@@ -3,8 +3,6 @@
 //   1. add `include(":app-android")` to ../settings.gradle.kts
 //   2. ensure a local.properties with sdk.dir, or ANDROID_HOME, points at an Android SDK
 //   3. ./gradlew :app-android:assembleDebug
-import java.net.URI
-import java.security.MessageDigest
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -37,8 +35,22 @@ val releaseSigningReady = listOf(
     releaseKeyAlias,
     releaseKeyPassword,
 ).all { it != null }
+// app-android/version.properties is the committed source of truth for the version, so a plain
+// `./gradlew assembleRelease` (F-Droid builds the tag with no CI -P overrides) produces the same
+// versionCode/versionName as the release workflow. -PcrocodylVersionCode/-PcrocodylVersionName
+// remain explicit overrides for CI and one-off builds.
+val versionProperties = Properties().apply {
+    val file = layout.projectDirectory.file("version.properties").asFile
+    check(file.isFile) { "Missing ${file.absolutePath}" }
+    file.inputStream().use(::load)
+}
+
+fun versionProperty(name: String): String =
+    versionProperties.getProperty(name)?.trim()?.takeIf { it.isNotEmpty() }
+        ?: error("version.properties must define $name")
+
 val configuredVersionCode = providers.gradleProperty("crocodylVersionCode")
-    .orElse("6")
+    .orElse(versionProperty("versionCode"))
     .map { raw ->
         val parsed = raw.toIntOrNull() ?: error("crocodylVersionCode must be an integer")
         require(parsed in 1..2_100_000_000) {
@@ -48,7 +60,7 @@ val configuredVersionCode = providers.gradleProperty("crocodylVersionCode")
     }
     .get()
 val configuredVersionName = providers.gradleProperty("crocodylVersionName")
-    .orElse("0.6.0-spec-dev")
+    .orElse(versionProperty("versionName"))
     .get()
     .also { require(it.isNotBlank()) { "crocodylVersionName must not be blank" } }
 val instrumentRelease = providers.gradleProperty("crocodylInstrumentRelease").isPresent
@@ -79,6 +91,12 @@ android {
         versionCode = configuredVersionCode
         versionName = configuredVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    // Reproducible, F-Droid-compatible output: no encrypted dependency-metadata blob (readable only
+    // by Google) in the APK or bundle, and no VCS stamp (see the release build type below).
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
     // A committed debug keystore so every CI build is signed with the SAME key. Without this,
     // assembleDebug uses the auto-generated ~/.android/debug.keystore, which GitHub Actions
@@ -111,6 +129,11 @@ android {
                 "proguard-rules.pro",
             )
             if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
+            // META-INF/version-control-info.textproto embeds the commit; two checkouts of the same
+            // source would then differ and the reproducible-build comparison would fail.
+            vcsInfo {
+                include = false
+            }
         }
     }
     packaging {
@@ -139,6 +162,16 @@ android {
     if (providers.gradleProperty("sharedLibrariesDir").isPresent) {
         sourceSets.getByName("main").java.srcDir("src/sharedSessionBeta/kotlin")
     }
+}
+
+// MediaPipe Tasks (tasks-core) ships a usage-statistics client (TasksStatsProtoLogger ->
+// RemoteLoggingClient) that uploads package name, version, task name/mode and latency statistics
+// to Google through the datatransport "cct" backend. Crocodyl has no analytics in any channel:
+// the backend and runtime are excluded, and src/main/java/com/google/android/datatransport/
+// provides a no-op TransportRuntime so the logger's events are dropped on device.
+configurations.all {
+    exclude(group = "com.google.android.datatransport", module = "transport-backend-cct")
+    exclude(group = "com.google.android.datatransport", module = "transport-runtime")
 }
 
 ksp {
@@ -239,60 +272,11 @@ val verifyReleaseSigning by tasks.registering {
 }
 
 // AGP's shared pre-build task is also reached by debug unit-test variants, so do not gate it
-// globally. Only release outputs need the production-key check.
-tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
-    dependsOn(verifyReleaseSigning)
-}
-
-// Fetch the BlazePose model at build time and bundle it into assets, so the installed APK works
-// with zero setup (no manual file drop, no first-run download). The endpoint is a convenience;
-// the digest is the release contract, so a changed or corrupted "latest" response fails closed.
-// Kept out of git; downloaded once and cached by the up-to-date check.
-val poseModelUrl =
-    "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
-val poseModelSha256 = "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a"
-val downloadPoseModel by
-    tasks.registering {
-        description = "Download the BlazePose model into src/main/assets"
-        val out = layout.projectDirectory.file("src/main/assets/pose_landmarker_lite.task")
-        outputs.file(out)
-        doLast {
-            val f = out.asFile
-            fun sha256(file: java.io.File): String {
-                val digest = MessageDigest.getInstance("SHA-256")
-                file.inputStream().use { input ->
-                    val buffer = ByteArray(256 * 1024)
-                    while (true) {
-                        val n = input.read(buffer)
-                        if (n <= 0) break
-                        digest.update(buffer, 0, n)
-                    }
-                }
-                return digest.digest().joinToString("") { "%02x".format(it) }
-            }
-
-            if (f.exists()) {
-                check(f.isFile && f.length() > 0L && sha256(f) == poseModelSha256) {
-                    "Bundled BlazePose model failed SHA-256 verification: ${f.absolutePath}"
-                }
-                return@doLast
-            }
-
-            f.parentFile.mkdirs()
-            val staging = f.resolveSibling(".${f.name}.partial")
-            try {
-                URI(poseModelUrl).toURL().openStream().use { input ->
-                    staging.outputStream().use { output -> input.copyTo(output) }
-                }
-                check(staging.isFile && staging.length() > 0L && sha256(staging) == poseModelSha256) {
-                    "Downloaded BlazePose model failed SHA-256 verification"
-                }
-                check(staging.renameTo(f)) { "Could not publish the verified BlazePose model" }
-            } catch (t: Throwable) {
-                runCatching { staging.delete() }
-                throw t
-            }
-        }
+// globally. Only release outputs need the production-key check, and only when the caller asks for
+// it: the release workflow passes -PcrocodylRequireProductionSigning=true, while F-Droid and the
+// reproducible-build job must be able to assemble an unsigned release.
+if (providers.gradleProperty("crocodylRequireProductionSigning").isPresent) {
+    tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
+        dependsOn(verifyReleaseSigning)
     }
-
-tasks.named("preBuild") { dependsOn(downloadPoseModel) }
+}
