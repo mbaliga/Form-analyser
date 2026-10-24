@@ -1,0 +1,68 @@
+name: fdroid
+
+# Lints the F-Droid recipe in fdroid/ and runs F-Droid's source scanner over this tree, so a
+# change that F-Droid's reviewers would reject (unknown category or anti-feature, a binary
+# dependency, a proprietary SDK) fails here instead of in the merge request. Nothing is published.
+on:
+  pull_request:
+    paths:
+      - "fdroid/**"
+      - "app-android/**"
+      - "*.gradle.kts"
+      - ".github/workflows/fdroid.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  metadata-and-scanner:
+    runs-on: ubuntu-24.04
+    env:
+      # Pinned upstream fdroiddata commit. Only its config/ directory (the category and
+      # anti-feature vocabularies that `fdroid lint` validates against) is used. Bump it
+      # deliberately when F-Droid changes those lists.
+      FDROIDDATA_REF: 1707d0354c6dd47b9b499b2ba00a1e8ba0fd781d
+      FDROIDSERVER_VERSION: 2.4.5
+      APP_ID: com.asoc.crocodyl
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install fdroidserver
+        run: |
+          python3 -m venv "$RUNNER_TEMP/fdroid-venv"
+          "$RUNNER_TEMP/fdroid-venv/bin/pip" install --disable-pip-version-check "fdroidserver==$FDROIDSERVER_VERSION"
+          echo "$RUNNER_TEMP/fdroid-venv/bin" >> "$GITHUB_PATH"
+      - name: Fetch the fdroiddata vocabularies
+        run: |
+          set -euo pipefail
+          git init --quiet "$RUNNER_TEMP/fdroiddata"
+          cd "$RUNNER_TEMP/fdroiddata"
+          git remote add origin https://gitlab.com/fdroid/fdroiddata.git
+          git sparse-checkout set --no-cone /config/
+          git fetch --quiet --depth 1 --filter=blob:none origin "$FDROIDDATA_REF"
+          git checkout --quiet FETCH_HEAD
+          mkdir -p metadata
+      - name: Lint the metadata
+        run: |
+          set -euo pipefail
+          cp "fdroid/metadata/$APP_ID.yml" "$RUNNER_TEMP/fdroiddata/metadata/$APP_ID.yml"
+          cd "$RUNNER_TEMP/fdroiddata"
+          fdroid lint "$APP_ID"
+      # Keep this the last step: the scanner deletes the Gradle wrapper from the tree it scans.
+      - name: Scan the source tree
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/fdroiddata"
+          # Without a Builds: key the scanner checks the current tree at build/<appid>.
+          awk '/^Builds:/ { skip = 1; next } skip && /^[^ ]/ { skip = 0 } !skip' \
+            "$GITHUB_WORKSPACE/fdroid/metadata/$APP_ID.yml" > "metadata/$APP_ID.yml"
+          if grep -q '^Builds:' "metadata/$APP_ID.yml"; then echo "Builds: key was not stripped" >&2; exit 1; fi
+          mkdir -p build
+          ln -s "$GITHUB_WORKSPACE" "build/$APP_ID"
+          fdroid scanner "$APP_ID" --exit-code 2>&1 | tee scanner.log
+          # fdroidserver honours --exit-code for APK scans only; a source scan just prints the count.
+          if grep -Eq '^[1-9][0-9]* problems? found' scanner.log; then
+            echo "::error::fdroid scanner reported problems in the source tree"
+            exit 1
+          fi
