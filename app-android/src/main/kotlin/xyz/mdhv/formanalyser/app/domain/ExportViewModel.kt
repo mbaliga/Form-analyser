@@ -48,6 +48,7 @@ import xyz.mdhv.formanalyser.exchange.ExchangeTrustState
 import xyz.mdhv.formanalyser.exchange.PubkeyIdentity
 import xyz.mdhv.formanalyser.wellness.PrivacyClass
 import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
+import xyz.mdhv.formanalyser.wellness.RetractionRegistry
 
 /**
  * Phase 5 export ceremony (over `core-exchange`). Drives the tier/grant selection, computes the
@@ -409,8 +410,9 @@ class ExportViewModel @JvmOverloads constructor(
     private fun dumpTable(sqlName: String): Pair<ByteArray, Long> {
         val db = database.openHelper.readableDatabase
         val rows = ArrayList<JsonElement>()
-        // A retracted row must not ride out in an archive the athlete believes they cleaned up.
-        // The athlete deleted it here; handing it to a coach anyway would make the delete a lie.
+        // A retracted row, and the children that belonged to it, must not ride out in an archive the
+        // athlete believes they cleaned up. The athlete deleted it here; handing it to a coach anyway
+        // would make the delete a lie. See [tableDumpQuery].
         db.query(tableDumpQuery(sqlName)).use { c ->
             val cols = c.columnCount
             while (c.moveToNext()) {
@@ -703,22 +705,32 @@ class ExportViewModel @JvmOverloads constructor(
         private val SQL_NAME: Map<String, String> =
             mapOf("athlete" to "athletes", "session" to "sessions", "shot" to "shots")
 
-        /** SQL tables carrying a `deletedAt` retraction column (see AppDatabase migrations). */
-        private val RETRACTABLE: Set<String> =
-            setOf(
-                "sessions",
-                "score_session",
-                "sport_session",
-                "checkin",
-                "pain_log",
-                "injury",
-                "document",
-            )
-
-        /** Build the fixed-name cursor query, excluding retracted rows wherever the schema allows it. */
+        /**
+         * Build the fixed-name cursor query, excluding what the athlete retracted and everything that
+         * belonged to it.
+         *
+         * A parent table (one with a `deletedAt` column, see [RetractionRegistry.parents]) drops its
+         * own retracted rows. A child that cannot exist without its parent (a NOT NULL reference, see
+         * [RetractionRegistry.ownedRefs]) additionally drops every row whose parent is *known* to be
+         * retracted: the shots of a deleted session, the arrows of a deleted scorecard, the soreness
+         * regions of a deleted check-in. Retracting a parent leaves its children in place, so without
+         * this the delete would be a lie to whoever received the export.
+         *
+         * `NOT EXISTS` rather than `NOT IN`: it is NULL-safe, and a child whose parent row is simply
+         * absent (an orphan, which an import without foreign keys can legitimately create) is still
+         * exported, as before. Nullable references are links, not ownership, and are not filtered.
+         */
         internal fun tableDumpQuery(sqlName: String): String {
             require(sqlName.matches(Regex("[a-z_]+"))) { "Unexpected export table name" }
-            val where = if (sqlName in RETRACTABLE) " WHERE deletedAt IS NULL" else ""
+            // PRIVATE (raw video paths); the consent filter already never reaches it. Refuse here too.
+            require(sqlName != "capture_media") { "capture_media is never exported" }
+            val predicates = ArrayList<String>()
+            if (sqlName in RetractionRegistry.parents) predicates += "deletedAt IS NULL"
+            for (ref in RetractionRegistry.ownedRefs(sqlName)) {
+                predicates +=
+                    "NOT EXISTS (SELECT 1 FROM `${ref.parent}` p WHERE p.id = `$sqlName`.`${ref.column}` AND p.deletedAt IS NOT NULL)"
+            }
+            val where = if (predicates.isEmpty()) "" else " WHERE " + predicates.joinToString(" AND ")
             return "SELECT * FROM `$sqlName`$where"
         }
 
