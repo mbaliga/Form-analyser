@@ -1,14 +1,14 @@
 package xyz.mdhv.formanalyser.app.domain
 
 import android.app.Application
-import android.content.ContentValues
-import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Base64
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteStatement
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -45,6 +45,7 @@ import xyz.mdhv.formanalyser.exchange.CrocbakManifest
 import xyz.mdhv.formanalyser.exchange.ExportTier
 import xyz.mdhv.formanalyser.exchange.ExchangeTrust
 import xyz.mdhv.formanalyser.exchange.ExchangeTrustState
+import xyz.mdhv.formanalyser.exchange.ImportColumnGuard
 import xyz.mdhv.formanalyser.exchange.PubkeyIdentity
 import xyz.mdhv.formanalyser.wellness.PrivacyClass
 import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
@@ -566,38 +567,188 @@ class ExportViewModel @JvmOverloads constructor(
         val room = database
         var inserted = 0L
         var kept = 0L
+        var skippedRetracted = 0L
         room.runInTransaction {
             val db = room.openHelper.writableDatabase
+            // The same check inspect ran, repeated as a precondition of the write: the inspected archive
+            // is cached between the two calls, and nothing that reaches an INSERT may rest on that
+            // cache. Any failure throws here, before the first row, and the transaction rolls back.
+            val schemas = validateArchiveAgainstSchema(db, archive)
             val ordered =
                 archive.tables.keys.sortedWith(compareBy({ IMPORT_ORDER.indexOf(it).let { i -> if (i < 0) Int.MAX_VALUE else i } }, { it }))
             for (logical in ordered) {
                 val sqlName = SQL_NAME[logical] ?: logical
-                for (element in archive.tables.getValue(logical)) {
-                    val values = ContentValues()
-                    for ((column, value) in element.jsonObject) {
-                        when (value) {
-                            JsonNull -> values.putNull(column)
-                            is JsonPrimitive ->
-                                when {
-                                    value.isString -> values.put(column, value.content)
-                                    value.longOrNull != null -> values.put(column, value.longOrNull!!)
-                                    value.doubleOrNull != null -> values.put(column, value.doubleOrNull!!)
-                                    else -> error("unsupported value in $logical.$column")
-                                }
-                            else -> error("nested value in $logical.$column")
+                val columns = schemas.getValue(logical)
+                val tracksRetraction = sqlName in RetractionRegistry.parents
+                // One prepared statement per distinct column list (rows of one table nearly always
+                // share it). Every identifier is back-tick quoted and every value is a bound `?`:
+                // nothing from the archive is ever concatenated into SQL.
+                val statements = HashMap<List<String>, SupportSQLiteStatement>()
+                try {
+                    for (element in archive.tables.getValue(logical)) {
+                        val row = element.jsonObject
+                        // A tombstone is not history worth importing, and importing one could plant
+                        // a ghost the athlete's own device never retracted. Mirror the export filter.
+                        if (tracksRetraction && row["deletedAt"].let { it != null && it !is JsonNull }) {
+                            skippedRetracted++
+                            continue
                         }
+                        val names = row.keys.toList()
+                        val statement =
+                            statements.getOrPut(names) { db.compileStatement(insertStatement(sqlName, names)) }
+                        statement.clearBindings()
+                        names.forEachIndexed { index, name ->
+                            val value = typedValue(logical, columns.getValue(name), row.getValue(name))
+                            when (value) {
+                                null -> statement.bindNull(index + 1)
+                                is String -> statement.bindString(index + 1, value)
+                                is Long -> statement.bindLong(index + 1, value)
+                                is Double -> statement.bindDouble(index + 1, value)
+                                else -> error("unsupported value in $logical.$name")
+                            }
+                        }
+                        if (statement.executeInsert() == -1L) kept++ else inserted++
                     }
-                    if (db.insert(sqlName, SQLiteDatabase.CONFLICT_IGNORE, values) == -1L) kept++
-                    else inserted++
+                } finally {
+                    statements.values.forEach { runCatching { it.close() } }
                 }
             }
         }
-        return "Imported $inserted new row(s); kept $kept existing row(s). Nothing was overwritten."
+        val skipped = if (skippedRetracted > 0) " Skipped $skippedRetracted retracted row(s)." else ""
+        return "Imported $inserted new row(s); kept $kept existing row(s). Nothing was overwritten.$skipped"
     }
+
+    /** One column of a real table, as `PRAGMA table_info` reports it. */
+    private data class ColumnInfo(
+        val name: String,
+        /** Declared type, upper-cased: Room only ever declares TEXT, INTEGER or REAL. */
+        val type: String,
+        val notNull: Boolean,
+        val hasDefault: Boolean,
+        val primaryKey: Boolean,
+    ) {
+        /** A row must supply this column: the database would otherwise reject (or, under IGNORE, drop) it. */
+        val required: Boolean get() = primaryKey || (notNull && !hasDefault)
+    }
+
+    private fun tableColumns(db: SupportSQLiteDatabase, sqlName: String): Map<String, ColumnInfo> {
+        val columns = LinkedHashMap<String, ColumnInfo>()
+        db.query("PRAGMA table_info(`${sqlName.replace("`", "``")}`)").use { c ->
+            val name = c.getColumnIndexOrThrow("name")
+            val type = c.getColumnIndexOrThrow("type")
+            val notNull = c.getColumnIndexOrThrow("notnull")
+            val default = c.getColumnIndexOrThrow("dflt_value")
+            val pk = c.getColumnIndexOrThrow("pk")
+            while (c.moveToNext()) {
+                columns[c.getString(name)] =
+                    ColumnInfo(
+                        name = c.getString(name),
+                        type = c.getString(type).orEmpty().trim().uppercase(),
+                        notNull = c.getInt(notNull) != 0,
+                        hasDefault = !c.isNull(default),
+                        primaryKey = c.getInt(pk) > 0,
+                    )
+            }
+        }
+        return columns
+    }
+
+    /**
+     * Refuse the whole archive unless every row of every table fits the real schema. Runs at inspect
+     * (so a hostile archive never reaches a preview) and again at merge (so nothing written rests on
+     * a cached inspection). Reads only; writes nothing.
+     *
+     *  - row counts are capped per table and per archive, bounding a zip-bomb-shaped archive;
+     *  - every JSON key must be an exact, real column of the destination table
+     *    ([ImportColumnGuard]): column names are identifiers, never free text;
+     *  - every value must match its column's declared type, and a required column must be present
+     *    and non-null, so a constraint failure cannot be swallowed by `INSERT OR IGNORE` and counted
+     *    as an existing row.
+     *
+     * Returns each table's real columns, keyed by logical table name.
+     */
+    private fun validateArchiveAgainstSchema(
+        db: SupportSQLiteDatabase,
+        archive: ArchiveBundle,
+    ): Map<String, Map<String, ColumnInfo>> {
+        var archiveRows = 0L
+        archive.tables.forEach { (logical, rows) ->
+            require(rows.size <= MAX_TABLE_ROWS) { "$logical has too many rows" }
+            archiveRows += rows.size
+        }
+        require(archiveRows <= MAX_ARCHIVE_ROWS) { "the archive has too many rows" }
+
+        val schemas = LinkedHashMap<String, Map<String, ColumnInfo>>()
+        for ((logical, rows) in archive.tables) {
+            val columns = tableColumns(db, SQL_NAME[logical] ?: logical)
+            require(columns.isNotEmpty()) { "unknown table: $logical" }
+            schemas[logical] = columns
+
+            val objects =
+                rows.map { element ->
+                    element as? JsonObject ?: throw IllegalArgumentException("a row of $logical is not an object")
+                }
+            val verdict =
+                ImportColumnGuard.validateTable(logical, columns.keys, objects.map { it.keys.toList() })
+            if (verdict is ImportColumnGuard.Result.Rejected) {
+                throw IllegalArgumentException("${verdict.table}: ${verdict.reason}")
+            }
+
+            for (row in objects) {
+                for ((name, value) in row) {
+                    // Whether a name is a real column is ImportColumnGuard's verdict, returned above;
+                    // this loop only types the values of the names it let through.
+                    val column = columns[name] ?: continue
+                    typedValue(logical, column, value)
+                }
+                for (column in columns.values) {
+                    require(!column.required || row.containsKey(column.name)) {
+                        "a row of $logical lacks the required column ${column.name}"
+                    }
+                }
+            }
+        }
+        return schemas
+    }
+
+    /**
+     * The value to bind for [value] in [column]: a String, Long or Double, or null. Typed by the
+     * column's DECLARED type, not guessed from the JSON, so a string cannot be smuggled into an
+     * INTEGER key or a number into a TEXT one. Anything the column cannot hold rejects the archive.
+     */
+    private fun typedValue(table: String, column: ColumnInfo, value: JsonElement): Any? {
+        if (value is JsonNull) {
+            require(!column.notNull && !column.primaryKey) { "$table.${column.name} must not be null" }
+            return null
+        }
+        val primitive = value as? JsonPrimitive ?: throw IllegalArgumentException("nested value in $table.${column.name}")
+        return when (column.type) {
+            "TEXT" -> {
+                require(primitive.isString) { "$table.${column.name} must be text" }
+                primitive.content
+            }
+            "INTEGER" ->
+                (if (primitive.isString) null else primitive.longOrNull)
+                    ?: throw IllegalArgumentException("$table.${column.name} must be an integer")
+            "REAL" ->
+                (if (primitive.isString) null else primitive.doubleOrNull)
+                    ?: throw IllegalArgumentException("$table.${column.name} must be a number")
+            else -> throw IllegalArgumentException("$table.${column.name} has an unsupported type")
+        }
+    }
+
+    /** `INSERT OR IGNORE INTO `t` (`c1`,`c2`) VALUES (?,?)`. Identifiers quoted, values positional. */
+    private fun insertStatement(sqlName: String, columns: List<String>): String =
+        "INSERT OR IGNORE INTO ${quoted(sqlName)} (${columns.joinToString(",") { quoted(it) }}) " +
+            "VALUES (${columns.joinToString(",") { "?" }})"
+
+    private fun quoted(identifier: String): String = "`" + identifier.replace("`", "``") + "`"
 
     /** Compare every imported primary key before mutation so duplicates and conflicts are visible. */
     private fun inspectRows(archive: ArchiveBundle): RowInspection {
         val db = database.openHelper.readableDatabase
+        // Before a single row is compared or previewed: a hostile or malformed archive ends here.
+        validateArchiveAgainstSchema(db, archive)
         var fresh = 0L
         var identical = 0L
         var conflicts = 0L
@@ -612,8 +763,11 @@ class ExportViewModel @JvmOverloads constructor(
             }
             val keys = primaryKeys.sortedBy { it.first }.map { it.second }
             require(keys.isNotEmpty()) { "table has no primary key: $logical" }
+            val tracksRetraction = table in RetractionRegistry.parents
             rows.forEach { element ->
                 val imported = element.jsonObject
+                // Tombstones are skipped by the merge, so they are not "new" rows either.
+                if (tracksRetraction && imported["deletedAt"].let { it != null && it !is JsonNull }) return@forEach
                 val args = keys.map { key -> imported[key].asSqlArg(logical, key) }.toTypedArray()
                 val where = keys.joinToString(" AND ") { "`${it.replace("`", "``")}` = ?" }
                 db.query("SELECT * FROM `${table.replace("`", "``")}` WHERE $where LIMIT 1", args).use { cursor ->
@@ -737,6 +891,10 @@ class ExportViewModel @JvmOverloads constructor(
         private val TABLE_ENTRY = Regex("tables/[a-z0-9_]+\\.json")
         private const val MAX_ENTRY_BYTES = 32 * 1024 * 1024
         private const val MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
+
+        /** Row ceilings that bound a zip-bomb-shaped archive (the byte limits above do not). */
+        internal const val MAX_TABLE_ROWS = 200_000
+        internal const val MAX_ARCHIVE_ROWS = 1_000_000
 
         /** Parents before children so foreign-key enforcement remains active throughout import. */
         private val IMPORT_ORDER =
