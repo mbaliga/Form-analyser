@@ -41,12 +41,17 @@ See [`CROCODYL_STATUS.md`](CROCODYL_STATUS.md) for the implementation snapshot a
 form-analyser/
 ├── engine/              # sport-neutral Crocodyl analysis engine (pure Kotlin/JVM)
 ├── archery-module/      # Recurve pose/shot/form implementation over the SportModule seam
+├── fencing-module/      # Fencing (Sabre, Foil, Epee) sport module over the SportModule seam
+├── muaythai-module/     # Muay Thai training-journal sport module over the SportModule seam
+├── bouldering-module/   # Bouldering training-journal sport module over the SportModule seam
 ├── core-model/          # shared model types
 ├── core-equipment/      # equipment/tuning domain logic
 ├── core-wellness/       # wellness/readiness/privacy domain logic
 ├── core-body/           # 52-region body contract
 ├── core-coach/          # grounded AI/rule-coach domain and privacy redaction
 ├── core-exchange/       # consent/export/identity foundations
+├── core-scoring/        # round packs, target calibration and End Scan detection
+├── core-athlete/        # athlete goals, trends and smart session defaults
 ├── app-android/         # Android athlete app (Compose + Room + CameraX + MediaPipe)
 └── docs/                # architecture, naming, Crocodyl blueprint and phased plan
 ```

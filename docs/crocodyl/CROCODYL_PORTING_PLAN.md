@@ -19,20 +19,20 @@ on 2026-10-06 with the commands shown; every effort figure is an estimate in eng
 
 ## 1. What this repo is, in porting terms
 
-**Product.** Crocodyl is a free, open-source, local-first athlete performance app. Its first discipline is Olympic
+**Product.** Crocodyl is a free, local-first athlete performance app; source published, licence pending; see LICENSING.md. Its first discipline is Olympic
 Recurve archery: phone-camera sagittal form and shot-sequence analysis (on-device BlazePose), manual round scoring
 and target plotting, rigs and tuning, wellness/body/injury context, an offline rule coach plus BYOK or on-device LLM
 explanation, and consent-filtered `.crocbak` export (`README.md`, `CROCODYL_STATUS.md` §1). The blueprint's roadmap adds
-End Scan, Live Observer, signed `.croc` exchange, a paid open-source Coach workspace, a static web viewer (Phase 9,
+End Scan, Live Observer, signed `.croc` exchange, a paid Coach workspace (source published, licence pending; see LICENSING.md), a static web viewer (Phase 9,
 0.10.0) and a native iOS client (Phase 18, 1.4.0) (`docs/crocodyl/CROCODYL_PHASED_IMPLEMENTATION_PLAN.md` §5.1).
-Per PT:D-S, Crocodyl (open) licenses the Baseline engine; the in-repo seam is `:engine` (§3, rule 3), and which licence governs it is an open question (Q5).
+Per PT:D-S, Crocodyl (open) licenses the Baseline engine; the in-repo seam is `:engine` (§3, rule 3), and which licence governs it is answered, as a proposal pending the owner, by decisions 1 and 3 of `docs/crocodyl/DECISIONS-2026-10.md` (Q5).
 
 **State, 2026-10-06.** `main` is at `d0987ce` (PR #12, 2026-09-18). `app-android/build.gradle.kts` declares
 applicationId `xyz.mdhv.formanalyser`, versionName `0.6.0-spec-dev`, versionCode 6, minSdk 26, targetSdk 35; Room is at
 schema version 8 with hand-written migrations 1→2 … 7→8 (`AppDatabase.kt`). The header of `CROCODYL_STATUS.md` still says
 v0.5.1 (2026-08-12), which is stale against the build file. STATUS §4.1 states the Android UI has never been exercised
-on a device, so the phased plan's Phase 0 exit gate is not passed. There is no `LICENSE` file, and the
-`xyz.mdhv.crocodyl` applicationId rebrand is deferred until just before a store listing (`docs/naming.md`).
+on a device, so the phased plan's Phase 0 exit gate is not passed. There is no `LICENSE` file, and on that date
+the `xyz.mdhv.crocodyl` applicationId rebrand was deferred (superseded: `com.asoc.crocodyl`, `docs/naming.md`).
 
 **Targets today.** Android phone (debug-signed APK on GitHub Releases, `release.yml`) and the ten pure-JVM modules on
 any JDK 21. Android on ChromeOS and tablets is accommodated: manifest `camera.any required=false`, a front-camera
@@ -88,7 +88,7 @@ Platform-bound APIs that matter:
 | API | Where | Porting impact |
 |---|---|---|
 | CameraX `ImageAnalysis`, camera permission, `FEATURE_CAMERA_ANY` | `capture/PoseRecorder.kt`, `ui/CaptureScreen.kt`, manifest | Capture is per platform. The manifest declares `camera.any required=false` and its comment says the app is usable without a camera (scoring, logs, progress); this is unverified on any device (STATUS §4.1), so a capture-less port is a declared, not a proven, state. |
-| MediaPipe `PoseLandmarker` (`pose_landmarker_lite.task`, `RunningMode.IMAGE`, `numPoses=1`); model fetched at build by `downloadPoseModel` (`build.gradle.kts:113`, gitignored) | `capture/PoseRecorder.kt` | No MediaPipe JVM artefact. iOS has an official pod. Output is `PoseSequence(frames, fps)` in the 33-index contract; only 11 indices are defined as consumed (`PoseLandmarks`, `PoseFrame.kt`). |
+| MediaPipe `PoseLandmarker` (`pose_landmarker_lite.task`, `RunningMode.IMAGE`, `numPoses=1`); model committed under `app-android/src/main/assets/`, never downloaded (decision 8 of `docs/crocodyl/DECISIONS-2026-10.md`; replaces the former build-time `downloadPoseModel`) | `capture/PoseRecorder.kt` | No MediaPipe JVM artefact. iOS has an official pod. Output is `PoseSequence(frames, fps)` in the 33-index contract; only 11 indices are defined as consumed (`PoseLandmarks`, `PoseFrame.kt`). |
 | MediaPipe `LlmInference` (Gemma) | `ai/OnDeviceLlmClient.kt` | Behind the pure `LlmClient` seam; optional everywhere because the rule coach needs no model. |
 | Tink AEAD/StreamingAEAD + AndroidKeyStore (EC P-256) | `ai/KeyVault.kt`, `vault/Vault.kt`, `exchange/AndroidKeyProvider.kt` | Per-platform secure-storage actuals. `KeyProvider` (core-exchange) is already the seam. Tink has no iOS build. |
 | Room 2.6.1 v8, 13 files, `DbRecovery` | `data/*.kt` | Room KMP needs a newer Room than the pinned 2.6.1 (version not verified here). The migration chain cannot be rewritten (program law). |
@@ -107,17 +107,17 @@ Platform-bound APIs that matter:
 | 1 | Local-first, no maintained backend, no mandatory telemetry, no silent collection. Network allowlist: explicit BYOK provider calls, user-initiated model download/catalog, optional weather, static web assets, signed static catalog artefacts, user-tapped links, store licensing/update checks. Ports inherit it exactly; program I-1 adds no analytics and no phoning home on any platform. The blueprint allows app-store licensing/update checks; the program's platform briefs forbid in-app update checks. **Proposed for ports (not ruled): no in-app updater; updates belong to the package manager or store and the docs say so.** Owner confirms under Q6. | blueprint 02 §9; phased plan §4 ("No silent collection"); STATUS §1 |
 | 2 | Pure-JVM-first: engine, archery-module and core-* have zero `android.*` imports and `./gradlew test` passes on a bare JDK with no Android SDK; `:app-android` stays behind `-PwithAndroid`. Any KMP conversion keeps the `jvm` target and the 167 tests green. | README "Build and test"; STATUS §2; `settings.gradle.kts` |
 | 3 | **Baseline seam.** What belongs to Baseline never enters this repo's history; Crocodyl reaches Baseline only through the adapter seam (`SportModule`, `:engine`). No Baseline code is moved between repos by any port step; `:engine`'s package, public API and published coordinates (`baseline-engine`) do not change. | STATUS §1; blueprint 02 §8 (Baseline adapter and evidence ladder); PT:D-S; `engine/build.gradle.kts` |
-| 4 | Free athlete loop stays free; Coach workspace and Baseline insights are entitlement-gated in official builds but open source, with no false DRM promise. Non-Play builds use a locally verified signed licence file; the purchase model is the owner's call before Phase 8. | blueprint 01 decisions 4–5; phased plan §14, §36 |
+| 4 | Free athlete loop stays free; Coach workspace and Baseline insights are entitlement-gated in official builds; source published, licence pending; see LICENSING.md (Baseline's Advanced tier is proposed to stay proprietary: record decision 3), with no false DRM promise. Non-Play builds use a locally verified signed licence file; the purchase model is the owner's call before Phase 8. | blueprint 01 decisions 4–5; phased plan §14, §36 |
 | 5 | Privacy classes live in pure cores: `PrivacyRegistry` (SHAREABLE/MEDICAL/PRIVATE; the blueprint adds raw media and secret), `ConsentFilter`, redaction. PRIVATE never reaches cloud or export; MEDICAL needs an explicit grant. `PrivacyRegistryTest` reads `app-android/.../data/AppDatabase.kt` by relative path and **returns early (skips) if the file is missing**, so moving the Room DDL would silently disable it. | `core-wellness/.../Privacy.kt`, `PrivacyRegistryTest.kt` |
 | 6 | Hyle law: #121212-class surfaces (never pure black), one violet accent, provenance on-device/cloud colours, red/green never the sole semantic channel, 300 ms calm easing with Reduce Motion, ≥48 dp targets, state shown by material not language. Colour is never the only signal on any surface, including QML. | blueprint 02 Part IV; `ui/theme/Theme.kt`; program I-3 |
 | 7 | Schema before surface; every supported DB version must migrate; no precision inflation (observation resolution `SHOT_CONFIRMED`…`PERIOD_WINDOW` is never promoted); human confirmation; outcome gates beat dates. "Compilation is evidence of compilation. It is not evidence that a user job works." | phased plan §4, §31 |
 | 8 | Sequencing: Phase 0 (30 real sessions, three device classes) precedes extension; do not start production multi-sport UI early; iOS is Phase 18 / 1.4.0, after the 1.0.0 club release. A port either respects this ladder or carries an owner-approved amendment. | phased plan §6, §24, §27 |
 | 9 | Environment honesty: no device or emulator in the build container; Android behaviour is CI-compiled and owner-verified only. Never claim on-device behaviour. | STATUS §4.1, §5 |
-| 10 | Naming: `applicationId` is permanent once published; the `xyz.mdhv.crocodyl` rename is deferred. Bundle, click, Flatpak, MSI and winget ids are not written anywhere until they have a `NAMES.md` row (program R11, OQ-25). | `docs/naming.md`; `docs/store/play-console.md` |
-| 11 | No `LICENSE` file exists (constellation D-I). Do not add one without the owner's choice. | `docs/store/play-console.md`; `CONSTELLATION.md` §2 |
+| 10 | Naming: `applicationId` is permanent once published; it is `com.asoc.crocodyl`, final pending Owner-only item 3 (record decision 6), and the Kotlin package stays `xyz.mdhv.formanalyser`. Bundle, click, Flatpak, MSI and winget ids are not written anywhere until they have a `NAMES.md` row (program R11, OQ-25). | `docs/naming.md`; `docs/store/play-console.md` |
+| 11 | No licence granted yet; LICENSING.md states the intended one; do not add a LICENSE file outside the held relicence PR. | `LICENSING.md`; `docs/crocodyl/DECISIONS-2026-10.md` decisions 1, 20; `CONSTELLATION.md` §2 |
 | 12 | Pose contract: BlazePose-33 indices, image-normalised [0,1], y-down; handedness is normalised exactly once (`x' = 1 − x`, `HandednessNormalizer`); thresholds are first-pass and unvalidated against real footage. Any other estimator must map onto this and pass `PosePipelineTest` and the feature-invariance test. | `PoseFrame.kt`; `app-android/README.md` validation plan; `docs/biomechanics/CALIBRATED_2D_PROTOCOL.md` (L1 limits) |
 | 13 | Vision stays on-device; raw video is not retained by default; no live skeleton overlay that distracts the athlete; recovery guidance is general wellness, never diagnosis, in every store listing too. | blueprint 01 decision 13; privacy policy; `KEEP_RAW_VIDEO` pref |
-| 14 | Stale store documents: `docs/store/play-console.md` and `privacy-policy.md` say the app has no INTERNET permission and "vendors the proprietary Baseline engine as source"; the manifest declares INTERNET (for BYOK) and STATUS §1 says the engine is open. This plan repeats neither claim (Q5, Q6). | `AndroidManifest.xml:17`; `play-console.md:65,87`; `privacy-policy.md:15,37` |
+| 14 | Store documents corrected 2026-10: `docs/store/play-console.md` and `privacy-policy.md` formerly said the app has no INTERNET permission and "vendors the proprietary Baseline engine as source"; the manifest declares INTERNET (for BYOK only), and the documents are rewritten from a claims matrix (record decision 17). This plan repeats neither stale claim (Q5, Q6). | `AndroidManifest.xml:17`; `docs/crocodyl/DECISIONS-2026-10.md` decisions 9, 17 |
 | 15 | Commerce laws (affiliate disclosure adjacent to every monetised link; safety/compatibility/wear warnings never suppressed) and the exchange rule that coach observations are separate signed records, never edits to athlete facts, apply to every surface, including any desktop Coach workspace. | blueprint 01 §5.2; blueprint 02 Part IV (Coach exchange) |
 
 ## 4. Target matrix (owner's order)
@@ -292,18 +292,24 @@ Twelve numbered questions, deduplicated from the reader profile; master ids are 
    C-step.
 3. **iOS shape and Apple access (master OQ-2, OQ-25).** Compose Multiplatform with native actuals, or a SwiftUI rewrite
    of about 14k lines to satisfy "native iOS athlete client"? Who provides the Apple Developer account, and is the
-   bundle id decided together with the deferred `xyz.mdhv.crocodyl` rebrand? Is excluding the database from iCloud Backup
+   bundle id the reserved `com.asoc.crocodyl` (record decision 6) or a separate one? Is excluding the database from iCloud Backup
    (I2) acceptable? *Blocks* G3 and I1–I7.
 4. **Ubuntu Touch shape (master OQ-1, OQ-21, OQ-6).** A reframed Lomiri scorer/viewer, a PWA in the webapp container
    only, Waydroid, or skip? Is a capture-less Crocodyl a product you want on any platform? *Blocks* G5 and T1–T5.
-5. **Licence and the engine's status (master OQ-12).** No `LICENSE` exists (D-I). `docs/store/play-console.md` says the
-   app vendors the proprietary Baseline engine as source; STATUS §1 and the blueprint say Baseline is open and
-   entitlement-gated; PT:D-S says proprietary and licensed as a binary. Which is true for `:engine`, and should its
-   artefact still be called `baseline-engine`? *Blocks* C1e, any public desktop or iOS binary, F-Droid, Flathub and App
-   Store listings, and the SignPath route.
-6. **Network posture.** The privacy policy and Play sheet say there is no INTERNET permission; the manifest grants it
-   for BYOK. Which is intended, and whether ports may carry no in-app update check at all (the blueprint allows store update checks; the program briefs forbid them)? Ports inherit the answer, and the Flatpak permissions, the iOS privacy manifest and the
-   store copy must state the allowlist. *Blocks* L3, I6, listing copy, and the correction of the two store documents.
+5. **Licence and the engine's status (master OQ-12).** Answered, as a proposal pending the owner, by
+   `docs/crocodyl/DECISIONS-2026-10.md` decisions 1–3 (Owner-only items 1, 2 and 7): no `LICENSE` is granted yet
+   (`LICENSING.md`); the intended licence is AGPL-3.0-or-later with a commercial exception for the whole tree,
+   `:engine` included; Baseline's Community tier shares it and the Advanced tier stays proprietary in the private
+   repository. That reconciles the earlier conflict between the Play sheet ("proprietary Baseline engine as
+   source"), STATUS §1 and the blueprint (Baseline gated by entitlement) and PT:D-S (proprietary, licensed as a
+   binary), but the owner has not confirmed it. Still open: should `:engine`'s artefact still be called
+   `baseline-engine`? *Blocks* C1e, any public desktop or iOS binary, F-Droid, Flathub and App Store listings,
+   and the SignPath route, until the owner answers items 1, 2 and 7.
+6. **Network posture.** Answered by `docs/crocodyl/DECISIONS-2026-10.md` decisions 9 and 17: INTERNET is declared for
+   BYOK only, MediaPipe's telemetry transport is removed in every channel and `ACCESS_NETWORK_STATE` is dropped, and
+   the store documents say so. Still open: whether ports may carry no in-app update check at all (the blueprint
+   allows store update checks; the program briefs forbid them)? Ports inherit the answer, and the Flatpak
+   permissions, the iOS privacy manifest and the store copy must state the allowlist. *Blocks* L3, I6 and listing copy.
 7. **Pose-estimator policy.** Must every platform use MediaPipe BlazePose for parity, or are an ONNX COCO-17-style
    model and Apple Vision acceptable on desktop and Apple platforms after a measured parity report? Is a MediaPipe
    Python sidecar acceptable? May consented clips live in a public repo, or only landmark traces and synthetic clips?

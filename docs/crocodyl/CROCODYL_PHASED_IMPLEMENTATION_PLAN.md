@@ -7,7 +7,7 @@
 **Authority:** Implements `Crocodyl Product Blueprint v2.1`  
 **Starting build:** `v0.5.0-everything`—CI-green, Android behavior not yet verified  
 **Primary launch:** Android · Olympic Recurve · one coach and one club squad  
-**Operating model:** Local-first · no maintained backend · free/open athlete product · paid/open-source Coach and Baseline surfaces
+**Operating model:** Local-first · no maintained backend · free athlete product · paid Coach and Baseline surfaces · source published, licence pending (see LICENSING.md)
 
 ---
 
@@ -83,7 +83,7 @@ The broader program is complete only after the common contracts are proven acros
 - Model installation is manual; DeepSeek and the common provider UX are incomplete.
 - Current self-healing database behavior may rebuild an incompatible database. That is acceptable for an internal test build only; a production build must never silently delete athlete history.
 - The branch/default-branch and earlier pull-request decisions remain unresolved.
-- The status document calls Baseline private, while the approved product direction says paid Baseline features remain open-source. Keep its implementation separate from Crocodyl if desired, but resolve the publication/license path before Baseline 1.1.
+- The status document calls Baseline private, while the blueprint says paid Baseline features keep their source visible (licence pending; see LICENSING.md) and the October 2026 decision record proposes the Community tier under the project licence with the Advanced tier proprietary in the private repository (decision 3, Owner-only item 7). Keep its implementation separate from Crocodyl if desired, but resolve the publication/license path before Baseline 1.1.
 
 The plan treats every “built” claim as provisional until it passes source audit, device QA, range QA, and migration tests.
 
@@ -98,7 +98,7 @@ The plan treats every “built” claim as provisional until it passes source au
 | Evidence before language | Deterministic/testable engines produce measurements; language models only explain grounded results. |
 | No precision inflation | End-, session-, day-, and period-level facts are never presented as shot-level evidence. |
 | Free athlete loop | Scoring, form, equipment, recovery, export, Live Observer, local AI, and BYOK remain free. |
-| Paid surfaces stay open | Coach and Baseline are entitlement-gated in official builds, not hidden-source components. |
+| Paid surfaces are not hidden-source | The Coach workspace is entitlement-gated in official builds with its source published (licence pending; see LICENSING.md); Baseline's publication and licence are pending (decision 3 of `docs/crocodyl/DECISIONS-2026-10.md`, proposed). |
 | Commerce cannot steer evidence | Offers and commissions enter only after an equipment recommendation is finalized. |
 | No silent collection | Diagnostic, contribution, media, medical, and private exports require explicit preview and action. |
 | Outcome gates beat dates | A release slips if its exit gate fails; the gate is not rewritten to protect a date. |
@@ -211,7 +211,7 @@ Gate with repeated real transport loops, cross-version restore, malicious/tamper
 
 ## 14. Phase 8 — Deliver the paid human Coach pilot
 
-Choose commercial entitlement behavior before production. Keep DRM simple and explicit because the paid surface is open-source. Deliver roster, attention inbox, athlete detail, timestamped coach observations, drill/plan library, signed assignments, athlete acknowledgement, coach-local score book, comparison, retention/purge/report-age states, and missing-consent handling.
+Choose commercial entitlement behavior before production. Keep DRM simple and explicit because the paid surface's source is published (licence pending; see LICENSING.md). Deliver roster, attention inbox, athlete detail, timestamped coach observations, drill/plan library, signed assignments, athlete acknowledgement, coach-local score book, comparison, retention/purge/report-age states, and missing-consent handling.
 
 The gate is a real coach managing at least five athletes for four weekly cycles through file transport only, closing report → note → assignment → completion → acknowledgement without changing athlete historical facts.
 

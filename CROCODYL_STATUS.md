@@ -1,6 +1,6 @@
 # Crocodyl — Status & Vision
 
-_Last reviewed: 2026-10-11 · current branch: **codex/production-hardening** · latest QA artifact: `0.6.0-home-immersive-qa` (versionCode 664), APK/AAB preflight passed with QA/debug signer · production release: **not approved**_
+_Last reviewed: 2026-10-11 · current branch: **main** · latest QA artifact: `0.6.0-home-immersive-qa` (versionCode 664), APK/AAB preflight passed with QA/debug signer · production release: **not approved**_
 
 This is the single source of truth for **what Crocodyl is**, **what's built**, and **what's left**.
 It complements `CROCODYL_BUILD_NOTES.md` (the engineering log) with the product-level picture.
@@ -51,7 +51,7 @@ Three principles drive the whole product:
 
 | | **Crocodyl** (this repo, `form-analyser`) | **Baseline** (`baseline`) |
 |---|---|---|
-| Price | Free, public, open-source | Paid add-on, **open-source** — gated by entitlement in the official binary only |
+| Price | Free; source published, licence pending; see LICENSING.md | Paid add-on, gated by entitlement in the official binary only; licence pending, see LICENSING.md and decision 3 of `docs/crocodyl/DECISIONS-2026-10.md` (proposed: the Advanced tier stays proprietary) |
 | Modality | Phone-camera vision (BlazePose) | EEG mental-state channel + bow-mounted IMU sensor channel |
 | Analytics | The shared engine ships **inside** Crocodyl | Advanced/paid analytics engines |
 | Repo rule | — | **What belongs to Baseline must never enter Crocodyl's git history.** |
@@ -59,10 +59,13 @@ Three principles drive the whole product:
 The engine/sport-module seam lives in Crocodyl so the free app is fully functional on its own;
 Baseline plugs additional channels and engines on top for subscribers.
 
-> **Licensing correction (2026-08-12):** Baseline was previously described here as a private, closed
-> repo. Per the Product Blueprint v2.1 governing decisions, paid Baseline features stay
-> **open-source** — the wall is a commercial entitlement check in the official binary, not a hidden
-> source tree. This is a licensing/visibility stance on the *Baseline repo itself* and does **not**
+> **Licensing correction (2026-08-12, updated 2026-10-24):** Baseline was previously described here as a
+> private, closed repo. The Product Blueprint v2.1 governing decisions (proposed) say paid Baseline
+> features keep their source visible, licence pending (see LICENSING.md) — the wall is a commercial
+> entitlement check in the official binary, not a hidden source tree. The October 2026 decision record
+> proposes a narrower split (Community tier under the project licence, Advanced tier proprietary in
+> the private `baseline` repo; decision 3, pending Owner-only item 7). This is a licensing/visibility
+> stance on the *Baseline repo itself* and does **not**
 > change the separate, still-standing repo-content-separation rule directly above: Baseline-specific
 > content (EEG, bow-IMU code, paid analytics) must never enter Crocodyl's git history, regardless of
 > either repo's license.
@@ -255,7 +258,7 @@ than continuing ad hoc `0.4.x`/`0.5.x` numbering in isolation.
 
 ### 3.6 Current development branch — immersive athlete experience
 
-PR #11 (`feat/immersive-visuals`) now contains the current product surface:
+PR #11 (`feat/immersive-visuals`, merged into `main` on 2026-10-22) contains the current product surface:
 
 - a complete System/Light/Dark theme switch with warm, high-contrast light surfaces;
 - an illustrated athlete Home hero, graphical capture placement guide and live framing overlay;
@@ -353,9 +356,9 @@ The remaining blueprint items are still additive roadmap work on top of the curr
 recovery foundation; they are not implied by the current `0.6.0-spec-dev` build.
 
 ### 4.7 Owner to-dos (Madhav)
-- Review the `codex/production-hardening` changes after Android CI/device QA, then merge them into the
-  chosen default branch. The source branch remains `claude/form-analyser-baseline-split-e9s6lr`; the
-  older PR #3/#5 snapshots are historical and should remain closed/superseded.
+- Branch, merge and distribution to-dos are superseded by the October 2026 decision record,
+  [`docs/crocodyl/DECISIONS-2026-10.md`](docs/crocodyl/DECISIONS-2026-10.md): the integration stack is
+  merged into `main`, and the Owner-only items are in its §5 (see §4.11).
 - Approve/edit the blueprint's "governing decisions" (§4.6 above; full list in
   `docs/crocodyl/blueprint/01-product-direction.md`) — the blueprint itself calls these "proposed,"
   governing only after owner approval.
@@ -480,6 +483,24 @@ is CI-compiled/unit-tested only, not device-verified.
 ### 4.10 Multi-platform porting (plan only)
 See [`docs/crocodyl/CROCODYL_PORTING_PLAN.md`](docs/crocodyl/CROCODYL_PORTING_PLAN.md): nothing is built; its proposals await the owner.
 
+### 4.11 Distribution and licence decisions (2026-10)
+[`docs/crocodyl/DECISIONS-2026-10.md`](docs/crocodyl/DECISIONS-2026-10.md) is the single record of the
+October 2026 licence, distribution and data-layer decisions; this section only points to it.
+
+- **Licence:** none is granted and `main` carries no `LICENSE` file; `LICENSING.md` states the intended
+  licence (AGPL-3.0-or-later with a commercial exception). That choice, the contributor agreement and
+  the Baseline split are **proposed** (decisions 1–3) until the owner answers Owner-only items 1, 2
+  and 7 in the record's §5. Source is published; the licence stays pending until then.
+- **Channels (decision 4):** GitHub Releases with Obtainium first, Google Play in parallel, official
+  F-Droid once licence, key and reproducibility hold, the App Store after the iOS port; IzzyOnDroid is
+  deferred.
+- **Identity and signing (decisions 6–7):** one application id, `com.asoc.crocodyl`, and one
+  owner-held signing key across channels; `v0.7.0` carries versionCode 700. The id and the key are
+  Owner-only items 3 and 4. Production release remains **not approved**.
+- **Engineering fixes decided in the same record** (committed pose model, MediaPipe telemetry removal,
+  Unsplash removal, export/import hardening, store documents rewritten from a claims matrix, third-party
+  notices) are implemented or in flight as separate packages; the record lists each decision.
+
 ---
 
 ## 5. Known caveats
@@ -508,8 +529,9 @@ remains before public release is **production-key signing, physical-device/acces
 battery verification, camera/interruption/range acceptance, and owner sign-off**. Guided on-device-model distribution, the
 real Hyle dependency, and the deferred/future-phase work above are explicitly post-RC roadmap items,
 not hidden release blockers. The paid Baseline channels (EEG, bow-IMU, advanced analytics)
-stay out of Crocodyl's git history — that separation is unchanged — though Baseline itself is now
-understood to be open-source, gated by entitlement rather than by a closed repo (§1).
+stay out of Crocodyl's git history — that separation is unchanged — and Baseline's own source
+publication and licence are pending: the blueprint says gated by entitlement rather than by a closed
+repo, the October 2026 record proposes keeping the Advanced tier private (§1, §4.11).
 
 A much larger product blueprint (Product Blueprint v2.1 + Phased Implementation Plan, in
 `docs/crocodyl/`) now governs where Crocodyl is headed — manual scoring, End Scan, Live Observer, a
