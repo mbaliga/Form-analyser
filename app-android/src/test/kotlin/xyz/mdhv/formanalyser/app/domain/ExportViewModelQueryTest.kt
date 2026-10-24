@@ -15,7 +15,7 @@ class ExportViewModelQueryTest {
     @Test
     fun retractedRowsAreFilteredFromEveryRetractableTableDump() {
         val retractableTables =
-            setOf("sessions", "score_session", "sport_session", "checkin", "pain_log", "injury")
+            setOf("sessions", "score_session", "sport_session", "checkin", "pain_log", "injury", "document")
 
         SQLiteDatabase.create(null).use { database ->
             retractableTables.forEach { table ->

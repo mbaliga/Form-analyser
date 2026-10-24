@@ -77,4 +77,9 @@ data class DocumentEntity(
     val sha256: String,
     val sizeBytes: Long,
     val injuryId: String? = null,
+    /**
+     * Retraction timestamp; see AppDatabase.MIGRATION_6_7 for why this is not a DELETE. A document
+     * feeds no derived number, but the row is the only record the athlete has that the file exists.
+     */
+    val deletedAt: Long? = null,
 )

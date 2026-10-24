@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +18,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -412,6 +414,10 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
     var confirm by remember { mutableStateOf("") }
     var wiping by remember { mutableStateOf(false) }
     var wipeFailed by remember { mutableStateOf(false) }
+    // Same reasoning as the wipe gate above: a half-open erase confirmation must not survive a
+    // rotation or process restart.
+    var eraseTarget by remember { mutableStateOf<SettingsViewModel.Retracted?>(null) }
+    var eraseFailed by remember { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
     val retracted by vm.retracted.collectAsState()
     LaunchedEffect(Unit) { vm.loadRetracted() }
@@ -458,10 +464,54 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
                     title = item.label,
                     subtitle = item.detail,
                     trailing = {
-                        OutlinedButton(onClick = { vm.restore(item) }) { Text("Restore") }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // Erasing is offered only for rows that can be erased at all (vault
+                            // documents), and only as a second step behind its own confirmation:
+                            // the delete tap that put the row here never removed anything.
+                            if (item.erasable) {
+                                TextButton(onClick = { eraseTarget = item }) {
+                                    Text("Erase", color = Hyle.Danger)
+                                }
+                            }
+                            OutlinedButton(onClick = { vm.restore(item) }) { Text("Restore") }
+                        }
                     },
                 )
             }
+        }
+        eraseTarget?.let { target ->
+            AlertDialog(
+                onDismissRequest = { eraseTarget = null },
+                title = { Text("Erase this document permanently?") },
+                text = {
+                    Text(
+                        "The encrypted file and its record are removed from this device. " +
+                            "This cannot be undone."
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            eraseTarget = null
+                            eraseFailed = false
+                            vm.erasePermanently(target) { eraseFailed = true }
+                        }
+                    ) {
+                        Text("Erase permanently", color = Hyle.Danger)
+                    }
+                },
+                dismissButton = { TextButton(onClick = { eraseTarget = null }) { Text("Cancel") } },
+            )
+        }
+        if (eraseFailed) {
+            Text(
+                "The encrypted file could not be removed, so nothing was erased. You can try again.",
+                color = Hyle.Danger,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
 
         Text(

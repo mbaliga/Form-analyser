@@ -73,7 +73,7 @@ class ExportRetractionFilterTest {
 
         val withDeletedAt = (direct + looped + created).toSortedSet()
         assertEquals(
-            setOf("checkin", "injury", "pain_log", "score_session", "sessions", "sport_session"),
+            setOf("checkin", "document", "injury", "pain_log", "score_session", "sessions", "sport_session"),
             withDeletedAt.toSet(),
             "parsed an unexpected deletedAt table set from ${dbSrc.path}. If a migration changed " +
                 "shape, fix this parser and this expectation together — do not weaken either",

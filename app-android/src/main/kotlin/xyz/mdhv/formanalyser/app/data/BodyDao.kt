@@ -87,19 +87,40 @@ interface BodyDao {
     suspend fun physioSessionsFor(planId: String): List<PhysioSessionEntity>
 
     // --- documents (MEDICAL) ---
+    // Retraction, not deletion: the encrypted file and its row survive a delete tap so the athlete
+    // can restore them. The only hard delete of a document row is eraseRetractedDocument, and its
+    // `deletedAt IS NOT NULL` guard makes erasing a live document impossible at SQL level.
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertDocument(d: DocumentEntity)
 
-    @Query("SELECT * FROM document WHERE athleteId = :athleteId ORDER BY ts DESC")
+    @Query("SELECT * FROM document WHERE athleteId = :athleteId AND deletedAt IS NULL ORDER BY ts DESC")
     suspend fun documents(athleteId: String): List<DocumentEntity>
 
-    @Query("SELECT * FROM document WHERE injuryId = :injuryId ORDER BY ts DESC")
+    @Query("SELECT * FROM document WHERE injuryId = :injuryId AND deletedAt IS NULL ORDER BY ts DESC")
     suspend fun documentsForInjury(injuryId: String): List<DocumentEntity>
 
-    @Query("DELETE FROM document WHERE id = :id") suspend fun deleteDocument(id: String)
+    /** Any document by id, live or retracted — callers decide what a retracted row means. */
+    @Query("SELECT * FROM document WHERE id = :id") suspend fun documentById(id: String): DocumentEntity?
 
-    @Query("SELECT COUNT(*) FROM document WHERE athleteId = :athleteId")
+    @Query("UPDATE document SET deletedAt = :at WHERE id = :id AND deletedAt IS NULL")
+    suspend fun retractDocument(id: String, at: Long)
+
+    @Query("UPDATE document SET deletedAt = NULL WHERE id = :id")
+    suspend fun restoreDocument(id: String)
+
+    @Query(
+        "SELECT * FROM document WHERE athleteId = :athleteId AND deletedAt IS NOT NULL ORDER BY deletedAt DESC"
+    )
+    suspend fun retractedDocuments(athleteId: String): List<DocumentEntity>
+
+    /** Hard delete of a row that is ALREADY retracted. Returns the number of rows removed (0 or 1). */
+    @Query("DELETE FROM document WHERE id = :id AND deletedAt IS NOT NULL")
+    suspend fun eraseRetractedDocument(id: String): Int
+
+    @Query("SELECT COUNT(*) FROM document WHERE athleteId = :athleteId AND deletedAt IS NULL")
     suspend fun documentCount(athleteId: String): Int
 
-    @Query("SELECT COALESCE(SUM(sizeBytes), 0) FROM document WHERE athleteId = :athleteId")
+    @Query(
+        "SELECT COALESCE(SUM(sizeBytes), 0) FROM document WHERE athleteId = :athleteId AND deletedAt IS NULL"
+    )
     suspend fun documentBytes(athleteId: String): Long
 }

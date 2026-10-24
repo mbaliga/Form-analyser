@@ -712,6 +712,7 @@ class ExportViewModel @JvmOverloads constructor(
                 "checkin",
                 "pain_log",
                 "injury",
+                "document",
             )
 
         /** Build the fixed-name cursor query, excluding retracted rows wherever the schema allows it. */

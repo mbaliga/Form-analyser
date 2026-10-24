@@ -56,7 +56,7 @@ class DatabaseRecoveryRequired(
             SportSessionEntity::class,
             CaptureMediaEntity::class,
         ],
-    version = 11,
+    version = 12,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -159,6 +159,7 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_8_9,
                     MIGRATION_9_10,
                     MIGRATION_10_11,
+                    MIGRATION_11_12,
                 )
                 // No fallbackToDestructiveMigration: a missing migration path should surface as a
                 // thrown exception into the catch below (and get backed up + recorded), not vanish
@@ -589,6 +590,28 @@ abstract class AppDatabase : RoomDatabase() {
             object : Migration(10, 11) {
                 override fun migrate(db: SupportSQLiteDatabase) {
                     db.execSQL("ALTER TABLE `score_candidate` ADD COLUMN `detectorVersion` TEXT")
+                }
+            }
+
+        /**
+         * V11 -> V12: documents become retractable instead of hard-deleted.
+         *
+         * An injury or physio document is a medical record. A medical file feeds no derived number
+         * (no trend, readiness or personal best reads it), but the row is the only record the athlete
+         * ever had that the file exists, and the injury-delete dialog already promises that documents
+         * are kept. One tap used to delete the row and the vault ciphertext irreversibly; it now sets
+         * this column, the row leaves every list and every export, and the ciphertext stays where it
+         * is until the athlete erases it from Settings -> Data as a separate, confirmed step.
+         *
+         * The nullable, defaultless `ALTER TABLE ADD COLUMN` is the one shape SQLite performs without
+         * rewriting the table, the same reason MIGRATION_6_7 uses it. Existing rows stay live (NULL):
+         * the migration itself retracts nothing. Kept on one line so the export drift guard's
+         * migration scraper parses it.
+         */
+        val MIGRATION_11_12 =
+            object : Migration(11, 12) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE `document` ADD COLUMN `deletedAt` INTEGER")
                 }
             }
     }
