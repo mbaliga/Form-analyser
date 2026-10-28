@@ -53,7 +53,7 @@ the user chooses: the cloud AI coach.**
 | Encrypted in transit? | **Yes.** HTTPS only; cleartext traffic is disabled. |
 | Deletion? | **Yes, in the app.** Per-item delete (kept under Settings → Data → Recently deleted until restored; documents can then be erased permanently) and Settings → Data → Wipe everything. |
 
-Never shared, whatever the settings: mood notes, life events and cycle information; camera frames,
+Never shared, whatever the settings: the text of mood notes and life events, and cycle information (a life event can only add "high-stress window" to the readiness reasons); camera frames,
 raw video, photos and documents. Exports are files the user saves or shares themselves; the app
 sends them nowhere. They are signed, **not encrypted**.
 
