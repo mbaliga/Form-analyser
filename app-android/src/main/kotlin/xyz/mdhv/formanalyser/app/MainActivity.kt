@@ -14,6 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -144,7 +150,36 @@ private fun MainShell() {
     val onTab = route in Routes.TABS
     var quick by remember { mutableStateOf(false) }
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    // Hardware-keyboard shortcuts for windowed/desktop use. Only hardware key events reach this;
+    // touch-only phones never produce them. Esc goes back only off the tab roots, so it never
+    // closes the app.
     Scaffold(
+        modifier =
+            Modifier.onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                val tabs = listOf(Routes.HOME, Routes.TRAIN, Routes.SCORE, Routes.CALENDAR, Routes.PROGRESS)
+                when {
+                    e.key == Key.Escape && !onTab -> {
+                        backDispatcher?.onBackPressed()
+                        true
+                    }
+                    !e.isCtrlPressed -> false
+                    e.key == Key.Comma && route != Routes.SETTINGS -> {
+                        nav.navigate(Routes.SETTINGS)
+                        true
+                    }
+                    e.key == Key.N && onTab -> {
+                        quick = true
+                        true
+                    }
+                    onTab && e.key in listOf(Key.One, Key.Two, Key.Three, Key.Four, Key.Five) -> {
+                        val i = listOf(Key.One, Key.Two, Key.Three, Key.Four, Key.Five).indexOf(e.key)
+                        navigateTab(nav, tabs[i])
+                        true
+                    }
+                    else -> false
+                }
+            },
         topBar = {
             if (onTab) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) }
             // Every other route used to render with no bar, no back and no title. 22 of 27
@@ -165,69 +200,73 @@ private fun MainShell() {
         // inside this NavHost, and on targetSdk 35 the window no longer resizes for the keyboard,
         // so without it the field being typed into can sit underneath the IME with no way to
         // scroll it into view. Applied after the Scaffold's own padding so the two stack.
-        NavHost(nav, Routes.HOME, Modifier.padding(pad).imePadding()) {
-            composable(Routes.HOME) {
-                HomeScreen(
-                    homeVm,
-                    { nav.navigate(Routes.TRAIN) },
-                    { nav.navigate(Routes.SCORE) },
-                    { id ->
-                        sessionVm.openSession(id)
-                        nav.navigate(Routes.REVIEW)
-                    },
-                    { nav.navigate(Routes.S_RIGS) },
-                    { nav.navigate(Routes.LOG) },
-                    { nav.navigate(Routes.COACH) },
-                )
-            }
-            composable(Routes.COACH) {
-                val app = LocalContext.current.applicationContext as Application
-                val vm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
-                CoachScreen(vm) { nav.navigate(Routes.S_AI) }
-            }
-            composable(Routes.TRAIN) {
-                TrainSetupScreen(
-                    sessionVm,
-                    { nav.navigate(Routes.CAPTURE) },
-                    { nav.navigate(Routes.S_RIGS) },
-                )
-            }
-            composable(Routes.CAPTURE) { CaptureScreen(sessionVm) { nav.navigate(Routes.REVIEW) } }
-            // A deleted session has nothing left to review, so the screen cannot stay open on it.
-            composable(Routes.REVIEW) { ReviewScreen(sessionVm) { nav.popBackStack() } }
-            composable(Routes.SCORE) {
-                val vm: ScoringViewModel = viewModel()
-                ScoringScreen(vm)
-            }
-            composable(Routes.PROGRESS) {
-                val vm: ProgressViewModel = viewModel()
-                ProgressScreen(vm) { nav.navigate(Routes.BODY) }
-            }
-            composable(Routes.BODY) {
-                BodyScreen(
-                    bodyVm,
-                    { id -> nav.navigate("${Routes.INJURY_EDIT}/${id?:"new"}") },
-                    { id -> nav.navigate("${Routes.PLAN_EDIT}/${id?:"new"}") },
-                )
-            }
-            composable(Routes.CALENDAR) { CalendarScreen(calendarVm) { nav.navigate(Routes.LOG) } }
-            composable(Routes.LOG) { LogScreen(wellnessVm, cycle) { nav.popBackStack() } }
-            composable("${Routes.INJURY_EDIT}/{injuryId}") { e ->
-                val id = e.arguments?.getString("injuryId")
-                InjuryEditScreen(bodyVm, if (id == "new") null else id, { nav.popBackStack() }) {
-                    doc ->
-                    nav.navigate("${Routes.DOC_VIEW}/$doc")
+        // Capped and centred so a wide freeform window does not stretch forms across the screen.
+        // On a phone the cap (840dp) is never reached, so layout there is unchanged.
+        Box(Modifier.fillMaxSize().padding(pad).imePadding(), Alignment.TopCenter) {
+            NavHost(nav, Routes.HOME, Modifier.fillMaxWidth().widthIn(max = 840.dp)) {
+                composable(Routes.HOME) {
+                    HomeScreen(
+                        homeVm,
+                        { nav.navigate(Routes.TRAIN) },
+                        { nav.navigate(Routes.SCORE) },
+                        { id ->
+                            sessionVm.openSession(id)
+                            nav.navigate(Routes.REVIEW)
+                        },
+                        { nav.navigate(Routes.S_RIGS) },
+                        { nav.navigate(Routes.LOG) },
+                        { nav.navigate(Routes.COACH) },
+                    )
                 }
+                composable(Routes.COACH) {
+                    val app = LocalContext.current.applicationContext as Application
+                    val vm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
+                    CoachScreen(vm) { nav.navigate(Routes.S_AI) }
+                }
+                composable(Routes.TRAIN) {
+                    TrainSetupScreen(
+                        sessionVm,
+                        { nav.navigate(Routes.CAPTURE) },
+                        { nav.navigate(Routes.S_RIGS) },
+                    )
+                }
+                composable(Routes.CAPTURE) { CaptureScreen(sessionVm) { nav.navigate(Routes.REVIEW) } }
+                // A deleted session has nothing left to review, so the screen cannot stay open on it.
+                composable(Routes.REVIEW) { ReviewScreen(sessionVm) { nav.popBackStack() } }
+                composable(Routes.SCORE) {
+                    val vm: ScoringViewModel = viewModel()
+                    ScoringScreen(vm)
+                }
+                composable(Routes.PROGRESS) {
+                    val vm: ProgressViewModel = viewModel()
+                    ProgressScreen(vm) { nav.navigate(Routes.BODY) }
+                }
+                composable(Routes.BODY) {
+                    BodyScreen(
+                        bodyVm,
+                        { id -> nav.navigate("${Routes.INJURY_EDIT}/${id?:"new"}") },
+                        { id -> nav.navigate("${Routes.PLAN_EDIT}/${id?:"new"}") },
+                    )
+                }
+                composable(Routes.CALENDAR) { CalendarScreen(calendarVm) { nav.navigate(Routes.LOG) } }
+                composable(Routes.LOG) { LogScreen(wellnessVm, cycle) { nav.popBackStack() } }
+                composable("${Routes.INJURY_EDIT}/{injuryId}") { e ->
+                    val id = e.arguments?.getString("injuryId")
+                    InjuryEditScreen(bodyVm, if (id == "new") null else id, { nav.popBackStack() }) {
+                        doc ->
+                        nav.navigate("${Routes.DOC_VIEW}/$doc")
+                    }
+                }
+                composable("${Routes.PLAN_EDIT}/{planId}") { e ->
+                    val id = e.arguments?.getString("planId")
+                    PhysioPlanEditScreen(bodyVm, if (id == "new") null else id) { nav.popBackStack() }
+                }
+                composable("${Routes.DOC_VIEW}/{docId}") { e ->
+                    val id = e.arguments?.getString("docId") ?: return@composable
+                    DocumentViewerScreen(bodyVm, id) { nav.popBackStack() }
+                }
+                settingsGraph(nav, rigsVm, settingsVm, wellnessVm)
             }
-            composable("${Routes.PLAN_EDIT}/{planId}") { e ->
-                val id = e.arguments?.getString("planId")
-                PhysioPlanEditScreen(bodyVm, if (id == "new") null else id) { nav.popBackStack() }
-            }
-            composable("${Routes.DOC_VIEW}/{docId}") { e ->
-                val id = e.arguments?.getString("docId") ?: return@composable
-                DocumentViewerScreen(bodyVm, id) { nav.popBackStack() }
-            }
-            settingsGraph(nav, rigsVm, settingsVm, wellnessVm)
         }
     }
     if (quick)

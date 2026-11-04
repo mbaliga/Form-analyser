@@ -465,5 +465,10 @@ fun SettingsAboutScreen() {
                 "leave it. This build makes zero network calls — there's nothing to opt out of.",
             color = Hyle.OnSurfaceDim,
         )
+        Text(
+            "Keyboard shortcuts (hardware keyboard): Esc back, Ctrl+, Settings, Ctrl+N quick add, " +
+                "Ctrl+1 to 5 switch tabs.",
+            color = Hyle.OnSurfaceDim,
+        )
     }
 }
