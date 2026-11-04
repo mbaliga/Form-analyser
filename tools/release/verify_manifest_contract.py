@@ -119,12 +119,14 @@ def audit(manifest_dump: str) -> list[str]:
     if len(launchers) != 1:
         errors.append("Exactly one exported Crocodyl MAIN/LAUNCHER activity is required")
 
-    for tag, name, exported, permission, _ in components:
+    for tag, name, exported, permission, text in components:
         if exported != "true":
             continue
         if tag == "activity" and name == MAIN_ACTIVITY and permission is None:
             continue
         if tag == "receiver" and name == PROFILE_RECEIVER and permission == "android.permission.DUMP":
+            continue
+        if tag == "receiver" and is_app_widget_provider(name, permission, text):
             continue
         errors.append(f"Unexpected exported component: {tag} {name} (permission={permission})")
 
@@ -134,6 +136,25 @@ def audit(manifest_dump: str) -> list[str]:
             errors.append(f"ProfileInstallReceiver must remain exported only behind android.permission.DUMP: {name}")
 
     return errors
+
+
+APP_WIDGET_PACKAGE = "xyz.mdhv.formanalyser.app.widget."
+
+
+def is_app_widget_provider(name: str, permission: str | None, text: str) -> bool:
+    """A home-screen widget provider (docs/widgets.md): the one other exported shape allowed.
+
+    A launcher binds widgets through the system's widget service, so the provider is exported; the
+    system delivers its broadcasts, and android.permission.BIND_APPWIDGET is a signature permission
+    only the system holds, so no other app can reach it. Allowed only for the app's own widget
+    package, behind that permission, and only for a receiver that really is a widget provider.
+    """
+    return (
+        name.startswith(APP_WIDGET_PACKAGE)
+        and permission == "android.permission.BIND_APPWIDGET"
+        and "android.appwidget.action.APPWIDGET_UPDATE" in text
+        and "android.appwidget.provider" in text
+    )
 
 
 def main() -> int:

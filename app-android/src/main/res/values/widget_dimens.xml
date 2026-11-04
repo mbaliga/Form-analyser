@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Below API 31 a fixed radius; values-v31 uses the launcher's own widget radius. -->
+    <dimen name="widget_corner_radius">16dp</dimen>
+    <dimen name="widget_padding">12dp</dimen>
+    <dimen name="widget_gap">8dp</dimen>
+    <dimen name="widget_pad_radius">14dp</dimen>
+    <dimen name="widget_touch_target">48dp</dimen>
+</resources>

@@ -1,4 +1,211 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Crocodyl</string>
+
+    <!-- Home-screen widgets (docs/widgets.md). Measurements only: no advice, no streak. -->
+    <string name="widget_last_scorecard_name">Last scorecard</string>
+    <string name="widget_last_scorecard_description">Your most recent finished scorecard: total, arrows and round.</string>
+    <string name="widget_this_week_name">This week</string>
+    <string name="widget_this_week_description">Arrows shot this week against your active plan\'s weekly target.</string>
+    <string name="widget_next_physio_name">Next physio day</string>
+    <string name="widget_next_physio_description">The next day a physio plan is scheduled and how many exercises it has. Plan names stay in the app.</string>
+    <string name="widget_readiness_name">Readiness</string>
+    <string name="widget_readiness_description">Readiness as Crocodyl computes it, shown as a shape and a word, with the check-in behind it.</string>
+    <string name="widget_active_rig_name">Active rig</string>
+    <string name="widget_active_rig_description">Your active rig and the tuning you recorded for it.</string>
+    <string name="widget_quick_start_name">Start training</string>
+    <string name="widget_quick_start_description">Shortcuts into Score, Train and Log.</string>
+
+    <!-- States -->
+    <string name="widget_loading">Loading…</string>
+    <string name="widget_first_run_title">Set up Crocodyl</string>
+    <string name="widget_first_run_body">Open the app to create your profile.</string>
+    <string name="widget_needs_app_title">Open Crocodyl</string>
+    <string name="widget_needs_app_body">Your saved data needs attention in the app.</string>
+    <string name="widget_error_title">Couldn\'t read your data</string>
+    <string name="widget_error_body">Open Crocodyl to see it there.</string>
+    <string name="widget_empty_last_scorecard_title">No finished scorecard yet</string>
+    <string name="widget_empty_last_scorecard_body">Finished rounds appear here.</string>
+    <string name="widget_empty_next_physio_title">No physio day scheduled</string>
+    <string name="widget_empty_next_physio_body">Scheduled days from your physio plans appear here.</string>
+    <string name="widget_empty_active_rig_title">No rig yet</string>
+    <string name="widget_empty_active_rig_body">Your active rig appears here.</string>
+    <!-- Provenance is a shape and a word on a widget, never the radium-green colour alone. -->
+    <string name="widget_provenance_native">◆ native · computed on this phone</string>
+    <string name="widget_as_of">As of %1$s</string>
+    <string name="widget_separator">%1$s · %2$s</string>
+    <string name="widget_open_description">%1$s. Opens %2$s.</string>
+
+    <!-- Tap destinations, for TalkBack -->
+    <string name="widget_destination_home">Home</string>
+    <string name="widget_destination_score">Score</string>
+    <string name="widget_destination_train">Train</string>
+    <string name="widget_destination_log">Log</string>
+    <string name="widget_destination_progress">Progress</string>
+    <string name="widget_destination_body">Body</string>
+    <string name="widget_destination_calendar">Calendar</string>
+    <string name="widget_destination_rigs">Rigs</string>
+
+    <!-- Last scorecard -->
+    <string name="widget_score_out_of">/%1$d</string>
+    <string name="widget_score_sets">sets</string>
+    <string name="widget_score_set_points">%1$d–%2$d</string>
+    <string name="widget_score_set_match">Set match</string>
+    <plurals name="widget_arrows">
+        <item quantity="one">%d arrow</item>
+        <item quantity="other">%d arrows</item>
+    </plurals>
+    <plurals name="widget_arrows_of">
+        <item quantity="one">%1$d of %2$d arrow</item>
+        <item quantity="other">%1$d of %2$d arrows</item>
+    </plurals>
+    <string name="widget_score_x_count">%1$d X</string>
+    <string name="widget_score_average">%1$.2f per arrow</string>
+    <string name="widget_distance">%1$d m</string>
+    <string name="widget_score_round_best">Round best</string>
+    <string name="widget_score_rig">Rig</string>
+    <string name="widget_score_x_label">X count</string>
+    <string name="widget_score_kind_label">Format</string>
+    <string name="widget_score_average_label">Per arrow</string>
+    <string name="widget_score_average_value">%1$.2f</string>
+    <string name="widget_score_content">Last scorecard, %1$s: %2$s</string>
+
+    <!-- This week -->
+    <plurals name="widget_week_target_unit">
+        <item quantity="one">/ %d arrow</item>
+        <item quantity="other">/ %d arrows</item>
+    </plurals>
+    <string name="widget_week_unit">arrows</string>
+    <string name="widget_week_percent">%1$d%% of weekly target</string>
+    <plurals name="widget_week_over">
+        <item quantity="one">%d arrow over weekly target</item>
+        <item quantity="other">%d arrows over weekly target</item>
+    </plurals>
+    <string name="widget_week_no_target">No weekly target in an active plan</string>
+    <string name="widget_week_from">From %1$s</string>
+    <string name="widget_week_plan">Plan · %1$s</string>
+    <plurals name="widget_sessions">
+        <item quantity="one">%d session</item>
+        <item quantity="other">%d sessions</item>
+    </plurals>
+    <string name="widget_week_no_arrows">–</string>
+    <string name="widget_week_today">▸%1$s</string>
+    <string name="widget_week_day_content">%1$s: %2$s</string>
+    <string name="widget_week_day_today_content">%1$s, today: %2$s</string>
+    <string name="widget_week_content">This week: %1$s</string>
+
+    <!-- Next physio day -->
+    <string name="widget_physio_today">Today</string>
+    <string name="widget_physio_tomorrow">Tomorrow</string>
+    <plurals name="widget_physio_in_days">
+        <item quantity="one">In %d day</item>
+        <item quantity="other">In %d days</item>
+    </plurals>
+    <plurals name="widget_exercises">
+        <item quantity="one">%d exercise</item>
+        <item quantity="other">%d exercises</item>
+    </plurals>
+    <plurals name="widget_plans">
+        <item quantity="one">%d plan</item>
+        <item quantity="other">%d plans</item>
+    </plurals>
+    <string name="widget_physio_today_logged">Today\'s session logged</string>
+    <string name="widget_physio_adherence_label">Last 28 days</string>
+    <plurals name="widget_physio_adherence">
+        <item quantity="one">%1$d of %2$d day (%3$d%%)</item>
+        <item quantity="other">%1$d of %2$d days (%3$d%%)</item>
+    </plurals>
+    <string name="widget_physio_privacy">Plan names stay in the app</string>
+    <!-- Compact (one-line) widget: the caption says what the day is for, as no label fits. -->
+    <string name="widget_physio_compact">Physio · %1$s</string>
+    <string name="widget_physio_content">Next physio day: %1$s</string>
+
+    <!-- Readiness: shape + word, exactly the app's levels -->
+    <string name="widget_readiness_ready">Ready</string>
+    <string name="widget_readiness_caution">Caution</string>
+    <string name="widget_readiness_rest">Rest advised</string>
+    <string name="widget_readiness_pause">On pause</string>
+    <string name="widget_readiness_value">%1$s %2$s</string>
+    <string name="widget_readiness_checkin">Check-in %1$s</string>
+    <string name="widget_readiness_no_checkin">No check-in logged</string>
+    <string name="widget_readiness_energy">Energy</string>
+    <string name="widget_readiness_sleep">Sleep</string>
+    <string name="widget_readiness_out_of_five">%1$d/5</string>
+    <string name="widget_readiness_soreness">Soreness</string>
+    <plurals name="widget_regions">
+        <item quantity="one">%d region</item>
+        <item quantity="other">%d regions</item>
+    </plurals>
+    <string name="widget_readiness_acwr">Load ratio (ACWR)</string>
+    <string name="widget_readiness_acwr_value">%1$.2f</string>
+    <string name="widget_readiness_acwr_building">Baseline building</string>
+    <string name="widget_readiness_log">Log check-in</string>
+    <string name="widget_readiness_content">Readiness: %1$s</string>
+
+    <!-- Active rig -->
+    <string name="widget_bow_recurve">Recurve</string>
+    <string name="widget_bow_compound">Compound</string>
+    <string name="widget_bow_barebow">Barebow</string>
+    <string name="widget_rig_lbs_measured">%1$.0f lbs measured</string>
+    <string name="widget_rig_lbs_estimated">≈ %1$.0f lbs estimated</string>
+    <string name="widget_rig_lbs_marked">%1$.0f lbs marked</string>
+    <string name="widget_rig_no_tuning">No tuning recorded</string>
+    <string name="widget_rig_brace">Brace height</string>
+    <string name="widget_rig_tiller">Tiller</string>
+    <string name="widget_rig_spine">Arrow spine</string>
+    <string name="widget_rig_arrow_length">Arrow length</string>
+    <string name="widget_rig_point">Point</string>
+    <string name="widget_rig_arrow_mass">Arrow mass</string>
+    <string name="widget_rig_foc">FOC</string>
+    <string name="widget_rig_gpp">GPP</string>
+    <string name="widget_value_mm">%1$.0f mm</string>
+    <string name="widget_value_tiller">%1$.0f / %2$.0f mm</string>
+    <string name="widget_value_number">%1$.0f</string>
+    <string name="widget_value_grains">%1$.0f gr</string>
+    <string name="widget_value_percent">%1$.1f%%</string>
+    <string name="widget_value_decimal">%1$.1f</string>
+    <string name="widget_fact">%1$s %2$s</string>
+    <string name="widget_rig_content">Active rig: %1$s</string>
+
+    <!-- Start training (pads) -->
+    <string name="widget_pad_score">Score</string>
+    <string name="widget_pad_resume">Resume</string>
+    <string name="widget_pad_train">Train</string>
+    <string name="widget_pad_log">Log</string>
+    <string name="widget_pad_progress">Progress</string>
+    <string name="widget_pad_body">Body</string>
+    <string name="widget_pad_calendar">Calendar</string>
+    <string name="widget_pad_score_description">Score a round</string>
+    <string name="widget_pad_resume_description">Resume your open scorecard</string>
+    <string name="widget_pad_train_description">Record form with the camera</string>
+    <string name="widget_pad_log_description">Log a check-in, rest day or more</string>
+    <string name="widget_pad_progress_description">Open Progress</string>
+    <string name="widget_pad_body_description">Open Body</string>
+    <string name="widget_pad_calendar_description">Open Calendar</string>
+    <plurals name="widget_pads_open_card">
+        <item quantity="one">Open scorecard · %1$s · %2$d of %3$d arrow</item>
+        <item quantity="other">Open scorecard · %1$s · %2$d of %3$d arrows</item>
+    </plurals>
+    <string name="widget_pads_no_open_card">No open scorecard</string>
+
+    <!-- Widget-picker previews (API 31+). Sample values, drawn without data. -->
+    <string name="widget_preview_score_total">612</string>
+    <string name="widget_preview_score_out_of">/720</string>
+    <string name="widget_preview_score_arrows">72 arrows</string>
+    <string name="widget_preview_score_round">WA 70 m · 70 m</string>
+    <string name="widget_preview_score_date">Mon, 3 Nov</string>
+    <string name="widget_preview_score_detail">14 X · 8.50 per arrow</string>
+    <string name="widget_preview_week_total">214</string>
+    <string name="widget_preview_week_unit">/ 300 arrows</string>
+    <string name="widget_preview_week_caption" formatted="false">71% of weekly target</string>
+    <string name="widget_preview_week_sessions">3 sessions</string>
+    <string name="widget_preview_physio_day">Thursday</string>
+    <string name="widget_preview_physio_when">In 2 days · Thu, 6 Nov</string>
+    <string name="widget_preview_physio_detail">5 exercises · 1 plan</string>
+    <string name="widget_preview_readiness_value">◐ Caution</string>
+    <string name="widget_preview_readiness_checkin">Check-in Tue, 4 Nov 08:12</string>
+    <string name="widget_preview_readiness_detail">Energy 3/5 · Sleep 2/5</string>
+    <string name="widget_preview_rig_name">Indoor recurve</string>
+    <string name="widget_preview_rig_meta">Recurve · ≈ 36 lbs estimated</string>
+    <string name="widget_preview_rig_detail">Brace height 220 mm</string>
 </resources>

@@ -883,6 +883,11 @@ leaks private data, or leaves the user unable to recover without clearing app st
       visibly without corrupting existing settings or installed models.
 - [x] Data wipe implementation and store-level regression coverage. [ ] Verify the wipe UX,
       recovery notice, explicit reset-after-backup, and post-reset disclosure on a physical device.
+- [ ] Home-screen widgets ([docs/widgets.md](../widgets.md#owner-verify)): all six place, resize
+      (compact/small/medium/large) and render without clipping on the release launcher(s); a data
+      wipe returns placed widgets to "Set up Crocodyl"; taps open the right screen, and a tap with
+      Capture, a Fencing bout, a Muay Thai or Bouldering entry, or a document photo open brings it
+      back unchanged.
 
 ## 3. Resilience and privacy checks
 
@@ -891,6 +896,10 @@ leaks private data, or leaves the user unable to recover without clearing app st
 - [ ] Exercise low storage, denied camera, missing camera, offline network, rotated display, and
       process death; the app remains usable for non-camera features.
 - [ ] Confirm cloud requests contain only consent-allowed fields; PRIVATE records never leave the app.
+- [ ] Confirm no PRIVATE or MEDICAL text (injury regions, physio plan names, life events, mood,
+      cycle, medication, documents) appears on any home-screen widget at any size, and that the
+      widget providers are the only new exported components, each behind `BIND_APPWIDGET`
+      ([docs/widgets.md](../widgets.md#owner-verify)).
 - [ ] Confirm app backup/restore does not silently reintroduce an incompatible Room database.
 - [ ] Confirm the release APK has cleartext disabled, backups disabled, and FileProvider is not exported.
 

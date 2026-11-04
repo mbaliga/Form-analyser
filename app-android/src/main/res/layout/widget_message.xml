@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Any widget's state (first run, empty, needs the app, error), at every size. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    style="@style/CrocodylWidgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/widget_label"
+        style="@style/CrocodylWidgetLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/widget_title"
+        style="@style/CrocodylWidgetTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:maxLines="2" />
+    <TextView
+        android:id="@+id/widget_caption"
+        style="@style/CrocodylWidgetCaption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:maxLines="3" />
+</LinearLayout>

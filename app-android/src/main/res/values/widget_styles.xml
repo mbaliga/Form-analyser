@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text and surface styles for the RemoteViews widget layouts. Sizes are in sp so they follow
+     the font scale; every text style caps its lines and ellipsizes so 1.3-2x fonts stay inside. -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="CrocodylWidgetRoot">
+        <item name="android:background">@drawable/widget_background</item>
+        <item name="android:padding">@dimen/widget_padding</item>
+        <item name="android:clipToOutline" tools:targetApi="31">true</item>
+    </style>
+    <!-- The one-line compact layout: less vertical padding. Not a child of CrocodylWidgetRoot,
+         whose android:padding would override any paddingTop/paddingBottom set here. -->
+    <style name="CrocodylWidgetRootCompact">
+        <item name="android:background">@drawable/widget_background</item>
+        <item name="android:paddingStart">@dimen/widget_padding</item>
+        <item name="android:paddingEnd">@dimen/widget_padding</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:clipToOutline" tools:targetApi="31">true</item>
+    </style>
+    <style name="CrocodylWidgetText">
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:gravity">start</item>
+        <item name="android:textAlignment">viewStart</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+    <style name="CrocodylWidgetLabel" parent="CrocodylWidgetText">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/widget_accent</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="CrocodylWidgetValue" parent="CrocodylWidgetText">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/widget_on_surface</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="CrocodylWidgetUnit" parent="CrocodylWidgetText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/widget_on_surface_dim</item>
+        <item name="android:layout_marginStart">4dp</item>
+    </style>
+    <style name="CrocodylWidgetTitle" parent="CrocodylWidgetText">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/widget_on_surface</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="CrocodylWidgetBody" parent="CrocodylWidgetText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/widget_on_surface</item>
+    </style>
+    <style name="CrocodylWidgetCaption" parent="CrocodylWidgetText">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/widget_on_surface_dim</item>
+    </style>
+    <style name="CrocodylWidgetRowKey" parent="CrocodylWidgetText">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/widget_on_surface_dim</item>
+    </style>
+    <style name="CrocodylWidgetRowValue" parent="CrocodylWidgetText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/widget_on_surface</item>
+        <item name="android:gravity">end</item>
+        <item name="android:textAlignment">viewEnd</item>
+    </style>
+    <style name="CrocodylWidgetAction" parent="CrocodylWidgetText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/widget_on_surface</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:background">@drawable/widget_pad_background</item>
+        <item name="android:minHeight">@dimen/widget_touch_target</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAlignment">center</item>
+    </style>
+    <style name="CrocodylWidgetPad">
+        <item name="android:background">@drawable/widget_pad_background</item>
+        <item name="android:minHeight">@dimen/widget_touch_target</item>
+        <item name="android:minWidth">@dimen/widget_touch_target</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">6dp</item>
+    </style>
+    <style name="CrocodylWidgetPadLabel" parent="CrocodylWidgetText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/widget_on_surface</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:layout_marginTop">2dp</item>
+    </style>
+</resources>

@@ -89,6 +89,31 @@ your API keys, imported models, raw video, caches, preferences and the Keystore 
 [OWNER: state what happens to Crocodyl's data and to any raw-video clips when the app is
 uninstalled, and the retention promise you want to make.]
 
+### Home-screen widgets
+
+[OWNER: review this section, added with the home-screen widgets on 4 November 2026, before the
+hosted copy is updated.]
+
+If you place a Crocodyl widget on your home screen, it shows a short summary read from the same
+local database: your last finished scorecard (round, score, arrows and the rig's name), this week's
+arrows against your active plan's weekly target (and the plan's title on the largest size), the next
+scheduled physio day with how many exercises and plans it holds, your readiness level with the
+latest check-in's energy, sleep, number of sore regions and workload ratio, and your active rig with
+its recorded tuning.
+<!-- C66: app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/widget/WidgetSource.kt:58-211; app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/widget/WidgetRenderer.kt:325-327 -->
+A widget never shows a physio plan's name, body regions or notes, the details of an injury, or any
+mood, life-event, cycle, medication or document entry. The readiness widget shows the level, never
+the reasons behind it; as in the app, an injury or a life event can lower that level.
+<!-- C67: app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/widget/WidgetModel.kt:420-432,495-512; app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/widget/WidgetSource.kt:158-177 -->
+Android and your launcher (the app that draws your home screen) receive and draw what a widget
+shows, on your phone, and anyone who can see your home screen can read it. Remove the widget to
+stop.
+<!-- C68: app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/widget/WidgetRefresh.kt:152; app-android/src/main/AndroidManifest.xml:78-81 -->
+Widgets make no network request, and Crocodyl keeps no separate copy of your data for them. The only
+file they write holds the app's version number, when the database could not be opened, so that
+widgets stop retrying until you open the app.
+<!-- C69: app-android/src/main/kotlin/xyz/mdhv/formanalyser/app/widget/WidgetSource.kt:239-261 -->
+
 ## What can leave your phone
 
 ### 1. The optional AI coach

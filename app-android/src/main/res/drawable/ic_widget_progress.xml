@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget pad icon, drawn for Crocodyl's widgets. Decorative: every pad also carries a word. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:fillColor="@color/widget_accent"
+        android:pathData="M4,14L8,14L8,20L4,20ZM10,9L14,9L14,20L10,20ZM16,4L20,4L20,20L16,20Z" />
+</vector>

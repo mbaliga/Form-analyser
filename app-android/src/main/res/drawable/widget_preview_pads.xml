@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker image for launchers below API 31; API 31+ draws the preview layout instead. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="56dp"
+    android:viewportWidth="250"
+    android:viewportHeight="70">
+    <path android:fillColor="@color/widget_surface" android:strokeColor="@color/widget_hairline" android:strokeWidth="1"
+        android:pathData="M16,1L234,1A15,15 0,0 1,249,16L249,54A15,15 0,0 1,234,69L16,69A15,15 0,0 1,1,54L1,16A15,15 0,0 1,16,1Z" />
+    <path android:fillColor="@color/widget_pad" android:pathData="M10,10h70v50h-70z" />
+    <path android:fillColor="@color/widget_pad" android:pathData="M90,10h70v50h-70z" />
+    <path android:fillColor="@color/widget_pad" android:pathData="M170,10h70v50h-70z" />
+    <path android:fillColor="@color/widget_accent" android:pathData="M37,20h16v16h-16z" />
+    <path android:fillColor="@color/widget_accent" android:pathData="M117,20h16v16h-16z" />
+    <path android:fillColor="@color/widget_accent" android:pathData="M197,20h16v16h-16z" />
+    <path android:fillColor="@color/widget_on_surface" android:pathData="M27,44h36v6h-36z" />
+    <path android:fillColor="@color/widget_on_surface" android:pathData="M107,44h36v6h-36z" />
+    <path android:fillColor="@color/widget_on_surface" android:pathData="M187,44h36v6h-36z" />
+</vector>

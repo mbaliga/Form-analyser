@@ -281,6 +281,28 @@ PR #11 (`feat/immersive-visuals`, merged into `main` on 2026-10-22) contains the
 - durable raw-video/session links, per-shot draw/release timestamps, phase-aligned replay from each
   shot card, and explicit raw-video deletion from Review.
 
+### 3.7 Home-screen widgets (2026-11-04, compiled and unit-tested only)
+
+Six Android App Widgets that any launcher can host: Last scorecard, This week (arrows against the
+active plan's weekly target), Next physio day, Readiness (shape + word), Active rig and Start
+training. Each has small, medium and large layouts, reads the local Room database directly, and is
+redrawn by push (Room invalidation while a widget is placed, plus one inexact midnight alarm); no
+network, no new permission, no new dependency. Measurements only: no coaching text, no streak,
+nothing from the `MEDICAL`/`PRIVATE` classes, physio plan names and readiness reasons withheld.
+On widgets, provenance is a shape plus the word `native` (it overrides §1's colour-only rule there,
+per the widget strategy D-BD, PROPOSED, v1.1 §2 rule 6 and §6, in the owner's `personal-tracker`
+repository). Each layout declares the height it needs at the current font scale, a fit test
+measures every layout against that need at 1x, 1.3x and 2x, and a widget too short for its small
+layout shows one compact line. Taps go through a non-exported, windowless `WidgetTapActivity` that
+navigates only when the main screen is on top, so a tap never finishes a Fencing bout, a journal
+entry or a document photo in progress. The readiness level still reacts to injuries and life
+events, as in the app (owner decision recorded in the doc). The providers are exported behind
+`BIND_APPWIDGET`, and `verify_manifest_contract.py` now allows exactly that shape. The Progress
+volume rule moved, unchanged, into `domain/TrainingVolume` so the widget and Progress share it. The
+privacy policy and Play Console sheet have a short widgets entry awaiting owner review. Not yet
+seen on a device or launcher; the owner-verify list and every rule are in
+[`docs/widgets.md`](docs/widgets.md).
+
 ---
 
 ## 4. Pending

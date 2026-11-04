@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pads template below its 2x2 minimum: one target, Score. Pads keep the icon centred over the
+     word in a LinearLayout; a compound drawableTop would pin the icon to a tall pad's top edge. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@android:id/background"
+    style="@style/CrocodylWidgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="6dp"
+    android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/widget_pad1"
+        style="@style/CrocodylWidgetPad"
+        tools:ignore="UseCompoundDrawables"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/widget_pad1_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:importantForAccessibility="no" />
+        <TextView
+            android:id="@+id/widget_pad1_label"
+            style="@style/CrocodylWidgetPadLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</LinearLayout>

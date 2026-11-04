@@ -69,6 +69,128 @@
             android:theme="@style/Theme.FormAnalyser" />
 
         <!--
+          Home-screen widgets (docs/widgets.md), usable by any launcher. A launcher binds them through
+          the system's widget service, so they are exported; android.permission.BIND_APPWIDGET, which
+          only the system holds, is the one sender that can reach them. They read local data, never
+          the network. tools/release/verify_manifest_contract.py allows exactly this shape.
+        -->
+        <receiver
+            android:name=".widget.LastScorecardWidget"
+            android:exported="true"
+            android:label="@string/widget_last_scorecard_name"
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_last_scorecard" />
+        </receiver>
+        <receiver
+            android:name=".widget.ThisWeekWidget"
+            android:exported="true"
+            android:label="@string/widget_this_week_name"
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_this_week" />
+        </receiver>
+        <receiver
+            android:name=".widget.NextPhysioWidget"
+            android:exported="true"
+            android:label="@string/widget_next_physio_name"
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_next_physio" />
+        </receiver>
+        <receiver
+            android:name=".widget.ReadinessWidget"
+            android:exported="true"
+            android:label="@string/widget_readiness_name"
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_readiness" />
+        </receiver>
+        <receiver
+            android:name=".widget.ActiveRigWidget"
+            android:exported="true"
+            android:label="@string/widget_active_rig_name"
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_active_rig" />
+        </receiver>
+        <receiver
+            android:name=".widget.QuickStartWidget"
+            android:exported="true"
+            android:label="@string/widget_quick_start_name"
+            android:permission="android.permission.BIND_APPWIDGET">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_quick_start" />
+        </receiver>
+        <!-- The widgets' own day-boundary alarm; only this app's PendingIntent can reach it. -->
+        <receiver
+            android:name=".widget.WidgetRefreshReceiver"
+            android:exported="false" />
+        <!-- Every widget tap goes through this windowless activity in its own empty task, so a tap
+             never finishes a screen with unsaved work (docs/widgets.md#taps). -->
+        <activity
+            android:name=".widget.WidgetTapActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />
+
+        <!--
           Grants temporary access to an explicitly shared archive or an explicitly captured
           document photo, and only to the app the athlete chooses (or the camera app). exported=false
           + grantUriPermissions means no other app can reach either path uninvited.
