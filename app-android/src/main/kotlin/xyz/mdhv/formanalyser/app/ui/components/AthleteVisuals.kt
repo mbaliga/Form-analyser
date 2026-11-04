@@ -74,7 +74,7 @@ fun CrocodylHero(
             Modifier.fillMaxWidth()
                 .height(if (largeFont) 360.dp else if (compactWidth) 288.dp else 260.dp)
                 .clip(RoundedCornerShape(30.dp))
-                .background(Hyle.SurfaceDeep)
+                .background(HeroFallbackBrush)
                 .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(30.dp)),
         ) {
             photograph.value?.let {

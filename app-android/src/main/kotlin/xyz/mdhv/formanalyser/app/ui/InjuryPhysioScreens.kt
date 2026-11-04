@@ -45,6 +45,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import xyz.mdhv.formanalyser.app.data.DocumentEntity
 import xyz.mdhv.formanalyser.app.domain.BodyViewModel
 import xyz.mdhv.formanalyser.app.domain.JsonLists
 import xyz.mdhv.formanalyser.app.ui.components.BodyAtlasCanvas
@@ -205,6 +206,7 @@ fun InjuryEditScreen(
             notes != (existing?.notes ?: "")
     val leave = rememberDiscardGuard(dirty, onDone)
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    var confirmDeleteDoc by rememberSaveable { mutableStateOf<String?>(null) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
     var pendingCaptureUri by remember { mutableStateOf<Uri?>(null) }
@@ -314,10 +316,38 @@ fun InjuryEditScreen(
                         subtitle = "${doc.mime} · ${doc.sizeBytes / 1024} KB",
                         onClick = { onOpenDocument(doc.id) },
                         trailing = {
-                            OutlinedButton(onClick = { vm.deleteDocument(doc) }) { Text("Delete") }
+                            OutlinedButton(onClick = { confirmDeleteDoc = doc.id }) { Text("Delete") }
                         },
                     )
                 }
+            // The dialog is keyed by id and resolved against the live list, so a document that has
+            // already been retracted (or never existed) simply shows no dialog.
+            documents.firstOrNull { it.id == confirmDeleteDoc }?.let { doc ->
+                AlertDialog(
+                    onDismissRequest = { confirmDeleteDoc = null },
+                    title = { Text("Delete this document?") },
+                    text = {
+                        Text(
+                            "It is moved to Recently deleted in Settings → Data, where you can " +
+                                "restore it or erase it permanently. The encrypted file stays on " +
+                                "this device until you erase it."
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                confirmDeleteDoc = null
+                                vm.retractDocument(doc)
+                            }
+                        ) {
+                            Text("Delete", color = Hyle.Danger)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { confirmDeleteDoc = null }) { Text("Keep") }
+                    },
+                )
+            }
             OutlinedButton(
                 onClick = { picker.launch(arrayOf("application/pdf", "image/*")) },
                 modifier = Modifier.fillMaxWidth(),
@@ -548,13 +578,18 @@ fun PhysioPlanEditScreen(vm: BodyViewModel, planId: String?, onDone: () -> Unit)
 /** Decrypts to the view cache and renders (image, or PDF page count note). Cache wiped on close. */
 @Composable
 fun DocumentViewerScreen(vm: BodyViewModel, documentId: String, onClose: () -> Unit) {
-    val documents by vm.documents.collectAsState()
-    val doc = documents.firstOrNull { it.id == documentId }
+    // Looked up by id from the database, not from the live list: a retracted document must not be
+    // openable even if something still holds its id (a stale route, a back-stack entry). `loaded`
+    // separates "still looking" from "looked and it is not available".
+    var doc by remember(documentId) { mutableStateOf<DocumentEntity?>(null) }
+    var loaded by remember(documentId) { mutableStateOf(false) }
     var file by remember { mutableStateOf<File?>(null) }
     var bitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(doc?.id) {
+    LaunchedEffect(documentId) {
+        doc = vm.documentForView(documentId)
+        loaded = true
         val d = doc ?: return@LaunchedEffect
         scope.launch {
             val f = vm.openDocument(d)
@@ -582,6 +617,11 @@ fun DocumentViewerScreen(vm: BodyViewModel, documentId: String, onClose: () -> U
                 bitmap = bmp.asImageBitmap(),
                 contentDescription = doc?.title,
                 modifier = Modifier.fillMaxWidth(),
+            )
+        } else if (loaded && doc == null) {
+            Text(
+                "This document is not available. If you deleted it, restore it from Settings → Data.",
+                color = Hyle.OnSurfaceDim,
             )
         } else {
             Text("Decrypting…", color = Hyle.OnSurfaceDim)

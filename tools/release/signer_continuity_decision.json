@@ -1,7 +1,7 @@
 {
   "status": "unresolved",
-  "distribution_channels": ["google-play"],
-  "strategy": null,
+  "distribution_channels": ["google-play", "direct-apk", "f-droid"],
+  "strategy": "new-application-id",
   "owner_approval_reference": null,
   "verification_evidence": []
 }

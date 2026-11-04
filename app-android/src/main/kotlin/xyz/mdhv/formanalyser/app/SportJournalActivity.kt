@@ -65,6 +65,7 @@ import xyz.mdhv.crocodyl.muaythai.MuayThaiModule
 import xyz.mdhv.crocodyl.muaythai.MuayThaiRound
 import xyz.mdhv.crocodyl.muaythai.MuayThaiRoundFocus
 import xyz.mdhv.formanalyser.app.data.SportSessionEntity
+import xyz.mdhv.formanalyser.app.ui.components.HeroFallbackBrush
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 
 class MuayThaiActivity : ComponentActivity() {
@@ -143,7 +144,7 @@ private fun SportHero(imagePath: String, eyebrow: String, title: String, subtitl
             }.getOrNull()
         }
     }
-    Box(Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(26.dp))) {
+    Box(Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(26.dp)).background(HeroFallbackBrush)) {
         poster?.let { Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
         Box(
             Modifier.fillMaxSize().background(

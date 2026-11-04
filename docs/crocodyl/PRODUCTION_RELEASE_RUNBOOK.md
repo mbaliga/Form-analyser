@@ -20,7 +20,10 @@ Dependency changes are also checked on pull requests by the pinned Dependency Re
 It fails when a PR introduces a known moderate-or-higher vulnerability in a dependency represented
 in GitHub's dependency graph. This is a change-level gate, not a scan of every existing dependency;
 confirm that the repository dependency graph is enabled and review any manifest the graph cannot
-parse. See [GitHub dependency review](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-dependency-changes-in-a-pull-request).
+parse. While the graph is disabled the workflow probes it first and skips the review with a
+`Dependency graph disabled` warning instead of failing; enabling it (Settings → Code security and
+analysis) is an owner action, after which the review blocks moderate-or-higher findings with no
+further change. See [GitHub dependency review](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-dependency-changes-in-a-pull-request).
 
 Configure these repository secrets from the production signing identity:
 
@@ -94,6 +97,63 @@ workspace with owner-only permissions. The keystore is removed before the final 
 smoke and is also covered by an `always()` cleanup step. The workflow fails closed if any signing
 input or the expected certificate fingerprint is absent.
 
+## Channels, signing key and version source
+
+Crocodyl ships one APK, built from one source tree with one application ID (`com.asoc.crocodyl`)
+and no product flavours, to these channels in this order:
+
+1. **GitHub Releases and Obtainium.** The release workflow publishes `crocodyl-<version>.apk`,
+   `crocodyl-<version>.aab` and `crocodyl-<version>-SHA256SUMS.txt`. This APK is the source for the
+   other channels.
+2. **Google Play**, enrolled in Play App Signing by uploading key K (below), so Play delivers the same
+   signature.
+3. **IzzyOnDroid**, which pulls the same developer-signed APK.
+4. **F-Droid**, reproducible and developer-signed only (`fdroid/metadata/com.asoc.crocodyl.yml`;
+   see [`fdroid/README.md`](../../fdroid/README.md)). F-Droid never signs the app: it rebuilds the
+   tag and publishes our APK only if the rebuild matches byte for byte.
+
+**Key K.** One owner-generated signing key, held by the owner and stored as the `CROCODYL_RELEASE_*`
+secrets in the `production` environment, signs every channel, so users can move between channels
+without reinstalling. Its SHA-256 certificate fingerprint goes into `CROCODYL_RELEASE_CERT_SHA256` and
+into `AllowedAPKSigningKeys` in the F-Droid recipe (quoted, lowercase, no colons; read it with
+`apksigner verify --print-certs`). Generating K and approving
+`tools/release/signer_continuity_decision.json` are owner decisions: the file lists the intended
+channels and strategy but stays `unresolved` until the owner records the approval reference and the
+verification evidence.
+
+**Version source.** `app-android/version.properties` holds `versionCode` and `versionName`, because
+F-Droid builds the tag without the workflow's `-PcrocodylVersionName/-PcrocodylVersionCode`
+overrides. Between releases it carries a `-dev` name. The release commit sets it to the release,
+for example `versionName=0.7.0` and `versionCode=700`, and the release is tagged `v<versionName>`
+(`v0.7.0`). `tools/release/resolve_version.sh` now emits three values: `tag` (the name exactly as
+given, used for the GitHub Release tag), `version` (the same name with one leading `v` removed when
+it is semver; the Android versionName and the asset file names) and `version_code`. It fails with
+"does not match app-android/version.properties; bump it in the release commit" when the file
+disagrees with the version and code being released, so a release cannot be cut from a commit that
+has not been bumped.
+
+**Highest-issued ledger.** `tools/release/highest_issued_version_code.txt` stays at the highest code
+already issued (697 now); the resolver requires the new code to be strictly greater. Raise it to 700
+in the commit that follows the issued `v0.7.0` release, together with the `"697"` literal in
+`test_release_workflow_contract.py`. Raising it inside the release commit itself would make the
+resolver reject code 700.
+
+**Rehearsal before the F-Droid merge request.** On a machine with Docker, in a checkout of
+`https://gitlab.com/fdroid/fdroiddata` with the recipe copied to `metadata/com.asoc.crocodyl.yml` and
+the real `AllowedAPKSigningKeys` filled in, build the tag in F-Droid's build image, then compare the
+result with the released, signed APK:
+
+```bash
+docker run --rm -v "$PWD":/repo -w /repo registry.gitlab.com/fdroid/fdroidserver:buildserver \
+  fdroid build --verbose --latest com.asoc.crocodyl
+apksigcopier compare crocodyl-0.7.0.apk --unsigned unsigned/com.asoc.crocodyl_700.apk
+```
+
+`apksigcopier compare` must succeed, meaning the only difference is our signature. The `reproducible`
+workflow checks the same property earlier, by building the unsigned release twice from separate
+checkouts, and the `fdroid` workflow lints the recipe and runs F-Droid's source scanner on pull
+requests.
+
 ## Trigger and verify
 
 1. Before releasing, compare the actual previous production APK's versionCode with the project's
@@ -163,6 +223,11 @@ The release is not production-approved until the production-signed artifact, phy
 records, owner approval and selected distribution channel are all recorded.
 
 ## CI supply-chain note
+
+The `fdroid` and `reproducible` workflows are advisory gates for the F-Droid channel. The `fdroid`
+workflow installs a pinned `fdroidserver` and reads only the `config/` vocabularies from a pinned
+fdroiddata commit; bump `FDROIDDATA_REF` in `.github/workflows/fdroid.yml` deliberately. fdroidserver
+ignores `--exit-code` for source scans, so the workflow reads the scanner's problem count itself.
 
 All third-party workflow actions are pinned to reviewed upstream commit SHAs. The release and CI
 jobs run `tools/release/verify_workflow_actions.py`, which fails closed if a future edit uses a

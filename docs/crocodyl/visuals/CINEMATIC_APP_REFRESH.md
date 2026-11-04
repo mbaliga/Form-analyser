@@ -1,5 +1,17 @@
 # Crocodyl cinematic app refresh
 
+> **Update 2026-10 (photographs removed).** The four Unsplash photographs described below
+> (`muay-thai-training.jpg`, `bouldering-session.jpg`, `recurve-training.jpg`,
+> `fencing-training.jpg`) and `sports-manifest.json` were removed from the repository and from every
+> build for licence reasons: the Unsplash License is not compatible with distributing the app under
+> a single free-software licence. The screenshots in this document are historical and still show
+> those photographs. The Home, Fencing and journal heroes now fall back to dark gradient surfaces
+> (`HeroFallbackBrush`), and the onboarding and facet cards keep their existing scrim and solid
+> fallbacks. The component renders produced from the original glTF models are unaffected. A
+> replacement set (renders of the committed models or CC0 photography) is follow-up work and needs
+> its own provenance record. `tools/atelier/test_assets.py` fails if any of the removed files, or
+> any mention of Unsplash, reappears under `app-android/src/main/assets/atelier`.
+
 **Owner direction:** make the Android product immersive and cinematic in the spirit of Bocal, after
 the owner saw the October 10 emulator screenshots and said the app looked poor. **Use actual,
 properly licensed photography only. No AI-generated imagery.** Preserve Crocodyl's Hyle token rules,

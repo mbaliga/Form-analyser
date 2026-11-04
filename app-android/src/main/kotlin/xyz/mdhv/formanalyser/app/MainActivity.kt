@@ -85,6 +85,7 @@ private object Routes {
     const val S_APPEARANCE = "s_appearance"
     const val S_DATA = "s_data"
     const val S_ABOUT = "s_about"
+    const val S_LICENCES = "s_licences"
     const val S_AI = "s_ai"
     const val S_EXPORT = "s_export"
     const val S_WELLNESS = "s_wellness"
@@ -516,7 +517,8 @@ private fun NavGraphBuilder.settingsGraph(
             { nav.navigate(Routes.S_EXPORT) },
         )
     }
-    composable(Routes.S_ABOUT) { SettingsAboutScreen() }
+    composable(Routes.S_ABOUT) { SettingsAboutScreen { nav.navigate(Routes.S_LICENCES) } }
+    composable(Routes.S_LICENCES) { SettingsLicencesScreen() }
 }
 
 @Composable
@@ -620,6 +622,7 @@ private fun detailTitle(r: String?): String =
         Routes.S_APPEARANCE -> "Appearance"
         Routes.S_DATA -> "Data"
         Routes.S_ABOUT -> "About"
+        Routes.S_LICENCES -> "Third-party licences"
         Routes.S_AI -> "AI coach"
         Routes.S_EXPORT -> "Export"
         Routes.S_WELLNESS -> "Wellness"

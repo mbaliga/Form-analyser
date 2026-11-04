@@ -27,6 +27,7 @@ jobs:
     permissions:
       contents: read
     outputs:
+      tag: ${{ steps.ver.outputs.tag }}
       version: ${{ steps.ver.outputs.version }}
       version_code: ${{ steps.ver.outputs.version_code }}
     steps:
@@ -114,6 +115,7 @@ jobs:
     permissions:
       contents: read
     outputs:
+      tag: ${{ needs.verify.outputs.tag }}
       version: ${{ needs.verify.outputs.version }}
       version_code: ${{ needs.verify.outputs.version_code }}
     steps:
@@ -162,7 +164,7 @@ jobs:
           CROCODYL_RELEASE_KEY_PASSWORD: ${{ secrets.CROCODYL_RELEASE_KEY_PASSWORD }}
           RELEASE_VERSION: ${{ needs.verify.outputs.version }}
           RELEASE_VERSION_CODE: ${{ needs.verify.outputs.version_code }}
-        run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
+        run: ./gradlew :app-android:bundleRelease :app-android:assembleRelease -PwithAndroid -PcrocodylRequireProductionSigning=true --no-daemon -PcrocodylVersionName="$RELEASE_VERSION" -PcrocodylVersionCode="$RELEASE_VERSION_CODE"
       - name: Run on-device smoke tests against signed minified release
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         env:
@@ -319,7 +321,7 @@ jobs:
       - name: Attach to GitHub Release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
         with:
-          tag_name: ${{ needs.sign.outputs.version }}
+          tag_name: ${{ needs.sign.outputs.tag }}
           target_commitish: ${{ github.sha }}
           files: |
             release-assets/crocodyl-${{ needs.sign.outputs.version }}.apk

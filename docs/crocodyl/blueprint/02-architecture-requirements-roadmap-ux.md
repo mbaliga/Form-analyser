@@ -76,7 +76,7 @@ Offline deterministic rule coach is guaranteed. Fixed intents cover session summ
 
 ### Human Coach workspace
 
-Paid official entitlement, open-source implementation. Roster, attention inbox, athlete detail, timestamped observations, drill/plan assignment, compare, coach-local scorebook, signed `.croc` round trips, and retention controls are required. Missing/unshared data is never interpreted as normal.
+Paid official entitlement; implementation source published, licence pending; see LICENSING.md. Roster, attention inbox, athlete detail, timestamped observations, drill/plan assignment, compare, coach-local scorebook, signed `.croc` round trips, and retention controls are required. Missing/unshared data is never interpreted as normal.
 
 ### Baseline adapter and evidence ladder
 
@@ -102,7 +102,7 @@ Representative benchmarks include MyTargets, ArcherySuccess, Artemis, CapTarget,
 
 Before v1 Crocodyl must match credible range scoring basics: fast numeric scoring, standard/custom rounds, plotting/group analysis, editable automatic End Scan and Live Observer, PB/history/sight marks, equipment/rig context, training/recovery/calendar, reliable form review, athlete-to-coach reporting, Android reliability and offline use.
 
-It must exceed through the *combined* system, not every isolated feature: sovereign coach loop, integrated evidence, honest local intelligence, desktop-without-upload, open implementation, three-mode scoring, and auditable equipment guidance. Deliberate non-parity: social feeds, public leaderboards, cloud profiles, live global matchmaking, and server-operated tournaments.
+It must exceed through the *combined* system, not every isolated feature: sovereign coach loop, integrated evidence, honest local intelligence, desktop-without-upload, published source, three-mode scoring, and auditable equipment guidance. Deliberate non-parity: social feeds, public leaderboards, cloud profiles, live global matchmaking, and server-operated tournaments.
 
 ---
 

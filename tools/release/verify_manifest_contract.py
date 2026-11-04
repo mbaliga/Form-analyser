@@ -12,9 +12,17 @@ ALLOWED_PERMISSIONS = {
     "android.permission.CAMERA",
     "android.permission.VIBRATE",
     "android.permission.INTERNET",
-    "android.permission.ACCESS_NETWORK_STATE",
     "com.asoc.crocodyl.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
 }
+# MediaPipe's usage-statistics client uploads through the datatransport "cct" backend. The backend and
+# runtime are excluded from every build (app-android/build.gradle.kts), which also removes the
+# ACCESS_NETWORK_STATE permission, the scheduler service/receiver and the backend-discovery
+# meta-data they contribute. None of these markers may reappear in a merged manifest.
+FORBIDDEN_MARKERS = (
+    "com.google.android.datatransport",
+    "backend:",
+    "CctBackendFactory",
+)
 ANDROID_ATTRIBUTE = re.compile(r'android:name\([^)]*\)="([^"]+)"')
 EXPORTED_ATTRIBUTE = re.compile(r'android:exported\([^)]*\)=(true|false)')
 DEBUGGABLE_ATTRIBUTE = re.compile(r'android:debuggable\([^)]*\)=(true|false)')
@@ -68,6 +76,13 @@ def audit(manifest_dump: str) -> list[str]:
         errors.append(f"Unexpected merged permissions: {', '.join(sorted(unexpected))}")
     if missing:
         errors.append(f"Expected permissions missing from merged manifest: {', '.join(sorted(missing))}")
+
+    for marker in FORBIDDEN_MARKERS:
+        if marker in manifest_dump:
+            errors.append(
+                f"Merged manifest contains the datatransport upload path marker {marker!r}; "
+                "transport-runtime/transport-backend-cct must stay excluded"
+            )
 
     applications = blocks(lines, APPLICATION_TAGS)
     if len(applications) != 1:

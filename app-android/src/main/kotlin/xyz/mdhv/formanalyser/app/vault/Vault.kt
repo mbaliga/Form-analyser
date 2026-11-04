@@ -101,15 +101,22 @@ class Vault(private val context: Context) {
         return outFile
     }
 
-    fun delete(encPath: String) {
+    /**
+     * Remove one ciphertext file. Returns true when the file is absent afterwards (a file that was
+     * already gone counts as success, so an erase can be retried), false when [encPath] is outside
+     * the vault or the delete failed — the caller must then keep the row that points at it.
+     */
+    fun delete(encPath: String): Boolean =
         runCatching {
-            val vault = vaultDir().canonicalFile
-            val candidate = File(encPath).canonicalFile
-            if (candidate.parentFile == vault && candidate.name.matches(SAFE_COMPONENT)) {
-                candidate.delete()
+                val vault = vaultDir().canonicalFile
+                val candidate = File(encPath).canonicalFile
+                if (candidate.parentFile == vault && candidate.name.matches(SAFE_COMPONENT)) {
+                    candidate.delete() || !candidate.exists()
+                } else {
+                    false
+                }
             }
-        }
-    }
+            .getOrDefault(false)
 
     fun wipeViewCache() {
         runCatching { viewDir().listFiles()?.forEach { it.delete() } }
