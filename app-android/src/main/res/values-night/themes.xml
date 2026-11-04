@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Base.Theme.FormAnalyser" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#0A0809</item>
+        <item name="android:statusBarColor">#0A0809</item>
+        <item name="android:navigationBarColor">#121212</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <style name="Theme.FormAnalyser" parent="Base.Theme.FormAnalyser" />
+</resources>

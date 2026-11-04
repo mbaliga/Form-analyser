@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm")
 }
 
 // Body-region ID contract + handedness-aware soreness-chip resolver (Phase 2).

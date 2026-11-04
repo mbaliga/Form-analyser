@@ -4,15 +4,18 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import xyz.mdhv.formanalyser.app.data.AppDatabase
+import xyz.mdhv.formanalyser.app.data.AppDataReset
 import xyz.mdhv.formanalyser.app.data.AppPrefs
+import xyz.mdhv.formanalyser.app.data.DocumentRetraction
 import xyz.mdhv.formanalyser.app.data.Repository
 import xyz.mdhv.formanalyser.app.data.ScoringRepository
+import xyz.mdhv.formanalyser.app.vault.Vault
 
 class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     private val prefs = AppPrefs(app)
@@ -20,7 +23,9 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
     val reduceMotion: Flow<Boolean> = prefs.reduceMotion
     val hapticStrength: Flow<String> = prefs.hapticStrength
     val glowIntensity: Flow<Int> = prefs.glowIntensity
+    val themeMode: Flow<String> = prefs.themeMode
     val keepRawVideo: Flow<Boolean> = prefs.keepRawVideo
+    val rawVideoRetentionDays: Flow<Int> = prefs.rawVideoRetentionDays
 
     fun setReduceMotion(v: Boolean) = viewModelScope.launch { prefs.setReduceMotion(v) }
 
@@ -28,25 +33,45 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setGlowIntensity(v: Int) = viewModelScope.launch { prefs.setGlowIntensity(v) }
 
+    fun setThemeMode(v: String) = viewModelScope.launch { prefs.setThemeMode(v) }
+
     fun setKeepRawVideo(v: Boolean) = viewModelScope.launch { prefs.setKeepRawVideo(v) }
 
+    fun setRawVideoRetentionDays(v: Int) =
+        viewModelScope.launch { prefs.setRawVideoRetentionDays(v) }
+
     /** Wipe everything on device and drop back to onboarding. */
-    fun wipe(onDone: () -> Unit) {
+    fun wipe(onDone: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { AppDatabase.get(getApplication()).clearAllTables() }
-            prefs.setOnboarded(false)
-            onDone()
+            try {
+                withContext(Dispatchers.IO) { AppDataReset.wipe(getApplication()) }
+                onDone()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                onFailure()
+            }
         }
     }
 
-    /** One retracted row as Settings → Data lists it. */
-    data class Retracted(val id: String, val kind: Kind, val label: String, val detail: String) {
+    /**
+     * One retracted row as Settings → Data lists it. [erasable] is true only for rows the athlete may
+     * remove for good from here (a vault document); everything else can only be restored.
+     */
+    data class Retracted(
+        val id: String,
+        val kind: Kind,
+        val label: String,
+        val detail: String,
+        val erasable: Boolean = false,
+    ) {
         enum class Kind {
             SESSION,
             SCORECARD,
             CHECKIN,
             PAIN,
             INJURY,
+            DOCUMENT,
         }
     }
 
@@ -108,6 +133,15 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                                 "Injury",
                                 "${it.mechanism.lowercase()} · severity ${it.severity}",
                             )
+                        } +
+                        repo.body.retractedDocuments(a.id).map {
+                            Retracted(
+                                it.id,
+                                Retracted.Kind.DOCUMENT,
+                                it.title,
+                                "${it.mime} · ${it.sizeBytes / 1024} KB",
+                                erasable = true,
+                            )
                         }
                 }
         }
@@ -122,8 +156,27 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                     Retracted.Kind.CHECKIN -> repo.wellness.restoreCheckin(item.id)
                     Retracted.Kind.PAIN -> repo.body.restorePainLog(item.id)
                     Retracted.Kind.INJURY -> repo.body.restoreInjury(item.id)
+                    Retracted.Kind.DOCUMENT -> repo.body.restoreDocument(item.id)
                 }
             }
+            loadRetracted()
+        }
+    }
+
+    /**
+     * Remove a retracted document and its encrypted file for good. Only reachable from the second,
+     * separately confirmed step in Settings → Data; refused for anything that is not an erasable,
+     * already-retracted document. [onFailed] runs when the file could not be removed, in which case
+     * the row is kept so the athlete can retry.
+     */
+    fun erasePermanently(item: Retracted, onFailed: () -> Unit = {}) {
+        if (!item.erasable || item.kind != Retracted.Kind.DOCUMENT) return
+        viewModelScope.launch {
+            val erased =
+                withContext(Dispatchers.IO) {
+                    DocumentRetraction(repo.body, Vault(getApplication())).erasePermanently(item.id)
+                }
+            if (!erased) onFailed()
             loadRetracted()
         }
     }

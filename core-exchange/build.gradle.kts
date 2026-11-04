@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.1.0"
-    kotlin("plugin.serialization") version "2.1.0"
+    kotlin("jvm")
+    kotlin("plugin.serialization")
 }
 
 // Phase 5 export/exchange — the consent filter that enforces PrivacyRegistry across export tiers,

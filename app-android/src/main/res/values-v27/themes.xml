@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- API 27+: dark navigation-bar icons on the light launch surface. -->
+    <style name="Theme.FormAnalyser" parent="Base.Theme.FormAnalyser">
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

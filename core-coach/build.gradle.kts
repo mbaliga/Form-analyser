@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "2.1.0"
-    kotlin("plugin.serialization") version "2.1.0"
+    kotlin("jvm")
+    kotlin("plugin.serialization")
 }
 
 // AI coach domain — provider-agnostic model registry, fact grounding, prompt assembly, privacy

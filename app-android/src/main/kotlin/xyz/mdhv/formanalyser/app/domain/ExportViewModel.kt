@@ -2,14 +2,22 @@ package xyz.mdhv.formanalyser.app.domain
 
 import android.app.Application
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.util.Base64
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteStatement
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
+import java.security.KeyFactory
 import java.security.MessageDigest
+import java.security.Signature
+import java.security.spec.X509EncodedKeySpec
 import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,19 +30,30 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.longOrNull
 import xyz.mdhv.formanalyser.app.BuildConfig
 import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.exchange.AndroidKeyProvider
+import xyz.mdhv.formanalyser.app.exchange.ExchangeTrustStore
 import xyz.mdhv.formanalyser.exchange.ConsentDecision
 import xyz.mdhv.formanalyser.exchange.ConsentFilter
+import xyz.mdhv.formanalyser.exchange.CrocEnvelope
 import xyz.mdhv.formanalyser.exchange.CrocbakManifest
 import xyz.mdhv.formanalyser.exchange.ExportTier
+import xyz.mdhv.formanalyser.exchange.ExchangeTrust
+import xyz.mdhv.formanalyser.exchange.ExchangeTrustState
+import xyz.mdhv.formanalyser.exchange.ImportColumnGuard
+import xyz.mdhv.formanalyser.exchange.PubkeyIdentity
 import xyz.mdhv.formanalyser.wellness.PrivacyClass
 import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
+import xyz.mdhv.formanalyser.wellness.RetractionRegistry
 
 /**
  * Phase 5 export ceremony (over `core-exchange`). Drives the tier/grant selection, computes the
- * live [ConsentDecision] preview, and — on confirm — assembles a `.crocbak` zip to a
+ * live [ConsentDecision] preview, and — on confirm — assembles a signed `.croc` zip to a
  * caller-supplied SAF [Uri].
  *
  * Privacy enforcement is delegated entirely to [ConsentFilter]/[PrivacyRegistry]: this VM only ever
@@ -43,9 +62,12 @@ import xyz.mdhv.formanalyser.wellness.PrivacyRegistry
  * stamped here (`System.currentTimeMillis()`) and passed IN to the pure core, per the core's
  * determinism contract.
  */
-class ExportViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val keyProvider = AndroidKeyProvider()
+class ExportViewModel @JvmOverloads constructor(
+    app: Application,
+    private val database: AppDatabase = AppDatabase.get(app),
+    private val keyProvider: AndroidKeyProvider = AndroidKeyProvider(),
+) : AndroidViewModel(app) {
+    private val trustStore = ExchangeTrustStore(app)
     private val json = Json {
         prettyPrint = false
         encodeDefaults = true
@@ -53,6 +75,28 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Result of the last export attempt (null before any attempt). */
     data class ExportOutcome(val ok: Boolean, val message: String)
+
+    data class ImportPreview(
+        val appVersion: String,
+        val createdAtMs: Long,
+        val sourceFingerprint: String,
+        val tableCount: Int,
+        val rowCount: Long,
+        val athleteNames: List<String>,
+        val signed: Boolean,
+        val trustState: ExchangeTrustState,
+        val newRows: Long,
+        val identicalRows: Long,
+        val conflictRows: Long,
+    )
+
+    private data class RowInspection(val newRows: Long, val identicalRows: Long, val conflictRows: Long)
+
+    private data class ArchiveBundle(
+        val manifest: CrocbakManifest,
+        val tables: Map<String, JsonArray>,
+        val signedFingerprint: String? = null,
+    )
 
     private val _tier = MutableStateFlow(ExportTier.SHAREABLE_ONLY)
     val tier: StateFlow<ExportTier> = _tier
@@ -71,6 +115,14 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _outcome = MutableStateFlow<ExportOutcome?>(null)
     val outcome: StateFlow<ExportOutcome?> = _outcome
+
+    private val _importPreview = MutableStateFlow<ImportPreview?>(null)
+    val importPreview: StateFlow<ImportPreview?> = _importPreview
+
+    private val _importOutcome = MutableStateFlow<ExportOutcome?>(null)
+    val importOutcome: StateFlow<ExportOutcome?> = _importOutcome
+
+    private var inspectedArchive: ArchiveBundle? = null
 
     /** MEDICAL tables the athlete may grant, per the registry (e.g. medication_entry, document). */
     val medicalTables: List<String> = PrivacyRegistry.medicalTables().sorted()
@@ -108,7 +160,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         ConsentFilter.filter(ALL_TABLES, tier, grants)
 
     /**
-     * Assemble the `.crocbak` archive into [uri] (a `CreateDocument` result). Runs off the main
+     * Assemble the signed `.croc` archive into [uri] (a `CreateDocument` result). Runs off the main
      * thread; publishes the result to [outcome].
      */
     fun export(uri: Uri) {
@@ -116,7 +168,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         _busy.value = true
         _outcome.value = null
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { runCatching { writeArchive(uri) } }
+            val result = withContext(Dispatchers.IO) { runCatching { writeArchive(uri, signed = true) } }
             _busy.value = false
             _outcome.value =
                 result.fold(
@@ -140,7 +192,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * — SAF writes it somewhere the athlete picked on this device, this hands it to an app they
      * pick.
      *
-     * Previous share exports are deleted first. A .crocbak can carry medical rows, and leaving old
+     * Previous share exports are deleted first. A .croc can carry medical rows, and leaving old
      * copies in a world-readable-to-the-recipient cache is exactly the quiet accumulation the
      * privacy model exists to prevent.
      */
@@ -156,7 +208,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                         val dir = File(app.cacheDir, SHARE_DIR).apply { mkdirs() }
                         dir.listFiles()?.forEach { it.delete() }
                         val file = File(dir, SUGGESTED_FILENAME)
-                        val message = file.outputStream().use { writeArchive(it) }
+                        val message = ShareExportPublisher.publish(file) { writeArchive(it, signed = true) }
                         val uri =
                             FileProvider.getUriForFile(app, "${app.packageName}.fileprovider", file)
                         uri to message
@@ -179,11 +231,107 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun writeArchive(uri: Uri): String {
-        val out =
-            getApplication<Application>().contentResolver.openOutputStream(uri)
-                ?: error("cannot open destination")
-        return out.use { writeArchive(it) }
+    /** Read and validate an archive without modifying the database. */
+    fun inspectImport(uri: Uri) {
+        if (_busy.value) return
+        _busy.value = true
+        _importOutcome.value = null
+        _importPreview.value = null
+        inspectedArchive = null
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val archive = readArchive(uri)
+                    archive to inspectRows(archive)
+                }
+            }
+            _busy.value = false
+            result.fold(
+                onSuccess = { (archive, rows) ->
+                    inspectedArchive = archive
+                    val manifest = archive.manifest
+                    val athletes = archive.athletes()
+                    val trustState = trustState(archive, athletes.map { it.first })
+                    _importPreview.value =
+                        ImportPreview(
+                            appVersion = manifest.appVersion,
+                            createdAtMs = manifest.createdAtMs,
+                            sourceFingerprint = manifest.athletePubkeyFingerprint,
+                            tableCount = archive.tables.size,
+                            rowCount = archive.tables.values.sumOf { it.size.toLong() },
+                            athleteNames = athletes.map { it.second },
+                            signed = archive.signedFingerprint != null,
+                            trustState = trustState,
+                            newRows = rows.newRows,
+                            identicalRows = rows.identicalRows,
+                            conflictRows = rows.conflictRows,
+                        )
+                },
+                onFailure = {
+                    _importOutcome.value =
+                        ExportOutcome(false, "Archive rejected: ${it.message ?: it.javaClass.simpleName}")
+                },
+            )
+        }
+    }
+
+    /** Merge the inspected archive. Existing rows win; the import never erases local history. */
+    fun importInspected() {
+        val archive = inspectedArchive ?: return
+        val preview = _importPreview.value ?: return
+        if (preview.trustState == ExchangeTrustState.KEY_CHANGED) return
+        if (_busy.value) return
+        _busy.value = true
+        _importOutcome.value = null
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    val message = mergeArchive(archive)
+                    archive.signedFingerprint?.let { fingerprint ->
+                        trustStore.pin(archive.athletes().map { it.first }, fingerprint)
+                    }
+                    message
+                }
+            }
+            _busy.value = false
+            result.fold(
+                onSuccess = { message ->
+                    _importOutcome.value = ExportOutcome(true, message)
+                    _importPreview.value = null
+                    inspectedArchive = null
+                },
+                onFailure = {
+                    _importOutcome.value =
+                        ExportOutcome(false, "Import failed; no rows were changed: ${it.message ?: it.javaClass.simpleName}")
+                },
+            )
+        }
+    }
+
+    fun cancelImport() {
+        inspectedArchive = null
+        _importPreview.value = null
+    }
+
+    /** First tap in the deliberate key-replacement ceremony; data remains quarantined. */
+    fun armKeyReplacement() {
+        val preview = _importPreview.value ?: return
+        if (preview.trustState == ExchangeTrustState.KEY_CHANGED) {
+            _importPreview.value = preview.copy(trustState = ExchangeTrustState.REPLACEMENT_ARMED)
+        }
+    }
+
+    private fun writeArchive(uri: Uri, signed: Boolean): String {
+        val app = getApplication<Application>()
+        val stagingFile = SafExportPublisher.newStagingFile(app.cacheDir)
+        return SafExportPublisher.publish(
+            stagingFile = stagingFile,
+            openDestination = { app.contentResolver.openOutputStream(uri) },
+            removeIncompleteDestination = {
+                DocumentsContract.deleteDocument(app.contentResolver, uri)
+            },
+            writeArchive = { writeArchive(it, signed = signed) },
+        )
     }
 
     /**
@@ -191,7 +339,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * file the sharesheet hands on — go through it, so a shared archive and a saved one are
      * byte-for-byte the same ceremony and cannot drift apart in what they include.
      */
-    private fun writeArchive(out: OutputStream): String {
+    private fun writeArchive(out: OutputStream, signed: Boolean): String {
         val decision = _decision.value
         val tier = _tier.value
         val included = decision.included.sorted()
@@ -228,9 +376,22 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
                 rowCounts = rowCounts,
             )
 
+        val signedManifest = if (signed) {
+            manifest.copy(
+                signatureAlgorithm = AndroidKeyProvider.ENVELOPE_SIGNATURE_ALGORITHM,
+                publicKeyBase64 = Base64.encodeToString(keyProvider.identity().keyBytes, Base64.NO_WRAP),
+                signatureBase64 = Base64.encodeToString(
+                    keyProvider.signEnvelope(checksum, manifest.includedTables, manifest.tierName),
+                    Base64.NO_WRAP,
+                ),
+            )
+        } else {
+            manifest
+        }
+
         ZipOutputStream(out.buffered()).use { zip ->
             zip.putNextEntry(ZipEntry("manifest.json"))
-            zip.write(manifest.serialize().toByteArray())
+            zip.write(signedManifest.serialize().toByteArray())
             zip.closeEntry()
             for ((logical, bytes) in payloads) {
                 zip.putNextEntry(ZipEntry("tables/$logical.json"))
@@ -240,7 +401,7 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         }
 
         val rows = rowCounts.values.sum()
-        return "Exported ${payloads.size} table(s), $rows row(s) to a .crocbak archive."
+        return "Exported ${payloads.size} table(s), $rows row(s) to a ${if (signed) ".croc" else ".crocbak"} archive."
     }
 
     /**
@@ -248,12 +409,12 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
      * count).
      */
     private fun dumpTable(sqlName: String): Pair<ByteArray, Long> {
-        val db = AppDatabase.get(getApplication()).openHelper.readableDatabase
+        val db = database.openHelper.readableDatabase
         val rows = ArrayList<JsonElement>()
-        // A retracted row must not ride out in an archive the athlete believes they cleaned up.
-        // The athlete deleted it here; handing it to a coach anyway would make the delete a lie.
-        val where = if (sqlName in RETRACTABLE) " WHERE deletedAt IS NULL" else ""
-        db.query("SELECT * FROM `$sqlName`$where").use { c ->
+        // A retracted row, and the children that belonged to it, must not ride out in an archive the
+        // athlete believes they cleaned up. The athlete deleted it here; handing it to a coach anyway
+        // would make the delete a lie. See [tableDumpQuery].
+        db.query(tableDumpQuery(sqlName)).use { c ->
             val cols = c.columnCount
             while (c.moveToNext()) {
                 val obj = LinkedHashMap<String, JsonElement>(cols)
@@ -280,6 +441,387 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
         return text.toByteArray() to rows.size.toLong()
     }
 
+    private fun readArchive(uri: Uri): ArchiveBundle {
+        val input =
+            getApplication<Application>().contentResolver.openInputStream(uri)
+                ?: error("cannot open archive")
+        val bytes = input.use { it.readBounded(MAX_ARCHIVE_BYTES) }
+        val first = bytes.firstOrNull { !it.toInt().toChar().isWhitespace() }
+        if (first?.toInt()?.toChar() == '{') {
+            val envelope = CrocEnvelope.deserialize(bytes.decodeToString())
+            require(envelope.payloadType == CrocEnvelope.BACKUP_PAYLOAD) { "unsupported .croc payload" }
+            require(envelope.verify()) { "the .croc signature is invalid" }
+            val archive = readArchive(java.io.ByteArrayInputStream(envelope.payload()))
+            require(archive.manifest.athletePubkeyFingerprint == envelope.senderFingerprint) {
+                "signed sender does not match the archive identity"
+            }
+            return archive.copy(signedFingerprint = envelope.senderFingerprint)
+        }
+        return readArchive(java.io.ByteArrayInputStream(bytes))
+    }
+
+    private fun readArchive(input: InputStream): ArchiveBundle {
+        val entries = LinkedHashMap<String, ByteArray>()
+        input.buffered().use { source ->
+            ZipInputStream(source).use { zip ->
+                while (true) {
+                    val entry = zip.nextEntry ?: break
+                    val name = entry.name
+                    require(!entry.isDirectory) { "unexpected directory: $name" }
+                    require(name == "manifest.json" || TABLE_ENTRY.matches(name)) {
+                        "unexpected archive entry: $name"
+                    }
+                    require(name !in entries) { "duplicate archive entry: $name" }
+                    entries[name] = zip.readBounded(MAX_ENTRY_BYTES)
+                    zip.closeEntry()
+                }
+            }
+        }
+        val manifestBytes = entries["manifest.json"] ?: error("manifest.json is missing")
+        val manifest = CrocbakManifest.deserialize(manifestBytes.decodeToString())
+        require(manifest.schemaVersion in 1..CrocbakManifest.CURRENT_SCHEMA_VERSION) {
+            "unsupported schema ${manifest.schemaVersion}"
+        }
+        require(manifest.includedTables.distinct().size == manifest.includedTables.size) {
+            "manifest contains duplicate tables"
+        }
+        require(manifest.includedTables.all { it in ALL_TABLES }) { "archive contains an unknown table" }
+        require(manifest.includedTables.none { PrivacyRegistry.classOf(it) == PrivacyClass.PRIVATE }) {
+            "archive contains a table that never leaves a device"
+        }
+
+        val payloads = LinkedHashMap<String, ByteArray>()
+        val tables = LinkedHashMap<String, JsonArray>()
+        for (logical in manifest.includedTables.sorted()) {
+            val bytes = entries["tables/$logical.json"] ?: error("table payload missing: $logical")
+            val rows = json.parseToJsonElement(bytes.decodeToString()).jsonArray
+            val expected = manifest.rowCounts?.get(logical)
+            require(expected == null || expected == rows.size.toLong()) { "row count mismatch: $logical" }
+            payloads[logical] = bytes
+            tables[logical] = rows
+        }
+        require(entries.keys.all { it == "manifest.json" || it.removePrefix("tables/").removeSuffix(".json") in manifest.includedTables }) {
+            "archive contains an undeclared table"
+        }
+        val digest = MessageDigest.getInstance("SHA-256")
+        payloads.values.forEach(digest::update)
+        val checksum = "sha256:" + digest.digest().joinToString("") { "%02x".format(it) }
+        require(MessageDigest.isEqual(checksum.toByteArray(), manifest.contentChecksum.toByteArray())) {
+            "checksum does not match; the archive may be damaged or altered"
+        }
+        return ArchiveBundle(manifest, tables, verifiedSignerFingerprint(manifest))
+    }
+
+    /**
+     * Verify the person-to-person signature a `.croc` manifest carries (see [writeArchive]) and
+     * return the signer's fingerprint, or null for a legacy unsigned `.crocbak`. A manifest that
+     * carries only part of a signature, or a key that does not match its declared identity, is
+     * rejected outright rather than downgraded to "unsigned".
+     */
+    private fun verifiedSignerFingerprint(manifest: CrocbakManifest): String? {
+        val signature = manifest.signatureBase64
+        val publicKey = manifest.publicKeyBase64
+        val algorithm = manifest.signatureAlgorithm
+        if (signature == null && publicKey == null && algorithm == null) return null
+        require(
+            signature != null && publicKey != null &&
+                algorithm == AndroidKeyProvider.ENVELOPE_SIGNATURE_ALGORITHM
+        ) {
+            "unsupported or incomplete .croc signature"
+        }
+        val keyBytes = Base64.decode(publicKey, Base64.NO_WRAP)
+        val fingerprint = PubkeyIdentity.of(keyBytes).fingerprint
+        require(fingerprint == manifest.athletePubkeyFingerprint) {
+            "signed sender does not match the archive identity"
+        }
+        val verifier = Signature.getInstance(AndroidKeyProvider.SIGNATURE_ALGORITHM)
+        verifier.initVerify(KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(keyBytes)))
+        verifier.update(
+            AndroidKeyProvider.envelopePayload(
+                manifest.contentChecksum,
+                manifest.includedTables,
+                manifest.tierName,
+            ).toByteArray(Charsets.UTF_8)
+        )
+        require(verifier.verify(Base64.decode(signature, Base64.NO_WRAP))) {
+            "the .croc signature is invalid"
+        }
+        return fingerprint
+    }
+
+    private fun ArchiveBundle.athletes(): List<Pair<String, String>> =
+        tables["athlete"].orEmpty().mapNotNull { row ->
+            val obj = row.jsonObject
+            val id = (obj["id"] as? JsonPrimitive)?.content ?: return@mapNotNull null
+            val name = (obj["displayName"] as? JsonPrimitive)?.content?.takeIf { it.isNotBlank() } ?: "Athlete"
+            id to name
+        }
+
+    private fun trustState(archive: ArchiveBundle, athleteIds: List<String>): ExchangeTrustState =
+        ExchangeTrust.evaluate(
+            archive.signedFingerprint,
+            athleteIds.mapNotNull(trustStore::fingerprintFor),
+        )
+
+    private fun mergeArchive(archive: ArchiveBundle): String {
+        val room = database
+        var inserted = 0L
+        var kept = 0L
+        var skippedRetracted = 0L
+        room.runInTransaction {
+            val db = room.openHelper.writableDatabase
+            // The same check inspect ran, repeated as a precondition of the write: the inspected archive
+            // is cached between the two calls, and nothing that reaches an INSERT may rest on that
+            // cache. Any failure throws here, before the first row, and the transaction rolls back.
+            val schemas = validateArchiveAgainstSchema(db, archive)
+            val ordered =
+                archive.tables.keys.sortedWith(compareBy({ IMPORT_ORDER.indexOf(it).let { i -> if (i < 0) Int.MAX_VALUE else i } }, { it }))
+            for (logical in ordered) {
+                val sqlName = SQL_NAME[logical] ?: logical
+                val columns = schemas.getValue(logical)
+                val tracksRetraction = sqlName in RetractionRegistry.parents
+                // One prepared statement per distinct column list (rows of one table nearly always
+                // share it). Every identifier is back-tick quoted and every value is a bound `?`:
+                // nothing from the archive is ever concatenated into SQL.
+                val statements = HashMap<List<String>, SupportSQLiteStatement>()
+                try {
+                    for (element in archive.tables.getValue(logical)) {
+                        val row = element.jsonObject
+                        // A tombstone is not history worth importing, and importing one could plant
+                        // a ghost the athlete's own device never retracted. Mirror the export filter.
+                        if (tracksRetraction && row["deletedAt"].let { it != null && it !is JsonNull }) {
+                            skippedRetracted++
+                            continue
+                        }
+                        val names = row.keys.toList()
+                        val statement =
+                            statements.getOrPut(names) { db.compileStatement(insertStatement(sqlName, names)) }
+                        statement.clearBindings()
+                        names.forEachIndexed { index, name ->
+                            val value = typedValue(logical, columns.getValue(name), row.getValue(name))
+                            when (value) {
+                                null -> statement.bindNull(index + 1)
+                                is String -> statement.bindString(index + 1, value)
+                                is Long -> statement.bindLong(index + 1, value)
+                                is Double -> statement.bindDouble(index + 1, value)
+                                else -> error("unsupported value in $logical.$name")
+                            }
+                        }
+                        if (statement.executeInsert() == -1L) kept++ else inserted++
+                    }
+                } finally {
+                    statements.values.forEach { runCatching { it.close() } }
+                }
+            }
+        }
+        val skipped = if (skippedRetracted > 0) " Skipped $skippedRetracted retracted row(s)." else ""
+        return "Imported $inserted new row(s); kept $kept existing row(s). Nothing was overwritten.$skipped"
+    }
+
+    /** One column of a real table, as `PRAGMA table_info` reports it. */
+    private data class ColumnInfo(
+        val name: String,
+        /** Declared type, upper-cased: Room only ever declares TEXT, INTEGER or REAL. */
+        val type: String,
+        val notNull: Boolean,
+        val hasDefault: Boolean,
+        val primaryKey: Boolean,
+    ) {
+        /** A row must supply this column: the database would otherwise reject (or, under IGNORE, drop) it. */
+        val required: Boolean get() = primaryKey || (notNull && !hasDefault)
+    }
+
+    private fun tableColumns(db: SupportSQLiteDatabase, sqlName: String): Map<String, ColumnInfo> {
+        val columns = LinkedHashMap<String, ColumnInfo>()
+        db.query("PRAGMA table_info(`${sqlName.replace("`", "``")}`)").use { c ->
+            val name = c.getColumnIndexOrThrow("name")
+            val type = c.getColumnIndexOrThrow("type")
+            val notNull = c.getColumnIndexOrThrow("notnull")
+            val default = c.getColumnIndexOrThrow("dflt_value")
+            val pk = c.getColumnIndexOrThrow("pk")
+            while (c.moveToNext()) {
+                columns[c.getString(name)] =
+                    ColumnInfo(
+                        name = c.getString(name),
+                        type = c.getString(type).orEmpty().trim().uppercase(),
+                        notNull = c.getInt(notNull) != 0,
+                        hasDefault = !c.isNull(default),
+                        primaryKey = c.getInt(pk) > 0,
+                    )
+            }
+        }
+        return columns
+    }
+
+    /**
+     * Refuse the whole archive unless every row of every table fits the real schema. Runs at inspect
+     * (so a hostile archive never reaches a preview) and again at merge (so nothing written rests on
+     * a cached inspection). Reads only; writes nothing.
+     *
+     *  - row counts are capped per table and per archive, bounding a zip-bomb-shaped archive;
+     *  - every JSON key must be an exact, real column of the destination table
+     *    ([ImportColumnGuard]): column names are identifiers, never free text;
+     *  - every value must match its column's declared type, and a required column must be present
+     *    and non-null, so a constraint failure cannot be swallowed by `INSERT OR IGNORE` and counted
+     *    as an existing row.
+     *
+     * Returns each table's real columns, keyed by logical table name.
+     */
+    private fun validateArchiveAgainstSchema(
+        db: SupportSQLiteDatabase,
+        archive: ArchiveBundle,
+    ): Map<String, Map<String, ColumnInfo>> {
+        var archiveRows = 0L
+        archive.tables.forEach { (logical, rows) ->
+            require(rows.size <= MAX_TABLE_ROWS) { "$logical has too many rows" }
+            archiveRows += rows.size
+        }
+        require(archiveRows <= MAX_ARCHIVE_ROWS) { "the archive has too many rows" }
+
+        val schemas = LinkedHashMap<String, Map<String, ColumnInfo>>()
+        for ((logical, rows) in archive.tables) {
+            val columns = tableColumns(db, SQL_NAME[logical] ?: logical)
+            require(columns.isNotEmpty()) { "unknown table: $logical" }
+            schemas[logical] = columns
+
+            val objects =
+                rows.map { element ->
+                    element as? JsonObject ?: throw IllegalArgumentException("a row of $logical is not an object")
+                }
+            val verdict =
+                ImportColumnGuard.validateTable(logical, columns.keys, objects.map { it.keys.toList() })
+            if (verdict is ImportColumnGuard.Result.Rejected) {
+                throw IllegalArgumentException("${verdict.table}: ${verdict.reason}")
+            }
+
+            for (row in objects) {
+                for ((name, value) in row) {
+                    // Whether a name is a real column is ImportColumnGuard's verdict, returned above;
+                    // this loop only types the values of the names it let through.
+                    val column = columns[name] ?: continue
+                    typedValue(logical, column, value)
+                }
+                for (column in columns.values) {
+                    require(!column.required || row.containsKey(column.name)) {
+                        "a row of $logical lacks the required column ${column.name}"
+                    }
+                }
+            }
+        }
+        return schemas
+    }
+
+    /**
+     * The value to bind for [value] in [column]: a String, Long or Double, or null. Typed by the
+     * column's DECLARED type, not guessed from the JSON, so a string cannot be smuggled into an
+     * INTEGER key or a number into a TEXT one. Anything the column cannot hold rejects the archive.
+     */
+    private fun typedValue(table: String, column: ColumnInfo, value: JsonElement): Any? {
+        if (value is JsonNull) {
+            require(!column.notNull && !column.primaryKey) { "$table.${column.name} must not be null" }
+            return null
+        }
+        val primitive = value as? JsonPrimitive ?: throw IllegalArgumentException("nested value in $table.${column.name}")
+        return when (column.type) {
+            "TEXT" -> {
+                require(primitive.isString) { "$table.${column.name} must be text" }
+                primitive.content
+            }
+            "INTEGER" ->
+                (if (primitive.isString) null else primitive.longOrNull)
+                    ?: throw IllegalArgumentException("$table.${column.name} must be an integer")
+            "REAL" ->
+                (if (primitive.isString) null else primitive.doubleOrNull)
+                    ?: throw IllegalArgumentException("$table.${column.name} must be a number")
+            else -> throw IllegalArgumentException("$table.${column.name} has an unsupported type")
+        }
+    }
+
+    /** `INSERT OR IGNORE INTO `t` (`c1`,`c2`) VALUES (?,?)`. Identifiers quoted, values positional. */
+    private fun insertStatement(sqlName: String, columns: List<String>): String =
+        "INSERT OR IGNORE INTO ${quoted(sqlName)} (${columns.joinToString(",") { quoted(it) }}) " +
+            "VALUES (${columns.joinToString(",") { "?" }})"
+
+    private fun quoted(identifier: String): String = "`" + identifier.replace("`", "``") + "`"
+
+    /** Compare every imported primary key before mutation so duplicates and conflicts are visible. */
+    private fun inspectRows(archive: ArchiveBundle): RowInspection {
+        val db = database.openHelper.readableDatabase
+        // Before a single row is compared or previewed: a hostile or malformed archive ends here.
+        validateArchiveAgainstSchema(db, archive)
+        var fresh = 0L
+        var identical = 0L
+        var conflicts = 0L
+        archive.tables.forEach { (logical, rows) ->
+            val table = SQL_NAME[logical] ?: logical
+            val primaryKeys = mutableListOf<Pair<Int, String>>()
+            db.query("PRAGMA table_info(`${table.replace("`", "``")}`)").use { schema ->
+                while (schema.moveToNext()) {
+                    val order = schema.getInt(5)
+                    if (order > 0) primaryKeys += order to schema.getString(1)
+                }
+            }
+            val keys = primaryKeys.sortedBy { it.first }.map { it.second }
+            require(keys.isNotEmpty()) { "table has no primary key: $logical" }
+            val tracksRetraction = table in RetractionRegistry.parents
+            rows.forEach { element ->
+                val imported = element.jsonObject
+                // Tombstones are skipped by the merge, so they are not "new" rows either.
+                if (tracksRetraction && imported["deletedAt"].let { it != null && it !is JsonNull }) return@forEach
+                val args = keys.map { key -> imported[key].asSqlArg(logical, key) }.toTypedArray()
+                val where = keys.joinToString(" AND ") { "`${it.replace("`", "``")}` = ?" }
+                db.query("SELECT * FROM `${table.replace("`", "``")}` WHERE $where LIMIT 1", args).use { cursor ->
+                    if (!cursor.moveToFirst()) fresh++
+                    else if (cursor.asJsonObject(imported.keys) == imported) identical++
+                    else conflicts++
+                }
+            }
+        }
+        return RowInspection(fresh, identical, conflicts)
+    }
+
+    private fun JsonElement?.asSqlArg(table: String, column: String): Any {
+        val value = this as? JsonPrimitive ?: error("missing primary key: $table.$column")
+        return when {
+            value.isString -> value.content
+            value.longOrNull != null -> value.longOrNull!!
+            value.doubleOrNull != null -> value.doubleOrNull!!
+            else -> error("invalid primary key: $table.$column")
+        }
+    }
+
+    private fun android.database.Cursor.asJsonObject(columns: Set<String>): JsonObject {
+        val obj = LinkedHashMap<String, JsonElement>(columns.size)
+        for (i in 0 until columnCount) {
+            val name = getColumnName(i)
+            if (name !in columns) continue
+            obj[name] =
+                when (getType(i)) {
+                    android.database.Cursor.FIELD_TYPE_NULL -> JsonNull
+                    android.database.Cursor.FIELD_TYPE_INTEGER -> JsonPrimitive(getLong(i))
+                    android.database.Cursor.FIELD_TYPE_FLOAT -> JsonPrimitive(getDouble(i))
+                    android.database.Cursor.FIELD_TYPE_STRING -> JsonPrimitive(getString(i))
+                    android.database.Cursor.FIELD_TYPE_BLOB -> JsonPrimitive(Base64.encodeToString(getBlob(i), Base64.NO_WRAP))
+                    else -> JsonNull
+                }
+        }
+        return JsonObject(obj)
+    }
+
+    private fun InputStream.readBounded(limit: Int): ByteArray {
+        val output = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(8192)
+        var total = 0
+        while (true) {
+            val read = read(buffer)
+            if (read < 0) break
+            total += read
+            require(total <= limit) { "archive entry is too large" }
+            output.write(buffer, 0, read)
+        }
+        return output.toByteArray()
+    }
+
     companion object {
         /**
          * App version stamped into every exported manifest, read from the build rather than copied.
@@ -291,9 +833,16 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
             get() = BuildConfig.VERSION_NAME
 
         /** Suggested SAF filename for the CreateDocument picker. */
-        const val SUGGESTED_FILENAME: String = "crocodyl-export.crocbak"
+        const val SUGGESTED_FILENAME: String = "crocodyl-export.croc"
 
-        /** MIME for the archive. */
+        /**
+         * MIME for Crocodyl's portable archive. Keep this vendor type rather than
+         * `application/zip`: Android's DocumentsUI otherwise appends `.zip` to the requested
+         * `.croc` filename, hiding the artifact type from users and import tooling.
+         */
+        const val MIME_CROC: String = "application/vnd.crocodyl.croc"
+
+        /** MIME used when picking a plain zip-form archive to import. */
         const val MIME_ZIP: String = "application/zip"
 
         /** Cache subdirectory the FileProvider exposes; nothing else in the cache is shareable. */
@@ -311,10 +860,49 @@ class ExportViewModel(app: Application) : AndroidViewModel(app) {
             mapOf("athlete" to "athletes", "session" to "sessions", "shot" to "shots")
 
         /**
-         * SQL tables carrying a `deletedAt` retraction column (see AppDatabase.MIGRATION_6_7 for
-         * `sessions`/`score_session`, MIGRATION_7_8 for `checkin`/`pain_log`/`injury`).
+         * Build the fixed-name cursor query, excluding what the athlete retracted and everything that
+         * belonged to it.
+         *
+         * A parent table (one with a `deletedAt` column, see [RetractionRegistry.parents]) drops its
+         * own retracted rows. A child that cannot exist without its parent (a NOT NULL reference, see
+         * [RetractionRegistry.ownedRefs]) additionally drops every row whose parent is *known* to be
+         * retracted: the shots of a deleted session, the arrows of a deleted scorecard, the soreness
+         * regions of a deleted check-in. Retracting a parent leaves its children in place, so without
+         * this the delete would be a lie to whoever received the export.
+         *
+         * `NOT EXISTS` rather than `NOT IN`: it is NULL-safe, and a child whose parent row is simply
+         * absent (an orphan, which an import without foreign keys can legitimately create) is still
+         * exported, as before. Nullable references are links, not ownership, and are not filtered.
          */
-        private val RETRACTABLE: Set<String> =
-            setOf("sessions", "score_session", "checkin", "pain_log", "injury")
+        internal fun tableDumpQuery(sqlName: String): String {
+            require(sqlName.matches(Regex("[a-z_]+"))) { "Unexpected export table name" }
+            // PRIVATE (raw video paths); the consent filter already never reaches it. Refuse here too.
+            require(sqlName != "capture_media") { "capture_media is never exported" }
+            val predicates = ArrayList<String>()
+            if (sqlName in RetractionRegistry.parents) predicates += "deletedAt IS NULL"
+            for (ref in RetractionRegistry.ownedRefs(sqlName)) {
+                predicates +=
+                    "NOT EXISTS (SELECT 1 FROM `${ref.parent}` p WHERE p.id = `$sqlName`.`${ref.column}` AND p.deletedAt IS NOT NULL)"
+            }
+            val where = if (predicates.isEmpty()) "" else " WHERE " + predicates.joinToString(" AND ")
+            return "SELECT * FROM `$sqlName`$where"
+        }
+
+        private val TABLE_ENTRY = Regex("tables/[a-z0-9_]+\\.json")
+        private const val MAX_ENTRY_BYTES = 32 * 1024 * 1024
+        private const val MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
+
+        /** Row ceilings that bound a zip-bomb-shaped archive (the byte limits above do not). */
+        internal const val MAX_TABLE_ROWS = 200_000
+        internal const val MAX_ARCHIVE_ROWS = 1_000_000
+
+        /** Parents before children so foreign-key enforcement remains active throughout import. */
+        private val IMPORT_ORDER =
+            listOf(
+                "athlete", "rig", "session", "score_session", "checkin", "injury", "pain_log", "sport_session",
+                "physio_plan", "training_plan", "shot", "score_arrow", "score_opponent_end",
+                "soreness", "physio_exercise", "physio_session", "document",
+                "score_candidate", "observer_score_event", "session_context",
+            )
     }
 }

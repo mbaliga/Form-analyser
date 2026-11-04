@@ -27,6 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -46,6 +49,7 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
     val streak by vm.streak.collectAsState()
     val loads by vm.loads.collectAsState()
     val acwr by vm.acwr.collectAsState()
+    val srpeAcwr by vm.srpeAcwr.collectAsState()
     var view by rememberSaveable { mutableStateOf("Calendar") }
 
     Column(
@@ -77,6 +81,7 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
                 },
                 color = if (frozen) Hyle.OnSurfaceDim else Hyle.RadiumGreen,
             )
+            StreakStrip(marks)
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -98,7 +103,49 @@ fun CalendarScreen(vm: CalendarViewModel, onLog: () -> Unit) {
                 acwr?.let { if (it.warmupComplete) it.latest?.acwr else null },
                 acwr?.warmupDaysElapsed,
                 acwr?.warmupComplete == true,
+                srpeAcwr?.let { if (it.warmupComplete) it.latest?.acwr else null },
             )
+        }
+    }
+}
+
+/** Seven explicit day glyphs make the streak understandable without relying on a number alone. */
+@Composable
+private fun StreakStrip(marks: Map<LocalDate, xyz.mdhv.formanalyser.app.domain.DayMarks>) {
+    val today = LocalDate.now()
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Last 7 days", color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            (6 downTo 0).forEach { age ->
+                val date = today.minusDays(age.toLong())
+                val mark = marks[date]
+                val (glyph, meaning, color) = when {
+                    mark?.hiatus == true -> Triple("░", "hiatus", Hyle.OnSurfaceDim)
+                    mark?.session == true -> Triple("●", "session", Hyle.RadiumGreen)
+                    mark?.rest == true -> Triple("◦", "rest", Hyle.OnSurfaceDim)
+                    mark?.checkin == true -> Triple("·", "check-in", Hyle.Accent)
+                    else -> Triple("○", "no logged activity", Hyle.OnSurfaceDim)
+                }
+                Column(
+                    Modifier.weight(1f).semantics {
+                        contentDescription = "$date, $meaning"
+                    },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, Locale.getDefault()),
+                        color = Hyle.OnSurfaceDim,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                    Box(
+                        Modifier.fillMaxWidth().height(30.dp).clip(RoundedCornerShape(8.dp))
+                            .background(if (date == today) Hyle.Surface else Hyle.Background),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(glyph, color = color, style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+            }
         }
     }
 }
@@ -186,6 +233,7 @@ private fun LoadView(
     latestAcwr: Double?,
     warmupDays: Int?,
     warm: Boolean,
+    latestSrpeAcwr: Double?,
 ) {
     if (!warm) {
         Text(
@@ -194,7 +242,7 @@ private fun LoadView(
         )
     } else {
         Text(
-            "ACWR ${latestAcwr?.let { String.format("%.2f", it) } ?: "—"}  (sweet 0.8–1.3)",
+            "ACWR ${latestAcwr?.let { String.format(Locale.ROOT, "%.2f", it) } ?: "—"}  (sweet 0.8–1.3)",
             color = Hyle.OnBackground,
         )
     }
@@ -207,29 +255,78 @@ private fun LoadView(
             }
             .toSortedMap()
             .values
-            .map { wk -> wk.sumOf { it.shotLoad } to wk.any { !it.complete } }
+            .map {
+                wk ->
+                WeeklyLoad(
+                    shotLoad = wk.sumOf { it.shotLoad },
+                    srpeLoad = wk.sumOf { it.srpeLoad },
+                    incompleteShotLoad = wk.any { !it.complete },
+                )
+            }
             .takeLast(8)
     if (weekly.isEmpty()) {
         Text("No load yet — shoot a session.", color = Hyle.OnSurfaceDim)
         return
     }
-    val maxLoad = weekly.maxOf { it.first }.coerceAtLeast(1.0)
+    LoadLane(
+        weekly = weekly,
+        value = { it.shotLoad },
+        color = Hyle.Accent,
+        hollow = { it.incompleteShotLoad },
+        title = "Weekly shot load (arrows × kg). Hollow = missing poundage.",
+    )
+    // The sRPE secondary lane's ratio (Acwr.computeSrpe): a strain read the shot-load ratio cannot
+    // see -- a long, gruelling holds/SPT session adds no arrows. Shown only once its own warm-up
+    // is complete, so an immature ratio is never presented as a verdict.
+    latestSrpeAcwr?.let {
+        Text(
+            "sRPE ACWR ${String.format(Locale.ROOT, "%.2f", it)}  (sweet 0.8–1.3)",
+            color = Hyle.OnBackground,
+        )
+    }
+    LoadLane(
+        weekly = weekly,
+        value = { it.srpeLoad },
+        color = Hyle.RadiumGreen,
+        hollow = { false },
+        title = "Weekly sRPE load (minutes × RPE).",
+    )
+    if (weekly.all { it.srpeLoad == 0.0 }) {
+        Text(
+            "sRPE appears after a session has a duration and post-session RPE.",
+            color = Hyle.OnSurfaceDim,
+            style = MaterialTheme.typography.labelMedium,
+        )
+    }
+}
+
+private data class WeeklyLoad(
+    val shotLoad: Double,
+    val srpeLoad: Double,
+    val incompleteShotLoad: Boolean,
+)
+
+@Composable
+private fun LoadLane(
+    weekly: List<WeeklyLoad>,
+    value: (WeeklyLoad) -> Double,
+    color: Color,
+    hollow: (WeeklyLoad) -> Boolean,
+    title: String,
+) {
+    val maxLoad = weekly.maxOf { value(it) }.coerceAtLeast(1.0)
     Canvas(Modifier.fillMaxWidth().height(140.dp)) {
         val n = weekly.size
         val barW = size.width / (n * 1.5f)
-        weekly.forEachIndexed { i, (load, incomplete) ->
-            val h = (load / maxLoad * size.height).toFloat()
+        weekly.forEachIndexed { i, load ->
+            val h = (value(load) / maxLoad * size.height).toFloat()
             val x = i * size.width / n + (size.width / n - barW) / 2
             drawRect(
-                color = if (incomplete) Hyle.SurfaceVariant else Hyle.Accent,
+                color = if (hollow(load)) Hyle.SurfaceVariant else color,
                 topLeft = Offset(x, size.height - h),
                 size = androidx.compose.ui.geometry.Size(barW, h),
             )
         }
     }
-    Text(
-        "Weekly shot load (arrows × kg). Hollow = missing poundage.",
-        color = Hyle.OnSurfaceDim,
-        style = MaterialTheme.typography.labelMedium,
-    )
+    Text(title, color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelMedium)
 }

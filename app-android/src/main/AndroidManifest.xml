@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Vision is the core modality: the camera films the archer (sagittal) for pose/form. -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -16,14 +17,24 @@
          no call. The AI coach is opt-in and every provider is bring-your-own-key. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- MediaPipe's usage-statistics client (datatransport, see app-android/build.gradle.kts) is the
+         only thing that ever asked for this permission, and that client is excluded and replaced by
+         a no-op sink. Nothing in Crocodyl checks connectivity, so strip it if any library
+         contributes it again; tools/release/verify_manifest_contract.py rejects it too. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+
     <!-- allowBackup off (pre-release): auto-backup could restore an old-schema form-analyser.db
          onto a fresh install, making Room run a migration it can't reconcile and crash on first
          write. Local-first data is rebuilt on device; nothing here needs cloud backup yet. -->
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/ic_crocodyl"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FormAnalyser">
+        android:theme="@style/Theme.FormAnalyser"
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -41,11 +52,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".EquipmentAtelierActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".FencingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".MuayThaiActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".BoulderingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.FormAnalyser" />
+        <activity
+            android:name=".CommunityDirectoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FormAnalyser" />
 
         <!--
-          Grants read access to one exported archive at a time, and only to the app the athlete
-          picks in the sharesheet. exported=false + grantUriPermissions means no other app can
-          reach it uninvited; the paths file limits it to cache/share.
+          Grants temporary access to an explicitly shared archive or an explicitly captured
+          document photo, and only to the app the athlete chooses (or the camera app). exported=false
+          + grantUriPermissions means no other app can reach either path uninvited.
         -->
         <provider
             android:name="androidx.core.content.FileProvider"

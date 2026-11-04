@@ -6,40 +6,273 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "fencing-module/**"
+      - "muaythai-module/**"
+      - "bouldering-module/**"
+      - "core-*/**"
+      - "gradle/**"
+      - "gradle.properties"
+      - "settings.gradle.kts"
       - "app-android/**"
+      - "tools/atelier/**"
       - "*.gradle.kts"
       - ".github/workflows/android.yml"
   pull_request:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "fencing-module/**"
+      - "muaythai-module/**"
+      - "bouldering-module/**"
+      - "core-*/**"
+      - "gradle/**"
+      - "gradle.properties"
+      - "settings.gradle.kts"
       - "app-android/**"
+      - "tools/atelier/**"
       - "*.gradle.kts"
       - ".github/workflows/android.yml"
 
+permissions:
+  contents: read
+
 jobs:
   assemble:
-    runs-on: ubuntu-latest
+    # Pinned: the emulator lanes broke when ubuntu-latest began migrating to Ubuntu 26.
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: temurin
           java-version: "21"
-      # ubuntu-latest ships an Android SDK; this ensures cmdline-tools + accepted licenses
-      # so AGP can fetch any missing platform/build-tools.
-      - uses: android-actions/setup-android@v3
+      # setup-android's default package list includes Google's removed `tools` package; AGP
+      # downloads the required platforms/build-tools, so install only platform-tools here.
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
         with:
-          # setup-android's default package set also requests the obsolete 'tools' package, which
-          # is no longer in the SDK repository — sdkmanager exits 1 and the job dies before any
-          # compilation. Ported from feat/immersive-visuals 0d7eefa, where CI is green with it.
           packages: platform-tools
       # -PwithAndroid opts :app-android into the build (see settings.gradle.kts).
+      - name: Run JVM unit tests
+        run: ./gradlew test --no-daemon
+      - name: Run Android unit tests
+        run: ./gradlew :app-android:testDebugUnitTest :app-android:testReleaseUnitTest -PwithAndroid --no-daemon --console=plain 2>&1 | tee android-unit-tests.log
+      - name: Annotate Android unit test failure
+        if: failure()
+        run: |
+          # Surface the Gradle failure in check-run annotations (job logs are not always reachable).
+          {
+            grep -E '^e: |^w: .*error|FAILED$|What went wrong' -A4 android-unit-tests.log || tail -n 40 android-unit-tests.log
+          } | head -n 40 | sed 's/$/%0A/' | tr -d '\n' | sed 's/^/::error title=Android unit tests::/'
+          echo
+      - name: Run Android lint
+        run: |
+          ./gradlew :app-android:lintRelease -PwithAndroid --no-daemon --console=plain 2>&1 | tee lint.log
+          exit "${PIPESTATUS[0]}"
+      - name: Annotate Android lint findings
+        if: failure()
+        run: |
+          # Surface the Gradle failure block (when lint never ran) as check-run annotations.
+          # GitHub keeps only 10 annotations per step, so bundle each group into one message.
+          grep -v '^> Task' lint.log > lint.filtered.log || true
+          annotate() { # $1 = title, stdin = lines
+            local body
+            body="$(cut -c1-300 | head -n 25 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n')"
+            [ -n "$body" ] && echo "::error title=$1::$body" || true
+          }
+          grep -E '^e: ' lint.filtered.log | annotate "Kotlin compile errors"
+          grep -A8 'What went wrong' lint.filtered.log | annotate "Gradle: what went wrong"
+          grep -E 'Caused by|Could not|Unresolved reference|error:' lint.filtered.log | awk '!seen[$0]++' | annotate "Gradle: causes"
+          { echo '### lintRelease output (last 300 lines)'; echo '```'; tail -n 300 lint.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          # Surface lint issues as check-run annotations (job logs are not always reachable).
+          python3 - <<'PY'
+          import glob
+          import xml.etree.ElementTree as ET
+          files = glob.glob("app-android/build/reports/lint-results-*.xml")
+          if not files:
+              print("::error title=Android lint::no lint XML report found (build failed before lint reported)")
+          for report in files:
+              count = 0
+              for issue in ET.parse(report).getroot().iter("issue"):
+                  if issue.get("severity") not in ("Error", "Fatal"):
+                      continue
+                  loc = issue.find("location")
+                  path = loc.get("file", "") if loc is not None else ""
+                  line = loc.get("line", "1") if loc is not None else "1"
+                  msg = " ".join((issue.get("message") or "").split())
+                  print(f"::error file={path},line={line}::{issue.get('id')}: {msg}"[:900])
+                  count += 1
+                  if count >= 40:
+                      break
+          PY
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Prepare AVD home
+        run: mkdir -p /home/runner/.android/avd
+      - name: Run on-device Android smoke tests
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          # avdmanager (cmdline-tools 16) and emulator 37.x disagree on the default AVD directory.
+          ANDROID_USER_HOME: /home/runner/.android
+          ANDROID_AVD_HOME: /home/runner/.android/avd
+        with:
+          api-level: 36
+          target: google_apis
+          avd-name: ci-36
+          force-avd-creation: true
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          ram-size: 4096M
+          cores: 2
+          script: |
+            bash tools/release/ci_settle_device.sh
+            mkdir -p app-android/build/diagnostics
+            ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api36.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api36.log; exit 1; }
+      - name: Run debug smoke tests on Android 15
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          # avdmanager (cmdline-tools 16) and emulator 37.x disagree on the default AVD directory.
+          ANDROID_USER_HOME: /home/runner/.android
+          ANDROID_AVD_HOME: /home/runner/.android/avd
+        with:
+          api-level: 35
+          target: google_apis
+          avd-name: ci-35
+          force-avd-creation: true
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          ram-size: 4096M
+          cores: 2
+          script: |
+            bash tools/release/ci_settle_device.sh
+            mkdir -p app-android/build/diagnostics
+            ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api35.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api35.log; exit 1; }
+      - name: Preflight the 16 KB page-size emulator image (observable boot check)
+        # android-emulator-runner hides its output; this boots the same image with a readable log
+        # and annotates sdkmanager/avdmanager/emulator output. Not a gate: the lane below is.
+        continue-on-error: true
+        env:
+          ANDROID_USER_HOME: /home/runner/.android
+          ANDROID_AVD_HOME: /home/runner/.android/avd
+          BOOT_TIMEOUT_SECONDS: "180"
+        run: bash tools/release/ci_emulator_boot_check.sh 36 google_apis_ps16k
+      - name: Run debug smoke tests on 16 KB page-size emulator
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        env:
+          # avdmanager (cmdline-tools 16) and emulator 37.x disagree on the default AVD directory.
+          ANDROID_USER_HOME: /home/runner/.android
+          ANDROID_AVD_HOME: /home/runner/.android/avd
+        with:
+          api-level: 36
+          target: google_apis_ps16k
+          avd-name: ci-36-ps16k
+          force-avd-creation: true
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          ram-size: 4096M
+          cores: 2
+          script: |
+            # android-emulator-runner runs each script line in its own shell, so a variable must be
+            # set and used on the same line.
+            page_size="$(adb shell getconf PAGE_SIZE | tr -d '\r')"; test "$page_size" = 16384 || { echo "Expected 16 KB pages, got $page_size" >&2; exit 1; }
+            adb shell settings put system font_scale 1.3
+            font_scale="$(adb shell settings get system font_scale | tr -d '\r')"; test "$font_scale" = 1.3 || { echo "Expected font scale 1.3, got $font_scale" >&2; exit 1; }
+            bash tools/release/ci_settle_device.sh
+            mkdir -p app-android/build/diagnostics
+            ./gradlew :app-android:connectedDebugAndroidTest -PwithAndroid --no-daemon --console=plain > app-android/build/diagnostics/connected-api36-16kb.log 2>&1 || { tail -n 60 app-android/build/diagnostics/connected-api36-16kb.log; exit 1; }
+      - name: Collect Android debug instrumentation diagnostics
+        if: always()
+        run: |
+          mkdir -p app-android/build/diagnostics
+          timeout 30 adb logcat -d -v threadtime > app-android/build/diagnostics/debug-logcat.txt 2>&1 || true
+      - name: Annotate Android instrumentation failures
+        if: failure()
+        run: |
+          # Failed tests from JUnit XML, or the Gradle/emulator output when no XML was produced
+          # (emulator never booted, "No tests found"); readable without job-log access.
+          python3 - <<'PY'
+          import glob
+          import re
+          import xml.etree.ElementTree as ET
+          reports = glob.glob("app-android/build/outputs/androidTest-results/connected/**/*.xml", recursive=True)
+          failed = tests = 0
+          for report in reports:
+              try:
+                  root = ET.parse(report).getroot()
+              except ET.ParseError:
+                  continue
+              for case in root.iter("testcase"):
+                  tests += 1
+                  bad = case.find("failure")
+                  if bad is None:
+                      bad = case.find("error")
+                  if bad is None:
+                      continue
+                  failed += 1
+                  if failed <= 8:
+                      text = (bad.get("message") or bad.text or "").strip().splitlines()[:3]
+                      msg = "%0A".join(t[:2500] for t in text)
+                      print(f"::error title=FAILED {case.get('classname')}.{case.get('name')}::{msg}")
+          print(f"::notice title=Instrumentation results::xml_reports={len(reports)} tests={tests} failed={failed}")
+          if not reports:
+              print("::error title=Instrumentation infra::no androidTest JUnit XML produced (emulator did not boot, or no tests ran)")
+          PY
+          {
+            echo '### Instrumentation output'
+            for f in app-android/build/diagnostics/connected-*.log; do
+              [ -f "$f" ] || continue
+              echo "#### $f"; echo '```'
+              grep -E 'FAILED|No tests found|INSTRUMENTATION_STATUS|Process crashed|emulator|What went wrong|Caused by|Tests? .*(failed|passed)' "$f" | tail -n 40
+              echo '```'
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+          ls -la app-android/build/diagnostics 2>&1 | head -n 20 | sed 's/$/%0A/' | tr -d '\n' | sed 's/^/::notice title=diagnostics dir::/'; echo
+          annotate() { # $1 = title, stdin = lines
+            local body
+            body="$(cut -c1-300 | head -n 25 | sed 's/%/%25/g' | sed 's/$/%0A/' | tr -d '\n')"
+            [ -n "$body" ] && echo "::error title=$1::$body" || true
+          }
+          for f in app-android/build/diagnostics/connected-*.log; do
+            [ -f "$f" ] || { echo "::error title=no instrumentation log::the emulator script never started Gradle (emulator did not boot or install failed)"; break; }
+            grep -v '^> Task' "$f" > "$f.filtered" || true
+            n="$(basename "$f")"
+            grep -E '^e: ' "$f.filtered" | annotate "$n Kotlin errors"
+            grep -A8 'What went wrong' "$f.filtered" | annotate "$n what went wrong"
+            grep -E 'INSTRUMENTATION_STATUS|Failed to install|INSTALL_FAILED|FAILED|No tests found|Process crashed|Caused by|Could not' "$f.filtered" | awk '!seen[$0]++' | tail -n 20 | annotate "$n signals"
+            tail -n 12 "$f.filtered" | annotate "$n tail"
+          done
+      - name: Upload Android debug test reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: crocodyl-android-debug-test-reports
+          path: |
+            app-android/build/test-results/**
+            app-android/build/outputs/androidTest-results/connected/debug/**
+            app-android/build/reports/androidTests/connected/debug/**
+            app-android/build/diagnostics/debug-logcat.txt
+            app-android/build/diagnostics/connected-*.log
+          if-no-files-found: warn
       - name: Assemble debug APK
         run: ./gradlew :app-android:assembleDebug -PwithAndroid --no-daemon
+      - name: Upload Android test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: form-analyser-android-test-results
+          path: app-android/build/test-results/testDebugUnitTest/**
+          if-no-files-found: ignore
       - name: Upload APK
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: form-analyser-debug
           path: app-android/build/outputs/apk/debug/*.apk

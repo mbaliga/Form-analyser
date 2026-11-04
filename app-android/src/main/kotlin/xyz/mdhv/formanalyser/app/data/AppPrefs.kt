@@ -19,10 +19,13 @@ class AppPrefs(private val context: Context) {
         val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
         val HAPTIC_STRENGTH = stringPreferencesKey("haptic_strength")
         val GLOW_INTENSITY = intPreferencesKey("glow_intensity")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
         val KEEP_RAW_VIDEO = booleanPreferencesKey("keep_raw_video")
+        val RAW_VIDEO_RETENTION_DAYS = intPreferencesKey("raw_video_retention_days")
         val PLANNED_REST_DAYS = stringPreferencesKey("planned_rest_days") // CSV: "MO,TH"
         val CYCLE_ENABLED = booleanPreferencesKey("cycle_enabled")
         val SORENESS_CHIPS = booleanPreferencesKey("soreness_chips")      // true = chips fallback, false = mini-atlas
+        val PAIRED_SESSION_WALKTHROUGH_SEEN = booleanPreferencesKey("paired_session_walkthrough_seen")
     }
 
     val role: Flow<String> = context.dataStore.data.map { it[Keys.ROLE] ?: "ARCHER" }
@@ -30,14 +33,21 @@ class AppPrefs(private val context: Context) {
     val reduceMotion: Flow<Boolean> = context.dataStore.data.map { it[Keys.REDUCE_MOTION] ?: false }
     val hapticStrength: Flow<String> = context.dataStore.data.map { it[Keys.HAPTIC_STRENGTH] ?: "MED" }
     val glowIntensity: Flow<Int> = context.dataStore.data.map { it[Keys.GLOW_INTENSITY] ?: 100 }
+    val themeMode: Flow<String> = context.dataStore.data.map { it[Keys.THEME_MODE] ?: "SYSTEM" }
     val keepRawVideo: Flow<Boolean> = context.dataStore.data.map { it[Keys.KEEP_RAW_VIDEO] ?: false }
+    /** 0 means keep until the athlete deletes it; avoids surprise deletion after an upgrade. */
+    val rawVideoRetentionDays: Flow<Int> =
+        context.dataStore.data.map { it[Keys.RAW_VIDEO_RETENTION_DAYS] ?: 0 }
 
     suspend fun setRole(v: String) = context.dataStore.edit { it[Keys.ROLE] = v }
     suspend fun setOnboarded(v: Boolean) = context.dataStore.edit { it[Keys.ONBOARDED] = v }
     suspend fun setReduceMotion(v: Boolean) = context.dataStore.edit { it[Keys.REDUCE_MOTION] = v }
     suspend fun setHapticStrength(v: String) = context.dataStore.edit { it[Keys.HAPTIC_STRENGTH] = v }
     suspend fun setGlowIntensity(v: Int) = context.dataStore.edit { it[Keys.GLOW_INTENSITY] = v }
+    suspend fun setThemeMode(v: String) = context.dataStore.edit { it[Keys.THEME_MODE] = v }
     suspend fun setKeepRawVideo(v: Boolean) = context.dataStore.edit { it[Keys.KEEP_RAW_VIDEO] = v }
+    suspend fun setRawVideoRetentionDays(v: Int) =
+        context.dataStore.edit { it[Keys.RAW_VIDEO_RETENTION_DAYS] = v.coerceAtLeast(0) }
 
     val plannedRestDays: Flow<String> = context.dataStore.data.map { it[Keys.PLANNED_REST_DAYS] ?: "" }
     val cycleEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.CYCLE_ENABLED] ?: false }
@@ -46,4 +56,13 @@ class AppPrefs(private val context: Context) {
     suspend fun setPlannedRestDays(v: String) = context.dataStore.edit { it[Keys.PLANNED_REST_DAYS] = v }
     suspend fun setCycleEnabled(v: Boolean) = context.dataStore.edit { it[Keys.CYCLE_ENABLED] = v }
     suspend fun setSorenessChips(v: Boolean) = context.dataStore.edit { it[Keys.SORENESS_CHIPS] = v }
+
+    val pairedSessionWalkthroughSeen: Flow<Boolean> =
+        context.dataStore.data.map { it[Keys.PAIRED_SESSION_WALKTHROUGH_SEEN] ?: false }
+
+    suspend fun setPairedSessionWalkthroughSeen(v: Boolean) =
+        context.dataStore.edit { it[Keys.PAIRED_SESSION_WALKTHROUGH_SEEN] = v }
+
+    /** Reset every app preference to its documented first-run default during a full data wipe. */
+    suspend fun clearAll() = context.dataStore.edit { it.clear() }
 }

@@ -6,7 +6,7 @@
 **Date:** 2026-08-10  
 **Primary launch:** Android · Olympic Recurve · club pilot  
 **Surfaces:** Athlete app · paid Coach workspace · static web viewer · future iOS  
-**Operating model:** Local-first · no maintained backend · open-source code · portable files
+**Operating model:** Local-first · no maintained backend · source published, licence pending (see LICENSING.md) · portable files
 
 ---
 
@@ -21,9 +21,9 @@ Where this document conflicts with the older documents, this document governs af
 1. **Olympic Recurve is the first complete discipline.** Compound follows; Korean and other traditional forms follow after the discipline contract is proven.
 2. **Android is the first native client.** A static, local-only web viewer is required for v1. iOS follows after the shared contracts stabilize.
 3. **There is no maintained application backend.** Core training, scoring, analysis, storage, sharing, coach exchange, and browser viewing must remain usable without one.
-4. **The athlete product is free and open-source.** Single-athlete scoring, form analysis, equipment, wellness, progress, local AI, BYOK, export, and backup are not paywalled.
-5. **Human Coach features are paid and open-source.** The official binary gates the multi-athlete workspace, but the source remains public.
-6. **Baseline is a cross-app engine.** Crocodyl integrates with it through a stable adapter. Cross-app and cross-cutting Baseline insights are paid and open-source. Baseline internals are intentionally not specified here.
+4. **The athlete product is free; its source is published, licence pending (see LICENSING.md).** Single-athlete scoring, form analysis, equipment, wellness, progress, local AI, BYOK, export, and backup are not paywalled.
+5. **Human Coach features are paid.** The official binary gates the multi-athlete workspace, but the source remains public (source published, licence pending; see LICENSING.md).
+6. **Baseline is a cross-app engine.** Crocodyl integrates with it through a stable adapter. Cross-app and cross-cutting Baseline insights are paid; their licence and source publication are pending (see LICENSING.md and decision 3 of `docs/crocodyl/DECISIONS-2026-10.md`). Baseline internals are intentionally not specified here.
 7. **AI is subordinate to evidence.** Measurements and statistical conclusions come from deterministic or testable engines. Language models explain, summarize, and suggest; they do not invent measurements.
 8. **Sharing is user-directed.** Messaging apps, Android Sharesheet, Quick Share, files, and QR pairing replace account-based synchronization.
 9. **Feature-complete means complete for athlete training and coach collaboration.** Crocodyl deliberately does not pursue social feeds, global matchmaking, public leaderboards, or account-based cloud sync.
@@ -31,6 +31,8 @@ Where this document conflicts with the older documents, this document governs af
 11. **Longitudinal evidence keeps its resolution.** Shot-, end-, session-, day-, and period-level observations are never joined more precisely than the source data permits.
 12. **Equipment commerce is recommendation-neutral.** Affiliate revenue may support Crocodyl, but commission never changes ranking, evidence, or whether an upgrade is recommended.
 13. **Recovery guidance stays general-wellness.** Risk and recovery surfaces explain evidence and offer conservative actions; they do not diagnose, treat, or replace qualified care.
+14. **Distribution channels, in priority order — proposed pending Owner-only item 1.** GitHub Releases with Obtainium first; Google Play in parallel; official F-Droid (reproducible, developer-signed, declaring the `NonFreeNet` anti-feature) once licence, key and reproducibility hold; the Apple App Store after the iOS port; IzzyOnDroid deferred. No store or F-Droid submission is made before the owner answers. See decision 4 and section 5 of `docs/crocodyl/DECISIONS-2026-10.md`.
+15. **One application id and one signing key everywhere — proposed pending Owner-only item 1.** `com.asoc.crocodyl`, no suffixes, also reserved as the iOS bundle id, signed by a single owner-held key shared by Play, F-Droid, Obtainium and GitHub Releases; F-Droid never signs. The id and the key themselves are Owner-only items 3 and 4. See decisions 6 and 7 of `docs/crocodyl/DECISIONS-2026-10.md`.
 
 ### v2.1 additions
 
@@ -130,7 +132,7 @@ The coach receives a free pilot entitlement. Archers use the full free athlete a
 | Progressive depth | The default path is short; advanced equipment, wellness, and analytics remain available without becoming a tax. |
 | Honest uncertainty | Data gates, confidence, missing data, and model provenance are visible. |
 | Accessible encoding | Luminance, shape, pattern, icon, and numerals carry meaning before hue. Red/green is never the sole semantic channel. |
-| Open implementation | Free and paid official features are open-source under the chosen project license. |
+| Published implementation | Crocodyl's source, including the Coach workspace, is published; the licence is pending (see LICENSING.md and `docs/crocodyl/DECISIONS-2026-10.md`, proposed pending Owner-only item 1). |
 | No false DRM promise | Paid official binaries may enforce entitlements, but public source means the wall is a commercial boundary, not an unbreakable secret. |
 
 ## 4. Users, roles, and jobs
@@ -174,18 +176,18 @@ The coach receives a free pilot entitlement. Archers use the full free athlete a
 
 | Surface | Official entitlement | Source availability | Data model |
 |---|---|---|---|
-| Athlete app | Free | Open-source | One or more local athlete profiles on the device. |
-| Sport-local statistics and performance analysis | Free | Open-source | Crocodyl-only data and deterministic analysis. |
-| Offline rule coach | Free | Open-source | Local facts and drill catalog. |
-| On-device model support | Free | Open-source | User-imported or explicitly downloaded models. |
-| Cloud AI | BYOK | Open-source clients | User pays provider directly; Crocodyl never proxies. |
-| Human Coach workspace | Paid in official builds | Open-source | Multi-athlete roster and coaching workflow. |
-| Baseline cross-app insights | Paid in official builds | Open-source | Supplied through the Baseline adapter; details deferred. |
-| Static web viewer | Free | Open-source | Reads local export files; no hosted user data. |
+| Athlete app | Free | Source published, licence pending | One or more local athlete profiles on the device. |
+| Sport-local statistics and performance analysis | Free | Source published, licence pending | Crocodyl-only data and deterministic analysis. |
+| Offline rule coach | Free | Source published, licence pending | Local facts and drill catalog. |
+| On-device model support | Free | Source published, licence pending | User-imported or explicitly downloaded models. |
+| Cloud AI | BYOK | Clients: source published, licence pending | User pays provider directly; Crocodyl never proxies. |
+| Human Coach workspace | Paid in official builds | Source published, licence pending | Multi-athlete roster and coaching workflow. |
+| Baseline cross-app insights | Paid in official builds | Not in this repository; licence and publication pending (decision 3, proposed) | Supplied through the Baseline adapter; details deferred. |
+| Static web viewer | Free | Source published, licence pending | Reads local export files; no hosted user data. |
 
 ### 5.1 Entitlement constraint
 
-Because the product has no maintained backend and the paid code is open-source:
+Because the product has no maintained backend and the paid Coach code sits in a published-source repository (licence pending; see LICENSING.md):
 
 - early coach pilots use a local pilot entitlement;
 - Play-distributed Android builds may use Play Billing with a locally cached entitlement;
@@ -193,7 +195,7 @@ Because the product has no maintained backend and the paid code is open-source:
 - the product must continue to function offline after entitlement verification within a documented grace policy;
 - the project must not imply that source-visible feature gates are impossible to remove.
 
-The final license, purchase model, and grace period remain owner decisions.
+The final license, purchase model, and grace period remain owner decisions; the licence is proposed in `docs/crocodyl/DECISIONS-2026-10.md` and granted only after Owner-only items 1 and 2.
 
 ### 5.2 Equipment affiliate model
 

@@ -1,16 +1,27 @@
 package xyz.mdhv.formanalyser.app.ui
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import xyz.mdhv.formanalyser.app.domain.ProgressViewModel
 import xyz.mdhv.formanalyser.app.ui.components.TimeTrendLine
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
+import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.athlete.*
 
 @Composable
@@ -25,20 +36,10 @@ fun ProgressScreen(vm: ProgressViewModel, onBody: () -> Unit) {
         return
     }
     LazyColumn(
-        Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        Modifier.fillMaxSize().padding(horizontal = 18.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item {
-            Text(
-                "Progress",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Hyle.OnBackground,
-            )
-            Text(
-                "Understand what changes performance · local evidence only",
-                color = Hyle.OnSurfaceDim,
-            )
-        }
+        item { ProgressHeader() }
         item {
             OutlinedButton(onClick = onBody, modifier = Modifier.fillMaxWidth()) {
                 Text("Physical readiness and body history")
@@ -69,13 +70,21 @@ fun ProgressScreen(vm: ProgressViewModel, onBody: () -> Unit) {
                 }
             }
         }
+        if (s.scoreTrend == null) {
+            item {
+                SectionCard("Score trend") {
+                    Text("A complete scored round will establish your first baseline.")
+                    Text(
+                        "Only recorded rounds are shown; no projections are added.",
+                        color = Hyle.OnSurfaceDim,
+                    )
+                }
+            }
+        }
         if (s.pbs.isNotEmpty()) {
-            item { Text("Personal bests", style = MaterialTheme.typography.titleLarge) }
+            item { HyleSectionHeader("Personal bests") }
             items(s.pbs) { pb ->
-                ListItem(
-                    headlineContent = { Text(pb.roundName) },
-                    trailingContent = { Text("${pb.score}/${pb.max}") },
-                )
+                HyleListRow(pb.roundName, trailing = { Text("${pb.score}/${pb.max}") })
             }
         }
         s.formTrend?.let { t ->
@@ -92,9 +101,20 @@ fun ProgressScreen(vm: ProgressViewModel, onBody: () -> Unit) {
                 }
             }
         }
+        if (s.formTrend == null) {
+            item {
+                SectionCard("Form repeatability") {
+                    Text("No comparable capture series yet.")
+                    Text(
+                        "Record more sessions with usable pose data to see repeatability here.",
+                        color = Hyle.OnSurfaceDim,
+                    )
+                }
+            }
+        }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Goals", style = MaterialTheme.typography.titleLarge)
+                HyleSectionHeader("Goals", modifier = Modifier.weight(1f))
                 TextButton(onClick = { goalOpen = true }) { Text("+ Goal") }
             }
         }
@@ -108,45 +128,50 @@ fun ProgressScreen(vm: ProgressViewModel, onBody: () -> Unit) {
         else items(s.goals, key = { it.entity.id }) { g -> GoalRow(g, vm) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Training plans", style = MaterialTheme.typography.titleLarge)
+                HyleSectionHeader("Training plans", modifier = Modifier.weight(1f))
                 TextButton(onClick = { planOpen = true }) { Text("+ Plan") }
             }
         }
         items(s.plans, key = { it.id }) { p ->
-            ListItem(
-                headlineContent = { Text(p.title) },
-                supportingContent = {
-                    Text(
-                        "${p.phase} · ${p.focus}" +
-                            (p.weeklyArrowTarget?.let { " · $it arrows/week" } ?: "")
-                    )
-                },
+            HyleListRow(
+                p.title,
+                subtitle = "${p.phase} · ${p.focus}" +
+                    (p.weeklyArrowTarget?.let { " · $it arrows/week" } ?: ""),
             )
         }
         item {
-            Text("Equipment context", style = MaterialTheme.typography.titleLarge)
+            HyleSectionHeader("Equipment context")
             Text(
                 "Descriptive only: different rounds, weather and training states are confounders. This is not causal equipment attribution.",
                 color = Hyle.OnSurfaceDim,
             )
         }
         items(s.equipmentContext, key = { it.rigId }) { r ->
-            ListItem(
-                headlineContent = { Text(r.rigName) },
-                supportingContent = { Text("${r.rounds} complete rounds") },
-                trailingContent = { Text("${"%.1f".format(r.averagePercent)}%") },
+            HyleListRow(
+                r.rigName,
+                subtitle = "${r.rounds} complete rounds",
+                trailing = { Text("${"%.1f".format(r.averagePercent)}%") },
             )
+        }
+        if (s.equipmentContext.isEmpty()) {
+            item {
+                Text(
+                    "Log complete rounds with an active rig to compare descriptive equipment context.",
+                    color = Hyle.OnSurfaceDim,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Interventions", style = MaterialTheme.typography.titleLarge)
+                HyleSectionHeader("Interventions", modifier = Modifier.weight(1f))
                 TextButton(onClick = { interventionOpen = true }) { Text("+ Change") }
             }
         }
         items(s.interventions, key = { it.id }) { i ->
-            ListItem(
-                headlineContent = { Text(i.title) },
-                supportingContent = { Text(i.kind + (i.note?.let { " · $it" } ?: "")) },
+            HyleListRow(
+                i.title,
+                subtitle = i.kind + (i.note?.let { " · $it" } ?: ""),
             )
         }
         if (s.missingEvidence.isNotEmpty())
@@ -191,18 +216,74 @@ fun ProgressScreen(vm: ProgressViewModel, onBody: () -> Unit) {
 }
 
 @Composable
-private fun MetricCard(label: String, value: String, m: Modifier) {
-    Card(m) {
-        Column(Modifier.padding(12.dp)) {
-            Text(value, style = MaterialTheme.typography.headlineSmall)
-            Text(label, color = Hyle.OnSurfaceDim)
+private fun ProgressHeader() {
+    Box(
+        Modifier.fillMaxWidth().heightIn(min = 144.dp).clip(RoundedCornerShape(26.dp))
+            .background(
+                Brush.linearGradient(listOf(Color(0xff211b2b), Color(0xff111814), Color(0xff101015)))
+            )
+            .border(1.dp, Hyle.HairlineStrong, RoundedCornerShape(26.dp)),
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val center = Offset(size.width * .88f, size.height * .5f)
+            listOf(.78f, .56f, .34f, .13f).forEachIndexed { index, fraction ->
+                drawCircle(
+                    color = if (index == 3) Hyle.RadiumGreen.copy(alpha = .28f)
+                    else Hyle.Accent.copy(alpha = .17f - index * .025f),
+                    radius = size.height * fraction,
+                    center = center,
+                    style = Stroke(if (index == 3) 2.5f else 1.5f),
+                )
+            }
+            drawLine(
+                Hyle.OnBackground.copy(alpha = .3f),
+                Offset(center.x - 75f, center.y + 56f),
+                Offset(center.x + 28f, center.y - 44f),
+                2f,
+            )
+        }
+        Column(
+            Modifier.fillMaxWidth(.76f).padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text("THE LONG VIEW  /  LOCAL EVIDENCE", color = Hyle.RadiumGreen, style = MaterialTheme.typography.labelSmall)
+            Text(
+                "Training, in context",
+                color = Hyle.OnBackground,
+                style = MaterialTheme.typography.headlineMedium,
+            )
+            Text(
+                "Understand what changes performance. No projections, no causal shortcuts.",
+                color = Hyle.OnSurfaceDim,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+}
+
+@Composable
+private fun MetricCard(label: String, value: String, modifier: Modifier) {
+    Card(
+        modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Hyle.Surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.Hairline),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(value, style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
+            Text(label.uppercase(), color = Hyle.OnSurfaceDim, style = MaterialTheme.typography.labelSmall)
         }
     }
 }
 
 @Composable
 private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Hyle.Surface),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Hyle.Hairline),
+    ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             content()

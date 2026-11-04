@@ -28,12 +28,15 @@ data class OnboardingState(
     val rigName: String = "My bow",
     val bowType: BowType = BowType.RECURVE,
     val riserLengthIn: Int = 25,
-    val markedLbs: Double? = null,
-    val otfLbs: Double? = null,
+    val markedLbsInput: String = "",
+    val otfLbsInput: String = "",
 ) {
+    val markedLbs: Double? get() = markedLbsInput.toDoubleOrNull()
+    val otfLbs: Double? get() = otfLbsInput.toDoubleOrNull()
     val lastStep = 6
     val canProceed: Boolean get() = when (step) {
         1 -> name.trim().length in 1..40
+        4 -> PoundageValidation.isValidInput(markedLbsInput) && PoundageValidation.isValidInput(otfLbsInput)
         else -> true
     }
 }

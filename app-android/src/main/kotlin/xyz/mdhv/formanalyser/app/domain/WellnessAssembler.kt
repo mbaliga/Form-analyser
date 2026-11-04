@@ -57,6 +57,12 @@ class WellnessAssembler(private val repo: Repository) {
     suspend fun acwr(athleteId: String, today: LocalDate = LocalDate.now()): AcwrSeries =
         Acwr.compute(dailyLoads(athleteId), today)
 
+    /** The sRPE secondary lane (Acwr.computeSrpe) over the same daily loads -- see the Load view's
+     * sRPE lane. Kept as its own call (rather than folding into [acwr]) so a screen that only
+     * wants the shot-load ratio never pays for or depends on the sRPE one. */
+    suspend fun srpeAcwr(athleteId: String, today: LocalDate = LocalDate.now()): AcwrSeries =
+        Acwr.computeSrpe(dailyLoads(athleteId), today)
+
     suspend fun streak(athleteId: String, plannedRestCsv: String, today: LocalDate = LocalDate.now()): StreakState {
         val sessions = repo.allSessions(athleteId)
         val sessionDays = sessions.map { epochToDate(it.startedAtEpochMs) }.toSet()

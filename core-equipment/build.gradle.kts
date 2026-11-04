@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm")
 }
 
 // Equipment domain math (poundage estimation now; wear/service-life in Phase 4). Pure JVM.

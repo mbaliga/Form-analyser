@@ -6,40 +6,93 @@ on:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "fencing-module/**"
+      - "muaythai-module/**"
+      - "bouldering-module/**"
+      - "gradle/**"
+      - "gradle.properties"
       # `./gradlew test` covers every pure-JVM module, but this workflow only fired for the two
       # above — so the core-* suites (scoring, athlete, wellness, coach, equipment, exchange, body)
       # never ran in CI at all.
       - "core-*/**"
+      - "settings.gradle.kts"
       # app-android is not built here (no SDK), but PrivacyRegistryTest reads its migration DDL to
       # assert every Room table is classified. Adding a table only touches app-android, so without
       # this path that test could never fire on the very change it exists to catch.
       - "app-android/**"
+      - "docs/crocodyl/community-directory/**"
+      - "tools/community_directory/**"
+      - "tools/release/**"
+      - "tools/shared/**"
+      - "shared-libraries.lock"
+      - "tools/web_viewer/**"
+      - "web-viewer/**"
+      - ".github/workflows/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
   pull_request:
     paths:
       - "engine/**"
       - "archery-module/**"
+      - "fencing-module/**"
+      - "muaythai-module/**"
+      - "bouldering-module/**"
+      - "gradle/**"
+      - "gradle.properties"
       # `./gradlew test` covers every pure-JVM module, but this workflow only fired for the two
       # above — so the core-* suites (scoring, athlete, wellness, coach, equipment, exchange, body)
       # never ran in CI at all.
       - "core-*/**"
+      - "settings.gradle.kts"
       # app-android is not built here (no SDK), but PrivacyRegistryTest reads its migration DDL to
       # assert every Room table is classified. Adding a table only touches app-android, so without
       # this path that test could never fire on the very change it exists to catch.
       - "app-android/**"
+      - "docs/crocodyl/community-directory/**"
+      - "tools/community_directory/**"
+      - "tools/release/**"
+      - "tools/shared/**"
+      - "shared-libraries.lock"
+      - "tools/web_viewer/**"
+      - "web-viewer/**"
+      - ".github/workflows/**"
       - "*.gradle.kts"
       - ".github/workflows/ci.yml"
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: temurin
           java-version: "21"
+      - name: Fetch and verify locked shared-library checkout
+        run: |
+          SHARED_REPOSITORY="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["repository"])')"
+          SHARED_REF="$(python3 -c 'import json; print(json.load(open("shared-libraries.lock"))["ref"])')"
+          git clone --depth 1 --branch "$SHARED_REF" "$SHARED_REPOSITORY" .ci/shared-libraries-asoc
+          python3 tools/shared/verify_shared_checkout.py .ci/shared-libraries-asoc
       # Self-contained: builds the engine module and the archery module together.
       - name: Test
         run: ./gradlew test --no-daemon
+      - name: Validate community directory contracts
+        run: python3 -m unittest discover -s tools/community_directory -p 'test_*.py'
+      - name: Verify immutable workflow action refs
+        run: python3 tools/release/verify_workflow_actions.py
+      - name: Validate release workflow security contract
+        run: python3 -m unittest discover -s tools/release -p 'test_*.py'
+      - name: Validate shared-library lock contract
+        run: python3 -m unittest discover -s tools/shared -p 'test_*.py'
+      - name: Validate offline desktop viewer contract
+        run: python3 -m unittest discover -s tools/web_viewer -p 'test_*.py'
+      - name: Verify .croc ECDSA interoperability
+        run: node tools/web_viewer/test_signature_interop.mjs
+      - name: Exercise offline viewer archive flows
+        run: node tools/web_viewer/test_viewer_runtime.mjs
+      - name: Verify offline report analysis
+        run: node tools/web_viewer/test_report_analysis.mjs

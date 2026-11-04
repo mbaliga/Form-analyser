@@ -34,6 +34,17 @@ class CrocbakManifestTest {
     }
 
     @Test
+    fun `round-trips signed envelope metadata`() {
+        val original = sample().copy(
+            signatureAlgorithm = "SHA256withECDSA",
+            publicKeyBase64 = "cHVi",
+            signatureBase64 = "c2ln",
+        )
+        val restored = CrocbakManifest.deserialize(original.serialize())
+        assertEquals(original, restored)
+    }
+
+    @Test
     fun `fromDecision stamps schema, tier and sorted included tables`() {
         val decision = ConsentFilter.filter(
             requestedTables = setOf("session", "athlete", "medication_entry", "mood_entry"),

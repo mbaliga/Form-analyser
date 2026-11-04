@@ -11,6 +11,9 @@ import xyz.mdhv.formanalyser.coach.LlmError
 import xyz.mdhv.formanalyser.coach.LlmErrorKind
 import xyz.mdhv.formanalyser.coach.MessageRole
 import xyz.mdhv.formanalyser.coach.Provider
+import xyz.mdhv.formanalyser.coach.StreamAssembler
+import xyz.mdhv.formanalyser.coach.StreamDirective
+import xyz.mdhv.formanalyser.coach.StreamSink
 import java.net.URLEncoder
 
 /**
@@ -96,9 +99,115 @@ class GoogleClient(
                 modelId = decoded.modelVersion ?: request.model.id,
                 stopReason = candidate.finishReason,
                 inputTokens = decoded.usageMetadata?.promptTokenCount,
-                outputTokens = decoded.usageMetadata?.candidatesTokenCount,
+                outputTokens = decoded.usageMetadata?.totalOutputTokens(),
             )
         )
+    }
+
+    override fun supportsStreaming(model: CoachModel): Boolean = supports(model)
+
+    /**
+     * Streams `POST …/{id}:streamGenerateContent?alt=sse&key=…`. `alt=sse` is **mandatory** — without
+     * it Gemini instead streams one top-level JSON *array* (`[{...}, {...}, ...]`), which is not a
+     * sequence of Server-Sent Events and would not decode as one here.
+     *
+     * Each unnamed `data:` frame is a COMPLETE [GenerateResponse] — the same DTO [complete] already
+     * parses — and Gemini's own chunking already yields the incremental text for that turn, not the
+     * whole-so-far transcript, so each chunk's text is fed to [StreamAssembler.delta] directly with
+     * no diffing needed. There is no `[DONE]` sentinel: end of stream is the connection closing,
+     * which [HttpJson.postSse] surfaces by simply returning, handled below via [StreamAssembler.finish].
+     *
+     * `usageMetadata.thoughtsTokenCount` is folded into the output count the same way [complete] now
+     * does (see [UsageMetadata.totalOutputTokens]) so a thinking model's streamed cost estimate isn't
+     * quietly wrong in the same way the non-streaming path used to be.
+     *
+     * Unverified on a device: authored from Gemini's documented `alt=sse` streaming shape, not
+     * confirmed against a live response (no Android SDK / socket in this environment).
+     */
+    override fun stream(request: CompletionRequest, sink: StreamSink): CompletionResult {
+        if (!supports(request.model)) {
+            return fail(LlmErrorKind.UNSUPPORTED, "GoogleClient cannot serve ${request.model.id}")
+        }
+        val key = apiKey()?.takeIf { it.isNotBlank() }
+            ?: return fail(LlmErrorKind.MISSING_API_KEY, "No Google API key configured")
+
+        val system = request.messages
+            .filter { it.role == MessageRole.SYSTEM }
+            .joinToString("\n\n") { it.content }
+            .ifBlank { null }
+        val contents = request.messages
+            .filter { it.role != MessageRole.SYSTEM }
+            .map { Content(role = it.role.toWire(), parts = listOf(Part(it.content))) }
+
+        val payload = GenerateBody(
+            systemInstruction = system?.let { Content(role = null, parts = listOf(Part(it))) },
+            contents = contents,
+            generationConfig = GenerationConfig(
+                maxOutputTokens = request.maxTokens,
+                temperature = request.temperature,
+            ),
+        )
+
+        val url = "$BASE${request.model.id}:streamGenerateContent?alt=sse&key=" +
+            URLEncoder.encode(key, Charsets.UTF_8.name())
+
+        val assembler = StreamAssembler(request.model.id, sink)
+        var startedDispatched = false
+        var lastFinishReason: String? = null
+        var blockReason: String? = null
+
+        val outcome = HttpJson.postSse(
+            url = url,
+            headers = emptyMap(),
+            body = HttpJson.json.encodeToString(GenerateBody.serializer(), payload),
+        ) { event ->
+            val decoded = runCatching {
+                HttpJson.json.decodeFromString(GenerateResponse.serializer(), event.data)
+            }.getOrNull() ?: return@postSse StreamDirective.CONTINUE // an unparseable frame must not abort the stream
+
+            if (!startedDispatched) {
+                startedDispatched = true
+                val startDirective = assembler.started(
+                    decoded.modelVersion,
+                    decoded.usageMetadata?.promptTokenCount,
+                )
+                if (startDirective == StreamDirective.CANCEL) return@postSse StreamDirective.CANCEL
+            }
+
+            val candidate = decoded.candidates?.firstOrNull()
+            candidate?.finishReason?.let { lastFinishReason = it }
+            decoded.promptFeedback?.blockReason?.let { blockReason = it }
+
+            val text = candidate?.content?.parts?.mapNotNull { it.text }?.joinToString("").orEmpty()
+            var directive = StreamDirective.CONTINUE
+            if (text.isNotEmpty()) directive = assembler.delta(text)
+            if (directive == StreamDirective.CONTINUE && decoded.usageMetadata != null) {
+                directive = assembler.usage(
+                    decoded.usageMetadata.promptTokenCount,
+                    decoded.usageMetadata.totalOutputTokens(),
+                )
+            }
+            directive
+        }
+
+        return when (outcome) {
+            is HttpJson.HttpOutcome.Transport ->
+                fail(LlmErrorKind.NETWORK, outcome.cause.message ?: "Network error")
+            is HttpJson.HttpOutcome.HttpError ->
+                fail(HttpJson.errorKindFor(outcome.code), errorMessage(outcome.code, outcome.body))
+            is HttpJson.HttpOutcome.Ok -> {
+                // Same predicate complete()'s parseSuccess uses: a block only counts as CONTENT_FILTERED
+                // when no text ever arrived — a filter reason after real text already streamed must not
+                // erase what the athlete already saw.
+                val filtered = lastFinishReason == "SAFETY" || lastFinishReason == "PROHIBITED_CONTENT" ||
+                    blockReason != null
+                if (filtered && assembler.partialText.isEmpty()) {
+                    fail(LlmErrorKind.CONTENT_FILTERED, "Gemini blocked the response (${lastFinishReason ?: blockReason ?: "safety"})")
+                } else {
+                    assembler.finish(lastFinishReason)
+                }
+            }
+        }
     }
 
     private fun errorMessage(code: Int, body: String): String {
@@ -154,7 +263,19 @@ class GoogleClient(
     private data class UsageMetadata(
         val promptTokenCount: Int? = null,
         val candidatesTokenCount: Int? = null,
-    )
+        /**
+         * On "thinking" models, Gemini bills reasoning tokens separately from [candidatesTokenCount]
+         * — the visible-answer count alone silently undercounts what was actually billed as output.
+         * [totalOutputTokens] folds this in; a non-thinking model simply omits the field (null), so
+         * the fold is a no-op for it.
+         */
+        val thoughtsTokenCount: Int? = null,
+    ) {
+        /** [candidatesTokenCount] + [thoughtsTokenCount], or null if neither was reported at all. */
+        fun totalOutputTokens(): Int? =
+            if (candidatesTokenCount == null && thoughtsTokenCount == null) null
+            else (candidatesTokenCount ?: 0) + (thoughtsTokenCount ?: 0)
+    }
 
     @Serializable
     private data class PromptFeedback(val blockReason: String? = null)

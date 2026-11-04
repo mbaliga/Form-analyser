@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/mbaliga/Shared-Libraries-asoc.git",
+  "ref": "codex/evidence-schema-v1",
+  "revision": "da50c62dd93bb67d590584a788eb794a6b7b55ec",
+  "modules": [
+    "dev.aarso:local-session-core:0.1.0",
+    "dev.aarso:performance-analysis:0.1.0",
+    "dev.aarso:search-core:0.2.0"
+  ]
+}

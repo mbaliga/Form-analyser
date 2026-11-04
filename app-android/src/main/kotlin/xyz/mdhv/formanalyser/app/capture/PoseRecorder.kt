@@ -1,6 +1,8 @@
 package xyz.mdhv.formanalyser.app.capture
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.util.Log
 import androidx.camera.core.ImageProxy
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.tasks.core.BaseOptions
@@ -43,12 +45,13 @@ class PoseRecorder(
                 .setNumPoses(1)
                 .build(),
         )
+    }.onFailure { error ->
+        Log.e(TAG, "Unable to initialize the bundled pose model", error)
     }.getOrNull()
 
     val isAvailable: Boolean get() = landmarker != null
 
-    private val frames = ArrayList<PoseFrame>(4_000)
-    @Volatile private var recording = false
+    private val frameBuffer = PoseFrameBuffer()
 
     private val _liveTracking = MutableStateFlow(false)
     val liveTracking: StateFlow<Boolean> = _liveTracking
@@ -58,17 +61,22 @@ class PoseRecorder(
     val liveBowArmAngle: StateFlow<Double?> = _liveBowArmAngle
 
     fun start() {
-        frames.clear()
-        recording = true
+        frameBuffer.start()
     }
 
     /** Analyse one camera frame. Always closes [image]. */
     fun process(image: ImageProxy) {
+        // Capture this before inference: a frame already in flight when Start is pressed must not
+        // be attributed to the new recording window when its slower inference completes.
+        val frameGeneration = frameBuffer.generationForFrame()
         val lm = landmarker
         if (lm == null) { image.close(); return }
+        var bitmap: Bitmap? = null
+        var mp: com.google.mediapipe.framework.image.MPImage? = null
         try {
-            val bitmap = image.toBitmap()
-            val mp = BitmapImageBuilder(bitmap).build()
+            val frameBitmap = image.toBitmap()
+            bitmap = frameBitmap
+            mp = BitmapImageBuilder(frameBitmap).build()
             val opts = ImageProcessingOptions.builder()
                 .setRotationDegrees(image.imageInfo.rotationDegrees)
                 .build()
@@ -83,18 +91,21 @@ class PoseRecorder(
             _liveBowArmAngle.value = Geometry.angleDeg(
                 frame[arms.bowShoulder], frame[arms.bowElbow], frame[arms.bowWrist],
             )
-            if (recording) frames.add(frame)
+            frameBuffer.appendIfCurrent(frameGeneration, frame)
         } catch (_: Throwable) {
             _liveTracking.value = false
         } finally {
+            // MPImage owns the BitmapImageContainer (whose close recycles the bitmap).
+            // If MPImage construction failed, reclaim the still-unowned bitmap directly.
+            runCatching { mp?.close() }
+            if (mp == null) runCatching { bitmap?.recycle() }
             image.close()
         }
     }
 
     /** Stop and return the captured window, or null if too little usable pose was seen. */
     fun stop(): PoseSequence? {
-        recording = false
-        val snapshot = ArrayList(frames)
+        val snapshot = frameBuffer.stop()
         if (snapshot.size < 2) return null
         val durationSec = (snapshot.last().tNanos - snapshot.first().tNanos) / 1e9
         val fps = if (durationSec > 0) (snapshot.size - 1) / durationSec else 30.0
@@ -117,6 +128,7 @@ class PoseRecorder(
     }
 
     companion object {
+        private const val TAG = "CrocodylPose"
         const val MODEL_ASSET = "pose_landmarker_lite.task"
     }
 }

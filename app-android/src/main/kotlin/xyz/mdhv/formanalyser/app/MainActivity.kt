@@ -5,6 +5,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -13,6 +25,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -20,16 +39,35 @@ import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import xyz.mdhv.formanalyser.app.data.AppDatabase
 import xyz.mdhv.formanalyser.app.data.AppPrefs
+import xyz.mdhv.formanalyser.app.data.DatabaseRecoveryRequired
+import xyz.mdhv.formanalyser.app.data.DbRecovery
 import xyz.mdhv.formanalyser.app.domain.*
 import xyz.mdhv.formanalyser.app.ui.*
 import xyz.mdhv.formanalyser.app.ui.theme.FormAnalyserTheme
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
+import xyz.mdhv.formanalyser.app.vault.Vault
+import xyz.mdhv.formanalyser.app.ui.theme.ThemeMode
 
 // NB: must NOT be named `R` — in package xyz.mdhv.formanalyser.app that collides with AGP's
 // generated resources class xyz.mdhv.formanalyser.app.R at dex time (the resources class wins,
@@ -53,6 +91,7 @@ private object Routes {
     const val S_APPEARANCE = "s_appearance"
     const val S_DATA = "s_data"
     const val S_ABOUT = "s_about"
+    const val S_LICENCES = "s_licences"
     const val S_AI = "s_ai"
     const val S_EXPORT = "s_export"
     const val S_WELLNESS = "s_wellness"
@@ -63,14 +102,22 @@ private object Routes {
     const val INJURY_EDIT = "injury_edit"
     const val PLAN_EDIT = "plan_edit"
     const val DOC_VIEW = "doc_view"
-    val TABS = setOf(HOME, TRAIN, SCORE, CALENDAR, PROGRESS)
+    const val PAIRED_SESSION = "paired_session"
+    val TABS = setOf(HOME, TRAIN, PROGRESS, BODY, CALENDAR)
 }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // These directories contain only transient plaintext/staging bytes. Wipe them before any
+        // screen is rendered, including after a process death during document viewing/capture.
+        Vault.wipeViewCache(applicationContext)
+        runCatching { File(applicationContext.cacheDir, "camera").deleteRecursively() }
+        SafExportPublisher.clearOrphanedStaging(applicationContext.cacheDir)
         setContent {
-            FormAnalyserTheme {
+            val prefs = remember { AppPrefs(this@MainActivity) }
+            val storedTheme by prefs.themeMode.collectAsState(initial = ThemeMode.SYSTEM.name)
+            FormAnalyserTheme(ThemeMode.fromStorage(storedTheme)) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     AppRoot()
                 }
@@ -81,25 +128,179 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun AppRoot() {
-    val c = LocalContext.current
-    val p = remember { AppPrefs(c) }
-    val onboarded by produceState<Boolean?>(null, p) { p.onboarded.collect { value = it } }
-    DbRecoveryNotice()
-    when (onboarded) {
-        null -> Box(Modifier.fillMaxSize())
-        false -> {
-            val vm: OnboardingViewModel = viewModel()
-            OnboardingScreen(vm) {}
+    val c = LocalContext.current.applicationContext
+    var attempt by remember { mutableIntStateOf(0) }
+    var databaseState by remember(c) {
+        mutableStateOf<DatabaseState>(DatabaseState.Loading)
+    }
+    LaunchedEffect(c, attempt) {
+        databaseState = DatabaseState.Loading
+        databaseState =
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    AppDatabase.get(c)
+                    DatabaseState.Ready
+                }.getOrElse { failure ->
+                    DatabaseState.Blocked(
+                        failure as? DatabaseRecoveryRequired
+                            ?: DatabaseRecoveryRequired(
+                                "form-analyser.db",
+                                null,
+                                failure,
+                            )
+                    )
+                }
+            }
+    }
+    when (val state = databaseState) {
+        DatabaseState.Loading -> DatabaseLoadingScreen()
+        is DatabaseState.Blocked ->
+            DatabaseRecoveryScreen(
+                state.failure,
+                onRetry = { attempt++ },
+                onReset = {
+                    withContext(Dispatchers.IO) {
+                        AppDatabase.resetAfterConfirmation(c, state.failure.backupPath)
+                    }
+                    AppPrefs(c).setOnboarded(false)
+                    databaseState = DatabaseState.Ready
+                },
+            )
+        DatabaseState.Ready -> {
+            val p = remember { AppPrefs(c) }
+            val onboarded by p.onboarded.collectAsState(initial = null as Boolean?)
+            DbRecoveryNotice()
+            when (onboarded) {
+                null -> Box(Modifier.fillMaxSize())
+                false -> {
+                    val vm: OnboardingViewModel = viewModel()
+                    OnboardingScreen(vm) {}
+                }
+                else -> MainShell()
+            }
         }
-        else -> MainShell()
+    }
+}
+
+/** Keep the cold-start database check visible while preserving the no-screen-before-safe-open rule. */
+@Composable
+private fun DatabaseLoadingScreen() {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Hyle.Background, Hyle.SurfaceRich, Hyle.Background),
+                ),
+            )
+            .testTag("database-startup-loading"),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            Text(
+                "CROCODYL  /  RECURVE",
+                color = Hyle.RadiumGreen,
+                style = MaterialTheme.typography.labelMedium,
+                letterSpacing = 2.sp,
+            )
+            CircularProgressIndicator(
+                modifier = Modifier.size(30.dp),
+                color = Hyle.RadiumGreen,
+                trackColor = Hyle.HairlineStrong,
+                strokeWidth = 2.dp,
+            )
+            Text(
+                "Opening your training space",
+                color = Hyle.OnBackground,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                "Checking saved sessions before we open the range.",
+                color = Hyle.OnSurfaceDim,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+}
+
+private sealed interface DatabaseState {
+    data object Loading : DatabaseState
+    data object Ready : DatabaseState
+    data class Blocked(val failure: DatabaseRecoveryRequired) : DatabaseState
+}
+
+/**
+ * A migration failure is a data-preservation event, not a reason to silently start over. This
+ * screen is deliberately outside the normal navigation graph: none of the normal ViewModels may
+ * be constructed until the athlete has either retried the open or explicitly approved a reset.
+ */
+@Composable
+private fun DatabaseRecoveryScreen(
+    failure: DatabaseRecoveryRequired,
+    onRetry: () -> Unit,
+    onReset: suspend () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var resetting by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val canReset = DbRecovery.isUsableBackup(context, failure.backupPath, failure.dbName)
+    Column(
+        Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text("Saved data needs recovery", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            if (canReset) {
+                "Crocodyl could not open the saved database after an update. It has not been " +
+                    "deleted. A verified copy is preserved on this device."
+            } else {
+                "Crocodyl could not open the saved database after an update, and it could not " +
+                    "verify a recovery copy. Nothing has been deleted."
+            }
+        )
+        failure.backupPath?.let { path ->
+            Text("Recovery copy:\n$path", color = Hyle.OnSurfaceDim)
+        }
+        Text(
+            "Resetting creates a fresh database and returns you to onboarding. The preserved copy " +
+                "is not removed by that action.",
+            color = Hyle.OnSurfaceDim,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onRetry, enabled = !resetting) { Text("Try again") }
+            Button(
+                onClick = {
+                    resetting = true
+                    error = null
+                    scope.launch {
+                        try {
+                            onReset()
+                        } catch (t: Throwable) {
+                            if (t is kotlinx.coroutines.CancellationException) throw t
+                            error = t.message ?: "The database could not be reset."
+                            resetting = false
+                        }
+                    }
+                },
+                enabled = canReset && !resetting,
+            ) {
+                Text(if (resetting) "Resetting…" else "Reset after backup")
+            }
+        }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }
 }
 
 @Composable
 /**
- * One-time, honest disclosure for [xyz.mdhv.formanalyser.app.data.DbRecovery]: if [AppDatabase.get]
- * had to back up and reset the database on this launch, say so — rather than the silent recovery
- * this replaced. Dismissing clears the flag so it doesn't reappear.
+ * One-time, honest disclosure for [DbRecovery]: if the athlete explicitly approved a reset after a
+ * failed migration, say so and retain the recovery path rather than hiding the data-loss boundary.
+ * Dismissing clears the flag so it doesn't reappear.
  */
 private fun DbRecoveryNotice() {
     val c = LocalContext.current
@@ -111,11 +312,11 @@ private fun DbRecoveryNotice() {
         text = {
             Text(
                 event.backupPath?.let {
-                    "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
-                        "created. Your previous data was backed up on this device at:\n\n$it"
+                    "Crocodyl couldn't open your saved data after an update. After your confirmation, " +
+                        "a fresh database was created. Your previous data was preserved on this device at:\n\n$it"
                 }
-                    ?: "Crocodyl couldn't open your saved data after an update, so a fresh database was " +
-                        "created. A backup of the previous data could not be made."
+                    ?: "Crocodyl couldn't open your saved data after an update. After your confirmation, " +
+                        "a fresh database was created, but a recovery copy could not be located."
             )
         },
         confirmButton = {
@@ -152,12 +353,13 @@ private fun MainShell() {
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     // Hardware-keyboard shortcuts for windowed/desktop use. Only hardware key events reach this;
     // touch-only phones never produce them. Esc goes back only off the tab roots, so it never
-    // closes the app.
+    // closes the app. Ctrl+1..5 follow the dock order.
+    val tabOrder = listOf(Routes.HOME, Routes.TRAIN, Routes.PROGRESS, Routes.BODY, Routes.CALENDAR)
+    val digitKeys = listOf(Key.One, Key.Two, Key.Three, Key.Four, Key.Five)
     Scaffold(
         modifier =
             Modifier.onPreviewKeyEvent { e ->
                 if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                val tabs = listOf(Routes.HOME, Routes.TRAIN, Routes.SCORE, Routes.CALENDAR, Routes.PROGRESS)
                 when {
                     e.key == Key.Escape && !onTab -> {
                         backDispatcher?.onBackPressed()
@@ -172,16 +374,19 @@ private fun MainShell() {
                         quick = true
                         true
                     }
-                    onTab && e.key in listOf(Key.One, Key.Two, Key.Three, Key.Four, Key.Five) -> {
-                        val i = listOf(Key.One, Key.Two, Key.Three, Key.Four, Key.Five).indexOf(e.key)
-                        navigateTab(nav, tabs[i])
+                    onTab && e.key in digitKeys -> {
+                        navigateTab(nav, tabOrder[digitKeys.indexOf(e.key)])
                         true
                     }
                     else -> false
                 }
             },
         topBar = {
-            if (onTab) TopRow(tabTitle(route)) { nav.navigate(Routes.SETTINGS) }
+            if (onTab) {
+                if (route != Routes.HOME) {
+                    TopRow(tabTitle(route))
+                }
+            }
             // Every other route used to render with no bar, no back and no title. 22 of 27
             // destinations were reachable and then inescapable except by system back — and on a
             // desktop/ChromeOS window there is no system back gesture at all.
@@ -191,82 +396,101 @@ private fun MainShell() {
             // exactly what popBackStack() did.
             else DetailBar(detailTitle(route)) { backDispatcher?.onBackPressed() }
         },
-        bottomBar = { if (onTab) BottomBar(route, injuries > 0) { navigateTab(nav, it) } },
-        floatingActionButton = {
-            if (onTab) FloatingActionButton(onClick = { quick = true }) { Text("+") }
+        bottomBar = {
+            if (onTab) BottomBar(
+                route,
+                injuries > 0,
+                onQuickAdd = { quick = true },
+                onSettings = { nav.navigate(Routes.SETTINGS) },
+            ) { navigateTab(nav, it) }
         },
     ) { pad ->
         // imePadding() once here rather than on eleven screens: every text field in the app lives
         // inside this NavHost, and on targetSdk 35 the window no longer resizes for the keyboard,
         // so without it the field being typed into can sit underneath the IME with no way to
         // scroll it into view. Applied after the Scaffold's own padding so the two stack.
-        // Capped and centred so a wide freeform window does not stretch forms across the screen.
-        // On a phone the cap (840dp) is never reached, so layout there is unchanged.
-        Box(Modifier.fillMaxSize().padding(pad).imePadding(), Alignment.TopCenter) {
-            NavHost(nav, Routes.HOME, Modifier.fillMaxWidth().widthIn(max = 840.dp)) {
-                composable(Routes.HOME) {
-                    HomeScreen(
-                        homeVm,
-                        { nav.navigate(Routes.TRAIN) },
-                        { nav.navigate(Routes.SCORE) },
-                        { id ->
-                            sessionVm.openSession(id)
-                            nav.navigate(Routes.REVIEW)
-                        },
-                        { nav.navigate(Routes.S_RIGS) },
-                        { nav.navigate(Routes.LOG) },
-                        { nav.navigate(Routes.COACH) },
-                    )
-                }
-                composable(Routes.COACH) {
-                    val app = LocalContext.current.applicationContext as Application
-                    val vm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
-                    CoachScreen(vm) { nav.navigate(Routes.S_AI) }
-                }
-                composable(Routes.TRAIN) {
-                    TrainSetupScreen(
-                        sessionVm,
-                        { nav.navigate(Routes.CAPTURE) },
-                        { nav.navigate(Routes.S_RIGS) },
-                    )
-                }
-                composable(Routes.CAPTURE) { CaptureScreen(sessionVm) { nav.navigate(Routes.REVIEW) } }
-                // A deleted session has nothing left to review, so the screen cannot stay open on it.
-                composable(Routes.REVIEW) { ReviewScreen(sessionVm) { nav.popBackStack() } }
-                composable(Routes.SCORE) {
-                    val vm: ScoringViewModel = viewModel()
-                    ScoringScreen(vm)
-                }
-                composable(Routes.PROGRESS) {
-                    val vm: ProgressViewModel = viewModel()
-                    ProgressScreen(vm) { nav.navigate(Routes.BODY) }
-                }
-                composable(Routes.BODY) {
-                    BodyScreen(
-                        bodyVm,
-                        { id -> nav.navigate("${Routes.INJURY_EDIT}/${id?:"new"}") },
-                        { id -> nav.navigate("${Routes.PLAN_EDIT}/${id?:"new"}") },
-                    )
-                }
-                composable(Routes.CALENDAR) { CalendarScreen(calendarVm) { nav.navigate(Routes.LOG) } }
-                composable(Routes.LOG) { LogScreen(wellnessVm, cycle) { nav.popBackStack() } }
-                composable("${Routes.INJURY_EDIT}/{injuryId}") { e ->
-                    val id = e.arguments?.getString("injuryId")
-                    InjuryEditScreen(bodyVm, if (id == "new") null else id, { nav.popBackStack() }) {
-                        doc ->
-                        nav.navigate("${Routes.DOC_VIEW}/$doc")
-                    }
-                }
-                composable("${Routes.PLAN_EDIT}/{planId}") { e ->
-                    val id = e.arguments?.getString("planId")
-                    PhysioPlanEditScreen(bodyVm, if (id == "new") null else id) { nav.popBackStack() }
-                }
-                composable("${Routes.DOC_VIEW}/{docId}") { e ->
-                    val id = e.arguments?.getString("docId") ?: return@composable
-                    DocumentViewerScreen(bodyVm, id) { nav.popBackStack() }
-                }
-                settingsGraph(nav, rigsVm, settingsVm, wellnessVm)
+        // Content is capped at 840dp and centred so a wide freeform window does not stretch forms
+        // across the screen; on a phone the cap is never reached, so layout there is unchanged.
+        NavHost(
+            nav,
+            Routes.HOME,
+            Modifier.fillMaxSize()
+                .padding(pad)
+                .imePadding()
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .widthIn(max = 840.dp)
+                .fillMaxWidth(),
+        ) {
+            composable(Routes.HOME) {
+                HomeScreen(
+                    homeVm,
+                    { nav.navigate(Routes.TRAIN) },
+                    { nav.navigate(Routes.SCORE) },
+                    { id ->
+                        sessionVm.openSession(id)
+                        nav.navigate(Routes.REVIEW)
+                    },
+                    { nav.navigate(Routes.S_RIGS) },
+                    { nav.navigate(Routes.LOG) },
+                    { nav.navigate(Routes.COACH) },
+                    { nav.navigate(Routes.PAIRED_SESSION) },
+                )
             }
+            composable(Routes.PAIRED_SESSION) { PairedSessionScreen(prefs) { nav.popBackStack() } }
+            composable(Routes.COACH) {
+                val app = LocalContext.current.applicationContext as Application
+                val vm: CoachViewModel = viewModel(factory = CoachViewModel.factory(app))
+                CoachScreen(vm) { nav.navigate(Routes.S_AI) }
+            }
+            composable(Routes.TRAIN) {
+                TrainSetupScreen(
+                    sessionVm,
+                    { nav.navigate(Routes.CAPTURE) },
+                    { nav.navigate(Routes.S_RIGS) },
+                )
+            }
+            composable(Routes.CAPTURE) {
+                CaptureScreen(
+                    sessionVm,
+                    onReview = { nav.navigate(Routes.REVIEW) },
+                    onBackToSetup = { nav.popBackStack() },
+                )
+            }
+            // A deleted session has nothing left to review, so the screen cannot stay open on it.
+            composable(Routes.REVIEW) { ReviewScreen(sessionVm) { nav.popBackStack() } }
+            composable(Routes.SCORE) {
+                val vm: ScoringViewModel = viewModel()
+                ScoringScreen(vm)
+            }
+            composable(Routes.PROGRESS) {
+                val vm: ProgressViewModel = viewModel()
+                ProgressScreen(vm) { nav.navigate(Routes.BODY) }
+            }
+            composable(Routes.BODY) {
+                BodyScreen(
+                    bodyVm,
+                    { id -> nav.navigate("${Routes.INJURY_EDIT}/${id?:"new"}") },
+                    { id -> nav.navigate("${Routes.PLAN_EDIT}/${id?:"new"}") },
+                )
+            }
+            composable(Routes.CALENDAR) { CalendarScreen(calendarVm) { nav.navigate(Routes.LOG) } }
+            composable(Routes.LOG) { LogScreen(wellnessVm, cycle) { nav.popBackStack() } }
+            composable("${Routes.INJURY_EDIT}/{injuryId}") { e ->
+                val id = e.arguments?.getString("injuryId")
+                InjuryEditScreen(bodyVm, if (id == "new") null else id, { nav.popBackStack() }) {
+                    doc ->
+                    nav.navigate("${Routes.DOC_VIEW}/$doc")
+                }
+            }
+            composable("${Routes.PLAN_EDIT}/{planId}") { e ->
+                val id = e.arguments?.getString("planId")
+                PhysioPlanEditScreen(bodyVm, if (id == "new") null else id) { nav.popBackStack() }
+            }
+            composable("${Routes.DOC_VIEW}/{docId}") { e ->
+                val id = e.arguments?.getString("docId") ?: return@composable
+                DocumentViewerScreen(bodyVm, id) { nav.popBackStack() }
+            }
+            settingsGraph(nav, rigsVm, settingsVm, wellnessVm)
         }
     }
     if (quick)
@@ -339,51 +563,60 @@ private fun NavGraphBuilder.settingsGraph(
             { nav.navigate(Routes.S_EXPORT) },
         )
     }
-    composable(Routes.S_ABOUT) { SettingsAboutScreen() }
+    composable(Routes.S_ABOUT) { SettingsAboutScreen { nav.navigate(Routes.S_LICENCES) } }
+    composable(Routes.S_LICENCES) { SettingsLicencesScreen() }
 }
 
 @Composable
-private fun TopRow(title: String, onSettings: () -> Unit) {
+private fun TopRow(title: String) {
     Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp),
+        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)
+            .padding(start = 20.dp, end = 12.dp, top = 7.dp, bottom = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleLarge,
-            color = Hyle.OnBackground,
-            modifier = Modifier.weight(1f),
-        )
-        IconButton(onClick = onSettings) {
-            Icon(Icons.Filled.Settings, "Settings", tint = Hyle.OnSurfaceDim)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Text(
+                if (title == "Crocodyl") "CROCODYL  /  RANGE" else "CROCODYL  /  TRAINING",
+                color = Hyle.RadiumGreen,
+                fontSize = 9.sp,
+                letterSpacing = 1.6.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(title, style = MaterialTheme.typography.titleMedium, color = Hyle.OnBackground)
         }
     }
 }
 
 @Composable
-private fun BottomBar(current: String?, badge: Boolean, onSelect: (String) -> Unit) {
+private fun BottomBar(
+    current: String?,
+    badge: Boolean,
+    onQuickAdd: () -> Unit,
+    onSettings: () -> Unit,
+    onSelect: (String) -> Unit,
+) {
     val items =
         listOf(
-            Routes.HOME to (Icons.Filled.Home to "Today"),
+            Routes.HOME to (Icons.Filled.Home to "Home"),
             Routes.TRAIN to (Icons.Filled.CameraAlt to "Train"),
-            Routes.SCORE to (Icons.Filled.TrackChanges to "Score"),
-            Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Plan"),
-            Routes.PROGRESS to (Icons.Filled.ShowChart to "Progress"),
+            Routes.PROGRESS to (Icons.Filled.Timeline to "Progress"),
+            Routes.BODY to (Icons.Filled.Accessibility to "Body"),
+            Routes.CALENDAR to (Icons.Filled.CalendarMonth to "Calendar"),
         )
-    NavigationBar(containerColor = Hyle.Surface) {
-        items.forEach { (dest, p) ->
-            val (icon: ImageVector, label) = p
-            NavigationBarItem(
-                current == dest,
-                { onSelect(dest) },
-                icon = {
-                    if (dest == Routes.PROGRESS && badge)
-                        BadgedBox({ Badge { Text("!") } }) { Icon(icon, label) }
-                    else Icon(icon, label)
-                },
-                label = { Text(label) },
-            )
-        }
+    val haptics = LocalHapticFeedback.current
+    val selectDestination: (String) -> Unit = { destination ->
+        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        onSelect(destination)
+    }
+    Column(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.navigationBars)) {
+        ArcNavigationDock(
+            items = items,
+            current = current,
+            badge = badge,
+            onSelect = selectDestination,
+            onQuickAdd = onQuickAdd,
+            onSettings = onSettings,
+        )
     }
 }
 
@@ -400,8 +633,13 @@ private fun DetailBar(title: String, onBack: () -> Unit) {
         Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = Hyle.OnBackground)
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier.semantics(mergeDescendants = true) {
+                contentDescription = "Back to previous screen"
+            },
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Hyle.OnBackground)
         }
         Text(
             title,
@@ -430,6 +668,7 @@ private fun detailTitle(r: String?): String =
         Routes.S_APPEARANCE -> "Appearance"
         Routes.S_DATA -> "Data"
         Routes.S_ABOUT -> "About"
+        Routes.S_LICENCES -> "Third-party licences"
         Routes.S_AI -> "AI coach"
         Routes.S_EXPORT -> "Export"
         Routes.S_WELLNESS -> "Wellness"
@@ -440,16 +679,17 @@ private fun detailTitle(r: String?): String =
         Routes.INJURY_EDIT -> "Injury"
         Routes.PLAN_EDIT -> "Physio plan"
         Routes.DOC_VIEW -> "Document"
+        Routes.PAIRED_SESSION -> "Local Multiplayer"
         else -> "Crocodyl"
     }
 
 private fun tabTitle(r: String?) =
     when (r) {
-        Routes.HOME -> "Today"
+        Routes.HOME -> "Crocodyl"
         Routes.TRAIN -> "Train"
-        Routes.SCORE -> "Score"
         Routes.PROGRESS -> "Progress"
-        Routes.CALENDAR -> "Plan"
+        Routes.BODY -> "Body"
+        Routes.CALENDAR -> "Calendar"
         else -> "Crocodyl"
     }
 

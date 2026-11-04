@@ -3,12 +3,17 @@ package xyz.mdhv.formanalyser.app.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -17,20 +22,25 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import xyz.mdhv.formanalyser.app.domain.RigsViewModel
+import xyz.mdhv.formanalyser.app.domain.PoundageValidation
 import xyz.mdhv.formanalyser.app.domain.SettingsViewModel
 import xyz.mdhv.formanalyser.app.domain.Tuning
 import xyz.mdhv.formanalyser.app.ui.theme.Hyle
@@ -38,10 +48,11 @@ import xyz.mdhv.formanalyser.app.ui.theme.HyleListRow
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSectionHeader
 import xyz.mdhv.formanalyser.app.ui.theme.HyleSegmented
 import xyz.mdhv.formanalyser.app.ui.theme.HyleStepper
+import xyz.mdhv.formanalyser.app.ui.theme.ThemeMode
 import xyz.mdhv.formanalyser.model.BowType
 import xyz.mdhv.formanalyser.model.Handedness
 
-private fun col() = Modifier.fillMaxSize().padding(16.dp)
+private fun Modifier.col() = fillMaxSize().padding(16.dp)
 
 @Composable
 fun SettingsRootScreen(
@@ -58,7 +69,7 @@ fun SettingsRootScreen(
     onAbout: () -> Unit,
 ) {
     Column(
-        col().verticalScroll(rememberScrollState()),
+        Modifier.col().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text("Settings", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
@@ -83,7 +94,7 @@ fun SettingsWellnessScreen(prefsOwner: SettingsViewModel) {
     val prefs = remember { xyz.mdhv.formanalyser.app.data.AppPrefs(context) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val chips by prefs.sorenessChips.collectAsState(initial = false)
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             "Wellness & check-ins",
             style = MaterialTheme.typography.headlineMedium,
@@ -114,7 +125,7 @@ fun SettingsProfileScreen(vm: RigsViewModel) {
     val athlete by vm.athlete.collectAsState()
     val a = athlete
     if (a == null) {
-        Text("Loading…", color = Hyle.OnSurfaceDim, modifier = col())
+        Text("Loading…", color = Hyle.OnSurfaceDim, modifier = Modifier.col())
         return
     }
 
@@ -122,10 +133,10 @@ fun SettingsProfileScreen(vm: RigsViewModel) {
     var club by rememberSaveable(a.id) { mutableStateOf(a.club ?: "") }
     var handed by rememberSaveable(a.id) { mutableStateOf(Handedness.fromStorage(a.handedness)) }
     var drawSet by rememberSaveable(a.id) { mutableStateOf(a.drawLengthMm != null) }
-    var drawMm by rememberSaveable(a.id) { mutableStateOf(a.drawLengthMm ?: 700) }
+    var drawMm by rememberSaveable(a.id) { mutableIntStateOf(a.drawLengthMm ?: 700) }
 
     Column(
-        col().verticalScroll(rememberScrollState()),
+        Modifier.col().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -173,7 +184,7 @@ fun SettingsRigsScreen(vm: RigsViewModel, onEdit: (String?) -> Unit) {
     val rigs by vm.rigs.collectAsState()
     var note by rememberSaveable { mutableStateOf<String?>(null) }
 
-    Column(col(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Rigs", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         note?.let { Text(it, color = Hyle.Danger) }
         rigs.forEach { rig ->
@@ -202,7 +213,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
     var bow by
         rememberSaveable(existing?.id) { mutableStateOf(BowType.fromStorage(existing?.bowType)) }
     var riser by
-        rememberSaveable(existing?.id) { mutableStateOf((t.riserLengthIn ?: 25.0).toInt()) }
+        rememberSaveable(existing?.id) { mutableIntStateOf((t.riserLengthIn ?: 25.0).toInt()) }
     var marked by
         rememberSaveable(existing?.id) {
             mutableStateOf(
@@ -224,7 +235,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
     var adv by remember(existing?.id) { mutableStateOf(Tuning.parseFull(existing?.tuningJson)) }
 
     Column(
-        col().verticalScroll(rememberScrollState()),
+        Modifier.col().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -281,6 +292,8 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
             onChange = { adv = it },
         )
 
+        val poundageValid = PoundageValidation.isValidInput(marked) && PoundageValidation.isValidInput(otf)
+        if (!poundageValid) Text("Poundage must be greater than 0 lbs, or left blank.", color = Hyle.Danger)
         note?.let { Text(it, color = Hyle.Danger) }
         Button(
             onClick = {
@@ -296,6 +309,7 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
                 vm.saveRig(existing?.id, name, bow, Tuning.encodeFull(full))
                 onDone()
             },
+            enabled = poundageValid,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Save")
@@ -319,7 +333,8 @@ fun RigEditScreen(vm: RigsViewModel, rigId: String?, onDone: () -> Unit) {
 @Composable
 fun SettingsCaptureScreen(vm: SettingsViewModel) {
     val keep by vm.keepRawVideo.collectAsState(initial = false)
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val retention by vm.rawVideoRetentionDays.collectAsState(initial = 0)
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Capture", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Row(
             Modifier.fillMaxWidth(),
@@ -330,7 +345,19 @@ fun SettingsCaptureScreen(vm: SettingsViewModel) {
             Switch(checked = keep, onCheckedChange = { vm.setKeepRawVideo(it) })
         }
         Text(
-            "Off by default. Pose analysis runs on-device; raw video isn't retained.",
+            "Off by default. Pose analysis runs on-device. Turning this off stops new recordings; existing clips follow the retention choice below.",
+            color = Hyle.OnSurfaceDim,
+        )
+        HyleSectionHeader("Raw video retention")
+        HyleSegmented(
+            options = listOf(7, 30, 0),
+            selected = retention,
+            label = { if (it == 0) "Forever" else "$it days" },
+            modifier = Modifier.fillMaxWidth(),
+        ) { vm.setRawVideoRetentionDays(it) }
+        Text(
+            if (retention == 0) "Clips stay private on this device until you delete them from Review."
+            else "Expired clips are removed the next time Crocodyl opens its training workspace.",
             color = Hyle.OnSurfaceDim,
         )
     }
@@ -338,14 +365,29 @@ fun SettingsCaptureScreen(vm: SettingsViewModel) {
 
 @Composable
 fun SettingsAppearanceScreen(vm: SettingsViewModel) {
+    val themeMode by vm.themeMode.collectAsState(initial = ThemeMode.SYSTEM.name)
     val reduce by vm.reduceMotion.collectAsState(initial = false)
     val haptic by vm.hapticStrength.collectAsState(initial = "MED")
     val glow by vm.glowIntensity.collectAsState(initial = 100)
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             "Appearance",
             style = MaterialTheme.typography.headlineMedium,
             color = Hyle.OnBackground,
+        )
+        HyleSectionHeader("Theme")
+        HyleSegmented(
+            ThemeMode.entries,
+            ThemeMode.fromStorage(themeMode),
+            { it.name.lowercase().replaceFirstChar(Char::uppercase) },
+        ) { vm.setThemeMode(it.name) }
+        Text(
+            when (ThemeMode.fromStorage(themeMode)) {
+                ThemeMode.SYSTEM -> "Follows your device and changes automatically."
+                ThemeMode.LIGHT -> "Warm paper surfaces with high-contrast athletic data."
+                ThemeMode.DARK -> "Inky surfaces for training in low light."
+            },
+            color = Hyle.OnSurfaceDim,
         )
         Row(
             Modifier.fillMaxWidth(),
@@ -376,6 +418,12 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
     // has partly opened itself. It costs a few seconds to re-arm and re-type.
     var arming by remember { mutableStateOf(false) }
     var confirm by remember { mutableStateOf("") }
+    var wiping by remember { mutableStateOf(false) }
+    var wipeFailed by remember { mutableStateOf(false) }
+    // Same reasoning as the wipe gate above: a half-open erase confirmation must not survive a
+    // rotation or process restart.
+    var eraseTarget by remember { mutableStateOf<SettingsViewModel.Retracted?>(null) }
+    var eraseFailed by remember { mutableStateOf(false) }
     val context = androidx.compose.ui.platform.LocalContext.current
     val retracted by vm.retracted.collectAsState()
     LaunchedEffect(Unit) { vm.loadRetracted() }
@@ -396,7 +444,7 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
     // Scrollable now that "Recently deleted" can grow: the wipe gate is the last thing on the
     // screen and must stay reachable however many retracted rows sit above it.
     Column(
-        col().verticalScroll(rememberScrollState()),
+        Modifier.col().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Data", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
@@ -422,16 +470,67 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
                     title = item.label,
                     subtitle = item.detail,
                     trailing = {
-                        OutlinedButton(onClick = { vm.restore(item) }) { Text("Restore") }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            // Erasing is offered only for rows that can be erased at all (vault
+                            // documents), and only as a second step behind its own confirmation:
+                            // the delete tap that put the row here never removed anything.
+                            if (item.erasable) {
+                                TextButton(onClick = { eraseTarget = item }) {
+                                    Text("Erase", color = Hyle.Danger)
+                                }
+                            }
+                            OutlinedButton(onClick = { vm.restore(item) }) { Text("Restore") }
+                        }
                     },
                 )
             }
+        }
+        eraseTarget?.let { target ->
+            AlertDialog(
+                onDismissRequest = { eraseTarget = null },
+                title = { Text("Erase this document permanently?") },
+                text = {
+                    Text(
+                        "The encrypted file and its record are removed from this device. " +
+                            "This cannot be undone."
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            eraseTarget = null
+                            eraseFailed = false
+                            vm.erasePermanently(target) { eraseFailed = true }
+                        }
+                    ) {
+                        Text("Erase permanently", color = Hyle.Danger)
+                    }
+                },
+                dismissButton = { TextButton(onClick = { eraseTarget = null }) { Text("Cancel") } },
+            )
+        }
+        if (eraseFailed) {
+            Text(
+                "The encrypted file could not be removed, so nothing was erased. You can try again.",
+                color = Hyle.Danger,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
 
         Text(
             "Everything runs on this device — nothing is stored anywhere else, so a wipe has no undo.",
             color = Hyle.OnSurfaceDim,
         )
+        if (wipeFailed) {
+            Text(
+                "Some local data could not be removed. Your request was not reported as complete; please retry the wipe.",
+                color = Hyle.Danger,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
         if (!arming) {
             OutlinedButton(onClick = { arming = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Wipe everything")
@@ -444,31 +543,106 @@ fun SettingsDataScreen(vm: SettingsViewModel, onWiped: () -> Unit, onExport: () 
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(
-                onClick = { vm.wipe(onWiped) },
-                enabled = confirm.trim() == "WIPE",
+                onClick = {
+                    wipeFailed = false
+                    wiping = true
+                    vm.wipe(onWiped) {
+                        wiping = false
+                        wipeFailed = true
+                    }
+                },
+                enabled = confirm.trim() == "WIPE" && !wiping,
                 colors = ButtonDefaults.buttonColors(containerColor = Hyle.Danger),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Erase all data")
+                Text(if (wiping) "Erasing local data…" else "Erase all data")
             }
         }
     }
 }
 
+/**
+ * Asset holding the third-party notices. The repository root `THIRD_PARTY_NOTICES.md` is its identical
+ * twin (a release-tooling test fails if they differ), so what the app shows is what the repository says.
+ */
+internal const val THIRD_PARTY_NOTICES_ASSET = "licenses/THIRD_PARTY_NOTICES.md"
+
 @Composable
-fun SettingsAboutScreen() {
-    Column(col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+fun SettingsAboutScreen(onLicences: () -> Unit) {
+    Column(Modifier.col(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("About", style = MaterialTheme.typography.headlineMedium, color = Hyle.OnBackground)
         Text("Crocodyl 0.1.0", color = Hyle.OnBackground)
         Text(
-            "Crocodyl runs entirely on this device. Sessions, poses, scores, and your profile never " +
-                "leave it. This build makes zero network calls — there's nothing to opt out of.",
+            "Crocodyl keeps your sessions, poses, scores and profile on this device, with no account, " +
+                "analytics or tracking. Nothing leaves it unless you send it: the optional cloud AI " +
+                "coach contacts the provider you choose, with your own key, only when you ask it to, " +
+                "and an export goes only where you save or share it.",
             color = Hyle.OnSurfaceDim,
+        )
+        HyleListRow(
+            title = "Third-party licences",
+            subtitle = "The libraries and the pose model Crocodyl uses, and their licences",
+            onClick = onLicences,
         )
         Text(
             "Keyboard shortcuts (hardware keyboard): Esc back, Ctrl+, Settings, Ctrl+N quick add, " +
                 "Ctrl+1 to 5 switch tabs.",
             color = Hyle.OnSurfaceDim,
         )
+    }
+}
+
+/** Renders the bundled notices file as a scrollable page. Plain text: no network, no web view. */
+@Composable
+fun SettingsLicencesScreen() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val lines by
+        androidx.compose.runtime.produceState<List<String>?>(initialValue = null, context) {
+            value =
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                    runCatching {
+                            context.assets.open(THIRD_PARTY_NOTICES_ASSET).bufferedReader().use {
+                                it.readLines()
+                            }
+                        }
+                        .getOrNull() ?: emptyList()
+                }
+        }
+    val shown = lines
+    when {
+        shown == null -> Text("Loading…", color = Hyle.OnSurfaceDim, modifier = Modifier.col())
+        shown.isEmpty() ->
+            Text(
+                "The licence notices could not be loaded.",
+                color = Hyle.Danger,
+                modifier = Modifier.col(),
+            )
+        else ->
+            LazyColumn(Modifier.col()) { items(shown) { line -> NoticeLine(line) } }
+    }
+}
+
+@Composable
+private fun NoticeLine(line: String) {
+    when {
+        line.startsWith("# ") ->
+            Text(
+                line.removePrefix("# "),
+                style = MaterialTheme.typography.headlineMedium,
+                color = Hyle.OnBackground,
+                modifier =
+                    Modifier.padding(bottom = 8.dp).semantics { heading() },
+            )
+        line.startsWith("## ") ->
+            Text(
+                line.removePrefix("## "),
+                style = MaterialTheme.typography.titleMedium,
+                color = Hyle.OnBackground,
+                modifier =
+                    Modifier.padding(top = 12.dp, bottom = 2.dp).semantics { heading() },
+            )
+        line.isBlank() -> Spacer(Modifier.height(6.dp))
+        else ->
+            Text(line, style = MaterialTheme.typography.bodyMedium, color = Hyle.OnSurfaceDim)
     }
 }

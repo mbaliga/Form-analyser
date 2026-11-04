@@ -48,6 +48,10 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
     private val _acwr = MutableStateFlow<AcwrSeries?>(null)
     val acwr: StateFlow<AcwrSeries?> = _acwr
 
+    /** sRPE secondary load lane (Load view) -- see [WellnessAssembler.srpeAcwr]. */
+    private val _srpeAcwr = MutableStateFlow<AcwrSeries?>(null)
+    val srpeAcwr: StateFlow<AcwrSeries?> = _srpeAcwr
+
     fun setMonth(m: YearMonth) { _month.value = m; load() }
 
     fun load() {
@@ -68,9 +72,18 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
                 val hiatuses = repo.wellness.allHiatuses().map {
                     LocalDate.parse(it.startDate) to (it.endDate?.let(LocalDate::parse) ?: today)
                 }
-                val marks = buildMap {
+                // Keep the selected month plus the trailing week used by the streak strip. This
+                // lets the strip stay truthful while the athlete browses a different month.
+                val markDates = buildSet {
                     var d = m.atDay(1)
                     while (!d.isAfter(m.atEndOfMonth())) {
+                        add(d)
+                        d = d.plusDays(1)
+                    }
+                    repeat(7) { add(today.minusDays(6 - it.toLong())) }
+                }
+                val marks = buildMap {
+                    markDates.forEach { d ->
                         put(
                             d,
                             DayMarks(
@@ -81,7 +94,6 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
                                 hiatus = hiatuses.any { (s, e) -> !d.isBefore(s) && !d.isAfter(e) },
                             ),
                         )
-                        d = d.plusDays(1)
                     }
                 }
                 val planned = prefs.plannedRestDays.first()
@@ -91,6 +103,7 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
             _streak.value = data.second
             _loads.value = data.third
             _acwr.value = withContext(Dispatchers.IO) { assembler.acwr(athlete.id, today) }
+            _srpeAcwr.value = withContext(Dispatchers.IO) { assembler.srpeAcwr(athlete.id, today) }
         }
     }
 }
