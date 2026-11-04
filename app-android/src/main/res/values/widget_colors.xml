@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Home-screen widget colours: the app's Hyle light palette (ui/theme/Theme.kt). values-night holds
+     the dark palette; the launcher picks one from the system day/night setting. Radium green is left
+     out on purpose: it is the app's provenance colour, and no widget binds it to meaning. -->
+<resources>
+    <color name="widget_surface">#FFFFFCF7</color>
+    <color name="widget_on_surface">#FF201E22</color>
+    <color name="widget_on_surface_dim">#FF625E66</color>
+    <color name="widget_accent">#FF6652D9</color>
+    <color name="widget_hairline">#33201E22</color>
+    <color name="widget_pad">#FFF0EAFB</color>
+    <color name="widget_track">#FFEAE5DE</color>
+</resources>

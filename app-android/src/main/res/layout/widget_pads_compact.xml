@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pads template, compact: the whole widget is one target (Score, or Resume), icon beside the
+     word, for a widget too short for the small pad. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@android:id/background"
+    style="@style/CrocodylWidgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="4dp">
+    <LinearLayout
+        android:id="@+id/widget_pad1"
+        style="@style/CrocodylWidgetPad"
+        tools:ignore="UseCompoundDrawables"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:minHeight="0dp"
+        android:orientation="horizontal"
+        android:padding="4dp">
+        <ImageView
+            android:id="@+id/widget_pad1_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no" />
+        <TextView
+            android:id="@+id/widget_pad1_label"
+            style="@style/CrocodylWidgetPadLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_marginTop="0dp" />
+    </LinearLayout>
+</LinearLayout>

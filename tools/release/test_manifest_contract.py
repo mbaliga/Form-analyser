@@ -42,6 +42,27 @@ PROFILE_RECEIVER = """
 """
 
 
+# A home-screen widget provider as aapt2 dumps it: exported for the launcher, behind BIND_APPWIDGET.
+WIDGET_RECEIVER = """
+          E: receiver (line=80)
+            A: android:name(0x01010003)="xyz.mdhv.formanalyser.app.widget.LastScorecardWidget"
+            A: android:permission(0x01010006)="android.permission.BIND_APPWIDGET"
+            A: android:exported(0x01010010)=true
+              E: intent-filter (line=85)
+                  E: action (line=86)
+                    A: android:name(0x01010003)="android.appwidget.action.APPWIDGET_UPDATE"
+              E: meta-data (line=88)
+                A: android:name(0x01010003)="android.appwidget.provider"
+                A: android:resource(0x01010025)=@0x7f150001
+"""
+
+WIDGET_REFRESH_RECEIVER = """
+          E: receiver (line=95)
+            A: android:name(0x01010003)="xyz.mdhv.formanalyser.app.widget.WidgetRefreshReceiver"
+            A: android:exported(0x01010010)=false
+"""
+
+
 # What transport-runtime and transport-backend-cct (MediaPipe's usage-statistics upload path) put into
 # a merged manifest. A non-exported service passes the exported-component audit, so only the
 # datatransport marker check catches it.
@@ -111,6 +132,28 @@ class MergedManifestContractTest(unittest.TestCase):
             A: android:exported(0x01010010)=true
 '''
         self.assertTrue(any("UnreviewedReceiver" in error for error in audit(dump)))
+
+    def test_widget_provider_behind_bind_appwidget_passes(self):
+        dump = PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER + WIDGET_RECEIVER + WIDGET_REFRESH_RECEIVER
+        self.assertEqual(audit(dump), [])
+
+    def test_widget_provider_without_bind_appwidget_is_rejected(self):
+        dump = PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER + WIDGET_RECEIVER.replace(
+            'A: android:permission(0x01010006)="android.permission.BIND_APPWIDGET"\n', ""
+        )
+        self.assertTrue(any("LastScorecardWidget" in error for error in audit(dump)))
+
+    def test_widget_shaped_receiver_outside_the_widget_package_is_rejected(self):
+        dump = PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER + WIDGET_RECEIVER.replace(
+            "xyz.mdhv.formanalyser.app.widget.LastScorecardWidget", "com.example.LookalikeWidget"
+        )
+        self.assertTrue(any("LookalikeWidget" in error for error in audit(dump)))
+
+    def test_bind_appwidget_receiver_that_is_not_a_widget_provider_is_rejected(self):
+        dump = PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER + WIDGET_RECEIVER.replace(
+            "android.appwidget.action.APPWIDGET_UPDATE", "android.intent.action.BOOT_COMPLETED"
+        )
+        self.assertTrue(any("LastScorecardWidget" in error for error in audit(dump)))
 
     def test_profile_receiver_without_signature_permission_is_rejected(self):
         dump = PERMISSIONS + APPLICATION + LAUNCHER + PROFILE_RECEIVER.replace(

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark Hyle palette for the home-screen widgets (see values/widget_colors.xml). -->
+<resources>
+    <color name="widget_surface">#FF121212</color>
+    <color name="widget_on_surface">#EBECE8E4</color>
+    <color name="widget_on_surface_dim">#99ECE8E4</color>
+    <color name="widget_accent">#FF8E7BFF</color>
+    <color name="widget_hairline">#24FFFFFF</color>
+    <color name="widget_pad">#FF171421</color>
+    <color name="widget_track">#FF212128</color>
+</resources>

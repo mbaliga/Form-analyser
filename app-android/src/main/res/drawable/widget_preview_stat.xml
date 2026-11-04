@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget-picker image for launchers below API 31; API 31+ draws the preview layout instead. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="110dp"
+    android:height="110dp"
+    android:viewportWidth="110"
+    android:viewportHeight="110">
+    <path android:fillColor="@color/widget_surface" android:strokeColor="@color/widget_hairline" android:strokeWidth="1"
+        android:pathData="M16,1L94,1A15,15 0,0 1,109,16L109,94A15,15 0,0 1,94,109L16,109A15,15 0,0 1,1,94L1,16A15,15 0,0 1,16,1Z" />
+    <path android:fillColor="@color/widget_accent" android:pathData="M14,18h46v6h-46z" />
+    <path android:fillColor="@color/widget_on_surface" android:pathData="M14,36h52v24h-52z" />
+    <path android:fillColor="@color/widget_on_surface_dim" android:pathData="M70,48h26v10h-26z" />
+    <path android:fillColor="@color/widget_on_surface_dim" android:pathData="M14,72h70v8h-70z" />
+    <path android:fillColor="@color/widget_on_surface_dim" android:pathData="M14,88h50v8h-50z" />
+</vector>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- pads template, medium: Score, Train and Log. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@android:id/background"
+    style="@style/CrocodylWidgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    android:padding="6dp"
+    android:orientation="horizontal">
+    <LinearLayout
+        android:id="@+id/widget_pad1"
+        style="@style/CrocodylWidgetPad"
+        tools:ignore="UseCompoundDrawables"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+        <ImageView
+            android:id="@+id/widget_pad1_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:importantForAccessibility="no" />
+        <TextView
+            android:id="@+id/widget_pad1_label"
+            style="@style/CrocodylWidgetPadLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/widget_pad2"
+        style="@style/CrocodylWidgetPad"
+        tools:ignore="UseCompoundDrawables"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="6dp">
+        <ImageView
+            android:id="@+id/widget_pad2_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:importantForAccessibility="no" />
+        <TextView
+            android:id="@+id/widget_pad2_label"
+            style="@style/CrocodylWidgetPadLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/widget_pad3"
+        style="@style/CrocodylWidgetPad"
+        tools:ignore="UseCompoundDrawables"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="6dp">
+        <ImageView
+            android:id="@+id/widget_pad3_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:importantForAccessibility="no" />
+        <TextView
+            android:id="@+id/widget_pad3_label"
+            style="@style/CrocodylWidgetPadLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</LinearLayout>

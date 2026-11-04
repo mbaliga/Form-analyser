@@ -114,29 +114,30 @@ class ProgressViewModel(app: Application) : AndroidViewModel(app) {
                     FormPoint(s.startedAtEpochMs, v, s.id)
                 }
                 .sortedBy { it.atMs }
-        // Arrows scored on cards the athlete attached to a capture session, keyed by that session.
-        // A linked pair is one afternoon on the shooting line, so it contributes one volume point —
-        // but the two halves can disagree (the capture stopped early, or only half the ends were
-        // scored), and taking the larger keeps a link from *removing* arrows the athlete shot.
+        // Arrows scored on cards the athlete attached to a capture session fold into that session's
+        // volume point; TrainingVolume holds the rule (shared with the home-screen widget).
         val formIds = formSessions.mapTo(mutableSetOf()) { it.id }
         // A link whose capture session is gone is not a link — the card stands on its own rather
         // than folding its arrows into a session that will never be plotted.
         fun ScoreSessionEntity.absorbedBy() = linkedFormSessionId?.takeIf { it in formIds }
-        val linkedScored =
-            scoreSessions
-                .mapNotNull { s -> s.absorbedBy()?.let { it to s } }
-                .groupBy({ it.first }, { it.second })
-                .mapValues { (_, cards) -> cards.sumOf { scoringArrowCount(it) } }
-        val volume = mutableListOf<VolumePoint>()
-        formSessions.forEach { s ->
-            val captured = s.arrowsActual ?: repo.shotCount(s.id)
-            volume += VolumePoint(s.startedAtEpochMs, maxOf(captured, linkedScored[s.id] ?: 0))
-        }
-        scoreSessions
-            .filter { it.absorbedBy() == null }
-            .forEach { s ->
-                volume += VolumePoint(s.completedAt ?: s.updatedAt, scoringArrowCount(s))
-            }
+        val volume =
+            TrainingVolume.points(
+                    formSessions.map { s ->
+                        TrainingVolume.Capture(
+                            s.id,
+                            s.startedAtEpochMs,
+                            s.arrowsActual ?: repo.shotCount(s.id),
+                        )
+                    },
+                    scoreSessions.map { s ->
+                        TrainingVolume.Card(
+                            s.completedAt ?: s.updatedAt,
+                            s.linkedFormSessionId,
+                            scoringArrowCount(s),
+                        )
+                    },
+                )
+                .map { VolumePoint(it.atMs, it.arrows) }
         val from28 = System.currentTimeMillis() - 28L * 86_400_000L
         val goals =
             features.goals().map { e ->

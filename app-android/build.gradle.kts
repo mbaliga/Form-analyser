@@ -280,3 +280,12 @@ if (providers.gradleProperty("crocodylRequireProductionSigning").isPresent) {
         dependsOn(verifyReleaseSigning)
     }
 }
+
+// The home-screen widget tests (WidgetSourceTest) inflate the real RemoteViews layouts and read the
+// app's strings, so Robolectric needs the merged Android resources. Appended here rather than in
+// the android block above so the build-file lines the store documents cite stay where they are.
+android {
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+}

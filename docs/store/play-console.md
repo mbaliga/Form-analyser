@@ -62,6 +62,10 @@ The point a reviewer will look for, and the answer:
   transmitted.** Raw session video is off by default; when the user switches it on it is kept in
   the app's own storage, is never exported and never sent.
 - Sessions, shots, scores and the baseline live in a local Room database.
+- **Home-screen widgets** (only if the user places them) show a short summary from that database on
+  the device's home screen, drawn by the launcher on the device; nothing is sent anywhere, and no
+  physio plan name, injury detail, mood, life-event, cycle, medication or document entry is shown.
+  See "Home-screen widgets" in the privacy policy. [OWNER: review with that section.]
 - The pose model (`pose_landmarker_lite.task`) is **bundled inside the app**, so the installed app
   makes no model download and the form analysis works fully offline.
 - **Google's MediaPipe Tasks library contains a usage-statistics client** that would report the

@@ -103,9 +103,18 @@ class WellnessAssembler(private val repo: Repository) {
         return StreakEngine.evaluate(completed, today = factsFor(today))
     }
 
-    suspend fun readiness(athleteId: String, today: LocalDate = LocalDate.now(), nowMs: Long = System.currentTimeMillis()): ReadinessResult {
+    /**
+     * [precomputedAcwr] lets a caller that also shows the ratio (the home-screen readiness widget) pass
+     * the series it already computed for [today], instead of reading every session's load twice.
+     */
+    suspend fun readiness(
+        athleteId: String,
+        today: LocalDate = LocalDate.now(),
+        nowMs: Long = System.currentTimeMillis(),
+        precomputedAcwr: AcwrSeries? = null,
+    ): ReadinessResult {
         val hiatus = repo.wellness.openHiatus() != null
-        val acwrSeries = acwr(athleteId, today)
+        val acwrSeries = precomputedAcwr ?: acwr(athleteId, today)
         val acwrVal = if (acwrSeries.warmupComplete) acwrSeries.latest?.acwr else null
         val latest = repo.wellness.latestCheckin(athleteId)
         val soreness = latest?.let { repo.wellness.sorenessFor(it.id).size } ?: 0

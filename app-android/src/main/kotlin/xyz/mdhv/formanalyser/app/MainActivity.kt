@@ -108,6 +108,8 @@ class MainActivity : ComponentActivity() {
         Vault.wipeViewCache(applicationContext)
         runCatching { File(applicationContext.cacheDir, "camera").deleteRecursively() }
         SafExportPublisher.clearOrphanedStaging(applicationContext.cacheDir)
+        // A home-screen widget tap names where to go; a recreated activity must not re-navigate.
+        if (savedInstanceState == null) xyz.mdhv.formanalyser.app.widget.WidgetLaunch.accept(intent)
         setContent {
             val prefs = remember { AppPrefs(this@MainActivity) }
             val storedTheme by prefs.themeMode.collectAsState(initial = ThemeMode.SYSTEM.name)
@@ -117,6 +119,13 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    /** A widget tap while this screen is on top (WidgetTapActivity forwards it with SINGLE_TOP). */
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        xyz.mdhv.formanalyser.app.widget.WidgetLaunch.accept(intent)
     }
 }
 
@@ -163,6 +172,11 @@ private fun AppRoot() {
         DatabaseState.Ready -> {
             val p = remember { AppPrefs(c) }
             val onboarded by p.onboarded.collectAsState(initial = null as Boolean?)
+            // Home-screen widgets follow the profile: before onboarding, or after a full wipe, they
+            // redraw to their first-run state instead of keeping data that no longer exists.
+            LaunchedEffect(onboarded) {
+                if (onboarded == false) xyz.mdhv.formanalyser.app.widget.WidgetRefresh.onAppReady(c)
+            }
             DbRecoveryNotice()
             when (onboarded) {
                 null -> Box(Modifier.fillMaxSize())
@@ -343,6 +357,21 @@ private fun MainShell() {
     val back by nav.currentBackStackEntryAsState()
     val route = back?.destination?.route
     val onTab = route in Routes.TABS
+    // Home-screen widgets: the app is past its database gate, so keep them current from here, and
+    // land a widget tap once the navigation graph exists.
+    LaunchedEffect(Unit) { xyz.mdhv.formanalyser.app.widget.WidgetRefresh.onAppReady(c) }
+    val widgetDestination by xyz.mdhv.formanalyser.app.widget.WidgetLaunch.pending.collectAsState()
+    LaunchedEffect(widgetDestination, route != null) {
+        if (widgetDestination == null || route == null) return@LaunchedEffect
+        val destination = xyz.mdhv.formanalyser.app.widget.WidgetLaunch.take() ?: return@LaunchedEffect
+        // Never pull the athlete out of a running capture; the app simply comes to the front.
+        if (route == Routes.CAPTURE) return@LaunchedEffect
+        val target = widgetRoute(destination)
+        when {
+            target in Routes.TABS -> navigateTab(nav, target)
+            target != route -> nav.navigate(target) { launchSingleTop = true }
+        }
+    }
     var quick by remember { mutableStateOf(false) }
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     Scaffold(
@@ -645,6 +674,19 @@ private fun tabTitle(r: String?) =
         Routes.BODY -> "Body"
         Routes.CALENDAR -> "Calendar"
         else -> "Crocodyl"
+    }
+
+/** Where a home-screen widget tap lands (WidgetDestination is validated by name on arrival). */
+private fun widgetRoute(destination: xyz.mdhv.formanalyser.app.widget.WidgetDestination): String =
+    when (destination) {
+        xyz.mdhv.formanalyser.app.widget.WidgetDestination.HOME -> Routes.HOME
+        xyz.mdhv.formanalyser.app.widget.WidgetDestination.SCORE -> Routes.SCORE
+        xyz.mdhv.formanalyser.app.widget.WidgetDestination.TRAIN -> Routes.TRAIN
+        xyz.mdhv.formanalyser.app.widget.WidgetDestination.LOG -> Routes.LOG
+        xyz.mdhv.formanalyser.app.widget.WidgetDestination.PROGRESS -> Routes.PROGRESS
+        xyz.mdhv.formanalyser.app.widget.WidgetDestination.BODY -> Routes.BODY
+        xyz.mdhv.formanalyser.app.widget.WidgetDestination.CALENDAR -> Routes.CALENDAR
+        xyz.mdhv.formanalyser.app.widget.WidgetDestination.RIGS -> Routes.S_RIGS
     }
 
 private fun navigateTab(nav: androidx.navigation.NavHostController, dest: String) {
