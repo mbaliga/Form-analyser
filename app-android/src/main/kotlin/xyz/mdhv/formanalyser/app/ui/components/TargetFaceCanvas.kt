@@ -9,6 +9,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlin.math.hypot
 import kotlin.math.min
@@ -23,7 +25,7 @@ fun TargetFaceCanvas(
     modifier: Modifier = Modifier,
 ) {
     Canvas(
-        modifier.fillMaxWidth().aspectRatio(1f).pointerInput(enabled, layout) {
+        modifier.fillMaxWidth().aspectRatio(1f).pointerHoverIcon(PointerIcon.Crosshair).pointerInput(enabled, layout) {
             if (!enabled) return@pointerInput
             detectTapGestures { tap ->
                 val faces = faceGeometry(size.width.toFloat(), size.height.toFloat(), layout)
