@@ -584,6 +584,11 @@ fun SettingsAboutScreen(onLicences: () -> Unit) {
             subtitle = "The libraries and the pose model Crocodyl uses, and their licences",
             onClick = onLicences,
         )
+        Text(
+            "Keyboard shortcuts (hardware keyboard): Esc back, Ctrl+, Settings, Ctrl+N quick add, " +
+                "Ctrl+1 to 5 switch tabs.",
+            color = Hyle.OnSurfaceDim,
+        )
     }
 }
 

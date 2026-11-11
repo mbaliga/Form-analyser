@@ -33,6 +33,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -345,7 +351,36 @@ private fun MainShell() {
     val onTab = route in Routes.TABS
     var quick by remember { mutableStateOf(false) }
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    // Hardware-keyboard shortcuts for windowed/desktop use. Only hardware key events reach this;
+    // touch-only phones never produce them. Esc goes back only off the tab roots, so it never
+    // closes the app. Ctrl+1..5 follow the dock order.
+    val tabOrder = listOf(Routes.HOME, Routes.TRAIN, Routes.PROGRESS, Routes.BODY, Routes.CALENDAR)
+    val digitKeys = listOf(Key.One, Key.Two, Key.Three, Key.Four, Key.Five)
     Scaffold(
+        modifier =
+            Modifier.onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when {
+                    e.key == Key.Escape && !onTab -> {
+                        backDispatcher?.onBackPressed()
+                        true
+                    }
+                    !e.isCtrlPressed -> false
+                    e.key == Key.Comma && route != Routes.SETTINGS -> {
+                        nav.navigate(Routes.SETTINGS)
+                        true
+                    }
+                    e.key == Key.N && onTab -> {
+                        quick = true
+                        true
+                    }
+                    onTab && e.key in digitKeys -> {
+                        navigateTab(nav, tabOrder[digitKeys.indexOf(e.key)])
+                        true
+                    }
+                    else -> false
+                }
+            },
         topBar = {
             if (onTab) {
                 if (route != Routes.HOME) {
@@ -374,7 +409,18 @@ private fun MainShell() {
         // inside this NavHost, and on targetSdk 35 the window no longer resizes for the keyboard,
         // so without it the field being typed into can sit underneath the IME with no way to
         // scroll it into view. Applied after the Scaffold's own padding so the two stack.
-        NavHost(nav, Routes.HOME, Modifier.padding(pad).imePadding()) {
+        // Content is capped at 840dp and centred so a wide freeform window does not stretch forms
+        // across the screen; on a phone the cap is never reached, so layout there is unchanged.
+        NavHost(
+            nav,
+            Routes.HOME,
+            Modifier.fillMaxSize()
+                .padding(pad)
+                .imePadding()
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .widthIn(max = 840.dp)
+                .fillMaxWidth(),
+        ) {
             composable(Routes.HOME) {
                 HomeScreen(
                     homeVm,
