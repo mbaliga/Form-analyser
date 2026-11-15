@@ -69,4 +69,13 @@ Treat US and EU as markets, not just retailer locations: an offer should record 
 
 ## Current catalogue slice
 
-The initial visual prototype contains the existing 50-item recurve-riser selection. Its image URLs point to the source retailer CDN and are not redistributed as bundled files. Stabilisers, long rods, quivers, backpacks, cases, strings, tabs, other limb models, fencing and bouldering are represented as taxonomy and source discovery in this first branch slice; their individual product/variant records still need permitted feeds or product-by-product verification. This is not yet a complete US/EU market catalogue.
+The branch now includes a source-linked visual catalogue and a structured JSON dataset. The current curated slice contains 480 entries:
+
+- 50 riser listings from Lancaster Archery, with retailer-hosted photos.
+- 324 ILF limb length/marked-weight options across nine model families, expanded only from product-page ranges and increments.
+- 30 Lancaster target stabiliser listings and 30 quiver entries.
+- 6 backpack, 7 case, 3 string and 30 finger-tab entries.
+
+The HTML viewer filters by equipment slot, maker, market and search term. The JSON keeps product links, image URLs, per-entry specs, seller and observation date. Fifty-eight entries currently have verified remote image URLs. Images are hotlinked from the source sites and are not packaged in this repository.
+
+This is a curated market slice, not a complete catalogue of every product currently sold in the US and EU. Direct retailer collection extraction was rate-limited during this update, and public category pages expose fewer individually verifiable products for backpacks, cases and strings. The catalogue therefore makes its coverage counts visible and links users to the source category or product page where an individual image or specific variant remains unverified. Availability, price and stock are not asserted. Continue with permitted manufacturer data, retailer feeds or product-by-product verification, retaining source and retrieval details for every added model and variant.
