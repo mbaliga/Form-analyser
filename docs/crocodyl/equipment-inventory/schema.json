@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://crocodyl.example/schemas/equipment-catalogue.schema.json",
+  "title": "Athlete Equipment Catalogue",
+  "type": "object",
+  "required": ["schemaVersion", "sports", "productModels", "variants", "offers", "athleteItems", "loadouts", "sessionSnapshots"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "sports": {"type": "array", "items": {"$ref": "#/$defs/sport"}},
+    "productModels": {"type": "array", "items": {"$ref": "#/$defs/productModel"}},
+    "variants": {"type": "array", "items": {"$ref": "#/$defs/variant"}},
+    "offers": {"type": "array", "items": {"$ref": "#/$defs/offer"}},
+    "athleteItems": {"type": "array", "items": {"$ref": "#/$defs/athleteItem"}},
+    "loadouts": {"type": "array", "items": {"$ref": "#/$defs/loadout"}},
+    "sessionSnapshots": {"type": "array", "items": {"$ref": "#/$defs/sessionSnapshot"}}
+  },
+  "$defs": {
+    "sport": {
+      "type": "object", "required": ["id", "name", "slots"],
+      "properties": {
+        "id": {"type": "string"}, "name": {"type": "string"},
+        "slots": {"type": "array", "items": {"type": "object", "required": ["id", "name"], "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "required": {"type": "boolean"}}}}
+      }
+    },
+    "sourceRef": {
+      "type": "object", "required": ["url", "observedAt"],
+      "properties": {"url": {"type": "string", "format": "uri"}, "observedAt": {"type": "string", "format": "date-time"}, "field": {"type": "string"}, "confidence": {"enum": ["manufacturer", "retailer", "athlete-entered", "unknown"]}}
+    },
+    "productModel": {
+      "type": "object", "required": ["id", "sportId", "slotId", "maker", "model", "sources"],
+      "properties": {
+        "id": {"type": "string"}, "sportId": {"type": "string"}, "slotId": {"type": "string"}, "maker": {"type": "string"}, "model": {"type": "string"}, "modelYear": {"type": ["integer", "null"]}, "description": {"type": ["string", "null"]}, "specs": {"type": "object"}, "image": {"type": ["object", "null"], "properties": {"url": {"type": "string", "format": "uri"}, "rights": {"type": ["string", "null"]}, "credit": {"type": ["string", "null"]}, "sourceUrl": {"type": "string", "format": "uri"}}}, "sources": {"type": "array", "items": {"$ref": "#/$defs/sourceRef"}}
+      }
+    },
+    "variant": {
+      "type": "object", "required": ["id", "productModelId", "attributes"],
+      "properties": {"id": {"type": "string"}, "productModelId": {"type": "string"}, "manufacturerSku": {"type": ["string", "null"]}, "attributes": {"type": "object"}, "sources": {"type": "array", "items": {"$ref": "#/$defs/sourceRef"}}
+      }
+    },
+    "offer": {
+      "type": "object", "required": ["id", "variantId", "seller", "market", "productUrl", "observedAt"],
+      "properties": {"id": {"type": "string"}, "variantId": {"type": "string"}, "seller": {"type": "string"}, "sellerCountry": {"type": ["string", "null"]}, "market": {"enum": ["US", "EU", "UK", "other"]}, "currency": {"type": ["string", "null"]}, "price": {"type": ["number", "null"]}, "availability": {"type": ["string", "null"]}, "shipsTo": {"type": "array", "items": {"type": "string"}}, "productUrl": {"type": "string", "format": "uri"}, "imageUrl": {"type": ["string", "null"], "format": "uri"}, "observedAt": {"type": "string", "format": "date-time"}}
+      }
+    },
+    "athleteItem": {
+      "type": "object", "required": ["id", "athleteId", "status"],
+      "properties": {"id": {"type": "string"}, "athleteId": {"type": "string"}, "variantId": {"type": ["string", "null"]}, "customName": {"type": ["string", "null"]}, "status": {"enum": ["owned", "borrowed", "wishlist", "retired", "custom"]}, "acquiredAt": {"type": ["string", "null"], "format": "date"}, "serial": {"type": ["string", "null"]}, "notes": {"type": "string"}, "settings": {"type": "object"}}
+      }
+    },
+    "loadout": {
+      "type": "object", "required": ["id", "athleteId", "sportId", "name", "slots"],
+      "properties": {"id": {"type": "string"}, "athleteId": {"type": "string"}, "sportId": {"type": "string"}, "name": {"type": "string"}, "slots": {"type": "array", "items": {"type": "object", "required": ["slotId", "athleteItemId"], "properties": {"slotId": {"type": "string"}, "athleteItemId": {"type": "string"}, "settings": {"type": "object"}}}}, "createdAt": {"type": "string", "format": "date-time"}}
+      }
+    },
+    "sessionSnapshot": {
+      "type": "object", "required": ["id", "sessionId", "loadoutId", "items", "capturedAt"],
+      "properties": {"id": {"type": "string"}, "sessionId": {"type": "string"}, "loadoutId": {"type": "string"}, "items": {"type": "array", "items": {"type": "object", "required": ["athleteItemId", "settings"], "properties": {"athleteItemId": {"type": "string"}, "settings": {"type": "object"}}}}, "capturedAt": {"type": "string", "format": "date-time"}}
+    }
+  }
+}
