@@ -69,7 +69,7 @@ Treat US and EU as markets, not just retailer locations: an offer should record 
 
 ## Current catalogue slice
 
-The branch now includes a source-linked visual catalogue and a structured JSON dataset. The current curated slice contains 480 entries:
+The branch now includes a source-linked visual catalogue and a structured JSON dataset. Open the [visual catalogue](catalogue.html) or inspect the [machine-readable records](catalogue.json). The current curated slice contains 480 entries:
 
 - 50 riser listings from Lancaster Archery, with retailer-hosted photos.
 - 324 ILF limb length/marked-weight options across nine model families, expanded only from product-page ranges and increments.
