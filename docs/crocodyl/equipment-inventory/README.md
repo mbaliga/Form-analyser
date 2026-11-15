@@ -66,3 +66,7 @@ Treat US and EU as markets, not just retailer locations: an offer should record 
 - A session can snapshot its exact equipment and setup, with a path to the performance record.
 - Coverage dashboards distinguish verified products, variants, offers and sources, and show freshness and gaps.
 - Every uncertain or missing spec is explicit; the interface never silently invents a value.
+
+## Current catalogue slice
+
+The initial visual prototype contains the existing 50-item recurve-riser selection. Its image URLs point to the source retailer CDN and are not redistributed as bundled files. Stabilisers, long rods, quivers, backpacks, cases, strings, tabs, other limb models, fencing and bouldering are represented as taxonomy and source discovery in this first branch slice; their individual product/variant records still need permitted feeds or product-by-product verification. This is not yet a complete US/EU market catalogue.
