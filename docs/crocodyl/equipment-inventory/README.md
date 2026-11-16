@@ -49,13 +49,16 @@ Each sport should define its own slots and required/optional status. Let an athl
 
 Start with product feeds or retailer/manufacturer catalogues where available. Record the source and last-seen date for every field; mark unknown specs instead of inferring them. Merge duplicate retailer listings by manufacturer/model/variant evidence, retaining each seller's offer.
 
-Initial public market sources identified:
+The initial auditable coverage set uses major retailers selected for the US and EU markets. The [coverage registry](market-coverage.json) records source URLs, visible category listing counts, item record counts and coverage status per retailer. The visual viewer is [catalogue.html](catalogue.html), and the machine-readable data is [catalogue.json](catalogue.json).
 
-- US recurve breadth: Lancaster Archery category and product pages — `https://lancasterarchery.com/collections/olympic-recurve`, with dedicated riser, limb, stabiliser, case, backpack, quiver, string and tab categories.
-- EU target archery: Target Archery EU — `https://target-archery.eu/` (public catalogue reports 455 products in the source index checked for this brief); Europe Archery — `https://www.europearchery.com/`.
-- Fencing examples for a later sport pack: German Fencing Gear — `https://germanfencinggear.com/`; Fechtwelt — `https://fechtwelt.de/en_GB`; Leon Paul — `https://www.leonpaul.com/`; PBT — `https://shop.pbtfencing.com/`.
+Current sources and status:
 
-Treat US and EU as markets, not just retailer locations: an offer should record shipping destination/availability, currency, vendor country, tax treatment where displayed, and the date observed. Do not promise exhaustive coverage until the sources and update pipeline can demonstrate it. Respect retailer terms and image licensing. Prefer manufacturer media feeds or stable linked image URLs and store image provenance; do not package copied images without a clear reuse basis.
+- **Archery:** Lancaster Archery Supply (US) and Target Archery (EU). The catalogue contains 480 Lancaster records and 13 Target Archery records. These are partial collections; category pages/options remain to be captured.
+- **Bouldering:** REI (US) and Bergfreunde (EU). All 26 currently indexed REI Bouldering Gear listings are represented. Bergfreunde contributes 81 named shoe/accessory records from visible product pages. Neither constitutes every listing or every size/color offer across those retailers.
+- **Fencing:** Absolute Fencing Gear (US, 20 records), Allstar USA (US, 7), PBT Fencing (EU, 16), and Leon Paul USA (US, 16). These records cover selected masks, uniform items and accessories; remaining categories and listings are not yet captured.
+- **Additional retailers identified, not yet catalogued:** Blue Gauntlet, Europe Archery and Decathlon.
+
+This is a useful visual inventory, not yet an exhaustive market catalogue for the named retailers. Source counts are not catalogue counts. Product options that are not verified remain on source pages; availability, price and stock are not asserted. Continue with permitted retailer feeds and product-by-product verification, retaining source and retrieval details for each model and variant. Product images are linked remotely to their source pages and are not packaged in this repository.
 
 ## Initial acceptance criteria
 
@@ -67,15 +70,6 @@ Treat US and EU as markets, not just retailer locations: an offer should record 
 - Coverage dashboards distinguish verified products, variants, offers and sources, and show freshness and gaps.
 - Every uncertain or missing spec is explicit; the interface never silently invents a value.
 
-## Current catalogue slice
+## Current catalogue
 
-The branch now includes a source-linked visual catalogue and a structured JSON dataset. Open the [visual catalogue](catalogue.html) or inspect the [machine-readable records](catalogue.json). The current curated slice contains 480 entries:
-
-- 50 riser listings from Lancaster Archery, with retailer-hosted photos.
-- 324 ILF limb length/marked-weight options across nine model families, expanded only from product-page ranges and increments.
-- 30 Lancaster target stabiliser listings and 30 quiver entries.
-- 6 backpack, 7 case, 3 string and 30 finger-tab entries.
-
-The HTML viewer filters by equipment slot, maker, market and search term. The JSON keeps product links, image URLs, per-entry specs, seller and observation date. Fifty-eight entries currently have verified remote image URLs. Images are hotlinked from the source sites and are not packaged in this repository.
-
-This is a curated market slice, not a complete catalogue of every product currently sold in the US and EU. Direct retailer collection extraction was rate-limited during this update, and public category pages expose fewer individually verifiable products for backpacks, cases and strings. The catalogue therefore makes its coverage counts visible and links users to the source category or product page where an individual image or specific variant remains unverified. Availability, price and stock are not asserted. Continue with permitted manufacturer data, retailer feeds or product-by-product verification, retaining source and retrieval details for every added model and variant.
+As observed on 2026-11-16, the catalogue contains **659 source-linked records**: 493 archery, 107 bouldering and 59 fencing. There are 63 remote image links. The HTML viewer filters by sport, equipment slot, maker, market and search term. JSON records retain product model IDs, selected variant attributes, seller, market, source URL and observation date where captured. The viewer and data are kept in sync; detailed coverage limitations are in `market-coverage.json`.

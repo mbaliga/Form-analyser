@@ -1,0 +1,177 @@
+{
+  "observedAt": "2026-11-16",
+  "scope": "Selected major US/EU retailers named for this first auditable coverage set. Coverage is tracked by retailer and source category; status partial means one or more category pages, listings or selectable options remain uncaptured. Counts are source-visible listings, not ingested product totals.",
+  "retailers": [
+    {
+      "id": "lancaster-us",
+      "seller": "Lancaster Archery Supply",
+      "market": "US",
+      "url": "https://lancasterarchery.com/collections/olympic-recurve",
+      "sport": "archery",
+      "categoryScope": [
+        "target/recurve bows, risers, limbs, strings, stabilizers, sights, tabs, quivers, cases, backpacks, arrows and accessories"
+      ],
+      "sourceVisibleCount": 1387,
+      "observedCountMeaning": "Olympic Recurve collection count; includes multiple equipment types and variants/listings",
+      "cataloguedEntries": 480,
+      "status": "partial",
+      "notes": "493 source-linked records concentrated in risers, limbs and selected accessories. The 1,387 Olympic Recurve collection includes many other listings; remaining pages and option combinations remain uncaptured. Direct bulk feed was rate-limited."
+    },
+    {
+      "id": "target-archery-eu",
+      "seller": "Target Archery",
+      "market": "EU",
+      "url": "https://target-archery.eu/collections/recurve-bows",
+      "sport": "archery",
+      "categoryScope": [
+        "recurve risers and limbs; sights; stabilization; strings; arrows/shafts/components; finger tabs; arm/chest guards; quivers; cases/backpacks; tools; targets"
+      ],
+      "sourceVisibleCount": 455,
+      "observedCountMeaning": "Retailer all-products category count last indexed; categories include all listed source navigation sections",
+      "cataloguedEntries": 13,
+      "status": "partial",
+      "notes": "13 named records from the 35-item Recurve Bows collection. Other categories in the 455-item all-products listing and size/hand/draw-weight selections remain uncaptured."
+    },
+    {
+      "id": "rei-us",
+      "seller": "REI Co-op",
+      "market": "US",
+      "url": "https://www.rei.com/s/bouldering-gear",
+      "sport": "bouldering",
+      "categoryScope": [
+        "shoes, chalk and chalk bags, crash pads, clothing, packs, training and related bouldering gear"
+      ],
+      "sourceVisibleCount": 26,
+      "observedCountMeaning": "Current indexed Bouldering Gear collection size; all 26 named listings captured as item records, with selectable options left on source pages.",
+      "cataloguedEntries": 26,
+      "status": "partial",
+      "notes": "All 26 currently indexed items in this collection are represented. This does not include every REI climbing-category result or expand size/color choices into separate offers."
+    },
+    {
+      "id": "bergfreunde-eu",
+      "seller": "Bergfreunde",
+      "market": "EU",
+      "url": "https://www.bergfreunde.eu/climbing-shoes/recommended-use--bouldering/",
+      "sport": "bouldering",
+      "categoryScope": [
+        "bouldering climbing shoes, chalk, chalk bags/buckets, brushes, crash pads, apparel and accessories"
+      ],
+      "sourceVisibleCount": 534,
+      "observedCountMeaning": "192 bouldering shoes plus 342 bouldering/climbing accessories on their respective category pages.",
+      "cataloguedEntries": 81,
+      "status": "partial",
+      "notes": "81 named entries from first visible product pages across shoes and accessories. Remaining page listings, apparel category, and size/color options remain uncaptured."
+    },
+    {
+      "id": "absolute-us",
+      "seller": "Absolute Fencing Gear",
+      "market": "US",
+      "url": "https://www.absolutefencinggear.com/uniforms",
+      "sport": "fencing",
+      "categoryScope": [
+        "weapons/blades and parts, masks, jackets, plastrons, pants, gloves, lamés, body cords, bags, safety gear"
+      ],
+      "sourceVisibleCount": 120,
+      "observedCountMeaning": "Uniforms collection; source facets show 26 LAME, 46 NON-FIE and 50 FIE listings",
+      "cataloguedEntries": 20,
+      "status": "partial",
+      "notes": "20 named mask and uniform records. Uniforms source facets list 120 products; weapon and accessory categories and remaining uniform listings remain uncaptured."
+    },
+    {
+      "id": "allstar-us",
+      "seller": "Allstar USA",
+      "market": "US",
+      "url": "https://www.allstarnyc.com/foil",
+      "sport": "fencing",
+      "categoryScope": [
+        "weapons, blades, guards/grips/points, masks, clothing, gloves, body cords and bags"
+      ],
+      "sourceVisibleCount": 4,
+      "observedCountMeaning": "Four mask listings in the indexed Foil category; additional body cord, blade and glove records are direct source product pages.",
+      "cataloguedEntries": 7,
+      "status": "partial",
+      "notes": "Seven source-linked records across foil masks, a body cord, a foil blade and a glove. Full category inventories and selectable variants remain uncaptured."
+    },
+    {
+      "id": "blue-gauntlet-us",
+      "seller": "Blue Gauntlet",
+      "market": "US",
+      "url": "https://www.blue-gauntlet.com/",
+      "sport": "fencing",
+      "categoryScope": [
+        "weapons, clothing, masks, parts and bags"
+      ],
+      "sourceVisibleCount": null,
+      "observedCountMeaning": "Not collected",
+      "cataloguedEntries": 0,
+      "status": "source identified",
+      "notes": "Retailer identified for future pass; no item records ingested yet."
+    },
+    {
+      "id": "pbt-eu",
+      "seller": "PBT Fencing",
+      "market": "EU",
+      "url": "https://shop.pbtfencing.com/webshop/fencing-masks-3?SAP_86=2837&lang=euro_foreign",
+      "sport": "fencing",
+      "categoryScope": [
+        "weapons, masks, uniforms, gloves, bags and parts"
+      ],
+      "sourceVisibleCount": 16,
+      "observedCountMeaning": "Current 16-row fencing mask category listing captured.",
+      "cataloguedEntries": 16,
+      "status": "partial",
+      "notes": "16 mask listing/variant records captured from the mask category; the broader catalog includes weapons, clothing, gloves, bags and accessories not yet ingested."
+    },
+    {
+      "id": "leon-paul-eu",
+      "seller": "Leon Paul",
+      "market": "US",
+      "url": "https://www.leonpaulusa.com/fencing-masks.html",
+      "sport": "fencing",
+      "categoryScope": [
+        "weapons, masks, uniforms, gloves, bags, shoes and parts"
+      ],
+      "sourceVisibleCount": 122,
+      "observedCountMeaning": "Fencing masks category count on Leon Paul USA.",
+      "cataloguedEntries": 16,
+      "status": "partial",
+      "notes": "16 named records from the first visible page of Leon Paul USA’s 122-mask listing. Remaining masks, other categories and offer variants remain uncaptured; not counted as EU inventory."
+    },
+    {
+      "id": "europe-archery",
+      "seller": "Europe Archery",
+      "market": "EU",
+      "url": "https://www.europearchery.com/",
+      "sport": "archery",
+      "categoryScope": [
+        "recurve bows and related accessories"
+      ],
+      "sourceVisibleCount": null,
+      "observedCountMeaning": "Not collected",
+      "cataloguedEntries": 0,
+      "status": "source identified",
+      "notes": "Retailer identified for future pass; no item records ingested yet."
+    },
+    {
+      "id": "decathlon-climbing-us-eu",
+      "seller": "Decathlon",
+      "market": "US/EU",
+      "url": "https://www.decathlon.com/",
+      "sport": "bouldering",
+      "categoryScope": [
+        "climbing shoes, chalk, clothing and crash pads"
+      ],
+      "sourceVisibleCount": null,
+      "observedCountMeaning": "Not collected",
+      "cataloguedEntries": 0,
+      "status": "source identified",
+      "notes": "Retailer identified for future pass; no item records ingested yet."
+    }
+  ],
+  "recordCountsBySport": {
+    "archery": 493,
+    "bouldering": 107,
+    "fencing": 59
+  },
+  "recordCount": 659
+}
